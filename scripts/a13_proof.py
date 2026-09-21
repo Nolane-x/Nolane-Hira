@@ -123,13 +123,10 @@ def main() -> None:
         "schema_cache_hit": schema_receipt.cache_hit,
         "decision_probabilities": [float(x) for x in decision.probabilities],
         "decision_sum": float(decision.probabilities.sum()),
-        "semantic_quality_claim": false,
-        "laya_jev_benchmark_claim": false
+        "semantic_quality_claim": False,
+        "laya_jev_benchmark_claim": False
     }
 
-    # JSON has no lowercase Python booleans; set after construction for explicitness.
-    payload["semantic_quality_claim"] = False
-    payload["laya_jev_benchmark_claim"] = False
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
