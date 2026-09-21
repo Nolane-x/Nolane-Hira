@@ -1,0 +1,172 @@
+{
+  "schema_version": "r8-source-registry-v1",
+  "policy": {
+    "immutable_revision_required_for_final": true,
+    "mutable_aliases_forbidden": [
+      "main",
+      "master",
+      "latest"
+    ],
+    "unresolved_sources_block_final": true
+  },
+  "sources": {
+    "laya.repo": {
+      "kind": "github",
+      "repo": "NandhaKishorM/laya",
+      "revision": "42626c348753fbb17572a813127df2278a1ec527",
+      "status": "pinned"
+    },
+    "laya.benchmarks": {
+      "kind": "git-blob",
+      "repo": "NandhaKishorM/laya",
+      "sha": "2d448beccd1f8f0b87ad9fe0b090addf3cafdbae",
+      "status": "pinned"
+    },
+    "laya.t4_results": {
+      "kind": "git-blob",
+      "repo": "NandhaKishorM/laya",
+      "sha": "ddc400a430834abc30c4bd028b6238153a968eee",
+      "status": "pinned"
+    },
+    "laya.cpu51_results": {
+      "kind": "git-blob",
+      "repo": "NandhaKishorM/laya",
+      "sha": "1cb7d5ed5c498a6919797181d0f9ecb205e05b3d",
+      "status": "pinned"
+    },
+    "jev.btzsc.repo": {
+      "kind": "github",
+      "repo": "AbdelStark/jev-benchmarks",
+      "revision": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+      "status": "pinned"
+    },
+    "jev.btzsc.dataset": {
+      "kind": "huggingface-dataset",
+      "repo": "btzsc/btzsc",
+      "revision": "fef2a2ac62b69c58670047dddf045c53d7c3cb5e",
+      "status": "pinned"
+    },
+    "jev.banking24.repo": {
+      "kind": "github",
+      "repo": "simonmesmith/jev-banking77-experiment",
+      "revision": "5cac4ff7783a4cfc0badba4124a309dd2a2b9862",
+      "status": "pinned"
+    },
+    "banking77.official": {
+      "kind": "github",
+      "repo": "PolyAI-LDN/task-specific-datasets",
+      "revision": "57ec275d8078af65b7731c2a98be812d844a6d6b",
+      "status": "pinned"
+    },
+    "massive.raw": {
+      "kind": "huggingface-dataset",
+      "repo": "AmazonScience/massive",
+      "revision": "ff6bd8e4b27c3543e4f8fe2108f32bb95a6f8740",
+      "status": "pinned",
+      "note": "source/loader revision already audited; direct Laya lane remains held out"
+    },
+    "xnli": {
+      "kind": "huggingface-dataset",
+      "repo": "facebook/xnli",
+      "revision": "b8dd5d7af51114dbda02c0e3f6133f332186418e",
+      "status": "pinned"
+    },
+    "typed_decisions": {
+      "kind": "huggingface-dataset",
+      "repo": "LocalLLaMA/typed-decisions",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "mteb.massive_intent": {
+      "kind": "huggingface-dataset",
+      "repo": "mteb/amazon_massive_intent",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "mteb.massive_scenario": {
+      "kind": "huggingface-dataset",
+      "repo": "mteb/amazon_massive_scenario",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "sst5": {
+      "kind": "huggingface-dataset",
+      "repo": "SetFit/sst5",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "emotion": {
+      "kind": "huggingface-dataset",
+      "repo": "dair-ai/emotion",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "prompt_injections": {
+      "kind": "huggingface-dataset",
+      "repo": "deepset/prompt-injections",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "banking77.hf": {
+      "kind": "huggingface-dataset",
+      "repo": "PolyAI/banking77",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN",
+      "note": "official GitHub source is pinned; HF adapter used by exact Laya script still needs revision pin"
+    },
+    "ag_news": {
+      "kind": "huggingface-dataset",
+      "repo": "fancyzhx/ag_news",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "boolq": {
+      "kind": "huggingface-dataset",
+      "repo": "google/boolq",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "enron_spam": {
+      "kind": "huggingface-dataset",
+      "repo": "SetFit/enron_spam",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "phishing_email": {
+      "kind": "huggingface-dataset",
+      "repo": "zefang-liu/phishing-email-dataset",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "toxic_chat": {
+      "kind": "huggingface-dataset",
+      "repo": "lmsys/toxic-chat",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "ms_marco": {
+      "kind": "huggingface-dataset",
+      "repo": "microsoft/ms_marco",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "support_tickets": {
+      "kind": "huggingface-dataset",
+      "repo": "Tobi-Bueck/customer-support-tickets",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "gsm8k": {
+      "kind": "huggingface-dataset",
+      "repo": "openai/gsm8k",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    },
+    "mbpp": {
+      "kind": "huggingface-dataset",
+      "repo": "google-research-datasets/mbpp",
+      "revision": null,
+      "status": "BLOCKED_FOR_FINAL_RUN"
+    }
+  }
+}
