@@ -1,0 +1,68 @@
+name: r13-breaking-nli
+
+on:
+  push:
+    branches:
+      - feat/r13-heldout-nli-stress
+    paths:
+      - "scripts/r13_breaking_nli_eval.py"
+      - ".github/workflows/r13-breaking-nli.yml"
+      - "research/R13-BREAKING-NLI-PROTOCOL.md"
+
+jobs:
+  breaking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - name: Checkout HIRA
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Breaking NLI
+        uses: actions/checkout@v4
+        with:
+          repository: BIU-NLP/Breaking_NLI
+          ref: 8a7658c1ce6b732f4e8af3b06560f1a13b8b18b0
+          path: external/breaking
+
+      - name: Download exact R12 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r12-scale-evidence
+          path: upstream/r12
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35665673683
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install evaluator stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+          python -m py_compile scripts/r13_breaking_nli_eval.py
+
+      - name: Verify frozen inputs
+        run: |
+          test "$(sha256sum upstream/r12/hira-head.pt | cut -d' ' -f1)" = "0ca95572399d15717e1069545439165e46083c58afea8707cbbadeca67ad3b86"
+          test "$(git -C external/breaking rev-parse HEAD)" = "8a7658c1ce6b732f4e8af3b06560f1a13b8b18b0"
+
+      - name: Run untouched Breaking NLI evaluation
+        run: |
+          python scripts/r13_breaking_nli_eval.py \
+            --dataset-zip external/breaking/breaking_nli_dataset.zip \
+            --r12-head upstream/r12/hira-head.pt \
+            --out artifacts/r13-breaking/receipt.json \
+            --batch-size 64 \
+            --segments 8
+          cat artifacts/r13-breaking/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r13-breaking-evidence
+          path: artifacts/r13-breaking/receipt.json
+          if-no-files-found: error
