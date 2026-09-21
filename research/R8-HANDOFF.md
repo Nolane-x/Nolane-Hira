@@ -1,0 +1,110 @@
+# R8 handoff — Laya/Jev benchmark campaign
+
+Status: **OPEN, benchmark contract frozen enough to execute**.
+
+## Read first
+
+1. `benchmarks/BENCHMARK_CAMPAIGN.md`
+2. `benchmarks/laya_jev_targets.json`
+3. `benchmarks/laya_fullboard.py`
+4. `benchmarks/laya_protocol_manifest.json`
+5. `benchmarks/jev_protocol_manifest.json`
+6. `benchmarks/training_allowance.json`
+7. `research/R8-CORRECTIONS.md`
+8. R7 architecture/build-order docs.
+
+## Frozen reference
+
+Laya:
+- commit `42626c348753fbb17572a813127df2278a1ec527`
+- BENCHMARKS blob `2d448beccd1f8f0b87ad9fe0b090addf3cafdbae`
+- T4 results `ddc400a430834abc30c4bd028b6238153a968eee`
+- CPU51 results `1cb7d5ed5c498a6919797181d0f9ecb205e05b3d`
+
+Jev zero-shot pilot:
+- `AbdelStark/jev-benchmarks@0d610cc53e79bcbec691312b0c4adb4a0e371642`
+- BTZSC revision `fef2a2ac62b69c58670047dddf045c53d7c3cb5e`
+
+Jev Banking77 retrieved-24 challenge:
+- `simonmesmith/jev-banking77-experiment@5cac4ff7783a4cfc0badba4124a309dd2a2b9862`
+- Banking77 source commit `57ec275d8078af65b7731c2a98be812d844a6d6b`
+
+## Scoreboards
+
+- **53-cell headline board:** fixed public targets, including Laya and protocol-separated Jev targets.
+- **706-cell Laya quality board:** generated from the pinned T4 + CPU51 artifacts. It compares HIRA to the best Laya checkpoint independently per metric cell.
+- Application/systems extras remain separately labeled because their source artifacts/protocols differ.
+
+A missing HIRA result is `MISSING`, never zero and never silently removed.
+
+## Critical correction from R6
+
+For the direct Laya generalization lane, do **not** train HIRA on MASSIVE, XNLI, SST-5, DAIR Emotion, prompt-injections or Banking77. Laya's frozen benchmark source marks these as held out (and MASSIVE/XNLI not used in base checkpoint training).
+
+Earlier Banking77 sparse/prototype scores used labeled task data and therefore remain architecture probes only.
+
+Typed-decisions has two lanes:
+- base/zero-shot: no typed-decisions task training;
+- fine-tuned: training allowed because Laya's 0.766 checkpoint is benchmark-fine-tuned.
+
+Adapted/specialized lanes are allowed, but cannot replace direct generalization cells.
+
+## Execution order
+
+### E0 — reproduce manifests
+Materialize exact raw bytes/revisions and regenerate Laya/Jev evaluation manifests. Store hashes and immutable run receipts. Do not train a neural candidate before the direct-test exclusions are machine-enforced.
+
+### E1 — frozen A13 proof
+Acquire/pin A13. Run held-out/direct suites without task adaptation. Establish which capabilities exist before HIRA-specific training.
+
+### E2 — semantic relation training
+Use non-evaluation corpora + teacher/synthetic relation data. Test pointwise/listwise/pairwise objectives. Public held-out benchmark labels remain unavailable for selection.
+
+### E3 — typed-decisions specialized lane
+Fine-tune on its training split. Optimize full distribution quality as well as argmax:
+- accuracy target >0.766,
+- soft accuracy target >0.580 if attempting to beat Jev too,
+- Brier <0.061 to beat Laya,
+- raw ECE <0.144 to beat both published Jev and Laya raw,
+- score MAE <0.242.
+
+### E4 — high cardinality
+Direct held-out Banking77 first; K=128/K=255 synthetic/fresh schema stress next.
+Candidate recall must remain explicit. If recall gate fails, force all-K.
+Then run a separate equal-information retrieved-24 Banking77 challenge against Jev 92.40%.
+
+### E5 — reliability
+Option permutations, opaque IDs, paraphrase, negation, contradiction, calibration, OOD and selective risk. Calibration and OOD remain separate authorities.
+
+### E6 — systems
+Matched Tesla T4 protocol for direct comparison with Laya Q=1/5/10/50. Record p50/p95, throughput, peak RAM/VRAM, model bytes and semantic encoder calls. Never compare a local CPU time directly to Laya T4 as a winner claim.
+
+### E7 — multilingual
+Train using corpora other than the frozen MASSIVE/XNLI direct tests. Evaluate EN/VI first, then the Laya 14/15-language lanes and 51-language MASSIVE board. An adapted MASSIVE/XNLI lane, if run, must be labeled separately.
+
+### E8 — compression
+Only after A13 quality is understood: A6 rival and A7-FE tournament. A22 only if the capacity trigger fires.
+
+## Attack priorities
+
+1. **Banking77 / K=255:** HIRA was designed specifically to avoid Laya's shared option-token budget. This is the most architecture-revealing opportunity.
+2. **typed probability quality:** optimize soft accuracy, Brier/NLL/ECE, not just top-1.
+3. **option-order invariance:** HIRA logical options should make ordering close to irrelevant; enforce and test.
+4. **state-once Q=10/Q=50:** strongest systems hypothesis.
+5. **OOD/selective risk:** do not repeat confidence-as-OOD failures.
+6. **held-out generalization:** public target wins are secondary to fresh confirmatory success.
+
+## Kill / downgrade conditions
+
+- If A13 cannot beat strong sparse/rival controls on semantic held-out families after non-leaky relation training, do not continue claiming neural value.
+- If candidate recall misses its target, disable pruning for that regime.
+- If OOD gate fails, autonomous mode stays disabled.
+- If A6 matches A13 across the full typed/reliability envelope, 13M is not a justified production target.
+- If public benchmark gains disappear on frozen confirmatory data, label them benchmark specialization.
+- Never alter a target after seeing HIRA final-test results.
+
+## Next task
+
+Finish W1 reproducibility authority: pin raw dataset bytes/revisions and build exact Laya/Jev manifests from the recipes above. Then begin W2 A13 acquisition and frozen proof.
+
+No HIRA benchmark win exists yet. Current scorecard is intentionally all `MISSING` until real model runs produce immutable receipts.
