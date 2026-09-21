@@ -1,0 +1,56 @@
+{
+  "version": "r6-gates-v1",
+  "principle": "gates are preregistered targets for build; where a matched baseline is not yet measured the gate is relative or marked pending, never invented as achieved",
+  "gates": [
+    {
+      "id": "G0-repro",
+      "required": true,
+      "rule": "all training/eval sources, splits, seeds, checkpoint revisions and hashes recorded; final test not used for selection"
+    },
+    {
+      "id": "G1-neural-value",
+      "required": true,
+      "rule": "A13/HIRA must beat or complement sparse controls: >=5 absolute points on at least 2 dynamic/relation/robustness families OR provide a reliability capability sparse cannot meet; fixed-schema accuracy alone is insufficient"
+    },
+    {
+      "id": "G2-dynamic",
+      "required": true,
+      "rule": "opaque-label accuracy delta <=0.5 point; option order invariance exact within numerical tolerance; held-schema quality meets preregistered floor"
+    },
+    {
+      "id": "G3-highK",
+      "required": true,
+      "rule": "candidate recall >=99.5% on calibration/audit when rerank budget <K; otherwise runtime must force all-K and report it; K=255 must remain numerically valid full-K"
+    },
+    {
+      "id": "G4-calibration",
+      "required": true,
+      "rule": "in-domain ECE <=0.05 and shifted ECE <=0.10 after held calibration, with Brier/NLL not worse than uncalibrated baseline; thresholds may be tightened, not relaxed after final eval"
+    },
+    {
+      "id": "G5-ood",
+      "required": true,
+      "rule": "target OOS recall >=90% with in-scope false reject <=10% on fresh held-domain/OOS audit; if not met, autonomous mode remains disabled and system must escalate"
+    },
+    {
+      "id": "G6-envi",
+      "required": true,
+      "rule": "Vietnamese score >=90% of English on paired MASSIVE intent and XNLI relation aggregates after EN-VI stage; otherwise release is English-only and labeled so"
+    },
+    {
+      "id": "G7-capacity",
+      "required": true,
+      "rule": "A22 is rejected if it gains <1 aggregate point over passing A13 while costing materially more; A7-FE accepted if <=8M active and within 2 points of A13 on >=5/6 semantic families while passing G4-G6"
+    },
+    {
+      "id": "G8-systems",
+      "required": true,
+      "rule": "matched same-hardware comparison required; target >=3x single-decision CPU speedup vs Laya and >=5x Q=10 throughput advantage, but no speed claim until paired run exists"
+    },
+    {
+      "id": "G9-release",
+      "required": true,
+      "rule": "no model called Laya-parity unless paired preregistered vector passes quality+calibration+dynamic+highK+OOD+systems dimensions; no single aggregate score can substitute"
+    }
+  ]
+}

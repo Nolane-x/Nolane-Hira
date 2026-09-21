@@ -1,0 +1,68 @@
+{
+  "schema_version": "r6-candidates-v1",
+  "default_proof": {
+    "id": "A13",
+    "backbone": "microsoft/xtremedistil-l6-h256-uncased",
+    "encoder_params_no_pooler": 12684288,
+    "hira_params": 422159,
+    "total_reference_params": 13106447,
+    "tokenizer": "original WordPiece 30522",
+    "language_scope": "English proof + later EN/VI transfer experiments",
+    "role": "first neural proof; not final size claim"
+  },
+  "size_rival": {
+    "id": "A6-RIVAL",
+    "model": "oddadmix/Nawah-Router-BERT-6M-bilingual-pretrained",
+    "reported_params": 5960000,
+    "languages": [
+      "en",
+      "ar"
+    ],
+    "role": "mandatory English dynamic-routing rival; external reported metrics must be reproduced"
+  },
+  "capacity_control": {
+    "id": "A22",
+    "backbone": "microsoft/xtremedistil-l6-h384-uncased",
+    "reported_encoder_params": 22000000,
+    "role": "run only after capacity trigger"
+  },
+  "compression_default": {
+    "id": "A7-FE24",
+    "status": "post-A13 candidate",
+    "vocab_size": 24000,
+    "embedding_dim": 96,
+    "hidden_size": 256,
+    "layers": 6,
+    "intermediate_size": 1024,
+    "encoder_params": 7199488,
+    "hira_params": 422159,
+    "active_total_params": 7621647,
+    "tokenizer": "EN+VI unigram/BPE tournament, default candidate 24k with byte fallback",
+    "initialization": "reuse A13 transformer body where compatible; distill new embedding/tokenizer and relation geometry",
+    "activation_rule": "A13 must first pass core quality gates"
+  },
+  "compression_challengers": [
+    {
+      "id": "A7-FE16",
+      "vocab_size": 16000,
+      "embedding_dim": 96,
+      "active_total_params": 6853647
+    },
+    {
+      "id": "A7-FE20",
+      "vocab_size": 20000,
+      "embedding_dim": 96,
+      "active_total_params": 7237647
+    },
+    {
+      "id": "A8-FE32",
+      "vocab_size": 32000,
+      "embedding_dim": 96,
+      "active_total_params": 8389647
+    }
+  ],
+  "capacity_trigger": {
+    "run_A22_if": "A13 remains >2 absolute points behind a preregistered semantic/dynamic floor on at least 2 independent families after relation distillation and top-layer unfreezing, or misses OOD/calibration floor due to semantic insufficiency",
+    "do_not_run_A22_if": "gap is isolated to one dataset, candidate-mining failure, calibration-only failure, or data leakage/shortcut issue"
+  }
+}
