@@ -72,3 +72,22 @@ def test_opaque_ids_change_cache_identity_not_semantics():
     pa = model.forward_compiled(memory, sa, forced_budget=2).probabilities
     pb = model.forward_compiled(memory, sb, forced_budget=2).probabilities
     assert torch.allclose(pa, pb)
+
+
+def test_entering_train_mode_clears_registered_schema_cache():
+    enc = TrainableSemanticEncoder(vocab_size=256, d_model=256, n_layers=1, n_heads=4)
+    model = NolaneHira(enc, HIRACore(dropout=0.0))
+    model.eval()
+    _, r1 = model.compile_schema(
+        primitive="choice", question_text="what happened?", options=options(), use_cache=True
+    )
+    _, r2 = model.compile_schema(
+        primitive="choice", question_text="what happened?", options=options(), use_cache=True
+    )
+    assert not r1.cache_hit and r2.cache_hit
+    model.train()
+    model.eval()
+    _, r3 = model.compile_schema(
+        primitive="choice", question_text="what happened?", options=options(), use_cache=True
+    )
+    assert not r3.cache_hit
