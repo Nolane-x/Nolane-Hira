@@ -1,0 +1,46 @@
+{
+  "schema_version": "r13-hans-summary-v1",
+  "empirical_workflow_run_id": 35666437449,
+  "empirical_head_sha": "95341f8b8e23403e3312e0e2ce73110ca81197c3",
+  "evidence_artifact": {
+    "id": 10669502726,
+    "digest": "sha256:ed56455d152d4852315a2fcedb72dddbceb54335f23c880e58cffebf9ff47f00"
+  },
+  "full_bundle_artifact": {
+    "id": 10669242893,
+    "digest": "sha256:59d741d7d4fd9f67aab8f1002a71050aaea2454145e988de869ec6e54be691bd"
+  },
+  "gate": {
+    "pass": false,
+    "overall_pass": false,
+    "label_balance_pass": false,
+    "heuristic_floor_pass": false,
+    "overall_accuracy_floor": 0.55,
+    "minimum_label_accuracy_floor": 0.5,
+    "minimum_heuristic_accuracy_floor": 0.5
+  },
+  "overall": {
+    "n": 30000,
+    "accuracy": 0.5109,
+    "entailment_accuracy": 0.9380666666666667,
+    "non_entailment_accuracy": 0.08373333333333334
+  },
+  "heuristics": {
+    "constituent": {
+      "accuracy": 0.5266,
+      "entailment_accuracy": 0.8994,
+      "non_entailment_accuracy": 0.1538
+    },
+    "lexical_overlap": {
+      "accuracy": 0.4947,
+      "entailment_accuracy": 0.95,
+      "non_entailment_accuracy": 0.0394
+    },
+    "subsequence": {
+      "accuracy": 0.5114,
+      "entailment_accuracy": 0.9648,
+      "non_entailment_accuracy": 0.058
+    }
+  },
+  "diagnosis": "Frozen R12 head strongly over-predicts entailment under HANS syntactic/lexical heuristics; current relation learning is not robust to non-entailment counterexamples."
+}
