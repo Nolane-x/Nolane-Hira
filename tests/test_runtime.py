@@ -42,7 +42,7 @@ def test_noul_requires_two_options():
     schema, _ = model.compile_schema(
         primitive="noul",
         question_text="is it fraudulent?",
-        options=[LogicalOption("x", "false"), LogicalOption("y", "true")],
+        options=[LogicalOption("x", "false", value=0.0), LogicalOption("y", "true", value=1.0)],
         use_cache=False,
     )
     memory = model.compile_state("the transaction looks legitimate")
@@ -91,3 +91,44 @@ def test_entering_train_mode_clears_registered_schema_cache():
         primitive="choice", question_text="what happened?", options=options(), use_cache=True
     )
     assert not r3.cache_hit
+
+
+def test_noul_true_probability_is_order_invariant():
+    torch.manual_seed(17)
+    enc = TrainableSemanticEncoder(vocab_size=256, d_model=256, n_layers=1, n_heads=4)
+    model = NolaneHira(enc, HIRACore(dropout=0.0))
+    model.eval()
+    memory = model.compile_state("this looks fraudulent")
+    a = [
+        LogicalOption("f", "false", value=0.0),
+        LogicalOption("t", "true", value=1.0),
+    ]
+    b = [
+        LogicalOption("t2", "true", value=1.0),
+        LogicalOption("f2", "false", value=0.0),
+    ]
+    sa, _ = model.compile_schema(primitive="noul", question_text="is it fraudulent?", options=a)
+    sb, _ = model.compile_schema(primitive="noul", question_text="is it fraudulent?", options=b)
+    oa = model.forward_compiled(memory, sa, forced_budget=2)
+    ob = model.forward_compiled(memory, sb, forced_budget=2)
+    assert torch.allclose(oa.value, ob.value, atol=1e-6)
+
+
+def test_score_uses_explicit_values_not_option_indices():
+    torch.manual_seed(19)
+    enc = TrainableSemanticEncoder(vocab_size=256, d_model=256, n_layers=1, n_heads=4)
+    model = NolaneHira(enc, HIRACore(dropout=0.0))
+    model.eval()
+    schema, _ = model.compile_schema(
+        primitive="score",
+        question_text="how severe?",
+        options=[
+            LogicalOption("low", "low severity", value=1.0),
+            LogicalOption("medium", "medium severity", value=5.0),
+            LogicalOption("high", "high severity", value=10.0),
+        ],
+    )
+    memory = model.compile_state("a moderately severe issue")
+    out = model.forward_compiled(memory, schema, forced_budget=3)
+    expected = (out.probabilities * torch.tensor([1.0, 5.0, 10.0])).sum()
+    assert torch.allclose(out.value, expected)
