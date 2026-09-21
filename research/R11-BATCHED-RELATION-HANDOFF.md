@@ -71,3 +71,34 @@ Passing 50% means relation learning is real enough to proceed. It does **not** m
 - production readiness.
 
 After a pass, scale the cached relation stage and run adversarial/held-out relation suites before touching the R8 scorecard.
+
+
+## Pilot result — PASS
+
+GitHub Actions run `35619906037` completed the frozen-A13 MultiNLI pilot.
+
+Baseline before HIRA training:
+- accuracy: **0.3490**
+- Brier: **0.6696**
+- NLL: **1.1032**
+
+Best/final selected HIRA head after 8 epochs:
+- accuracy: **0.5440**
+- Brier: **0.5618**
+- ECE: **0.0162**
+- NLL: **0.9406**
+- head SHA-256: `3d24d1eb90ef778477c8180b45c68b2d798330dccadc45691e8cc5a37c29cb8b`
+
+The preregistered semantic-learning gate `accuracy >= 0.50` **PASSED**.
+
+Interpretation: with A13 fully frozen and only the 422,159-parameter HIRA head optimized, validation accuracy improved by about **19.5 absolute points** over the untrained head. This is evidence that the relation core is learning semantic signal from frozen A13 representations.
+
+This is **not** XNLI/Laya/Jev parity. XNLI and MASSIVE were not used.
+
+## Next empirical obligation
+
+Scale the cached relation training while keeping evaluation corpora frozen:
+1. larger MultiNLI ladder;
+2. hard contradiction/negation training from non-XNLI sources with license checks;
+3. frozen XNLI English evaluation only after model-selection protocol is locked;
+4. only then consider top-layer A13 unfreezing if frozen-head capacity plateaus.
