@@ -1,0 +1,32 @@
+name: a13-proof
+
+on:
+  push:
+    branches:
+      - feat/r10-a13-empirical
+
+jobs:
+  a13-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install HIRA + HF adapter
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+      - name: Materialize pinned A13 and run integration proof
+        run: |
+          python scripts/a13_proof.py --out artifacts/a13-proof/receipt.json
+          cat artifacts/a13-proof/receipt.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a13-proof-receipt
+          path: artifacts/a13-proof
+          if-no-files-found: error
