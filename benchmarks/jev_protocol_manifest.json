@@ -1,0 +1,65 @@
+{
+  "schema_version": "r8-jev-protocol-v1",
+  "protocols": {
+    "btzsc_zero_shot_pilot": {
+      "repository": "AbdelStark/jev-benchmarks",
+      "commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+      "readme_sha": "5fd3627f7de46b789ecbb84796b3a96354434aeb",
+      "protocol_sha": "b04ee96923961ea95e74ec7e000c3d8a61eb226d",
+      "dataset": "BTZSC",
+      "dataset_revision": "fef2a2ac62b69c58670047dddf045c53d7c3cb5e",
+      "seed": 20260917,
+      "protocol_tag": "pilot-v1-preregistered",
+      "jev_model_resolved": "jev-1.13.0",
+      "examples_per_condition": 100,
+      "conditions": {
+        "ag_news": {"labels": 4},
+        "dair_emotion": {"labels": 6},
+        "banking77_btzsc": {"labels": 72, "exclude_no_positive_rows": true}
+      },
+      "task_specific_demos": 0,
+      "selection": "deterministic approximately class-balanced test sampling",
+      "probabilities_required": true,
+      "metrics": ["accuracy","macro_f1","brier","nll","ece_10bin","coverage_at_5pct_empirical_error","p50_latency","p95_latency","failures"],
+      "bootstrap_resamples": 2000,
+      "note": "Public checkpoints may have benchmark exposure; this is benchmark performance, not uncontaminated generalization."
+    },
+    "banking77_retrieved24": {
+      "repository": "simonmesmith/jev-banking77-experiment",
+      "commit": "5cac4ff7783a4cfc0badba4124a309dd2a2b9862",
+      "protocol_sha": "b4b3c1a57c56e2ca72bd9ad82f09d96b7bb57371",
+      "dataset": "official PolyAI BANKING77",
+      "dataset_commit": "57ec275d8078af65b7731c2a98be812d844a6d6b",
+      "train_n": 10003,
+      "test_n": 3080,
+      "labels": 77,
+      "model": "jev-1.13.0",
+      "weight_updates": false,
+      "category_definitions": true,
+      "retrieval": "BM25 words + adjacent word pairs",
+      "retrieved_examples_per_prediction": 24,
+      "max_examples_per_class": 4,
+      "all_options_preserved": true,
+      "development": {
+        "screen_n": 154,
+        "confirmation_n": 616,
+        "variants": ["definitions","static","retrieved24","retrieved48","perclass"],
+        "selection_before_test": true
+      },
+      "final_accuracy": 0.924,
+      "macro_f1": 0.9235,
+      "correct": 2846,
+      "failed_or_missing": 0,
+      "note": "Adapted in-context/retrieval protocol, not zero-shot. HIRA may compare only with equal labeled-information budget."
+    },
+    "typed_decisions_secondary": {
+      "source": "Laya comparison table; secondary published Jev figures until independently runnable manifest is available",
+      "model": "Jev 1.13.0",
+      "accuracy": 0.727,
+      "soft_accuracy": 0.580,
+      "brier": 0.148,
+      "ece": 0.144,
+      "score_mae": 0.391
+    }
+  }
+}
