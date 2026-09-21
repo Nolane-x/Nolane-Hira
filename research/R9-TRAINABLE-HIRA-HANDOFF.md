@@ -82,10 +82,17 @@ The manifest pins code revision, encoder revision, config hash and SHA-256 of th
 
 ## Next empirical step
 
-1. pin an immutable A13 revision + weight hash;
+1. materialize A13 revision `4226d9e4d2c08703e5cb0491b479bfc6a1607181` and record the actual model-file SHA-256;
 2. install the optional HF dependency;
 3. run frozen A13 inference through this exact runtime;
 4. create the first immutable A13 run receipt;
 5. only then begin relation/NLI training and the R8 scorecard.
 
 No semantic benchmark result is claimed by R9 itself.
+
+
+## A13 pin update
+
+The Hub revision is now frozen at `4226d9e4d2c08703e5cb0491b479bfc6a1607181` (the safetensors-variant commit). The prior model revision visible before the safetensors conversion is `8d58f0e6e83c1ab87f88d8c556ec537a111e2ee0`.
+
+This removes the mutable-revision blocker but **does not** remove the binary-evidence blocker: final/paired benchmark runs still require the downloaded model bytes to be hashed and recorded in the immutable run receipt.
