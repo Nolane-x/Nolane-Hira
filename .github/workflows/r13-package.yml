@@ -1,0 +1,67 @@
+name: r13-final-package
+
+on:
+  push:
+    branches:
+      - feat/r13-heldout-nli-stress
+    paths:
+      - ".github/workflows/r13-package.yml"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout final R13 branch
+        uses: actions/checkout@v4
+
+      - name: Download R12 selected head evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: r12-scale-evidence
+          path: bundle/evidence/r12
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35665673683
+
+      - name: Download HANS evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: r13-hans-evidence
+          path: bundle/evidence/hans
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35666437449
+
+      - name: Download Breaking NLI evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: r13-breaking-evidence
+          path: bundle/evidence/breaking
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35666600462
+
+      - name: Build self-contained recovery bundle
+        run: |
+          set -euxo pipefail
+          mkdir -p bundle/repository bundle/docs dist
+          git archive --format=zip --output=bundle/repository/NOLANE-HIRA-R13-REPO-SNAPSHOT.zip HEAD
+          cp research/R13-HANDOFF.md bundle/docs/R13-HANDOFF.md
+          cp research/R13-BREAKING-NLI-PROTOCOL.md bundle/docs/R13-BREAKING-NLI-PROTOCOL.md
+          cp artifacts/r13-hans/summary.json bundle/evidence/HANS-SUMMARY.json
+          cp artifacts/r13-breaking/summary.json bundle/evidence/BREAKING-NLI-SUMMARY.json
+          printf '%s\n' "$(git rev-parse HEAD)" > bundle/R13-BRANCH-HEAD.txt
+          (
+            cd bundle
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+          (cd bundle && zip -qr ../dist/NOLANE-HIRA-R13-FULL-RESEARCH-BUNDLE.zip .)
+          sha256sum dist/NOLANE-HIRA-R13-FULL-RESEARCH-BUNDLE.zip > dist/NOLANE-HIRA-R13-FULL-RESEARCH-BUNDLE.zip.sha256
+          unzip -t dist/NOLANE-HIRA-R13-FULL-RESEARCH-BUNDLE.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r13-final-recovery-bundle
+          path: dist
+          if-no-files-found: error
