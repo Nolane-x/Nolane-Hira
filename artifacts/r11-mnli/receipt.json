@@ -1,0 +1,53 @@
+{
+  "a13": {
+    "frozen": true,
+    "model_id": "microsoft/xtremedistil-l6-h256-uncased",
+    "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"
+  },
+  "dataset": {
+    "id": "nyu-mll/multi_nli",
+    "massive_used": false,
+    "revision": "da70db2af9d09693783c3320c4249840212ee221",
+    "seed": 13,
+    "train_n": 5000,
+    "validation_n": 1000,
+    "xnli_used": false
+  },
+  "evidence_scope": "frozen A13 embeddings + trained HIRA head on MultiNLI; not Laya/Jev parity",
+  "final_metrics": {
+    "accuracy": 0.5440000295639038,
+    "brier": 0.5617672801017761,
+    "ece": 0.016211993992328644,
+    "nll": 0.9406075825691224
+  },
+  "history": [
+    {"accuracy":0.47699999809265137,"brier":0.6077896952629089,"ece":0.03567110374569893,"epoch":1.0,"nll":1.013324728012085,"train_loss":1.1280041244506835},
+    {"accuracy":0.5139999985694885,"brier":0.5884360074996948,"ece":0.03248009830713272,"epoch":2.0,"nll":0.9866349077224732,"train_loss":1.0360993116378785},
+    {"accuracy":0.5189999938011169,"brier":0.5766654014587402,"ece":0.040359221398830414,"epoch":3.0,"nll":0.9621961441040039,"train_loss":1.020743796157837},
+    {"accuracy":0.49900001287460327,"brier":0.5857638716697693,"ece":0.04582170769572258,"epoch":4.0,"nll":0.9751104497909546,"train_loss":0.9832526355743408},
+    {"accuracy":0.5040000081062317,"brier":0.5792273283004761,"ece":0.02954447641968727,"epoch":5.0,"nll":0.960533408164978,"train_loss":0.9865870710372925},
+    {"accuracy":0.5379999876022339,"brier":0.5771569013595581,"ece":0.08541516959667206,"epoch":6.0,"nll":0.963004843711853,"train_loss":0.9627147274971009},
+    {"accuracy":0.5329999923706055,"brier":0.5648725628852844,"ece":0.04748029261827469,"epoch":7.0,"nll":0.9380853157043457,"train_loss":0.9498307910919189},
+    {"accuracy":0.5440000295639038,"brier":0.5617672801017761,"ece":0.016211993992328644,"epoch":8.0,"nll":0.9406075825691224,"train_loss":0.9610977282524109}
+  ],
+  "initial_metrics": {
+    "accuracy": 0.3490000069141388,
+    "brier": 0.6696186661720276,
+    "ece": 0.004664480686187744,
+    "nll": 1.1031888761520385
+  },
+  "schema_version": "r11-mnli-pilot-v1",
+  "semantic_gate_pass": true,
+  "semantic_gate_threshold": 0.5,
+  "status": "PASS",
+  "training": {
+    "encode_batch_size": 32,
+    "epochs": 8,
+    "head_sha256": "3d24d1eb90ef778477c8180b45c68b2d798330dccadc45691e8cc5a37c29cb8b",
+    "hira_params": 422159,
+    "lr": 0.002,
+    "segments": 8,
+    "train_batch_size": 64
+  }
+}
