@@ -4,11 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nolane-hira"
-version = "0.0.2"
+version = "0.1.0"
 description = "Research-first tiny non-autoregressive typed decision engine"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["torch>=2.2", "numpy>=1.24"]
+
+[project.optional-dependencies]
+hf = ["transformers>=4.45,<6", "safetensors>=0.4", "huggingface_hub>=0.24"]
+dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
