@@ -113,6 +113,16 @@ def ece15(probs: Tensor, labels: Tensor) -> float:
 
 
 @torch.no_grad()
+def predict_cached(hira: HIRACore, cache: RelationCache, *, batch_size: int = 128) -> Tensor:
+    cache.validate()
+    hira.eval()
+    probs_all = []
+    for idx in minibatches(len(cache), batch_size, seed=0, epoch=0, shuffle=False):
+        probs_all.append(forward_cached(hira, cache, idx).probabilities.cpu())
+    return torch.cat(probs_all)
+
+
+@torch.no_grad()
 def evaluate_cached(hira: HIRACore, cache: RelationCache, *, batch_size: int = 128) -> dict[str, float]:
     cache.validate()
     hira.eval()
@@ -184,3 +194,47 @@ def train_cached(
         raise RuntimeError("training produced no checkpoint")
     hira.load_state_dict(best)
     return history, best
+
+
+@torch.no_grad()
+def evaluate_option_permutation(
+    hira: HIRACore,
+    cache: RelationCache,
+    permutation: Tensor,
+    *,
+    batch_size: int = 128,
+) -> dict[str, float]:
+    """Verify that option order is a routing permutation, not semantic signal."""
+    cache.validate()
+    k = cache.option_embeddings.shape[0]
+    permutation = permutation.long().cpu()
+    if permutation.shape != (k,) or sorted(permutation.tolist()) != list(range(k)):
+        raise ValueError("permutation must contain each option index exactly once")
+    inverse = torch.empty_like(permutation)
+    inverse[permutation] = torch.arange(k)
+
+    base_probs = predict_cached(hira, cache, batch_size=batch_size)
+    permuted = RelationCache(
+        state_segments=cache.state_segments,
+        state_mask=cache.state_mask,
+        question_embeddings=cache.question_embeddings,
+        option_embeddings=cache.option_embeddings[permutation],
+        labels=inverse[cache.labels],
+        metadata={**cache.metadata, "option_permutation": ",".join(map(str, permutation.tolist()))},
+    )
+    perm_probs = predict_cached(hira, permuted, batch_size=batch_size)
+    restored_probs = perm_probs[:, inverse]
+    base_pred = base_probs.argmax(-1)
+    restored_pred = restored_probs.argmax(-1)
+    perm_accuracy = float(
+        perm_probs.argmax(-1).eq(permuted.labels).float().mean()
+    )
+    base_accuracy = float(base_pred.eq(cache.labels).float().mean())
+    return {
+        "base_accuracy": base_accuracy,
+        "permuted_accuracy": perm_accuracy,
+        "accuracy_delta": perm_accuracy - base_accuracy,
+        "prediction_flip_rate": float(restored_pred.ne(base_pred).float().mean()),
+        "max_probability_equivariance_error": float((restored_probs - base_probs).abs().max()),
+        "mean_probability_equivariance_error": float((restored_probs - base_probs).abs().mean()),
+    }

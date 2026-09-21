@@ -1,0 +1,59 @@
+{
+  "schema_version": "r12-scale-summary-v1",
+  "empirical_workflow_run_id": 35665673683,
+  "empirical_head_sha": "f4f65db86c3146ac568be729daab3a9c77583559",
+  "evidence_artifact": {
+    "id": 10669231794,
+    "digest": "sha256:01868de2a084b053127c551133ce4a0234361a4a7df4556be48cc2bb6ed1adb1"
+  },
+  "full_bundle_artifact": {
+    "id": 10669076958,
+    "digest": "sha256:6927b0130a3a9a8aabfa1a5818cadf902e5c3296358333682f74775661f289f2"
+  },
+  "gates": {
+    "scale_pass": true,
+    "permutation_robustness_pass": true,
+    "scale_accuracy_floor": 0.56
+  },
+  "rungs": [
+    {
+      "train_n": 5000,
+      "accuracy": 0.5326666831970215,
+      "brier": 0.572455883026123,
+      "ece": 0.05696991831064224,
+      "nll": 0.9496886897087097
+    },
+    {
+      "train_n": 10000,
+      "accuracy": 0.5479999780654907,
+      "brier": 0.5532737374305725,
+      "ece": 0.022901497781276703,
+      "nll": 0.9195988836288452
+    },
+    {
+      "train_n": 15000,
+      "accuracy": 0.5806666612625122,
+      "brier": 0.5221375823020935,
+      "ece": 0.02970040775835514,
+      "nll": 0.8735338444709778
+    }
+  ],
+  "best": {
+    "train_n": 15000,
+    "accuracy": 0.5806666612625122,
+    "brier": 0.5221375823020935,
+    "ece": 0.02970040775835514,
+    "nll": 0.8735338444709778,
+    "initial_accuracy": 0.33000001311302185,
+    "absolute_gain": 0.25066664814949036,
+    "max_abs_accuracy_delta_under_permutation": 0,
+    "max_prediction_flip_rate_under_permutation": 0,
+    "max_probability_equivariance_error": 1.1920928955078125e-7,
+    "selected_head_sha256": "0ca95572399d15717e1069545439165e46083c58afea8707cbbadeca67ad3b86"
+  },
+  "frozen_data_exclusions": {
+    "xnli_used": false,
+    "massive_used": false,
+    "banking77_used": false
+  }
+}
