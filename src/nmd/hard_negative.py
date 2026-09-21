@@ -211,6 +211,8 @@ def train_hard_negative_repair(
     history: list[dict[str, object]] = []
     best_state = None
     best_key = None
+    fallback_state = None
+    fallback_key = None
 
     for epoch in range(int(epochs)):
         hira.train()
@@ -252,6 +254,18 @@ def train_hard_negative_repair(
         }
         history.append(row)
 
+        snapshot = {
+            k: v.detach().cpu().clone()
+            for k, v in hira.state_dict().items()
+        }
+        fallback_candidate = (
+            float(matched["accuracy"]),
+            float(hard["non_entailment_accuracy"]),
+        )
+        if fallback_key is None or fallback_candidate > fallback_key:
+            fallback_key = fallback_candidate
+            fallback_state = snapshot
+
         if row["eligible"]:
             key = (
                 float(hard["non_entailment_accuracy"]),
@@ -260,18 +274,20 @@ def train_hard_negative_repair(
             )
             if best_key is None or key > best_key:
                 best_key = key
-                best_state = {
-                    k: v.detach().cpu().clone()
-                    for k, v in hira.state_dict().items()
-                }
+                best_state = snapshot
 
+    selected_eligible = best_state is not None
     if best_state is None:
-        raise RuntimeError(
-            "no repair epoch preserved the preregistered matched-validation floor"
-        )
+        if fallback_state is None:
+            raise RuntimeError("repair training produced no checkpoint")
+        best_state = fallback_state
     hira.load_state_dict(best_state)
     selected = {
         "matched": evaluate_repair_slice(hira, matched_validation, batch_size=batch_size),
         "hard": evaluate_repair_slice(hira, hard_validation, batch_size=batch_size),
     }
-    return history, best_state, {"baseline": baseline, "selected": selected}
+    return history, best_state, {
+        "baseline": baseline,
+        "selected": selected,
+        "selected_eligible": selected_eligible,
+    }
