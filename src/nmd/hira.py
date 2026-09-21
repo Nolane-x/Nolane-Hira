@@ -214,6 +214,8 @@ class HIRACore(nn.Module):
             raise ValueError("expected question [B,D], segments [B,S,D], options [B,K,D]")
         if options.shape[1] < 2:
             raise ValueError("HIRA requires at least two logical options")
+        if option_mask is not None and (option_mask.sum(-1) < 2).any():
+            raise ValueError("each batch item must expose at least two valid logical options")
         if qtype.min().item() < 0 or qtype.max().item() > 2:
             raise ValueError("qtype must be 0(choice), 1(score), or 2(noul)")
 
