@@ -39,3 +39,19 @@ def test_jsonl_line_number(tmp_path):
     with pytest.raises(DatasetContractError) as exc:
         load_jsonl(p)
     assert ":2:" in str(exc.value)
+
+
+def test_score_requires_explicit_values():
+    raw = valid()
+    raw["primitive"] = "score"
+    with pytest.raises(DatasetContractError):
+        parse_example(raw)
+
+
+def test_noul_values_must_be_zero_and_one():
+    raw = valid()
+    raw["primitive"] = "noul"
+    raw["options"][0]["value"] = 0
+    raw["options"][1]["value"] = 2
+    with pytest.raises(DatasetContractError):
+        parse_example(raw)
