@@ -129,44 +129,44 @@
     "enron_spam": {
       "kind": "huggingface-dataset",
       "repo": "SetFit/enron_spam",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "1916f66c89d52221ae33eb57d44498b4f3a5df22",
+      "status": "pinned"
     },
     "phishing_email": {
       "kind": "huggingface-dataset",
       "repo": "zefang-liu/phishing-email-dataset",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "34085a032c123ca237f314a01a67909cdea35e34",
+      "status": "pinned"
     },
     "toxic_chat": {
       "kind": "huggingface-dataset",
       "repo": "lmsys/toxic-chat",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "29df8e4dba60e1f4af4b4075c0705c5b313548a8",
+      "status": "pinned"
     },
     "ms_marco": {
       "kind": "huggingface-dataset",
       "repo": "microsoft/ms_marco",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "a47ee7aae8d7d466ba15f9f0bfac3b3681087b3a",
+      "status": "pinned"
     },
     "support_tickets": {
       "kind": "huggingface-dataset",
       "repo": "Tobi-Bueck/customer-support-tickets",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "ddf1c81a5475992c4fa6752bf1e8b4e31f07bbeb",
+      "status": "pinned"
     },
     "gsm8k": {
       "kind": "huggingface-dataset",
       "repo": "openai/gsm8k",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "740312add88f781978c0658806c59bc2815b9866",
+      "status": "pinned"
     },
     "mbpp": {
       "kind": "huggingface-dataset",
       "repo": "google-research-datasets/mbpp",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+      "status": "pinned"
     }
   }
 }
