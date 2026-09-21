@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nolane-hira"
+version = "0.0.2"
+description = "Research-first tiny non-autoregressive typed decision engine"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.2", "numpy>=1.24"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
