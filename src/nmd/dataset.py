@@ -26,6 +26,7 @@ def _option(raw: dict) -> LogicalOption:
         aliases=tuple(map(str, raw.get("aliases", ()))),
         exemplars=tuple(map(str, raw.get("exemplars", ()))),
         counterexamples=tuple(map(str, raw.get("counterexamples", ()))),
+        value=None if raw.get("value") is None else float(raw["value"]),
     )
 
 
@@ -46,6 +47,12 @@ def parse_example(raw: dict) -> DecisionExample:
         raise DatasetContractError("option ids must be unique")
     if primitive == "noul" and len(options) != 2:
         raise DatasetContractError("noul requires exactly two logical options")
+    if primitive in {"score", "noul"} and any(o.value is None for o in options):
+        raise DatasetContractError(f"{primitive} requires explicit numeric value for every option")
+    if primitive == "noul":
+        values = sorted(float(o.value) for o in options)
+        if values != [0.0, 1.0]:
+            raise DatasetContractError("noul option values must be exactly 0 and 1")
     try:
         gold_index = int(raw["gold_index"])
     except (KeyError, TypeError, ValueError) as exc:
