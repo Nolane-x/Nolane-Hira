@@ -1,0 +1,30 @@
+{
+  "assets": {
+    "config.json": {"bytes": 525, "sha256": "42e05354ddaef257585aa57ead3f2ecd066f39adf9f5b31c421191a6d72d2fec"},
+    "model.safetensors": {"bytes": 51015826, "sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"},
+    "pytorch_model.bin": {"bytes": 51044621, "sha256": "5530fdc0e6626d8fb88f29173fa6c8c40b96a21263beb9f38ec2e9fb58062dd7"},
+    "vocab.txt": {"bytes": 231508, "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"}
+  },
+  "decision_probabilities": [0.21778824925422668, 0.33854570984840393, 0.443666011095047],
+  "decision_sum": 1.0,
+  "encoder_params_no_pooler": 12684288,
+  "evidence_scope": "checkpoint materialization + semantic encoder + R9 runtime integration; HIRA head remains untrained",
+  "hidden_size": 256,
+  "hira_params": 422159,
+  "laya_jev_benchmark_claim": false,
+  "model_id": "microsoft/xtremedistil-l6-h256-uncased",
+  "model_total_params": 12750080,
+  "num_hidden_layers": 6,
+  "pooled_shape": [3, 256],
+  "pooler_params": 65792,
+  "primary_weight_file": "model.safetensors",
+  "primary_weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+  "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+  "schema_cache_hit": false,
+  "schema_hash": "bdc91496140b2cfcca7c54b0571344bb55dbdaaa95f440fbd113c815948cfed9",
+  "schema_version": "r10-a13-proof-v1",
+  "semantic_quality_claim": false,
+  "state_segments": 1,
+  "status": "PASS",
+  "token_shape": [3, 8, 256]
+}
