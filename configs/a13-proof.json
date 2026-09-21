@@ -13,10 +13,19 @@
     "frozen A13 proof precedes A7 compression",
     "A22 runs only after the capacity trigger fires"
   ],
-  "revision_status": "immutable Hub revision pinned; model weight SHA-256 pending materialization",
+  "revision_status": "binary verified on GitHub Actions",
   "hub_evidence": {
     "commit_prefix": "4226d9e",
     "commit_message": "Adding safetensors variant of this model",
     "predecessor_weights_revision": "8d58f0e6e83c1ab87f88d8c556ec537a111e2ee0"
-  }
+  },
+  "primary_weight_file": "model.safetensors",
+  "primary_weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+  "config_sha256": "42e05354ddaef257585aa57ead3f2ecd066f39adf9f5b31c421191a6d72d2fec",
+  "vocab_sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+  "verified_encoder_params_no_pooler": 12684288,
+  "verified_total_params": 12750080,
+  "verified_pooler_params": 65792,
+  "verified_hidden_size": 256,
+  "verified_layers": 6
 }
