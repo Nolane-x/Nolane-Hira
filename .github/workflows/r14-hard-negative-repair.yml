@@ -1,0 +1,84 @@
+name: r14-hard-negative-repair
+
+on:
+  push:
+    branches:
+      - feat/r14-hard-negative-repair
+    paths:
+      - "src/nmd/hard_negative.py"
+      - "scripts/r14_hard_negative_repair.py"
+      - "tests/test_hard_negative.py"
+      - "research/R14-HANDOFF.md"
+      - ".github/workflows/r14-hard-negative-repair.yml"
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact R12 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r12-scale-evidence
+          path: upstream/r12
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35665673683
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install research stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+          python -m py_compile scripts/r14_hard_negative_repair.py
+
+      - name: Verify frozen R12 head
+        run: |
+          test "$(sha256sum upstream/r12/hira-head.pt | cut -d' ' -f1)" = "0ca95572399d15717e1069545439165e46083c58afea8707cbbadeca67ad3b86"
+
+      - name: Run MultiNLI-only repair
+        run: |
+          python scripts/r14_hard_negative_repair.py \
+            --r12-head upstream/r12/hira-head.pt \
+            --out artifacts/r14-repair \
+            --train-per-label 6000 \
+            --hard-val-per-label 500 \
+            --matched-val-n 1500 \
+            --epochs 6 \
+            --encode-batch-size 32 \
+            --train-batch-size 96 \
+            --segments 8 \
+            --lr 0.0005 \
+            --margin 0.5 \
+            --margin-weight 0.5 \
+            --seed 13
+          cat artifacts/r14-repair/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r14-repair-evidence
+          path: |
+            artifacts/r14-repair/receipt.json
+            artifacts/r14-repair/hira-head.pt
+          if-no-files-found: error
+
+      - name: Package R14 pre-diagnostic snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R14-PRE-DIAGNOSTIC.zip HEAD
+          cp research/R14-HANDOFF.md dist/R14-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R14-PRE-DIAGNOSTIC.zip > dist/NOLANE-HIRA-R14-PRE-DIAGNOSTIC.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r14-pre-diagnostic-bundle
+          path: dist
+          if-no-files-found: error
