@@ -174,7 +174,7 @@ def anti_entailment_margin_loss(
     mask = labels.ne(0)
     if not mask.any():
         return logits.sum() * 0.0
-    gold = logits[mask].gather(1, labels[mask, None]).squeeze(1)
+    gold = logits[mask].gather(1, labels[mask].unsqueeze(1)).squeeze(1)
     entail = logits[mask, 0]
     return F.relu(float(margin) - gold + entail).mean()
 
