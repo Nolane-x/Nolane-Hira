@@ -3,7 +3,12 @@ from pathlib import Path
 import torch
 
 from nmd.hira import HIRACore
-from nmd.relation_cache import RelationCache, evaluate_cached, train_cached
+from nmd.relation_cache import (
+    RelationCache,
+    evaluate_cached,
+    evaluate_option_permutation,
+    train_cached,
+)
 
 
 def make_cache(n=48, d=256, k=3):
@@ -36,3 +41,18 @@ def test_cached_training_changes_hira_and_returns_metrics():
     assert not torch.equal(before, hira.q_proj.weight)
     metrics = evaluate_cached(hira, val)
     assert set(["accuracy", "brier", "ece", "nll"]) <= set(metrics)
+
+
+def test_option_permutation_is_equivariant():
+    cache = make_cache(n=24)
+    hira = HIRACore(dropout=0.0)
+    result = evaluate_option_permutation(
+        hira,
+        cache,
+        torch.tensor([2, 0, 1]),
+        batch_size=8,
+    )
+    assert result["accuracy_delta"] == 0.0
+    assert result["prediction_flip_rate"] == 0.0
+    assert result["max_probability_equivariance_error"] < 1e-6
+    assert result["mean_probability_equivariance_error"] < 1e-7
