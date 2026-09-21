@@ -92,39 +92,39 @@
     "sst5": {
       "kind": "huggingface-dataset",
       "repo": "SetFit/sst5",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "e51bdcd8cd3a30da231967c1a249ba59361279a3",
+      "status": "pinned"
     },
     "emotion": {
       "kind": "huggingface-dataset",
       "repo": "dair-ai/emotion",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "cab853a1dbdf4c42c2b3ef2173804746df8825fe",
+      "status": "pinned"
     },
     "prompt_injections": {
       "kind": "huggingface-dataset",
       "repo": "deepset/prompt-injections",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "4f61ecb038e9c3fb77e21034b22511b523772cdd",
+      "status": "pinned"
     },
     "banking77.hf": {
       "kind": "huggingface-dataset",
       "repo": "PolyAI/banking77",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN",
+      "revision": "90d4e2ee5521c04fc1488f065b8b083658768c57",
+      "status": "pinned",
       "note": "official GitHub source is pinned; HF adapter used by exact Laya script still needs revision pin"
     },
     "ag_news": {
       "kind": "huggingface-dataset",
       "repo": "fancyzhx/ag_news",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "eb185aade064a813bc0b7f42de02595523103ca4",
+      "status": "pinned"
     },
     "boolq": {
       "kind": "huggingface-dataset",
       "repo": "google/boolq",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "35b264d03638db9f4ce671b711558bf7ff0f80d5",
+      "status": "pinned"
     },
     "enron_spam": {
       "kind": "huggingface-dataset",
