@@ -26,7 +26,7 @@ class SchemaCompileReceipt:
 
 
 class SchemaCompiler:
-    """Compile semantic schemas without using option IDs as meaning-bearing text."""
+    """Compile semantic schemas without letting option IDs carry semantic meaning."""
 
     def __init__(self, encoder: TextSemanticEncoder):
         self.encoder = encoder
@@ -37,6 +37,7 @@ class SchemaCompiler:
             "primitive": primitive,
             "question_text": question_text,
             "options": [{
+                "option_id": o.option_id,
                 "criterion_text": o.criterion_text,
                 "aliases": list(o.aliases),
                 "exemplars": list(o.exemplars),
@@ -60,9 +61,15 @@ class SchemaCompiler:
         if len({o.option_id for o in opts}) != len(opts):
             raise ValueError("option_id values must be unique")
 
+        # Cached tensors are inference artifacts. Reusing an autograd graph across
+        # training steps is unsafe and would also make encoder updates stale.
+        if self.encoder.training:
+            use_cache = False
+
         key = self.schema_hash(primitive, question_text, opts)
         if use_cache and key in self._cache:
-            return self._cache[key], SchemaCompileReceipt(
+            cached = self._cache[key]
+            return cached, SchemaCompileReceipt(
                 key, self.encoder.encoder_hash, True, len(opts), len(opts)
             )
 
@@ -70,6 +77,7 @@ class SchemaCompiler:
         logical = []
         prototype_count = 0
         for option in opts:
+            # IDs are intentionally absent here: they are routing keys, not semantics.
             texts = [option.criterion_text, *option.aliases, *option.exemplars]
             texts = [t for t in texts if t and t.strip()]
             if not texts:
