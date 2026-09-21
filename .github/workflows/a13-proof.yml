@@ -30,3 +30,14 @@ jobs:
           name: a13-proof-receipt
           path: artifacts/a13-proof
           if-no-files-found: error
+      - name: Package exact R10 repository snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R10-FULL.zip HEAD
+          cp research/R10-A13-EMPIRICAL-HANDOFF.md dist/R10-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R10-FULL.zip > dist/NOLANE-HIRA-R10-FULL.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r10-full-bundle
+          path: dist
+          if-no-files-found: error
