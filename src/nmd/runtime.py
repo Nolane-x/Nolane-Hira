@@ -86,12 +86,19 @@ class NolaneHira(nn.Module):
             value = p.new_tensor(float(selected_index))
             selected_option_id = schema.options[selected_index].option_id
         elif primitive == "score":
-            support = torch.arange(p.shape[-1], device=p.device, dtype=p.dtype)
+            raw_values = [o.value for o in schema.options]
+            if any(v is None for v in raw_values):
+                raise ValueError("score requires explicit numeric value for every logical option")
+            support = torch.tensor(raw_values, device=p.device, dtype=p.dtype)
             value = (p * support).sum()
         elif primitive == "noul":
             if p.shape[-1] != 2:
-                raise ValueError("noul requires exactly two logical options: false/true")
-            value = p[1]
+                raise ValueError("noul requires exactly two logical options")
+            raw_values = [o.value for o in schema.options]
+            if any(v is None for v in raw_values) or sorted(float(v) for v in raw_values) != [0.0, 1.0]:
+                raise ValueError("noul requires option values exactly 0 and 1")
+            true_index = next(i for i, v in enumerate(raw_values) if float(v) == 1.0)
+            value = p[true_index]
         else:
             raise ValueError(f"unsupported primitive: {primitive}")
         return DecisionOutput(primitive, p, out.logits[0], value, selected_option_id, out)
