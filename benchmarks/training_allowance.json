@@ -1,0 +1,31 @@
+{
+  "schema_version": "r8-training-allowance-v1",
+  "principle": "direct Laya generalization claims must match Laya's disclosed training-overlap status; adapted/specialized runs are reported separately",
+  "direct_lanes": {
+    "typed-decisions-finetuned": {"task_training_allowed": true, "reason": "0.766 target belongs to laya-typed-decisions fine-tuned on the benchmark train split"},
+    "typed-decisions-zero-shot": {"task_training_allowed": false, "reason": "T4 base checkpoints were not trained on typed-decisions"},
+    "massive": {"task_training_allowed": false, "tokenizer_selection_on_eval_corpus": false, "reason": "Laya caveat: neither base checkpoint trained on MASSIVE"},
+    "xnli": {"task_training_allowed": false, "tokenizer_selection_on_eval_corpus": false, "reason": "Laya caveat: neither base checkpoint trained on XNLI"},
+    "ag_news": {"task_training_allowed": true, "reason": "Laya disclosed AG News in training mix; retention-style lane"},
+    "boolq": {"task_training_allowed": true, "reason": "Laya disclosed BoolQ in training mix; retention-style lane"},
+    "sst5": {"task_training_allowed": false, "reason": "Laya disclosed held out"},
+    "dair_emotion": {"task_training_allowed": false, "reason": "Laya disclosed held out"},
+    "prompt_injections": {"task_training_allowed": false, "reason": "Laya disclosed held out"},
+    "banking77": {"task_training_allowed": false, "reason": "Laya disclosed held out for its public zero-shot/generalization lane"},
+    "app.email_spam": {"task_training_allowed": true, "reason": "Laya BENCHMARKS marks in training"},
+    "app.phishing": {"task_training_allowed": true, "reason": "Laya BENCHMARKS marks in training"},
+    "app.rag_relevance": {"task_training_allowed": true, "reason": "Laya BENCHMARKS marks in training"},
+    "app.support_triage": {"task_training_allowed": true, "reason": "Laya BENCHMARKS marks in training"},
+    "app.guardrails": {"task_training_allowed": false, "reason": "Laya BENCHMARKS marks held out"},
+    "app.moderation": {"task_training_allowed": false, "reason": "Laya BENCHMARKS marks held out"},
+    "app.model_routing": {"task_training_allowed": false, "reason": "Laya BENCHMARKS marks held out"}
+  },
+  "specialized_lane": {
+    "allowed": true,
+    "rule": "task-specific training/retrieval/examples may be used only when the run is labeled adapted/specialized and is not substituted for a direct generalization cell"
+  },
+  "jev_lanes": {
+    "btzsc_zero_shot": "no task-specific demonstrations; match the pinned pilot",
+    "banking77_24shot": "24 relevant labeled training examples per prediction; definitions for all 77 categories; no weight update; separate challenge lane"
+  }
+}
