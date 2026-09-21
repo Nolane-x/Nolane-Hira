@@ -42,6 +42,7 @@ class SchemaCompiler:
                 "aliases": list(o.aliases),
                 "exemplars": list(o.exemplars),
                 "counterexamples": list(o.counterexamples),
+                "value": o.value,
             } for o in options],
         }
 
