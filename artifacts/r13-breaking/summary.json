@@ -1,0 +1,27 @@
+{
+  "schema_version": "r13-breaking-summary-v1",
+  "empirical_workflow_run_id": 35666600462,
+  "empirical_head_sha": "50cfab3b959624f5742745d17d544055f5cc8b46",
+  "evidence_artifact": {
+    "id": 10668819251,
+    "digest": "sha256:7aa53b6949af7194674d2ceabcb19a852697671c8cca4e6641319f37a300b856"
+  },
+  "gate": {
+    "pass": false,
+    "overall_pass": false,
+    "macro_recall_pass": false,
+    "entailment_pass": true,
+    "contradiction_pass": false
+  },
+  "metrics": {
+    "accuracy": 0.22336140607835958,
+    "macro_recall": 0.35638667047237393,
+    "macro_f1": 0.15153764777354473,
+    "majority_baseline_accuracy": 0.8744049798608569,
+    "entailment_recall": 0.9429735234215886,
+    "neutral_recall": 0,
+    "contradiction_recall": 0.12618648799553323
+  },
+  "source_zip_sha256": "b209e8d4ab15bcd8a5fc76be1c70452e4e253a92eaccb1c66c0b1b973e445371",
+  "diagnosis": "The frozen R12 head strongly over-predicts entailment and fails lexical/world-knowledge contradiction cases; this independently corroborates the HANS anti-entailment failure."
+}
