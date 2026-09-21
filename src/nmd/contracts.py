@@ -25,6 +25,7 @@ class LogicalOption:
     aliases: tuple[str, ...] = ()
     exemplars: tuple[str, ...] = ()
     counterexamples: tuple[str, ...] = ()
+    value: float | None = None
 
 
 @dataclass(frozen=True)
