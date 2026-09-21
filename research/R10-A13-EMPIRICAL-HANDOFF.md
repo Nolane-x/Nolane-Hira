@@ -35,3 +35,33 @@ The HIRA head is still random in this proof. Any decision probabilities in the r
 - run a frozen baseline before relation training;
 - then begin non-leaky relation/NLI training;
 - only after immutable benchmark receipts may the R8 Laya/Jev scorecards receive real HIRA values.
+
+
+## A13 proof result — PASS
+
+GitHub Actions run `35618805415` successfully materialized and loaded the frozen revision.
+
+Verified:
+- `model.safetensors`: 51,015,826 bytes
+- weight SHA-256: `5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880`
+- config SHA-256: `42e05354ddaef257585aa57ead3f2ecd066f39adf9f5b31c421191a6d72d2fec`
+- vocab SHA-256: `07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3`
+- hidden size: 256
+- hidden layers: 6
+- total base-model params: 12,750,080
+- pooler params: 65,792
+- encoder params without pooler: 12,684,288
+- HIRA params: 422,159
+- real pooled output shape: `[3, 256]`
+- real token output shape: `[3, 8, 256]`
+- end-to-end A13 -> StateMemory -> Schema -> HIRA full-K forward: PASS
+
+The decision probabilities in that receipt come from an **untrained HIRA relation head** and remain integration-only evidence.
+
+## Next state
+
+The checkpoint-materialization blocker is CLOSED. The next scientific blocker is semantic learning:
+1. frozen A13 baseline;
+2. relation/NLI warm-up on corpora that do not contaminate frozen XNLI/MASSIVE direct lanes;
+3. typed-decision distribution training;
+4. R8 scorecard execution.
