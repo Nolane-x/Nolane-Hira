@@ -1,0 +1,16 @@
+{
+  "schema_version": "r9-a13-proof-v1",
+  "model_id": "microsoft/xtremedistil-l6-h256-uncased",
+  "revision": null,
+  "revision_required": true,
+  "expected_hidden_size": 256,
+  "expected_encoder_params_no_pooler": 12684288,
+  "expected_hira_params": 422159,
+  "mode": "first-proof",
+  "rules": [
+    "do not use mutable aliases for release/final benchmark runs",
+    "record resolved revision and model weight hash in every run receipt",
+    "frozen A13 proof precedes A7 compression",
+    "A22 runs only after the capacity trigger fires"
+  ]
+}
