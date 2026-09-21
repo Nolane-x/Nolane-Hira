@@ -19,6 +19,7 @@ class DecisionOutput:
     probabilities: Tensor
     logits: Tensor
     value: Tensor
+    selected_option_id: str | None
     hira: HIRAOutput
 
 
@@ -74,8 +75,11 @@ class NolaneHira(nn.Module):
             adaptive_budget=adaptive_budget,
         )
         p = out.probabilities[0]
+        selected_option_id = None
         if primitive == "choice":
-            value = p.argmax().to(p.dtype)
+            selected_index = int(p.argmax().item())
+            value = p.new_tensor(float(selected_index))
+            selected_option_id = schema.options[selected_index].option_id
         elif primitive == "score":
             support = torch.arange(p.shape[-1], device=p.device, dtype=p.dtype)
             value = (p * support).sum()
@@ -85,7 +89,7 @@ class NolaneHira(nn.Module):
             value = p[1]
         else:
             raise ValueError(f"unsupported primitive: {primitive}")
-        return DecisionOutput(primitive, p, out.logits[0], value, out)
+        return DecisionOutput(primitive, p, out.logits[0], value, selected_option_id, out)
 
     def decide_text(
         self, state_text: str, *, primitive: Primitive,
