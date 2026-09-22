@@ -1,0 +1,42 @@
+name: benchmark-contract-preflight
+
+on:
+  push:
+    paths:
+      - "benchmarks/**"
+      - "tests/test_benchmark_contracts.py"
+      - ".github/workflows/benchmark-contract-preflight.yml"
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "tests/test_benchmark_contracts.py"
+      - ".github/workflows/benchmark-contract-preflight.yml"
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest numpy
+
+      - name: Validate benchmark contracts
+        run: |
+          python benchmarks/audit_sources.py benchmarks/source_registry.json
+          python benchmarks/contract_preflight.py \
+            --out artifacts/benchmark-contract-preflight.json
+          pytest -q tests/test_benchmark_contracts.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-contract-preflight
+          path: artifacts/benchmark-contract-preflight.json
+          if-no-files-found: error
