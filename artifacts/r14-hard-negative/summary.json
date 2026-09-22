@@ -1,0 +1,33 @@
+{
+  "schema_version": "r14-hard-negative-summary-v1",
+  "empirical_workflow_run_id": 35667400836,
+  "empirical_head_sha": "526f480a9a100002be78e041fcabc2b618133b56",
+  "evidence_artifact": {
+    "id": 10670860267,
+    "digest": "sha256:34aef4df93ed6ed33415a308e950beedac438fe5ec90b09492053dcbbdf7ffb3"
+  },
+  "gates": {
+    "primary_pass": false,
+    "selected_eligible": false,
+    "matched_preservation_pass": false,
+    "hard_gain_pass": true,
+    "parameter_count_unchanged": true,
+    "matched_accuracy_floor": 0.5606666612625122,
+    "hard_non_entailment_gain_floor": 0.10
+  },
+  "baseline": {
+    "matched_accuracy": 0.5806666612625122,
+    "hard_non_entailment_accuracy": 0.339
+  },
+  "selected_failure_analysis_checkpoint": {
+    "matched_accuracy": 0.5066666603088379,
+    "hard_non_entailment_accuracy": 0.681,
+    "hard_non_entailment_gain": 0.342,
+    "head_sha256": "eb25737d913776a1c2c9cccc8905c90a614614455466429721e9377144852f56"
+  },
+  "diagnosis": "Hard-negative curriculum repairs anti-entailment on a MultiNLI hard subset but catastrophically trades away matched MultiNLI competence; single-objective fine-tuning is not accepted.",
+  "forbidden_diagnostics": {
+    "hans": "not authorized because primary_pass=false",
+    "breaking_nli": "not authorized because primary_pass=false"
+  }
+}
