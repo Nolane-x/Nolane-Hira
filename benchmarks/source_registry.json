@@ -170,6 +170,13 @@
       "repo": "google-research-datasets/mbpp",
       "revision": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
       "status": "pinned"
+    },
+    "mteb.banking77": {
+      "kind": "huggingface-dataset",
+      "repo": "mteb/banking77",
+      "revision": "18072d2685ea682290f7b8924d94c62acc19c0b2",
+      "status": "pinned",
+      "note": "Pinned before R8-W4a exposure to match Laya bench_apps.py target laya.app.banking77_full."
     }
   }
 }
