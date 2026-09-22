@@ -1,0 +1,59 @@
+{
+  "schema_version": "r22-functional-null-structural-tangent-summary-v1",
+  "empirical_workflow_run_id": 35721515966,
+  "empirical_head_sha": "3661abaa698eb9f583cd010ecaa78d074d75fca9",
+  "merge_commit_sha": "0a948cf57abb4e019998806ec855343d3098317e",
+  "evidence_artifact": {
+    "id": 10691374526,
+    "digest": "sha256:12ae9f968229f41a45fd593554c0934828fcdf0dc6266a07effd55e39c9aef38"
+  },
+  "full_bundle_artifact": {
+    "id": 10691704213,
+    "digest": "sha256:acefaa02026e68b03b5494b3acd6e87bc498ac70e0910920b38077a613a2cccc"
+  },
+  "baseline_r15": {
+    "matched_accuracy": 0.5333333611488342,
+    "matched_correct": 800,
+    "ranked_structural_non_entailment_accuracy": 0.74,
+    "validity": true
+  },
+  "functional_damage": {
+    "probe_mean_teacher_kl": 0.0010211151158437133,
+    "numerical_rank": 63,
+    "basis_orthonormal_error": 1.253666059852776e-10,
+    "retained_structural_gradient_energy_fraction": 0.003134058784336319,
+    "null_leakage_energy_fraction": 3.0178101014847134e-23,
+    "mechanism_validity": false
+  },
+  "best_structural_null_candidate": {
+    "alpha": 0.125,
+    "applied_update_l2": 0.49515172956913767,
+    "matched_accuracy": 0.5006666779518127,
+    "matched_correct": 751,
+    "ranked_structural_non_entailment_accuracy": 0.774,
+    "ranked_structural_gain": 0.03400000000000003,
+    "zero_drop_retention_pass": false,
+    "eligible": false
+  },
+  "protected_r16_control": {
+    "alpha": 0.25,
+    "matched_accuracy": 0.5320000052452087,
+    "ranked_structural_non_entailment_accuracy": 0.738
+  },
+  "selected_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+  "gates": {
+    "baseline_validity": true,
+    "functional_rank_pass": true,
+    "basis_orthonormal_pass": true,
+    "retained_structural_gradient_energy_pass": false,
+    "null_leakage_pass": true,
+    "mechanism_validity": false,
+    "selected_eligible": false,
+    "zero_drop_matched_pass": false,
+    "ranked_structural_gain_pass": false,
+    "parameter_count_unchanged": true,
+    "primary_pass": false
+  },
+  "diagnosis": "About 99.6866% of the exact-R15 structural-gradient energy lies inside the rank-32 functional teacher-KL damage span. The tiny null residual can improve structural validation after amplification, but finite steps leave the locally measured safe region and lose matched competence.",
+  "next_direction": "Use a train-only finite functional trust region to select step size. Do not rely on first-order nullspace orthogonality or normalize a tiny residual to the full R16 relation-delta norm."
+}
