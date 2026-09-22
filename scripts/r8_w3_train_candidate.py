@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import random
 
+import numpy as np
 import torch
 
 from nmd.hira import HIRACore, count_parameters
@@ -103,6 +104,7 @@ def main() -> None:
         raise RuntimeError("HIRA head parameter count changed")
 
     random.seed(W3_GLOBAL_SEED)
+    np.random.seed(W3_GLOBAL_SEED)
     torch.manual_seed(W3_GLOBAL_SEED)
 
     weights = LOSS_FAMILIES[args.loss_family]
