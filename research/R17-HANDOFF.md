@@ -148,3 +148,50 @@ It would **not** establish:
 - general reasoning competence.
 
 A failed R17 result must be preserved as a negative receipt and must not trigger post-hoc alpha/grid/threshold edits under the R17 label.
+
+
+## Empirical result — PRIMARY GATE FAIL
+
+Authoritative clean workflow run: `35693032141`.
+
+The exact R15 and R16 endpoint hashes were verified before evaluation. The workflow, targeted interpolation tests, empirical tournament, evidence upload, and full repository packaging all completed successfully.
+
+Frozen near-structural support:
+- neutral available at threshold 0.80: **66**;
+- contradiction available at threshold 0.80: **238**;
+- balanced validation: **132 examples total** (66 per label);
+- preregistered support requirement: at least 100 per label;
+- support validity: **FAIL**.
+
+Best eligible interpolation under the frozen selection rule:
+- alpha: **0.025**;
+- matched accuracy: **0.5620** — retention floor passes;
+- R15 / alpha=0 near-structural baseline: **0.5833**;
+- selected near-structural non-entailment accuracy: **0.5909**;
+- absolute gain: **+0.0076**;
+- selected fused head SHA-256: `0b12556cfac4a262e565d6af15717b16c2541060aa131e31357fecabc74e6d08`.
+
+Primary gates:
+- support validity: **FAIL**;
+- matched retention: **PASS**;
+- near-structural accuracy >= 0.60: **FAIL**;
+- near-structural gain >= +0.05: **FAIL**;
+- HIRA parameter count unchanged at 422,159: **PASS**;
+- selected checkpoint eligible: **PASS**;
+- overall primary gate: **FAIL**.
+
+### Interpretation
+
+The small global interpolation is much less destructive than the full R16 update: alpha 0.025 retains the R15 matched competence floor. However, the structural benefit is only about **0.76 percentage points**, far below the preregistered +5 point requirement, and the absolute structural accuracy remains below 0.60.
+
+The support failure is also real: the frozen 0.80 predicate yields only 66 neutral examples. R17 therefore cannot be rescued by lowering its threshold or support requirement after seeing the result.
+
+No HANS or Breaking diagnostic is authorized for R17.
+
+### Successor direction
+
+R18 must be a new preregistered experiment, not an R17 threshold edit.
+
+The next hypothesis is that the R16 update mixes useful structural changes and harmful competence changes across different HIRA functional blocks. A parameter-neutral **module-local interpolation** experiment can test that hypothesis while still deploying one 422,159-parameter head.
+
+To avoid repeating R16/R17 support collapse, R18 should use a separately frozen continuous structural ranking over all eligible neutral/contradiction MultiNLI mismatched examples, select a fixed balanced top-K per label, and report the minimum/mean structural scores instead of choosing examples through a post-hoc score threshold.
