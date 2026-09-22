@@ -1,0 +1,116 @@
+name: r8-w3b-one-shot-final
+
+on:
+  push:
+    branches:
+      - exec/r8-w3b-final
+    paths:
+      - "research/R8-W3B-FINAL-AUTHORITY.json"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify one-shot marker before any final-test access
+        run: |
+          PYTHONPATH=src python - <<'PY'
+          from nmd.typed_final import load_and_validate_marker
+          marker = load_and_validate_marker(
+              "research/R8-W3B-FINAL-AUTHORITY.json"
+          )
+          print("marker_authorized", marker["authorization"])
+          PY
+
+      - name: Verify frozen selected artifact metadata
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10706135649 --jq .digest)" = "sha256:8a2efd31a6ccea3b987957d328c4b73267ab00ff9024c469bcb7f3cd578d5d92"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10706135649 --jq .expired)" = "false"
+
+      - name: Download frozen W3a selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r8-w3-selected-head
+          path: inputs/selected
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35748778854
+
+      - name: Verify selected head and W3a receipt
+        run: |
+          test "$(sha256sum inputs/selected/hira-head.pt | cut -d' ' -f1)" = "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("inputs/selected/selection.json")
+          x = json.loads(p.read_text())
+          assert x["status"] == "PASS"
+          assert x["candidate_count"] == 8
+          assert x["selected_candidate"] == "r15-balanced-lr1e3"
+          assert x["selected_config"]["selected_epoch"] == 7
+          assert x["selected_head_sha256"] == "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c"
+          assert x["final_test_exposed"] is False
+          print("w3a_selection_receipt_verified")
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen final evaluation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+
+      - name: Compile frozen final evaluator
+        run: |
+          python -m py_compile             src/nmd/typed_decisions.py             src/nmd/typed_eval.py             src/nmd/typed_final.py             scripts/r8_w3b_final_typed.py             benchmarks/scorecard.py
+
+      - name: Execute one-shot final authority
+        run: |
+          python scripts/r8_w3b_final_typed.py             --marker research/R8-W3B-FINAL-AUTHORITY.json             --selected-head inputs/selected/hira-head.pt             --targets benchmarks/laya_jev_targets.json             --out artifacts/r8-w3b-final
+
+      - name: Build frozen 53-cell scorecard
+        run: |
+          python benchmarks/scorecard.py             benchmarks/laya_jev_targets.json             artifacts/r8-w3b-final/results.json             --out artifacts/r8-w3b-final/scorecard.json
+
+      - name: Verify scorecard scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s = json.loads(
+              Path("artifacts/r8-w3b-final/scorecard.json").read_text()
+          )
+          assert len(s["rows"]) == 53
+          populated = [r for r in s["rows"] if r["status"] != "MISSING"]
+          assert len(populated) == 8
+          assert all(r["id"].startswith("laya.typed.") for r in populated)
+          jev = [r for r in s["rows"] if r["id"].startswith("jev.typed.")]
+          assert jev and all(r["status"] == "MISSING" for r in jev)
+          assert s["counts"]["MISSING"] == 45
+          print(json.dumps(s["counts"], sort_keys=True))
+          PY
+
+      - name: Display aggregate final receipts only
+        run: |
+          cat artifacts/r8-w3b-final/receipt.json
+          cat artifacts/r8-w3b-final/typed-comparison.json
+          cat artifacts/r8-w3b-final/scorecard.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w3b-one-shot-final
+          path: artifacts/r8-w3b-final
+          if-no-files-found: error
+          retention-days: 90
