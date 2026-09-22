@@ -914,7 +914,6 @@ def main() -> None:
             current_model,
             structural_cache,
             batch_size=GRAD_BATCH_SIZE,
-            layout=layout,
         )
         structural_gradient = flatten_relation_named_tensors(
             grad_map,
