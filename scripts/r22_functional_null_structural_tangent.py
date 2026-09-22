@@ -494,7 +494,7 @@ def main() -> None:
         )
     )
     if len(structural_train_indices) != 4000:
-        raise RuntimeError("R21 structural train must be exactly 4000")
+        raise RuntimeError("R22 structural train must be exactly 4000")
 
     structural_train_set = set(structural_train_indices)
     if not structural_train_set.isdisjoint(prior_train):
