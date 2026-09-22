@@ -356,21 +356,25 @@ def main() -> None:
         train_full, r19_structural_indices
     )
 
-    # R20 structural utility ranks 2001-4000 per label.
+    # R20 structural utility: strongest remaining examples after excluding
+    # every R19 scored-train source index. This exclusion rule was frozen
+    # before the R20 empirical run to make cross-round train disjointness
+    # satisfiable by construction.
+    r19_scored_train = set(r19_structural_indices) | set(r19_retention_indices)
     structural_train_indices, structural_train_stats = (
         balanced_ranked_structural_window_indices(
             train_full["premise"],
             train_full["hypothesis"],
             train_full["label"],
-            start_per_label=R20_STRUCTURAL_START,
+            start_per_label=0,
             count_per_label=R20_STRUCTURAL_PER_LABEL,
             min_hypothesis_tokens=MIN_HYPOTHESIS_TOKENS,
+            exclude_indices=sorted(r19_scored_train),
         )
     )
     if len(structural_train_indices) != 4000:
         raise RuntimeError("R20 structural train must be exactly 4000")
 
-    r19_scored_train = set(r19_structural_indices) | set(r19_retention_indices)
     r20_structural_set = set(structural_train_indices)
     structural_disjoint_from_r19 = r20_structural_set.isdisjoint(r19_scored_train)
     if not structural_disjoint_from_r19:
@@ -827,10 +831,10 @@ def main() -> None:
             "r16_failure_analysis_head_sha256": R16_HEAD_SHA256,
         },
         "protocol": {
-            "r20_structural_train_window_per_label": [
-                R20_STRUCTURAL_START,
-                R20_STRUCTURAL_START + R20_STRUCTURAL_PER_LABEL,
-            ],
+            "r20_structural_train_rule": (
+                "strongest 2000 per label after excluding all exact R19 "
+                "structural+retention scored-train source indices"
+            ),
             "r20_retention_shuffle_seed": R20_RETENTION_SHUFFLE_SEED,
             "r20_retention_n": R20_RETENTION_N,
             "structural_validation_window_per_label": [
