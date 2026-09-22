@@ -1,0 +1,43 @@
+{
+  "schema_version": "r17-interpolation-summary-v1",
+  "empirical_workflow_run_id": 35693032141,
+  "empirical_head_sha": "0174ed801c18964410907d54b48a7ad9286a7738",
+  "evidence_artifact": {
+    "id": 10678604522,
+    "digest": "sha256:3989736b85fd774c28adf21f381145402e18a27a7c989193709a49ef039433d5"
+  },
+  "full_bundle_artifact": {
+    "id": 10678629632,
+    "digest": "sha256:a21afbd51f2a1b0c724679fdb548ad5e30e440d9e2c55d083ab338b4880f0987"
+  },
+  "frozen_endpoints": {
+    "r15_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+    "r16_failure_analysis_head_sha256": "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+  },
+  "data": {
+    "matched_validation_n": 1500,
+    "near_validation_n": 132,
+    "near_available_neutral": 66,
+    "near_available_contradiction": 238,
+    "near_balanced_per_label": 66
+  },
+  "selection": {
+    "alpha": 0.025,
+    "matched_accuracy": 0.5619999766349792,
+    "near_structural_baseline": 0.5833333333333334,
+    "near_structural_non_entailment_accuracy": 0.5909090909090909,
+    "near_structural_gain": 0.007575757575757569,
+    "selected_head_sha256": "0b12556cfac4a262e565d6af15717b16c2541060aa131e31357fecabc74e6d08"
+  },
+  "gates": {
+    "support_valid": false,
+    "matched_pass": true,
+    "near_structural_pass": false,
+    "near_structural_gain_pass": false,
+    "parameter_count_unchanged": true,
+    "selected_eligible": true,
+    "primary_pass": false
+  },
+  "diagnosis": "Global R15->R16 interpolation preserves the matched floor at alpha=0.025 but produces only a +0.76 point near-structural gain, below both the preregistered gain and absolute-accuracy gates. The frozen 0.80 near-structural predicate also has only 66 neutral examples, so the preregistered support gate fails. R17 is a negative result; thresholds and alpha grid remain unchanged and no HANS/Breaking diagnostic is authorized.",
+  "next_direction": "Treat R17 as adapted evidence and test whether the useful R16 update is localized to specific HIRA functional parameter groups, using a separately preregistered balanced continuous-rank MultiNLI slice rather than modifying the R17 predicate."
+}

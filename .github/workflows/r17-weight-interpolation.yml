@@ -1,0 +1,96 @@
+name: r17-weight-interpolation
+
+on:
+  push:
+    branches:
+      - feat/r17-weight-interpolation
+    paths:
+      - "src/nmd/interpolation.py"
+      - "scripts/r17_weight_interpolation.py"
+      - "tests/test_interpolation.py"
+      - "research/R17-HANDOFF.md"
+      - ".github/workflows/r17-weight-interpolation.yml"
+
+concurrency:
+  group: r17-weight-interpolation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  interpolate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact R15 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r15-retention-evidence
+          path: upstream/r15
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35688830869
+
+      - name: Download exact R16 failure-analysis head
+        uses: actions/download-artifact@v4
+        with:
+          name: r16-structural-evidence
+          path: upstream/r16
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35690994565
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install research stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]"
+          python -m py_compile scripts/r17_weight_interpolation.py
+          pytest -q tests/test_interpolation.py
+
+      - name: Verify frozen endpoint heads
+        run: |
+          test "$(sha256sum upstream/r15/hira-head.pt | cut -d' ' -f1)" = "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f"
+          test "$(sha256sum upstream/r16/hira-head.pt | cut -d' ' -f1)" = "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+
+      - name: Run frozen R17 interpolation tournament
+        run: |
+          python scripts/r17_weight_interpolation.py \
+            --r15-head upstream/r15/hira-head.pt \
+            --r16-head upstream/r16/hira-head.pt \
+            --out artifacts/r17-interpolation \
+            --alphas 0,0.025,0.05,0.10,0.15,0.20,0.30 \
+            --matched-val-n 1500 \
+            --near-max-per-label 500 \
+            --encode-batch-size 32 \
+            --eval-batch-size 128 \
+            --segments 8 \
+            --seed 13
+          cat artifacts/r17-interpolation/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r17-interpolation-evidence
+          path: |
+            artifacts/r17-interpolation/receipt.json
+            artifacts/r17-interpolation/hira-head.pt
+          if-no-files-found: error
+
+      - name: Package exact R17 repository snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R17-FULL.zip HEAD
+          cp research/R17-HANDOFF.md dist/R17-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R17-FULL.zip > dist/NOLANE-HIRA-R17-FULL.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r17-full-bundle
+          path: dist
+          if-no-files-found: error
