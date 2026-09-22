@@ -83,65 +83,135 @@ def _canonical_json_object(value: object, field: str) -> str:
     )
 
 
+def _semantic_json_text(
+    value: object,
+    *,
+    field: str,
+) -> str:
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            raise TypedDecisionContractError(
+                f"{field} must not be empty"
+            )
+        return text
+    if value is None:
+        raise TypedDecisionContractError(
+            f"{field} must contain a semantic description"
+        )
+    try:
+        text = json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+    except (TypeError, ValueError) as exc:
+        raise TypedDecisionContractError(
+            f"{field} must be JSON-compatible semantic content"
+        ) from exc
+    if not text:
+        raise TypedDecisionContractError(
+            f"{field} must not be empty"
+        )
+    return text
+
+
 def _criteria_options(
     primitive: Primitive,
     criteria: object,
 ) -> tuple[LogicalOption, ...]:
-    if not isinstance(criteria, Mapping) or len(criteria) < 2:
-        raise TypedDecisionContractError(
-            "question criteria must contain at least two options"
+    if primitive == "score":
+        if (
+            not isinstance(criteria, Sequence)
+            or isinstance(criteria, (str, bytes, bytearray))
+            or not 2 <= len(criteria) <= 10
+        ):
+            raise TypedDecisionContractError(
+                "score criteria must be an ordered list of 2 to 10 levels"
+            )
+        return tuple(
+            LogicalOption(
+                option_id=str(index),
+                criterion_text=_semantic_json_text(
+                    description,
+                    field=f"score criteria[{index}]",
+                ),
+                value=float(index),
+            )
+            for index, description in enumerate(criteria)
         )
 
-    rows: list[tuple[str, str, float | None]] = []
-    for raw_key, raw_text in criteria.items():
-        option_id = str(raw_key).strip()
-        text = str(raw_text).strip()
-        if not option_id or not text:
-            raise TypedDecisionContractError(
-                "criteria option IDs and descriptions must be non-empty"
-            )
-        value: float | None = None
-        if primitive == "score":
-            try:
-                value = float(option_id)
-            except ValueError as exc:
-                raise TypedDecisionContractError(
-                    "score criteria IDs must be numeric rubric values"
-                ) from exc
-            if not math.isfinite(value):
-                raise TypedDecisionContractError(
-                    "score rubric values must be finite"
-                )
-        rows.append((option_id, text, value))
+    if not isinstance(criteria, Mapping):
+        raise TypedDecisionContractError(
+            f"{primitive} criteria must be an object"
+        )
 
-    if primitive == "score":
-        rows.sort(key=lambda row: (float(row[2]), row[0]))
-        numeric = [float(row[2]) for row in rows]
-        if len(set(numeric)) != len(numeric):
-            raise TypedDecisionContractError(
-                "score criteria must have unique numeric rubric values"
-            )
-    elif primitive == "noul":
-        by_lower = {row[0].lower(): row for row in rows}
-        if set(by_lower) != {"false", "true"} or len(rows) != 2:
+    if primitive == "noul":
+        by_lower = {
+            str(key).strip().lower(): value
+            for key, value in criteria.items()
+        }
+        if set(by_lower) != {"false", "true"} or len(criteria) != 2:
             raise TypedDecisionContractError(
                 "noul criteria must be exactly false and true"
             )
-        rows = [by_lower["false"], by_lower["true"]]
-        rows[0] = (rows[0][0], rows[0][1], 0.0)
-        rows[1] = (rows[1][0], rows[1][1], 1.0)
-    else:
-        rows.sort(key=lambda row: row[0])
+        return (
+            LogicalOption(
+                option_id="false",
+                criterion_text=_semantic_json_text(
+                    by_lower["false"],
+                    field="noul criteria.false",
+                ),
+                value=0.0,
+            ),
+            LogicalOption(
+                option_id="true",
+                criterion_text=_semantic_json_text(
+                    by_lower["true"],
+                    field="noul criteria.true",
+                ),
+                value=1.0,
+            ),
+        )
 
+    if primitive != "choice":
+        raise TypedDecisionContractError(
+            f"unsupported primitive: {primitive}"
+        )
+    if len(criteria) < 2 or len(criteria) > 255:
+        raise TypedDecisionContractError(
+            "choice criteria must contain 2 to 255 options"
+        )
+
+    rows: list[tuple[str, str]] = []
+    for raw_key, raw_description in criteria.items():
+        option_id = str(raw_key).strip()
+        if not option_id:
+            raise TypedDecisionContractError(
+                "choice criteria option IDs must be non-empty"
+            )
+        rows.append(
+            (
+                option_id,
+                _semantic_json_text(
+                    raw_description,
+                    field=f"choice criteria.{option_id}",
+                ),
+            )
+        )
+    rows.sort(key=lambda row: row[0])
+    if len({row[0] for row in rows}) != len(rows):
+        raise TypedDecisionContractError(
+            "choice criteria option IDs must be unique"
+        )
     return tuple(
         LogicalOption(
             option_id=option_id,
-            criterion_text=text,
-            value=value,
+            criterion_text=description,
         )
-        for option_id, text, value in rows
+        for option_id, description in rows
     )
-
 
 def _gold_distribution(
     raw_gold: object,
@@ -281,13 +351,10 @@ def parse_typed_decisions_train_row(
                 f"question {question_id!r} has unsupported type"
             )
         primitive = str(primitive)
-        question_text = str(
-            raw_question.get("instructions", "")
-        ).strip()
-        if not question_text:
-            raise TypedDecisionContractError(
-                f"question {question_id!r} requires instructions"
-            )
+        question_text = _semantic_json_text(
+            raw_question.get("instructions"),
+            field=f"question {question_id!r} instructions",
+        )
 
         options = _criteria_options(
             primitive,
