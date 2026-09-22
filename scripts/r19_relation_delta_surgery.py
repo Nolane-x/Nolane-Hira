@@ -10,10 +10,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from nmd.block_interpolation import (
-    atomic_group_for_key,
-    balanced_ranked_structural_non_entailment_indices,
-)
+from nmd.block_interpolation import atomic_group_for_key
 from nmd.delta_surgery import (
     apply_relation_mask,
     balanced_ranked_structural_window_indices,
@@ -291,11 +288,12 @@ def main() -> None:
 
     # Train-only structural utility set.
     structural_train_indices, structural_train_stats = (
-        balanced_ranked_structural_non_entailment_indices(
+        balanced_ranked_structural_window_indices(
             train_full["premise"],
             train_full["hypothesis"],
             train_full["label"],
-            per_label=STRUCTURAL_TRAIN_PER_LABEL,
+            start_per_label=0,
+            count_per_label=STRUCTURAL_TRAIN_PER_LABEL,
             min_hypothesis_tokens=MIN_HYPOTHESIS_TOKENS,
         )
     )
