@@ -31,6 +31,7 @@ class NolaneHira(nn.Module):
         self.encoder = encoder
         self.hira = hira or HIRACore(d_model=encoder.d_model)
         self.schema_compiler = SchemaCompiler(encoder)
+        self.state_encode_calls = 0
 
     def train(self, mode: bool = True):
         if mode:
@@ -38,6 +39,7 @@ class NolaneHira(nn.Module):
         return super().train(mode)
 
     def compile_state(self, text: str, *, segment_tokens: int = 32) -> StateMemory:
+        self.state_encode_calls += 1
         return self.encoder.encode_state(text, segment_tokens=segment_tokens)
 
     def compile_schema(
