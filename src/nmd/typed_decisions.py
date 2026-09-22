@@ -18,6 +18,10 @@ TYPED_DECISIONS_WORKFLOWS = (
     "security_incidents",
 )
 EXPECTED_TRAIN_CASES_PER_WORKFLOW = 300
+TYPED_DECISIONS_FINAL_CONFIG = "all"
+TYPED_DECISIONS_FINAL_SPLIT = "test"
+EXPECTED_FINAL_CASES = 400
+EXPECTED_FINAL_DECISIONS = 2000
 EXPECTED_QUESTIONS_PER_CASE = 5
 PROBABILITY_MASS_TOLERANCE = 5e-4
 
@@ -316,16 +320,24 @@ def _gold_distribution(
     return gold_index, normalized, gold_score
 
 
-def parse_typed_decisions_train_row(
+def _parse_typed_decisions_row(
     row: Mapping[str, object],
+    *,
+    expected_split: str,
+    authority: str,
 ) -> TypedDecisionCase:
     if not isinstance(row, Mapping):
-        raise TypedDecisionContractError("typed-decisions row must be an object")
-
-    split = str(row.get("split", "train")).strip().lower()
-    if split != "train":
         raise TypedDecisionContractError(
-            "W2 adapter is train-only; non-train rows are forbidden"
+            "typed-decisions row must be an object"
+        )
+
+    split = str(
+        row.get("split", expected_split)
+    ).strip().lower()
+    if split != expected_split:
+        raise TypedDecisionContractError(
+            f"{authority} accepts only split={expected_split!r}; "
+            f"got {split!r}"
         )
 
     case_id = str(row.get("id", "")).strip()
@@ -377,7 +389,6 @@ def parse_typed_decisions_train_row(
             raw_question.get("instructions"),
             field=f"question {question_id!r} instructions",
         )
-
         options = _criteria_options(
             primitive,
             raw_question.get("criteria"),
@@ -408,6 +419,25 @@ def parse_typed_decisions_train_row(
         decisions=tuple(decisions),
     )
 
+
+def parse_typed_decisions_train_row(
+    row: Mapping[str, object],
+) -> TypedDecisionCase:
+    return _parse_typed_decisions_row(
+        row,
+        expected_split="train",
+        authority="TRAIN adapter",
+    )
+
+
+def parse_typed_decisions_final_row(
+    row: Mapping[str, object],
+) -> TypedDecisionCase:
+    return _parse_typed_decisions_row(
+        row,
+        expected_split=TYPED_DECISIONS_FINAL_SPLIT,
+        authority="W3b final adapter",
+    )
 
 def load_pinned_typed_decisions_train(
     workflows: Sequence[str] = TYPED_DECISIONS_WORKFLOWS,
@@ -462,6 +492,55 @@ def load_pinned_typed_decisions_train(
             cases.append(case)
     return cases
 
+
+
+def load_pinned_typed_decisions_final(
+    *,
+    dataset_loader: Callable[..., Iterable[Mapping[str, object]]] | None = None,
+) -> list[TypedDecisionCase]:
+    if dataset_loader is None:
+        try:
+            from datasets import load_dataset
+        except ImportError as exc:
+            raise RuntimeError(
+                "Install the optional research stack to load typed-decisions"
+            ) from exc
+        dataset_loader = load_dataset
+
+    rows = dataset_loader(
+        TYPED_DECISIONS_DATASET_ID,
+        TYPED_DECISIONS_FINAL_CONFIG,
+        split=TYPED_DECISIONS_FINAL_SPLIT,
+        revision=TYPED_DECISIONS_REVISION,
+    )
+    if len(rows) != EXPECTED_FINAL_CASES:
+        raise TypedDecisionContractError(
+            "typed-decisions final authority must contain exactly "
+            f"{EXPECTED_FINAL_CASES} cases"
+        )
+
+    cases: list[TypedDecisionCase] = []
+    seen_ids: set[str] = set()
+    for row in rows:
+        case = parse_typed_decisions_final_row(row)
+        if case.workflow not in TYPED_DECISIONS_WORKFLOWS:
+            raise TypedDecisionContractError(
+                f"unknown workflow in final authority: {case.workflow!r}"
+            )
+        if case.case_id in seen_ids:
+            raise TypedDecisionContractError(
+                f"duplicate typed-decisions final case id: {case.case_id}"
+            )
+        seen_ids.add(case.case_id)
+        cases.append(case)
+
+    decisions = sum(len(case.decisions) for case in cases)
+    if decisions != EXPECTED_FINAL_DECISIONS:
+        raise TypedDecisionContractError(
+            "typed-decisions final authority must contain exactly "
+            f"{EXPECTED_FINAL_DECISIONS} decisions"
+        )
+    return cases
 
 def execute_typed_case(
     model: NolaneHira,
