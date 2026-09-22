@@ -1,6 +1,6 @@
 # R8-W3 handoff — typed-decisions specialist lane
 
-Status: **W3a TRAIN-only implementation in progress under issue #50.**
+Status: **W3a COMPLETE and merged; one frozen specialist head selected with final_test_exposed=false. W3b final evaluation is next.**
 
 ## Frozen phase boundary
 
@@ -79,3 +79,59 @@ Only after W3a selection is merged/frozen:
 - do not train/select/calibrate on test;
 - populate only metric-compatible Laya typed cells;
 - label Jev comparison protocol-separated.
+
+
+## W3a authoritative completion
+
+Merged to `main` as `327679b87988f375e97b2a8a96456d35a8c54dde`.
+
+Authoritative workflow:
+- run `35748778854`: PASS;
+- cache: PASS;
+- all eight candidates: PASS;
+- selector: PASS.
+
+Frozen cache:
+- 1,200 TRAIN cases / 6,000 decisions;
+- 960 TRAIN / 240 DEV;
+- exactly 1,200 A13 state encodes = 1 per case;
+- cache SHA-256 `7e1e7fcc46cf107be138285efd320b37529adc141d0219e40696842ebd451b6f`.
+
+Selected candidate:
+- `r15-balanced-lr1e3`;
+- selected epoch 7;
+- lr 0.001;
+- balanced frozen loss;
+- selected head SHA-256 `2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c`;
+- selected artifact `10706135649`;
+- artifact digest `sha256:8a2efd31a6ccea3b987957d328c4b73267ab00ff9024c469bcb7f3cd578d5d92`.
+
+Frozen DEV selection metrics:
+- accuracy 0.5491666667;
+- choice accuracy 0.4777777778;
+- noul accuracy 0.7222222222;
+- score accuracy 0.4729166667;
+- soft accuracy 0.3859879950;
+- hard Brier 0.5646017494;
+- raw ECE 0.0855358069;
+- score MAE 0.5405605146.
+
+These are **DEV selection metrics only**, not final benchmark results.
+
+The selector receipt records `final_test_exposed=false`.
+
+Machine-readable authority:
+`artifacts/r8-w3a-selection/summary.json`.
+
+## W3b one-shot rule
+
+W3b must not retrain, recalibrate, choose thresholds, choose epochs, or change the head.
+
+Final authority is frozen to:
+- dataset `LocalLLaMA/typed-decisions@c76749ec58bd8c3d2ea706b31c333a9059c38f90`;
+- config `all`;
+- split `test`;
+- all 400 cases / 2,000 decisions;
+- selected head SHA-256 `2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c`.
+
+W3b code must be unit-tested without loading final test. The actual final evaluation is triggered once by a dedicated execution-marker commit after evaluator code is merged.
