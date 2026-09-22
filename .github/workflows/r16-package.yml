@@ -1,0 +1,27 @@
+name: r16-package
+
+on:
+  push:
+    branches:
+      - feat/r16-structural-repair
+    paths:
+      - ".github/workflows/r16-package.yml"
+      - "artifacts/r16-structural/summary.json"
+      - "research/R16-HANDOFF.md"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact R16 recovery snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R16-FULL.zip HEAD
+          cp research/R16-HANDOFF.md dist/R16-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R16-FULL.zip > dist/NOLANE-HIRA-R16-FULL.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r16-full-final-bundle
+          path: dist
+          if-no-files-found: error
