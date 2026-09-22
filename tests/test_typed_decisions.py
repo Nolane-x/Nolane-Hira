@@ -468,3 +468,42 @@ def test_json_content_descriptions_are_canonical_semantic_text():
     assert noul.options[1].criterion_text == (
         '{"examples":["unsafe","ambiguous"],"meaning":"Review is needed"}'
     )
+
+
+
+def test_noul_allows_missing_criteria_and_derives_semantics_from_question():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    del questions["needs_review"]["criteria"]
+    raw["questions"] = json.dumps(questions)
+
+    case = parse_typed_decisions_train_row(raw)
+    decision = next(
+        d for d in case.decisions
+        if d.question_id == "needs_review"
+    )
+
+    assert [option.option_id for option in decision.options] == [
+        "false",
+        "true",
+    ]
+    assert [option.value for option in decision.options] == [0.0, 1.0]
+    assert "Does this trace need human review?" in (
+        decision.options[0].criterion_text
+    )
+    assert "Does this trace need human review?" in (
+        decision.options[1].criterion_text
+    )
+
+
+def test_noul_rejects_nonstandard_supplied_criteria_shape():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    questions["needs_review"]["criteria"] = ["no", "yes"]
+    raw["questions"] = json.dumps(questions)
+
+    with pytest.raises(
+        TypedDecisionContractError,
+        match="absent or a false/true object",
+    ):
+        parse_typed_decisions_train_row(raw)
