@@ -47,3 +47,32 @@ def weighted_batch_gradient_row(
     if row.ndim != 1 or not torch.isfinite(row).all():
         raise ValueError("gradient row must be finite 1-D")
     return row * math.sqrt(batch_n / total_n)
+
+
+def finite_sample_relative_accuracy_pass(
+    candidate_accuracy: float,
+    baseline_accuracy: float,
+    *,
+    n: int,
+    tolerance: float,
+) -> bool:
+    """Apply an accuracy-delta gate in exact finite-sample count space.
+
+    Accuracy metrics are often emitted from float32 means. On a fixed finite
+    sample, a frozen tolerance such as 0.002 at n=1500 corresponds exactly to
+    three correct predictions. Comparing the float32 means directly can turn
+    equality at that exact count boundary into a false failure.
+    """
+    if n <= 0:
+        raise ValueError("n must be positive")
+    if tolerance < 0:
+        raise ValueError("tolerance must be non-negative")
+    candidate_correct = int(round(float(candidate_accuracy) * n))
+    baseline_correct = int(round(float(baseline_accuracy) * n))
+    tolerance_count = float(tolerance) * n
+    rounded_tolerance_count = int(round(tolerance_count))
+    if abs(tolerance_count - rounded_tolerance_count) > 1e-9:
+        raise ValueError(
+            "tolerance*n must be an integer for exact count-space authority"
+        )
+    return candidate_correct >= baseline_correct - rounded_tolerance_count
