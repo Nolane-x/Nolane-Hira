@@ -255,3 +255,79 @@ It does not establish:
 Only after every R19 primary gate passes may already-adapted HANS/Breaking diagnostics run.
 
 A failed R19 remains a negative result and must not be rescued by post-hoc changes under the R19 label.
+
+
+## Empirical result — PRIMARY GATE FAIL
+
+Authoritative workflow run: `35695702268`.
+
+Exact R15 baseline on the disjoint R19 validation authority:
+- matched accuracy: **0.5493333339691162**;
+- ranked-structural non-entailment accuracy: **0.640**.
+
+Coordinate evidence:
+- relation coordinates: **198,021**;
+- positive-benefit coordinates: **112,729**;
+- positive-benefit fraction: **56.93%**;
+- support gate therefore passes strongly.
+
+No sparse candidate is eligible under the frozen R19 gates.
+
+Best retention candidate:
+- scorer: `benefit_over_cost`;
+- mask fraction: 40%;
+- alpha: 0.25;
+- changed relation coordinates: 45,092;
+- matched accuracy: **0.5473333597**;
+- structural accuracy: **0.654**;
+- relative retention is approximately at the frozen R15-minus-0.002 boundary, but the absolute 0.55 gate fails.
+
+Best structural candidate:
+- scorer: `benefit`;
+- mask fraction: 40%;
+- alpha: 1.0;
+- structural accuracy: **0.690**;
+- matched accuracy: **0.5080**.
+
+The result therefore preserves the R18 trade-off at coordinate scale: structural utility is real, but independent coordinate sparsification does not remove the competence-damaging component of the R16 relation direction.
+
+All invariants pass:
+- train structural set exactly 4,000;
+- train retention set exactly 6,000;
+- train sets disjoint;
+- R19 structural validation exactly 500 and disjoint from R18;
+- R19 matched validation exactly 1,500 and disjoint from the prior matched slice;
+- positive-benefit support valid;
+- non-relation parameters bit-identical to R15;
+- masked-off relation coordinates bit-identical to R15;
+- masks nested;
+- HIRA remains exactly 422,159 parameters.
+
+Primary scientific gate: **FAIL**.
+
+The workflow itself completed successfully. This means the experiment executed correctly; it does not convert the scientific result into a pass.
+
+No HANS/Breaking diagnostic is authorized for R19.
+
+### Important retention-authority observation
+
+The exact R15 baseline scores **0.54933** on the new R19 matched slice, slightly below the preregistered absolute floor 0.55.
+
+R19 must not change that floor post hoc. The failure is preserved exactly as preregistered.
+
+A successor may define a new disjoint authority before evaluation and should prefer a baseline-relative retention criterion with an explicit baseline-validity check rather than retroactively weakening R19.
+
+## Next direction — R20
+
+Do not extend the R19 mask fractions, alpha grid, or coordinate scorers.
+
+R20 should test **relation-delta projection / rotation**:
+- estimate structural and retention-sensitive gradient subspaces from train-only, disjoint MultiNLI partitions;
+- start from the frozen R16-R15 relation delta;
+- remove or attenuate components aligned with retention-sensitive directions;
+- preserve the remaining structural-aligned component;
+- use new disjoint MultiNLI development slices for selection;
+- keep HIRA parameter-neutral at 422,159;
+- keep HANS/Breaking/XNLI/MASSIVE/Banking77/Laya/Jev final cells forbidden for model selection.
+
+R19 is a completed negative result, not an unfinished tuning stage.
