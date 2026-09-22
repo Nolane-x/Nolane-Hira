@@ -98,19 +98,22 @@ jobs:
           assert len(score["rows"]) == 53
           PY
 
-      - name: Enforce anti-benchmaxxing policy markers
+      - name: Enforce anti-benchmaxxing policy
         run: |
           python - <<'PY'
+          import json
           from pathlib import Path
 
-          text = Path("benchmarks/BENCHMARK_CAMPAIGN.md").read_text()
-          required = [
-              "final test cannot select architecture/loss/threshold",
-              "Missing cells remain MISSING",
-              "matched hardware",
-              "confirmatory",
-          ]
-          lowered = text.lower()
-          for marker in required:
-              assert marker.lower() in lowered, marker
+          targets = json.loads(
+              Path("benchmarks/laya_jev_targets.json").read_text()
+          )
+          rules = targets["rules"]
+          assert rules["no_cross_protocol_winner_claims"] is True
+          assert rules["final_test_selection_forbidden"] is True
+          assert rules["missing_metrics_count_as_missing_not_zero"] is True
+
+          campaign = Path("benchmarks/BENCHMARK_CAMPAIGN.md").read_text().lower()
+          assert "matched hardware" in campaign
+          assert "confirmatory" in campaign
+          assert "unused for architecture/loss/threshold/model selection" in campaign
           PY
