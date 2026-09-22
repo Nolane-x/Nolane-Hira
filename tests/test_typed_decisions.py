@@ -13,9 +13,14 @@ from nmd.training import loss_typed_case
 from nmd.typed_decisions import (
     TYPED_DECISIONS_DATASET_ID,
     TYPED_DECISIONS_REVISION,
+    TYPED_DECISIONS_FINAL_CONFIG,
+    TYPED_DECISIONS_FINAL_SPLIT,
+    EXPECTED_FINAL_CASES,
     TypedDecisionContractError,
     execute_typed_case,
+    load_pinned_typed_decisions_final,
     load_pinned_typed_decisions_train,
+    parse_typed_decisions_final_row,
     parse_typed_decisions_train_row,
 )
 from nmd.typed_eval import evaluate_typed_cases
@@ -507,3 +512,94 @@ def test_noul_rejects_nonstandard_supplied_criteria_shape():
         match="absent or a false/true object",
     ):
         parse_typed_decisions_train_row(raw)
+
+
+
+def test_final_parser_accepts_only_test_and_train_parser_stays_train_only():
+    final_case = parse_typed_decisions_final_row(
+        typed_row(
+            case_id="te_agent_trace_observability_000000",
+            split="test",
+        )
+    )
+    assert final_case.case_id.startswith("te_")
+
+    with pytest.raises(TypedDecisionContractError, match="split='test'"):
+        parse_typed_decisions_final_row(typed_row(split="train"))
+
+    with pytest.raises(TypedDecisionContractError, match="split='train'"):
+        parse_typed_decisions_train_row(typed_row(split="test"))
+
+
+def test_pinned_final_loader_requests_exact_all_test_revision_and_counts():
+    calls = []
+    workflows = (
+        "agent_trace_observability",
+        "customer_service",
+        "invoice_processing",
+        "security_incidents",
+    )
+
+    def loader(dataset_id, config, *, split, revision):
+        calls.append((dataset_id, config, split, revision))
+        return [
+            typed_row(
+                case_id=f"te_{workflows[i % 4]}_{i:06d}",
+                workflow=workflows[i % 4],
+                split="test",
+            )
+            for i in range(EXPECTED_FINAL_CASES)
+        ]
+
+    cases = load_pinned_typed_decisions_final(dataset_loader=loader)
+
+    assert len(cases) == 400
+    assert sum(len(case.decisions) for case in cases) == 2000
+    assert calls == [
+        (
+            TYPED_DECISIONS_DATASET_ID,
+            TYPED_DECISIONS_FINAL_CONFIG,
+            TYPED_DECISIONS_FINAL_SPLIT,
+            TYPED_DECISIONS_REVISION,
+        )
+    ]
+
+
+def test_final_loader_fails_closed_on_wrong_count_and_duplicate_ids():
+    def short_loader(*args, **kwargs):
+        return [
+            typed_row(
+                case_id=f"te_customer_service_{i:06d}",
+                workflow="customer_service",
+                split="test",
+            )
+            for i in range(399)
+        ]
+
+    with pytest.raises(
+        TypedDecisionContractError,
+        match="exactly 400 cases",
+    ):
+        load_pinned_typed_decisions_final(
+            dataset_loader=short_loader
+        )
+
+    def duplicate_loader(*args, **kwargs):
+        rows = [
+            typed_row(
+                case_id=f"te_customer_service_{i:06d}",
+                workflow="customer_service",
+                split="test",
+            )
+            for i in range(400)
+        ]
+        rows[-1]["id"] = rows[0]["id"]
+        return rows
+
+    with pytest.raises(
+        TypedDecisionContractError,
+        match="duplicate typed-decisions final case id",
+    ):
+        load_pinned_typed_decisions_final(
+            dataset_loader=duplicate_loader
+        )
