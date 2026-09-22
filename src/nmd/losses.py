@@ -30,9 +30,29 @@ def soft_brier_loss(logits: Tensor, teacher_probs: Tensor) -> Tensor:
     return ((p - teacher) ** 2).sum(-1).mean()
 
 
-def ordinal_expected_mae(logits: Tensor, gold_score: Tensor) -> Tensor:
+def ordinal_expected_mae(
+    logits: Tensor,
+    gold_score: Tensor,
+    score_support: Tensor | None = None,
+) -> Tensor:
     p = torch.softmax(logits, dim=-1)
-    support = torch.arange(logits.shape[-1], device=logits.device, dtype=p.dtype)
+    if score_support is None:
+        support = torch.arange(
+            logits.shape[-1],
+            device=logits.device,
+            dtype=p.dtype,
+        ).unsqueeze(0).expand_as(p)
+    else:
+        support = score_support.to(
+            device=logits.device,
+            dtype=p.dtype,
+        )
+        if support.ndim == 1:
+            support = support.unsqueeze(0).expand_as(p)
+        if support.shape != p.shape:
+            raise ValueError(
+                "score_support must be [K] or match logits [B,K]"
+            )
     expected = (p * support).sum(-1)
     return (expected - gold_score.to(p.dtype)).abs().mean()
 
@@ -55,8 +75,13 @@ class LossWeights:
 
 
 def typed_decision_loss(
-    logits: Tensor, gold: Tensor, *, teacher_probs: Tensor | None = None,
-    gold_score: Tensor | None = None, weights: LossWeights = LossWeights()
+    logits: Tensor,
+    gold: Tensor,
+    *,
+    teacher_probs: Tensor | None = None,
+    gold_score: Tensor | None = None,
+    score_support: Tensor | None = None,
+    weights: LossWeights = LossWeights(),
 ) -> tuple[Tensor, dict[str, Tensor]]:
     parts: dict[str, Tensor] = {}
     if weights.hard_ce:
@@ -68,7 +93,11 @@ def typed_decision_loss(
     if teacher_probs is not None and weights.soft_brier:
         parts["soft_brier"] = soft_brier_loss(logits, teacher_probs) * weights.soft_brier
     if gold_score is not None and weights.ordinal_mae:
-        parts["ordinal_mae"] = ordinal_expected_mae(logits, gold_score) * weights.ordinal_mae
+        parts["ordinal_mae"] = ordinal_expected_mae(
+            logits,
+            gold_score,
+            score_support=score_support,
+        ) * weights.ordinal_mae
     if not parts:
         raise ValueError("at least one loss component must be enabled")
     return sum(parts.values()), parts
