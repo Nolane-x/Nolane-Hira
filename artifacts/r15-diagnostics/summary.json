@@ -1,0 +1,36 @@
+{
+  "schema_version": "r15-adapted-diagnostics-summary-v1",
+  "empirical_workflow_run_id": 35689894137,
+  "evidence_artifact": {
+    "id": 10677814035,
+    "digest": "sha256:cbdd42ef4a50c2279f99c19f6d27e57b5bb4fd29b6e3695c81ae9b994709f388"
+  },
+  "repair_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+  "primary_repair": {
+    "pass": true,
+    "teacher_kl_weight": 0.5,
+    "matched_accuracy": 0.5613333582878113,
+    "hard_non_entailment_accuracy": 0.638,
+    "hard_gain_vs_r12": 0.299
+  },
+  "adapted_diagnostics": {
+    "diagnostic_pass": false,
+    "hans": {
+      "overall_accuracy": 0.5291,
+      "entailment_accuracy": 0.8319333333333333,
+      "non_entailment_accuracy": 0.22626666666666667,
+      "non_entailment_gain_vs_r13": 0.14253333333333335,
+      "required_gain": 0.15,
+      "pass": false
+    },
+    "breaking_nli": {
+      "accuracy": 0.30452825582814597,
+      "macro_recall": 0.4513940257831748,
+      "contradiction_recall": 0.2914572864321608,
+      "contradiction_gain_vs_r13": 0.16527079843662756,
+      "required_gain": 0.15,
+      "pass": true
+    }
+  },
+  "interpretation": "Replay plus teacher anchoring solves the R14 retention failure and materially improves both known R13 failure modes. Breaking passes its adapted repair gate; HANS improves strongly but misses the preregistered +0.15 non-entailment gain by about 0.00747, so the combined diagnostic gate remains failed."
+}
