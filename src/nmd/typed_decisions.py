@@ -120,6 +120,8 @@ def _semantic_json_text(
 def _criteria_options(
     primitive: Primitive,
     criteria: object,
+    *,
+    question_text: str,
 ) -> tuple[LogicalOption, ...]:
     if primitive == "score":
         if (
@@ -142,19 +144,34 @@ def _criteria_options(
             for index, description in enumerate(criteria)
         )
 
-    if not isinstance(criteria, Mapping):
-        raise TypedDecisionContractError(
-            f"{primitive} criteria must be an object"
-        )
-
     if primitive == "noul":
+        if criteria is None or criteria == {}:
+            # System One Noul does not require a criteria object. Keep the
+            # two logical values explicit while grounding their semantics in
+            # the question text rather than treating routing IDs as meaning.
+            return (
+                LogicalOption(
+                    option_id="false",
+                    criterion_text=f"False / no for: {question_text}",
+                    value=0.0,
+                ),
+                LogicalOption(
+                    option_id="true",
+                    criterion_text=f"True / yes for: {question_text}",
+                    value=1.0,
+                ),
+            )
+        if not isinstance(criteria, Mapping):
+            raise TypedDecisionContractError(
+                "noul criteria must be absent or a false/true object"
+            )
         by_lower = {
             str(key).strip().lower(): value
             for key, value in criteria.items()
         }
         if set(by_lower) != {"false", "true"} or len(criteria) != 2:
             raise TypedDecisionContractError(
-                "noul criteria must be exactly false and true"
+                "noul criteria must be exactly false and true when supplied"
             )
         return (
             LogicalOption(
@@ -173,6 +190,11 @@ def _criteria_options(
                 ),
                 value=1.0,
             ),
+        )
+
+    if not isinstance(criteria, Mapping):
+        raise TypedDecisionContractError(
+            f"{primitive} criteria must be an object"
         )
 
     if primitive != "choice":
@@ -359,6 +381,7 @@ def parse_typed_decisions_train_row(
         options = _criteria_options(
             primitive,
             raw_question.get("criteria"),
+            question_text=question_text,
         )
         gold_index, probabilities, gold_score = _gold_distribution(
             gold[question_id],
