@@ -1,0 +1,84 @@
+name: r16-structural-repair
+
+on:
+  push:
+    branches:
+      - feat/r16-structural-repair
+    paths:
+      - "src/nmd/structural.py"
+      - "scripts/r16_structural_repair.py"
+      - "tests/test_structural.py"
+      - "research/R16-HANDOFF.md"
+      - ".github/workflows/r16-structural-repair.yml"
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact R15 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r15-retention-evidence
+          path: upstream/r15
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35688830869
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install research stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+          python -m py_compile scripts/r16_structural_repair.py
+
+      - name: Verify frozen R15 head
+        run: |
+          test "$(sha256sum upstream/r15/hira-head.pt | cut -d' ' -f1)" = "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f"
+
+      - name: Run structural tournament
+        run: |
+          python scripts/r16_structural_repair.py \
+            --r15-head upstream/r15/hira-head.pt \
+            --out artifacts/r16-structural \
+            --max-structural-train-per-label 6000 \
+            --max-structural-val-per-label 500 \
+            --replay-n 15000 \
+            --matched-val-n 1500 \
+            --ratios 1,2 \
+            --lrs 0.0001,0.0002 \
+            --epochs 4 \
+            --encode-batch-size 32 \
+            --train-batch-size 96 \
+            --segments 8 \
+            --seed 13
+          cat artifacts/r16-structural/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r16-structural-evidence
+          path: |
+            artifacts/r16-structural/receipt.json
+            artifacts/r16-structural/hira-head.pt
+          if-no-files-found: error
+
+      - name: Package exact R16 repository snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R16-FULL.zip HEAD
+          cp research/R16-HANDOFF.md dist/R16-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R16-FULL.zip > dist/NOLANE-HIRA-R16-FULL.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r16-full-bundle
+          path: dist
+          if-no-files-found: error
