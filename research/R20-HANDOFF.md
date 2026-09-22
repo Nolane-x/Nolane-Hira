@@ -68,12 +68,16 @@ Using the same exact deterministic structural ranking as R18/R19:
 - secondary tie-break = ordered-LCS recall;
 - ascending filtered source index after score ties.
 
-Take per-label zero-based ranks `[2000:4000]`:
+Before ranking, exclude the exact union of:
+- R19 structural-train source indices;
+- R19 retention-train source indices.
+
+Then rank the remaining eligible examples and take the strongest:
 - 2,000 neutral;
 - 2,000 contradiction;
 - exactly 4,000 total.
 
-This is disjoint from R19 top-2,000-per-label structural scoring data.
+This pre-run exclusion rule makes the R20 structural authority disjoint from every R19 scored-train example by construction.
 
 At exact R15 compute mean:
 `CE + 0.5 * anti_entailment_margin(margin=0.5)`
@@ -260,3 +264,16 @@ It does not establish:
 Only after every R20 primary gate passes may adapted HANS/Breaking diagnostics run.
 
 A failed R20 must be preserved as a negative result.
+
+
+## Pre-run protocol consistency amendment
+
+Before any R20 empirical result was observed, the originally drafted fixed-rank structural window was found to conflict with the simultaneous requirement that R20 structural scoring data be disjoint from R19's random retention-scoring set.
+
+The frozen R20 authority is therefore the deterministic exclusion-first rule above:
+1. reconstruct exact R19 structural and retention scored-train source indices;
+2. exclude their union;
+3. rank the remaining MultiNLI train neutral/contradiction examples with the already-frozen structural ranking;
+4. take the strongest 2,000 per label.
+
+This amendment is a protocol-consistency repair made before empirical evaluation. It does not change the R20 candidate grid, validation slices, thresholds, or selection rule.
