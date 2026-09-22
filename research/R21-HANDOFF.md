@@ -1,6 +1,6 @@
 # R21 handoff — functional teacher-KL damage-subspace projection
 
-Status: **protocol frozen in issue #36; implementation prepared before empirical evaluation**.
+Status: **completed empirical negative result; mechanism-valid, primary gate failed; merged to `main` in `55f504d992d473494b3ccf4a17aeda4acad30a0a`.**
 
 ## Evidence entering R21
 
@@ -127,3 +127,117 @@ It does not establish Laya parity, Jev/JEV parity, broad OOD robustness, multili
 No adapted HANS/Breaking diagnostic is authorized unless every R21 primary gate passes.
 
 A failed R21 must be preserved exactly as a negative result.
+
+
+## Authoritative empirical result — PRIMARY GATE FAIL
+
+Authoritative workflow run: `35715962261`.
+
+Execution authority:
+- empirical head SHA: `c6db3262dd6f43da9167717b429ce7bdbc39bb85`;
+- merge commit: `55f504d992d473494b3ccf4a17aeda4acad30a0a`;
+- evidence artifact ID: `10689827337`;
+- evidence digest: `sha256:6a9c8dbd0a94f7ab0fc7a80817d3f30a8ed3b24c992a37cdc261ca14834cd785`;
+- full bundle artifact ID: `10689792271`;
+- full bundle digest: `sha256:3c9e55ba0dc3108f2abf64f00ea5d371f312a1ae186d81167693c7fdcde4961a`.
+
+### Same-slice R15 authority
+
+Exact R15 baseline:
+- matched accuracy: **0.5326666832**;
+- ranked-structural non-entailment accuracy: **0.696**.
+
+Matched label support:
+- entailment: 547;
+- neutral: 482;
+- contradiction: 471.
+
+Baseline validity: **PASS**.
+
+### Functional-damage mechanism
+
+The fixed beta=0.25 probe produces:
+- mean teacher KL: **0.0010153648**;
+- functional subspace numerical rank: **63**;
+- basis orthonormal max error: **2.09e-10**;
+- rank-32 projected relation-delta energy fraction: **0.0057529096 = 0.57529%**.
+
+Every frozen probe/mechanism gate passes.
+
+This is materially different from R20: the functional teacher-KL subspace overlaps the actual R16 relation delta enough to satisfy the preregistered mechanism gate.
+
+### Selected candidate
+
+Only one projected candidate is eligible:
+- projection rank: 32;
+- removal strength: 0.5;
+- alpha: 0.25;
+- matched accuracy: **0.5306666493**;
+- ranked-structural non-entailment accuracy: **0.702**;
+- structural gain over same-slice R15: **+0.006**;
+- first-order structural predicted benefit: **0.0797620**;
+- applied update L2: **0.988165**;
+- relative-retention gate: **PASS** under the frozen exact finite-sample authority (3 fewer correct predictions out of 1,500, exactly the 0.002 allowance);
+- non-relation parameters: bit-identical;
+- parameter count: unchanged at exactly 422,159.
+
+Selected head SHA-256:
+`24651caf478f44cf0ebd08cadc2b5ac7def9f79184a7f2ad5bc1a0c7f6e558c3`.
+
+### Projection benefit is real but insufficient
+
+Same alpha=0.25 unprojected control:
+- matched: **0.5200**;
+- structural: **0.706**.
+
+Selected KL-projected candidate:
+- matched: **0.53067**;
+- structural: **0.702**.
+
+Therefore the functional KL projection recovers about **+1.07 percentage points matched accuracy** relative to the same-alpha unprojected R16 update, while giving up only 0.004 structural on this slice.
+
+However stronger projected candidates expose the remaining tradeoff:
+- highest structural projected candidate: **0.732** structural, but only **0.504** matched;
+- rank-32 removal 0.5 alpha 1.0: **0.706** structural, **0.506** matched;
+- no stronger candidate preserves retention.
+
+### Frozen gate result
+
+Passed:
+- train and validation sizes/disjointness;
+- baseline validity and label support;
+- probe signal;
+- functional subspace rank;
+- basis orthonormality;
+- mechanism overlap;
+- selected candidate eligibility;
+- absolute matched floor;
+- exact finite-sample relative matched floor;
+- structural absolute floor;
+- non-relation bit identity;
+- parameter-count integrity.
+
+Failed:
+- preregistered structural gain >= +0.020.
+
+Observed selected structural gain: **+0.006**.
+
+Primary scientific gate: **FAIL**.
+
+No HANS/Breaking diagnostic is authorized for R21.
+
+## Failure anatomy and successor constraint
+
+R21 does **not** falsify functional teacher-KL damage modelling. It establishes that the mechanism can materially protect retention.
+
+It does falsify the narrower hypothesis that projecting the frozen R16 delta away from that damage subspace, by itself, is enough to reach the preregistered structural gain while retaining competence.
+
+A successor must therefore:
+1. keep a functional-damage constraint derived only from train data;
+2. stop searching the R21 rank/removal/alpha grid post hoc;
+3. generate **new structural utility inside the measured functional-damage nullspace**;
+4. use new disjoint train and validation authorities;
+5. preserve R15 as the competence anchor;
+6. preserve negative results and forbid Laya/Jev benchmark cells from selection.
+
+R21 is closed as a completed negative result with a useful retained mechanism.
