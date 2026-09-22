@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 + W2 + W3a specialist selection complete; W3b one-shot typed final is next; no final HIRA typed benchmark result yet.**
+Status: **OPEN; W1 + W2 + W3 typed specialist lane complete. Current exact typed result versus Laya: 1 WIN / 0 TIE / 7 LOSS. Next architecture-revealing lane: E4 high-cardinality.**
 
 ## Read first
 
@@ -165,16 +165,26 @@ Selected TRAIN/DEV-only head:
 
 No final scorecard cell was populated by W3a.
 
-## Current next task — R8-W3b one-shot final
+## W3b typed specialist one-shot final — COMPLETE
 
-Implement and unit-test the evaluation-only path first, without final-test access.
+One-shot run `35795982760` evaluated the frozen head exactly once on typed-decisions `all/test`.
 
-Then execute exactly once against:
-- typed-decisions config `all`;
-- split `test`;
-- 400 cases / 2,000 decisions;
-- frozen selected head above.
+Result versus the eight metric-compatible Laya typed cells:
+- **1 WIN / 0 TIE / 7 LOSS**;
+- only raw ECE wins;
+- accuracy, soft accuracy, Brier, score MAE and all three primitive accuracies lose;
+- Jev typed cells remain MISSING because W3 is a specialist protocol.
 
-Populate only the eight metric-compatible Laya typed specialist cells. Do not populate Jev generalist cells with the specialist result.
+This is a negative result and must remain unchanged. Do not posthoc tune against this final test.
+
+## Current next task — E4 / R8-W4 high cardinality
+
+Return to the architecture-specific hypothesis instead of optimizing the now-exposed typed final:
+1. direct held-out Banking77 first, with no Banking77 task training;
+2. explicit all-K K=77 authority;
+3. fresh synthetic K=128 and K=255 schema stress;
+4. candidate-recall measurement if pruning is tested;
+5. fail closed to all-K whenever candidate recall misses its frozen gate;
+6. keep the later Jev retrieved-24 Banking77 challenge protocol-separated and equal-information.
 
 The remaining 45 headline cells stay `MISSING` until their own authorized lanes execute.
