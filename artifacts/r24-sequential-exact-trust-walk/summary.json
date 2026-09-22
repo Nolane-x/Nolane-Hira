@@ -1,0 +1,98 @@
+{
+  "schema_version": "r24-sequential-exact-trust-summary-v1",
+  "technical_failed_run": {
+    "workflow_run_id": 35730839711,
+    "head_sha": "302f4d80015b2d155fd9517c57c5d8bee45222b9",
+    "cause": "unsupported layout keyword passed to collect_structural_gradient",
+    "scientific_authority": false
+  },
+  "empirical_workflow_run_id": 35734857791,
+  "empirical_head_sha": "5baaad1cb276722d60181b759def999bce13af1d",
+  "merge_commit_sha": "4ef6f355c5d419ec4d1b0c1c4047d43092e24875",
+  "evidence_artifact": {
+    "id": 10697218852,
+    "digest": "sha256:38e13b75f47325aaba25d56a1cef9d92e62e029e14ca6a408360956ff70534df"
+  },
+  "full_bundle_artifact": {
+    "id": 10697273832,
+    "digest": "sha256:9a06c69e47cb0fce7aa5250020173b1a897dee8fa489d7af5daa06f7bcc01bec"
+  },
+  "functional_basis": {
+    "probe_mean_teacher_kl": 0.0009912024065852165,
+    "numerical_rank": 63,
+    "orthonormal_error": 1.0413714335300028e-10,
+    "valid": true
+  },
+  "walk": {
+    "accepted_rounds": 2,
+    "rejected_rounds": 14,
+    "cumulative_update_l2": 0.0013859138778389115,
+    "accepted": [
+      {
+        "round": 1,
+        "eta": 0.00390625,
+        "applied_update_l2": 0.0010858379106575995,
+        "mean_teacher_kl": 3.8657415046827737e-8,
+        "teacher_argmax_agreement_count": 6000
+      },
+      {
+        "round": 2,
+        "eta": 0.0009765625,
+        "applied_update_l2": 0.0003034062136967188,
+        "mean_teacher_kl": 6.417192821572826e-8,
+        "teacher_argmax_agreement_count": 6000
+      }
+    ],
+    "persistent_boundary": {
+      "rounds": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "smallest_eta": 0.000244140625,
+      "agreement_count": 5999,
+      "trust_n": 6000,
+      "changed_count": 1,
+      "changed_teacher_margin": 0.00040966272354125977
+    }
+  },
+  "final": {
+    "c1": {
+      "n": 3000,
+      "baseline_correct": 1694,
+      "candidate_correct": 1692,
+      "baseline_accuracy": 0.5646666884422302,
+      "candidate_accuracy": 0.5640000104904175,
+      "zero_drop": false
+    },
+    "c2": {
+      "n": 815,
+      "baseline_correct": 430,
+      "candidate_correct": 430,
+      "baseline_accuracy": 0.5276073813438416,
+      "candidate_accuracy": 0.5276073813438416,
+      "zero_drop": true
+    },
+    "structural": {
+      "baseline_non_entailment_accuracy": 0.656,
+      "candidate_non_entailment_accuracy": 0.658,
+      "gain": 0.0020000000000000018
+    },
+    "final_eligible": false,
+    "primary_pass": false
+  },
+  "persisted_head_mode": "exact_r15_fallback",
+  "persisted_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+  "conclusion": "Sequential exact-trust relinearization finds two safe microsteps, then saturates at a persistent discrete teacher-decision boundary. Fresh C1 competence loses two correct predictions and structural gain is only +0.002. Stop the NLI repair loop and return to the original HIRA typed-decision/high-cardinality/systems benchmark program."
+}
