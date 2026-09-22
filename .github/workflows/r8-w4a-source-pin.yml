@@ -1,0 +1,19 @@
+name: r8-w4a-source-pin
+
+on:
+  push:
+    branches:
+      - feat/r8-w4a-banking77-direct-evaluator
+    paths:
+      - ".github/workflows/r8-w4a-source-pin.yml"
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve immutable mteb/banking77 HEAD only
+        run: |
+          set -euo pipefail
+          SHA="$(git ls-remote https://huggingface.co/datasets/mteb/banking77 HEAD | awk '{print $1}')"
+          test "${#SHA}" = "40"
+          echo "MTEB_BANKING77_REVISION=$SHA"
