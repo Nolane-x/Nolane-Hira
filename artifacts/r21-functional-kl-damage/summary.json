@@ -1,0 +1,70 @@
+{
+  "schema_version": "r21-functional-kl-damage-summary-v1",
+  "empirical_workflow_run_id": 35715962261,
+  "empirical_head_sha": "c6db3262dd6f43da9167717b429ce7bdbc39bb85",
+  "merge_commit_sha": "55f504d992d473494b3ccf4a17aeda4acad30a0a",
+  "evidence_artifact": {
+    "id": 10689827337,
+    "digest": "sha256:6a9c8dbd0a94f7ab0fc7a80817d3f30a8ed3b24c992a37cdc261ca14834cd785"
+  },
+  "full_bundle_artifact": {
+    "id": 10689792271,
+    "digest": "sha256:3c9e55ba0dc3108f2abf64f00ea5d371f312a1ae186d81167693c7fdcde4961a"
+  },
+  "frozen_endpoints": {
+    "r15_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+    "r16_failure_analysis_head_sha256": "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+  },
+  "baseline_r15": {
+    "matched_accuracy": 0.5326666831970215,
+    "ranked_structural_non_entailment_accuracy": 0.696,
+    "matched_label_counts": {"0": 547, "1": 482, "2": 471},
+    "validity": true
+  },
+  "functional_damage": {
+    "probe_beta": 0.25,
+    "mean_teacher_kl": 0.0010153648373670875,
+    "numerical_rank": 63,
+    "basis_orthonormal_error": 2.0900914332599996e-10,
+    "rank32_projected_delta_energy_fraction": 0.0057529096120210454,
+    "mechanism_validity": true
+  },
+  "selected_candidate": {
+    "projection_rank": 32,
+    "removal_strength": 0.5,
+    "alpha": 0.25,
+    "matched_accuracy": 0.5306666493415833,
+    "ranked_structural_non_entailment_accuracy": 0.702,
+    "ranked_structural_gain": 0.006000000000000005,
+    "relative_retention_pass": true,
+    "eligible": true,
+    "selected_head_sha256": "24651caf478f44cf0ebd08cadc2b5ac7def9f79184a7f2ad5bc1a0c7f6e558c3"
+  },
+  "same_alpha_unprojected_control": {
+    "alpha": 0.25,
+    "matched_accuracy": 0.5199999809265137,
+    "ranked_structural_non_entailment_accuracy": 0.706
+  },
+  "best_structural_projected_candidate": {
+    "projection_rank": 4,
+    "removal_strength": 0.5,
+    "alpha": 1.0,
+    "matched_accuracy": 0.5040000081062317,
+    "ranked_structural_non_entailment_accuracy": 0.732,
+    "eligible": false
+  },
+  "gates": {
+    "baseline_validity": true,
+    "mechanism_validity": true,
+    "selected_eligible": true,
+    "matched_absolute_pass": true,
+    "matched_relative_pass": true,
+    "ranked_structural_absolute_pass": true,
+    "ranked_structural_gain_pass": false,
+    "non_relation_bit_identical": true,
+    "parameter_count_unchanged": true,
+    "primary_pass": false
+  },
+  "diagnosis": "Functional teacher-KL projection materially protects matched retention relative to the same-alpha unprojected R16 update, but projection of the frozen R16 delta alone cannot produce the preregistered +0.020 structural gain without renewed competence damage.",
+  "next_direction": "Construct new structural utility in the train-only functional-damage nullspace while preserving R15 as the competence anchor. Do not extend the R21 projection grid post hoc."
+}
