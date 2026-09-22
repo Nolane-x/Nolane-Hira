@@ -1,0 +1,83 @@
+{
+  "schema_version": "r18-block-local-summary-v1",
+  "empirical_workflow_run_id": 35694232947,
+  "empirical_head_sha": "f05d83500c8443bc8252bb0487e9e45ec2404957",
+  "evidence_artifact": {
+    "id": 10680100770,
+    "digest": "sha256:eb40891c464d8a84f964c2fa65ca69b6619945c22f26ab754cb010960dd56533"
+  },
+  "full_bundle_artifact": {
+    "id": 10679926019,
+    "digest": "sha256:38184a3ab47a10e51565fa921da90b0f87813ac4a023f86dd333bb6d7ff35dee"
+  },
+  "frozen_endpoints": {
+    "r15_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+    "r16_failure_analysis_head_sha256": "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+  },
+  "data": {
+    "matched_validation_n": 1500,
+    "ranked_structural_validation_n": 500,
+    "eligible_neutral": 3125,
+    "eligible_contradiction": 3223,
+    "selected_per_label": 250,
+    "min_structural_score_neutral": 0.6666666666666666,
+    "min_structural_score_contradiction": 0.7857142857142857
+  },
+  "baseline_r15": {
+    "matched_accuracy": 0.5613333582878113,
+    "ranked_structural_non_entailment_accuracy": 0.626,
+    "ranked_structural_neutral_recall": 0.656,
+    "ranked_structural_contradiction_recall": 0.596
+  },
+  "selection": {
+    "group_name": "relation+representation",
+    "atomic_groups": ["relation", "representation"],
+    "alpha": 0.025,
+    "matched_accuracy": 0.5619999766349792,
+    "ranked_structural_non_entailment_accuracy": 0.63,
+    "ranked_structural_gain": 0.0040000000000000036,
+    "ranked_structural_neutral_recall": 0.664,
+    "ranked_structural_contradiction_recall": 0.596,
+    "selected_head_sha256": "ff23e4c1f8f1b7c1a71a0ec89fc56ccb0ed41d2ced7c5ea3e182d71349ce66ce"
+  },
+  "gates": {
+    "support_valid": true,
+    "matched_pass": true,
+    "ranked_structural_pass": true,
+    "ranked_structural_gain_pass": false,
+    "parameter_count_unchanged": true,
+    "selected_eligible": true,
+    "unselected_keys_bit_identical": true,
+    "budget_control_output_bit_identical": true,
+    "primary_pass": false
+  },
+  "failure_anatomy": {
+    "relation_alpha_1": {
+      "matched_accuracy": 0.49799999594688416,
+      "ranked_structural_non_entailment_accuracy": 0.702
+    },
+    "relation_plus_coarse_alpha_1": {
+      "matched_accuracy": 0.49666666984558105,
+      "ranked_structural_non_entailment_accuracy": 0.71
+    },
+    "relation_alpha_0_5": {
+      "matched_accuracy": 0.5366666913032532,
+      "ranked_structural_non_entailment_accuracy": 0.652
+    },
+    "relation_alpha_0_2": {
+      "matched_accuracy": 0.5513333082199097,
+      "ranked_structural_non_entailment_accuracy": 0.636
+    },
+    "coarse_best_eligible_alpha_0_1": {
+      "matched_accuracy": 0.5606666803359985,
+      "ranked_structural_non_entailment_accuracy": 0.628
+    },
+    "representation_alpha_0_025": {
+      "matched_accuracy": 0.5613333582878113,
+      "ranked_structural_non_entailment_accuracy": 0.624
+    },
+    "budget_control_all_alphas_bit_identical": true
+  },
+  "diagnosis": "R18 fixes the R16/R17 support-validity problem and shows that the R16 relation-block direction contains substantial structural utility, but scalar block interpolation cannot separate that utility from matched competence damage. Increasing relation movement raises structural accuracy sharply while crossing the retention floor well before the preregistered +0.03 gain target. Representation and coarse block scaling do not provide sufficient compensation. The next experiment should rotate or sparsify the relation update using training-only retention sensitivity and structural-gradient alignment rather than changing R18 thresholds or extending its alpha grid.",
+  "next_direction": "R19 should preregister parameter-neutral relation-delta surgery: estimate retention sensitivity from a MultiNLI train replay partition, estimate structural utility from a disjoint MultiNLI train hard-negative partition, then mask/project R16 relation coordinates before evaluating on a new disjoint adapted validation authority. R18 validation cells must not be reused for R19 selection."
+}
