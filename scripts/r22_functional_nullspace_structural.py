@@ -568,12 +568,21 @@ def main() -> None:
             )
         )
         null_raw = -structural_null_gradient
-        null_direction = normalize_like(null_raw, protected)
-        nullspace_leakage = normalized_subspace_leakage(
-            null_raw,
-            subspace,
-            rank=FUNCTIONAL_RANK,
-        )
+        null_raw_candidate_l2 = float(null_raw.norm())
+        null_raw_candidate_finite = bool(torch.isfinite(null_raw).all())
+        if null_raw_candidate_finite and null_raw_candidate_l2 > 0.0:
+            null_direction = normalize_like(null_raw, protected)
+            nullspace_leakage = normalized_subspace_leakage(
+                null_raw,
+                subspace,
+                rank=FUNCTIONAL_RANK,
+            )
+        else:
+            # A zero/non-finite train-only null direction is a scientific
+            # mechanism failure, not an execution failure. Preserve it in the
+            # receipt and let direction_integrity/primary_pass fail closed.
+            null_direction = torch.zeros_like(structural_gradient)
+            nullspace_leakage = float("inf")
     else:
         structural_damage_component = torch.zeros_like(structural_gradient)
         null_raw = torch.zeros_like(structural_gradient)
