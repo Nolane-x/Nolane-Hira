@@ -1,0 +1,27 @@
+name: r14-package
+
+on:
+  push:
+    branches:
+      - feat/r14-hard-negative-repair
+    paths:
+      - ".github/workflows/r14-package.yml"
+      - "artifacts/r14-hard-negative/summary.json"
+      - "research/R14-HANDOFF.md"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact R14 recovery snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R14-FULL.zip HEAD
+          cp research/R14-HANDOFF.md dist/R14-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R14-FULL.zip > dist/NOLANE-HIRA-R14-FULL.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r14-full-bundle
+          path: dist
+          if-no-files-found: error
