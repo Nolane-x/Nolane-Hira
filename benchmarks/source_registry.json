@@ -74,20 +74,23 @@
     "typed_decisions": {
       "kind": "huggingface-dataset",
       "repo": "LocalLLaMA/typed-decisions",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "c76749ec58bd8c3d2ea706b31c333a9059c38f90",
+      "status": "pinned",
+      "note": "Pinned after R8 source audit; latest commit at freeze time changes README latency wording only."
     },
     "mteb.massive_intent": {
       "kind": "huggingface-dataset",
       "repo": "mteb/amazon_massive_intent",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "940fd47a81eaa7f2cc7b129674d945d618ac38c2",
+      "status": "pinned",
+      "note": "Pinned after R8 source audit; latest commit at freeze time adds eval config."
     },
     "mteb.massive_scenario": {
       "kind": "huggingface-dataset",
       "repo": "mteb/amazon_massive_scenario",
-      "revision": null,
-      "status": "BLOCKED_FOR_FINAL_RUN"
+      "revision": "58871793b91addb7c5f7afff26ccf08737fb6697",
+      "status": "pinned",
+      "note": "Pinned after R8 source audit; latest commit at freeze time updates dataset card."
     },
     "sst5": {
       "kind": "huggingface-dataset",

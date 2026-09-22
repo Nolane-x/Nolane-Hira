@@ -10,34 +10,267 @@
     "seed": 13,
     "many_label_n_options": 20,
     "per_language": 300,
-    "typed_decisions": {"dataset":"LocalLLaMA/typed-decisions","config":"all","split":"test","selection":"all","cases":400,"decisions":2000,"training_overlap":"base-held-out; separate fine-tuned Laya target exists"},
-    "massive_intent": {"dataset":"mteb/amazon_massive_intent","split":"test","languages":["en","de","fr","es","pt","ru","tr","ar","hi","ta","zh-CN","ja","ko","sw"],"selection":"first 300 each","options":"gold + 19 seeded distractors","training_overlap":"held-out"},
-    "massive_scenario": {"dataset":"mteb/amazon_massive_scenario","split":"test","languages":["en","de","fr","es","pt","ru","tr","ar","hi","ta","zh-CN","ja","ko","sw"],"selection":"first 300 each","options":"gold + 19 seeded distractors","training_overlap":"held-out"},
-    "xnli": {"dataset":"facebook/xnli","split":"test","languages":["en","de","fr","es","ru","tr","ar","hi","ur","vi","th","el","bg","zh","sw"],"selection":"first 300 each","options":["entailment","neutral","contradiction"],"training_overlap":"held-out"},
-    "sst5": {"dataset":"SetFit/sst5","split":"test","selection":"first 600","primitive":"score","training_overlap":"held-out"},
-    "emotion": {"dataset":"dair-ai/emotion","config":"split","split":"test","selection":"first 600","labels":6,"training_overlap":"held-out"},
-    "prompt_injections": {"dataset":"deepset/prompt-injections","split":"test","selection":"all","expected_n":116,"primitive":"noul","training_overlap":"held-out"},
-    "banking77": {"dataset":"PolyAI/banking77","split":"test","selection":"first 500","labels":77,"primitive":"choice","training_overlap":"held-out"},
-    "ag_news": {"dataset":"fancyzhx/ag_news","split":"test","selection":"first 600","labels":4,"training_overlap":"in-training"},
-    "boolq": {"dataset":"google/boolq","split":"validation","selection":"first 600","primitive":"noul","training_overlap":"in-training"}
+    "typed_decisions": {
+      "dataset": "LocalLLaMA/typed-decisions",
+      "config": "all",
+      "split": "test",
+      "selection": "all",
+      "cases": 400,
+      "decisions": 2000,
+      "training_overlap": "base-held-out; separate fine-tuned Laya target exists",
+      "revision": "c76749ec58bd8c3d2ea706b31c333a9059c38f90"
+    },
+    "massive_intent": {
+      "dataset": "mteb/amazon_massive_intent",
+      "split": "test",
+      "languages": [
+        "en",
+        "de",
+        "fr",
+        "es",
+        "pt",
+        "ru",
+        "tr",
+        "ar",
+        "hi",
+        "ta",
+        "zh-CN",
+        "ja",
+        "ko",
+        "sw"
+      ],
+      "selection": "first 300 each",
+      "options": "gold + 19 seeded distractors",
+      "training_overlap": "held-out",
+      "revision": "940fd47a81eaa7f2cc7b129674d945d618ac38c2"
+    },
+    "massive_scenario": {
+      "dataset": "mteb/amazon_massive_scenario",
+      "split": "test",
+      "languages": [
+        "en",
+        "de",
+        "fr",
+        "es",
+        "pt",
+        "ru",
+        "tr",
+        "ar",
+        "hi",
+        "ta",
+        "zh-CN",
+        "ja",
+        "ko",
+        "sw"
+      ],
+      "selection": "first 300 each",
+      "options": "gold + 19 seeded distractors",
+      "training_overlap": "held-out",
+      "revision": "58871793b91addb7c5f7afff26ccf08737fb6697"
+    },
+    "xnli": {
+      "dataset": "facebook/xnli",
+      "split": "test",
+      "languages": [
+        "en",
+        "de",
+        "fr",
+        "es",
+        "ru",
+        "tr",
+        "ar",
+        "hi",
+        "ur",
+        "vi",
+        "th",
+        "el",
+        "bg",
+        "zh",
+        "sw"
+      ],
+      "selection": "first 300 each",
+      "options": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "training_overlap": "held-out"
+    },
+    "sst5": {
+      "dataset": "SetFit/sst5",
+      "split": "test",
+      "selection": "first 600",
+      "primitive": "score",
+      "training_overlap": "held-out"
+    },
+    "emotion": {
+      "dataset": "dair-ai/emotion",
+      "config": "split",
+      "split": "test",
+      "selection": "first 600",
+      "labels": 6,
+      "training_overlap": "held-out"
+    },
+    "prompt_injections": {
+      "dataset": "deepset/prompt-injections",
+      "split": "test",
+      "selection": "all",
+      "expected_n": 116,
+      "primitive": "noul",
+      "training_overlap": "held-out"
+    },
+    "banking77": {
+      "dataset": "PolyAI/banking77",
+      "split": "test",
+      "selection": "first 500",
+      "labels": 77,
+      "primitive": "choice",
+      "training_overlap": "held-out"
+    },
+    "ag_news": {
+      "dataset": "fancyzhx/ag_news",
+      "split": "test",
+      "selection": "first 600",
+      "labels": 4,
+      "training_overlap": "in-training"
+    },
+    "boolq": {
+      "dataset": "google/boolq",
+      "split": "validation",
+      "selection": "first 600",
+      "primitive": "noul",
+      "training_overlap": "in-training"
+    }
   },
   "cpu51": {
-    "dataset":"MASSIVE intent lane used by Laya CPU sweep",
-    "per_language":100,
-    "n_options":20,
-    "seed":13,
-    "languages":["af","am","ar","az","bn","cy","da","de","el","en","es","fa","fi","fr","he","hi","hu","hy","id","is","it","ja","jv","ka","km","kn","ko","lv","ml","mn","ms","my","nb","nl","pl","pt","ro","ru","sl","sq","sv","sw","ta","te","th","tl","tr","ur","vi","zh-CN","zh-TW"]
+    "dataset": "MASSIVE intent lane used by Laya CPU sweep",
+    "per_language": 100,
+    "n_options": 20,
+    "seed": 13,
+    "languages": [
+      "af",
+      "am",
+      "ar",
+      "az",
+      "bn",
+      "cy",
+      "da",
+      "de",
+      "el",
+      "en",
+      "es",
+      "fa",
+      "fi",
+      "fr",
+      "he",
+      "hi",
+      "hu",
+      "hy",
+      "id",
+      "is",
+      "it",
+      "ja",
+      "jv",
+      "ka",
+      "km",
+      "kn",
+      "ko",
+      "lv",
+      "ml",
+      "mn",
+      "ms",
+      "my",
+      "nb",
+      "nl",
+      "pl",
+      "pt",
+      "ro",
+      "ru",
+      "sl",
+      "sq",
+      "sv",
+      "sw",
+      "ta",
+      "te",
+      "th",
+      "tl",
+      "tr",
+      "ur",
+      "vi",
+      "zh-CN",
+      "zh-TW"
+    ],
+    "revision": "940fd47a81eaa7f2cc7b129674d945d618ac38c2"
   },
   "applications": {
-    "n_default":400,
-    "seed":13,
-    "email_spam":{"dataset":"SetFit/enron_spam","split":"test","selection":"first N","training_overlap":"in-training"},
-    "phishing":{"dataset":"zefang-liu/phishing-email-dataset","split":"train","selection":"valid rows in first 6000; seed-shuffle; first N","training_overlap":"in-training"},
-    "guardrails":{"dataset":"lmsys/toxic-chat","config":"toxicchat0124","split":"test","selection":"balanced jailbreak positives/negatives up to N; seeded shuffle","training_overlap":"held-out"},
-    "moderation":{"dataset":"lmsys/toxic-chat","config":"toxicchat0124","split":"test","selection":"balanced toxicity positives/negatives up to N; seeded shuffle","training_overlap":"held-out"},
-    "rag":{"dataset":"microsoft/ms_marco","config":"v1.1","split":"validation","selection":"alternating relevant/nonrelevant passage until N","training_overlap":"in-training"},
-    "support_triage":{"dataset":"Tobi-Bueck/customer-support-tickets","split":"train","selection":"English valid queue rows until N","labels":10,"training_overlap":"in-training"},
-    "model_routing":{"datasets":["openai/gsm8k","google-research-datasets/mbpp","fancyzhx/ag_news"],"selection":"~N/3 from each, seeded shuffle, first N","training_overlap":"held-out"}
+    "n_default": 400,
+    "seed": 13,
+    "email_spam": {
+      "dataset": "SetFit/enron_spam",
+      "split": "test",
+      "selection": "first N",
+      "training_overlap": "in-training"
+    },
+    "phishing": {
+      "dataset": "zefang-liu/phishing-email-dataset",
+      "split": "train",
+      "selection": "valid rows in first 6000; seed-shuffle; first N",
+      "training_overlap": "in-training"
+    },
+    "guardrails": {
+      "dataset": "lmsys/toxic-chat",
+      "config": "toxicchat0124",
+      "split": "test",
+      "selection": "balanced jailbreak positives/negatives up to N; seeded shuffle",
+      "training_overlap": "held-out"
+    },
+    "moderation": {
+      "dataset": "lmsys/toxic-chat",
+      "config": "toxicchat0124",
+      "split": "test",
+      "selection": "balanced toxicity positives/negatives up to N; seeded shuffle",
+      "training_overlap": "held-out"
+    },
+    "rag": {
+      "dataset": "microsoft/ms_marco",
+      "config": "v1.1",
+      "split": "validation",
+      "selection": "alternating relevant/nonrelevant passage until N",
+      "training_overlap": "in-training"
+    },
+    "support_triage": {
+      "dataset": "Tobi-Bueck/customer-support-tickets",
+      "split": "train",
+      "selection": "English valid queue rows until N",
+      "labels": 10,
+      "training_overlap": "in-training"
+    },
+    "model_routing": {
+      "datasets": [
+        "openai/gsm8k",
+        "google-research-datasets/mbpp",
+        "fancyzhx/ag_news"
+      ],
+      "selection": "~N/3 from each, seeded shuffle, first N",
+      "training_overlap": "held-out"
+    }
   },
-  "systems": {"hardware":"Tesla T4 for direct T4 comparison","warmup":3,"reps":15,"question_counts":[1,5,10,50],"report":["p50_ms","p95_ms","mean_ms","min_ms","ms_per_question"]}
+  "systems": {
+    "hardware": "Tesla T4 for direct T4 comparison",
+    "warmup": 3,
+    "reps": 15,
+    "question_counts": [
+      1,
+      5,
+      10,
+      50
+    ],
+    "report": [
+      "p50_ms",
+      "p95_ms",
+      "mean_ms",
+      "min_ms",
+      "ms_per_question"
+    ]
+  }
 }
