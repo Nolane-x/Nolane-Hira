@@ -107,6 +107,7 @@ def main() -> None:
     metrics = evaluate_typed_cases(
         model,
         cases,
+        forced_budget=255,
         adaptive_budget=False,
     )
     if metrics["case_count"] != FINAL_CASES:
@@ -144,6 +145,8 @@ def main() -> None:
         "marker": marker,
         "selected_head_sha256": selected_sha,
         "head_parameter_count": count_parameters(hira),
+        "full_k_forced_budget": 255,
+        "adaptive_budget": False,
         "final_test_exposed": True,
         "dataset_split": FINAL_SPLIT,
         "case_count": metrics["case_count"],
