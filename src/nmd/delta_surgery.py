@@ -260,6 +260,7 @@ def balanced_ranked_structural_window_indices(
     start_per_label: int,
     count_per_label: int,
     min_hypothesis_tokens: int = 3,
+    exclude_indices: Sequence[int] | None = None,
 ) -> tuple[list[int], dict[str, object]]:
     """Exact R18/R19 ranking with LCS evaluated only at the primary cutoff.
 
@@ -280,8 +281,11 @@ def balanced_ranked_structural_window_indices(
         raise ValueError("premises/hypotheses/labels length mismatch")
 
     stop = start_per_label + count_per_label
+    excluded = set(int(x) for x in (exclude_indices or ()))
     primary_rows: dict[int, list[tuple[int, float]]] = {1: [], 2: []}
     for i, raw_label in enumerate(labels):
+        if i in excluded:
+            continue
         label = int(raw_label)
         if label not in primary_rows:
             continue
@@ -350,6 +354,7 @@ def balanced_ranked_structural_window_indices(
         "start_per_label": int(start_per_label),
         "count_per_label": int(count_per_label),
         "selected_total": len(selected),
+        "excluded_source_indices": len(excluded),
         "min_hypothesis_tokens": int(min_hypothesis_tokens),
         "primary_cutoff_by_label": cutoff_by_label,
         "lcs_evaluated_by_label": lcs_evaluated_by_label,
