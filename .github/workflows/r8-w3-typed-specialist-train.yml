@@ -60,6 +60,7 @@ jobs:
             tests/test_losses.py
 
   cache:
+    if: github.event_name == 'push'
     needs: unit
     runs-on: ubuntu-latest
     timeout-minutes: 90
