@@ -277,3 +277,144 @@ The frozen R20 authority is therefore the deterministic exclusion-first rule abo
 4. take the strongest 2,000 per label.
 
 This amendment is a protocol-consistency repair made before empirical evaluation. It does not change the R20 candidate grid, validation slices, thresholds, or selection rule.
+
+
+## Empirical result — PRIMARY GATE FAIL
+
+Authoritative workflow run: `35709849173`.
+
+Execution correctness:
+- unit tests: pass;
+- exact R15/R16 endpoint SHA verification: pass;
+- empirical tournament: completed;
+- evidence artifact uploaded;
+- full repository bundle uploaded.
+
+Artifact evidence:
+- `r20-subspace-projection-evidence` artifact ID: `10686262121`;
+- digest: `sha256:9d84f03e1b14ad049646fb6880e678ec4d79e8b3970ea591ce74c230eac07629`;
+- `r20-full-bundle` artifact ID: `10686996378`;
+- digest: `sha256:8aa86a868d4acec99cffde40d8c549bec0074efe3c929cd808b271b77888bede`.
+
+### R20 validation authority
+
+Exact R15 baseline:
+- matched accuracy: **0.5513333082**;
+- ranked-structural non-entailment accuracy: **0.708**.
+
+Matched label counts:
+- entailment: 543;
+- neutral: 466;
+- contradiction: 491.
+
+Baseline-validity gate: **PASS**.
+
+All data authorities pass:
+- structural train: exactly 4,000;
+- retention train: exactly 6,000;
+- R20 train sets disjoint from each other and every R19 scored-train set;
+- structural validation: exactly 500 and disjoint from R18/R19;
+- matched validation: exactly 1,500 and disjoint from prior windows.
+
+### Retention-subspace evidence
+
+Numerical retention-subspace rank: **63**.
+
+Basis orthonormal max error:
+- **4.61e-12**, well inside the frozen 1e-7 bound.
+
+However the spectrum is extremely concentrated:
+- 50% coverage target -> rank 1, realized coverage **0.95048**;
+- 75% coverage target -> rank 1, realized coverage **0.95048**;
+- 90% coverage target -> rank 1, realized coverage **0.95048**.
+
+Therefore all three preregistered coverage targets collapse to the same rank-1 direction.
+
+Frozen R15→R16 relation-delta L2:
+- **3.96121**.
+
+The rank-1 retention direction captures only:
+- **4.00926e-05** of the relation-delta energy, about **0.0040%**.
+
+This is the key negative result: the dominant generic CE-gradient-energy direction is almost orthogonal to the actual R16 relation update.
+
+### Candidate anatomy
+
+No candidate is eligible.
+
+Best matched-retention candidate:
+- removal strength: 1.0;
+- alpha: 0.25;
+- matched accuracy: **0.5453333259**;
+- structural accuracy: **0.716**;
+- structural gain: **+0.008**;
+- removed delta energy fraction: **4.00926e-05**.
+
+It passes the absolute 0.53 matched threshold numerically, but fails the same-slice relative floor:
+- frozen relative floor: **0.5493333082**.
+
+Best structural candidate:
+- removal strength: 0.5;
+- alpha: 1.0;
+- matched accuracy: **0.5126666427**;
+- structural accuracy: **0.754**;
+- structural gain: **+0.046**;
+- removed delta energy fraction: **1.002315e-05**.
+
+A full removal candidate at alpha 1.0 reaches:
+- matched: **0.5206666589**;
+- structural: **0.728**;
+- structural gain: **+0.020**.
+
+It still fails retention.
+
+Because all three coverage targets resolve to rank 1, the nominal 18-candidate tournament contains only six distinct projected update geometries.
+
+### Frozen gate result
+
+Passed:
+- data sizes/disjointness;
+- baseline validity;
+- matched label support;
+- retention basis orthonormality;
+- coverage achievement;
+- non-relation bit identity;
+- parameter count exactly 422,159.
+
+Failed:
+- selected candidate eligibility;
+- same-slice relative matched retention;
+- selected structural gate because no candidate is eligible;
+- selected +0.02 structural-gain gate because no candidate is eligible;
+- removed-delta-energy >=0.05.
+
+Primary scientific gate: **FAIL**.
+
+The selected output remains the exact R15 head:
+`007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f`.
+
+No HANS/Breaking diagnostic is authorized for R20.
+
+## Failure anatomy and successor constraint
+
+R20 falsifies the specific hypothesis that the competence-damaging component of the R16 relation delta lies in the dominant **generic CE-gradient-energy subspace at exact R15**.
+
+The failure is not caused by insufficient support or an invalid validation authority:
+- baseline validity passes;
+- all train/validation disjointness gates pass;
+- the structural slice is strong and balanced.
+
+The dominant retention direction simply has almost no geometric overlap with the R16 relation delta.
+
+A successor must therefore estimate retention damage **conditioned on the actual R16-induced functional drift**, not merely generic task gradients at R15.
+
+A principled R21 direction is:
+- preserve exact R15 as teacher;
+- move to a fixed train-only probe point along the frozen R16 relation delta;
+- compute batch-wise gradients of `KL(R15 teacher || probe student)`;
+- construct a functional damage subspace from those KL gradients;
+- project the frozen relation delta away from that damage subspace;
+- evaluate on new disjoint MultiNLI development slices;
+- do not reuse R20 validation cells for selection.
+
+R20 is a completed negative result, not an unfinished tuning stage.
