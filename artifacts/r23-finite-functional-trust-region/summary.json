@@ -1,0 +1,57 @@
+{
+  "schema_version": "r23-finite-functional-trust-region-summary-v1",
+  "empirical_workflow_run_id": 35725111435,
+  "empirical_head_sha": "669d167f7bf6d8af8300ac75b5fe205b1ee63206",
+  "merge_commit_sha": "fb5017bcd60240722dbf2b81ab7eb881cbc7f634",
+  "evidence_artifact": {
+    "id": 10693494535,
+    "digest": "sha256:0b9cd9ebe61757cdb66ea169ea84868359f62ea6bf160c87c007fe422a403141"
+  },
+  "full_bundle_artifact": {
+    "id": 10693499464,
+    "digest": "sha256:a765467dc694f427982a07791203c5316b3307916f4867cfef903d8a5b6a4d33"
+  },
+  "functional_damage": {
+    "probe_mean_teacher_kl": 0.0009998879432678222,
+    "numerical_rank": 63,
+    "basis_orthonormal_error": 5.274659581887555e-11,
+    "structural_gradient_l2": 4.9198733169072115,
+    "native_null_tangent_l2": 0.2637184895873651,
+    "retained_structural_gradient_energy_fraction": 0.0028732493632488915,
+    "null_leakage_energy_fraction": 3.399347744303318e-23,
+    "direction_validity": true
+  },
+  "smallest_eta": {
+    "eta": 0.015625,
+    "applied_update_l2": 0.00412060139980258,
+    "mean_teacher_kl": 6.032482815498952e-7,
+    "teacher_argmax_agreement_count": 5993,
+    "teacher_argmax_agreement_total": 6000,
+    "trust_safe": false
+  },
+  "train_selected": null,
+  "baseline_r15": {
+    "matched_accuracy": 0.515999972820282,
+    "matched_correct": 774,
+    "matched_label_counts": {
+      "0": 522,
+      "1": 480,
+      "2": 498
+    },
+    "ranked_structural_non_entailment_accuracy": 0.678,
+    "absolute_floor": 0.53,
+    "validity": false
+  },
+  "persisted_head_mode": "exact_r15_fallback",
+  "persisted_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+  "gates": {
+    "prior_train_exact_40000": true,
+    "direction_validity": true,
+    "train_selected": false,
+    "baseline_validity": false,
+    "final_eligible": false,
+    "primary_pass": false
+  },
+  "diagnosis": "No preregistered nonzero native-null eta preserves all 6000 teacher argmax decisions. Even eta=1/64 changes 7 decisions despite mean KL only 6.03e-7. Independently, the exact R15 baseline scores 0.516 on the frozen final matched slice and therefore fails the unrelated 0.53 absolute baseline floor.",
+  "next_direction": "Use sequential relinearized microsteps with exact cumulative finite trust against frozen R15. Replace the slice-sensitive absolute competence floor with exact relative zero-drop retention, without weakening the zero-drop gate."
+}
