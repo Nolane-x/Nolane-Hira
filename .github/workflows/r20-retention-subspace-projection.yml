@@ -5,7 +5,8 @@ on:
     branches:
       - feat/r20-retention-subspace-projection
     paths:
-      - "src/nmd/subspace_projection.py"\n      - "src/nmd/delta_surgery.py"
+      - "src/nmd/subspace_projection.py"
+      - "src/nmd/delta_surgery.py"
       - "scripts/r20_retention_subspace_projection.py"
       - "tests/test_subspace_projection.py"
       - "research/R20-HANDOFF.md"
