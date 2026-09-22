@@ -1,0 +1,38 @@
+{
+  "schema_version": "r15-retention-summary-v1",
+  "empirical_workflow_run_id": 35688830869,
+  "empirical_head_sha": "bb1443aac7fb85a682ed07b288605efd67b9342e",
+  "evidence_artifact": {
+    "id": 10677632799,
+    "digest": "sha256:47e7acc041e4becd55ce7ac24953d2ecabf76db805279eeed602796f641f9a10"
+  },
+  "full_bundle_artifact": {
+    "id": 10677607718,
+    "digest": "sha256:55e87d71576953b16c3565ec85140ff23e43b9dd83d034fb926c50c725d97cc5"
+  },
+  "selected": {
+    "teacher_kl_weight": 0.5,
+    "matched_accuracy": 0.5613333582878113,
+    "hard_non_entailment_accuracy": 0.638,
+    "hard_gain_vs_r12": 0.299,
+    "matched_brier": 0.5369133353233337,
+    "matched_ece": 0.023520225659012794,
+    "hard_brier": 0.4922740161418915,
+    "selected_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f"
+  },
+  "gates": {
+    "primary_pass": true,
+    "matched_pass": true,
+    "hard_non_entailment_pass": true,
+    "hard_gain_pass": true,
+    "parameter_count_unchanged": true,
+    "selected_eligible": true
+  },
+  "forbidden_selection_sources": {
+    "hans": false,
+    "breaking_nli": false,
+    "xnli": false,
+    "massive": false,
+    "banking77": false
+  }
+}
