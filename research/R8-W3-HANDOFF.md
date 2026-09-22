@@ -1,6 +1,6 @@
 # R8-W3 handoff — typed-decisions specialist lane
 
-Status: **W3a COMPLETE and merged; one frozen specialist head selected with final_test_exposed=false. W3b final evaluation is next.**
+Status: **W3 COMPLETE. W3b one-shot final executed exactly once: 1 Laya typed WIN, 0 TIE, 7 LOSS; Jev typed remains protocol-separated/MISSING.**
 
 ## Frozen phase boundary
 
@@ -135,3 +135,74 @@ Final authority is frozen to:
 - selected head SHA-256 `2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c`.
 
 W3b code must be unit-tested without loading final test. The actual final evaluation is triggered once by a dedicated execution-marker commit after evaluator code is merged.
+
+
+## W3b authoritative one-shot final — COMPLETE
+
+Evaluator merged before exposure:
+- `d35716b01e4962b9ea561904267b453b982797ac`.
+
+Execution authority:
+- branch `exec/r8-w3b-final`;
+- single marker commit `df226492d0387aa8ee91ea513d6aa8557759e770`;
+- workflow run `35795982760`;
+- job `106975249753`;
+- workflow result: **SUCCESS**;
+- exposure boundary: `R8_W3B_FINAL_TEST_EXPOSURE_BEGIN`;
+- final artifact `10723399141`;
+- artifact digest `sha256:2dde91ffe7b79b831fdac5d853093122b99684e0595d4f5e8c3cfdac120023d7`.
+
+Frozen model:
+- candidate `r15-balanced-lr1e3`;
+- selected epoch 7;
+- selected head SHA-256 `2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c`;
+- HIRA head parameters: 422,159;
+- full-K forced budget 255;
+- adaptive budget disabled.
+
+Final authority:
+- `LocalLLaMA/typed-decisions@c76749ec58bd8c3d2ea706b31c333a9059c38f90`;
+- config `all`;
+- split `test`;
+- 400 cases / 2,000 decisions;
+- exactly 400 state encodes = 1 per case;
+- exactly 5 decisions per state encode.
+
+### Exact Laya typed result
+
+| Cell | HIRA | Laya target | Status |
+|---|---:|---:|---|
+| accuracy | 0.5245 | 0.766 | LOSS |
+| soft accuracy | 0.3831433658 | 0.471 | LOSS |
+| hard Brier ↓ | 0.5749368837 | 0.061 | LOSS |
+| raw ECE ↓ | 0.0655248929 | 0.213 | **WIN** |
+| score MAE ↓ | 0.5103628148 | 0.242 | LOSS |
+| noul accuracy | 0.7016666667 | 0.857 | LOSS |
+| choice accuracy | 0.4183333333 | 0.733 | LOSS |
+| score accuracy | 0.47125 | 0.723 | LOSS |
+
+Typed specialist summary:
+- **WIN 1**
+- **TIE 0**
+- **LOSS 7**
+
+53-cell headline board after this lane:
+- WIN 1;
+- TIE 0;
+- LOSS 7;
+- MISSING 45.
+
+All five Jev typed published cells remain **MISSING** because the Jev result is a protocol-separated generalist authority. The W3 specialist numbers must not be used to declare a Jev win or loss.
+
+### Scientific interpretation
+
+This W3 result is a **scientific negative** for current HIRA typed specialist quality versus the frozen Laya typed target.
+
+The low raw ECE is real under the frozen metric, but it does not imply high decision competence. Accuracy, primitive accuracies, score MAE and especially hard Brier remain substantially behind Laya.
+
+DEV accuracy was 0.5491666667 and final accuracy is 0.5245, so the primary failure is not a dramatic final-only collapse. The current specialist is simply not competitive enough on this benchmark.
+
+Do **not** open a posthoc W3c that tunes against this public final. Any future typed-quality improvement must use a new preregistered development/confirmatory authority and preserve this final result unchanged.
+
+Machine-readable final:
+`artifacts/r8-w3b-final/summary.json`.
