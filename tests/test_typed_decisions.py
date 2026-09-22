@@ -57,22 +57,22 @@ def typed_row(
         "risk": {
             "type": "score",
             "instructions": "How risky was this run?",
-            "criteria": {
-                "0": "No meaningful risk.",
-                "1": "Low risk.",
-                "2": "Material risk.",
-                "3": "Severe risk.",
-            },
+            "criteria": [
+                "No meaningful risk.",
+                "Low risk.",
+                "Material risk.",
+                "Severe risk.",
+            ],
         },
         "urgency": {
             "type": "score",
             "instructions": "How urgent is intervention?",
-            "criteria": {
-                "0": "No urgency.",
-                "1": "Low urgency.",
-                "2": "High urgency.",
-                "3": "Immediate intervention.",
-            },
+            "criteria": [
+                "No urgency.",
+                "Low urgency.",
+                "High urgency.",
+                "Immediate intervention.",
+            ],
         },
     }
     gold = {
@@ -416,3 +416,94 @@ def test_criteria_text_is_semantic_input_not_a_bare_label_list():
         schema_a.option_embeddings,
         schema_b.option_embeddings,
     )
+
+
+
+def test_score_requires_ordered_list_not_numeric_key_map():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    questions["risk"]["criteria"] = {
+        "0": "No meaningful risk.",
+        "1": "Low risk.",
+        "2": "Material risk.",
+        "3": "Severe risk.",
+    }
+    raw["questions"] = json.dumps(questions)
+
+    with pytest.raises(
+        TypedDecisionContractError,
+        match="ordered list",
+    ):
+        parse_typed_decisions_train_row(raw)
+
+
+def test_json_content_descriptions_are_canonical_semantic_text():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    questions["action"]["criteria"]["human_review"] = {
+        "meaning": "Queue for review",
+        "severity": 2,
+    }
+    questions["needs_review"]["criteria"]["true"] = {
+        "meaning": "Review is needed",
+        "examples": ["unsafe", "ambiguous"],
+    }
+    raw["questions"] = json.dumps(questions)
+
+    case = parse_typed_decisions_train_row(raw)
+    action = next(
+        decision
+        for decision in case.decisions
+        if decision.question_id == "action"
+    )
+    noul = next(
+        decision
+        for decision in case.decisions
+        if decision.question_id == "needs_review"
+    )
+
+    assert action.options[1].criterion_text == (
+        '{"meaning":"Queue for review","severity":2}'
+    )
+    assert noul.options[1].criterion_text == (
+        '{"examples":["unsafe","ambiguous"],"meaning":"Review is needed"}'
+    )
+
+
+
+def test_noul_allows_missing_criteria_and_derives_semantics_from_question():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    del questions["needs_review"]["criteria"]
+    raw["questions"] = json.dumps(questions)
+
+    case = parse_typed_decisions_train_row(raw)
+    decision = next(
+        d for d in case.decisions
+        if d.question_id == "needs_review"
+    )
+
+    assert [option.option_id for option in decision.options] == [
+        "false",
+        "true",
+    ]
+    assert [option.value for option in decision.options] == [0.0, 1.0]
+    assert "Does this trace need human review?" in (
+        decision.options[0].criterion_text
+    )
+    assert "Does this trace need human review?" in (
+        decision.options[1].criterion_text
+    )
+
+
+def test_noul_rejects_nonstandard_supplied_criteria_shape():
+    raw = typed_row()
+    questions = json.loads(raw["questions"])
+    questions["needs_review"]["criteria"] = ["no", "yes"]
+    raw["questions"] = json.dumps(questions)
+
+    with pytest.raises(
+        TypedDecisionContractError,
+        match="absent or a false/true object",
+    ):
+        parse_typed_decisions_train_row(raw)
