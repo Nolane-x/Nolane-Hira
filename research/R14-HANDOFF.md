@@ -117,3 +117,43 @@ These are **adapted diagnostics**, not new held-out claims, because R14 was desi
 If MultiNLI hard negatives + HANS improve but Breaking does not, the remaining deficit is evidence for missing lexical/world knowledge. The next experiment should externalize knowledge through a sidecar/retrieval/prototype mechanism rather than increase HIRA blindly.
 
 Untouched R13 failures remain permanent evidence.
+
+
+## Empirical result — PRIMARY GATE FAIL
+
+Workflow run `35667400836` completed successfully as software and produced an immutable repair artifact.
+
+Frozen R12 baseline on the R14 evaluations:
+- matched MultiNLI accuracy: **0.5807**
+- hard high-overlap non-entailment accuracy: **0.3390**
+
+Failure-analysis checkpoint after the hard-negative curriculum:
+- matched MultiNLI accuracy: **0.5067**
+- hard high-overlap non-entailment accuracy: **0.6810**
+- hard non-entailment gain: **+0.3420**
+
+Primary gates:
+- hard non-entailment gain >= +0.10: **PASS**
+- HIRA params remain 422,159: **PASS**
+- matched accuracy >= 0.5606666613: **FAIL**
+- selected checkpoint eligible: **FAIL**
+- overall R14 primary gate: **FAIL**
+
+Failure-analysis head SHA-256:
+`eb25737d913776a1c2c9cccc8905c90a614614455466429721e9377144852f56`
+
+### Diagnosis
+
+The experiment demonstrates that the R13 anti-entailment failure can be repaired with the existing HIRA capacity, but the naïve hard-negative curriculum causes a large competence trade-off. The problem is therefore not simply "too few parameters"; it is an optimization/retention problem.
+
+Because the primary gate failed, the post-selection HANS/Breaking diagnostic script correctly refuses to run. R13 untouched failures remain the authoritative held-out evidence.
+
+## Next state
+
+R15 should test retention-preserving repair:
+- replay ordinary MultiNLI alongside hard negatives;
+- anchor the repaired head to the frozen R12 teacher distribution on ordinary examples;
+- preserve matched accuracy while improving the hard subset;
+- keep A13 frozen and HIRA parameter count unchanged.
+
+Do not use HANS, Breaking NLI, XNLI, MASSIVE or Banking77 for R15 model selection.
