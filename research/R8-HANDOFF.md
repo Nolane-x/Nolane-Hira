@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN, benchmark contract frozen enough to execute**.
+Status: **OPEN; W1 reproducibility authority complete, W2 typed/state-once implementation active; no final HIRA benchmark result yet.**
 
 ## Read first
 
@@ -103,8 +103,55 @@ Only after A13 quality is understood: A6 rival and A7-FE tournament. A22 only if
 - If public benchmark gains disappear on frozen confirmatory data, label them benchmark specialization.
 - Never alter a target after seeing HIRA final-test results.
 
-## Next task
+## W1 reproducibility authority — COMPLETE
 
-Finish W1 reproducibility authority: pin raw dataset bytes/revisions and build exact Laya/Jev manifests from the recipes above. Then begin W2 A13 acquisition and frozen proof.
+Merged in `7a1b163afeea1f7198ae13784e04323225c96b56`.
 
-No HIRA benchmark win exists yet. Current scorecard is intentionally all `MISSING` until real model runs produce immutable receipts.
+Machine-readable contract preflight now enforces:
+- exactly 53 unique headline cells;
+- WIN/TIE/LOSS/MISSING semantics with missing never treated as zero;
+- frozen direct-lane training allowances;
+- matched Tesla T4 Q=1/5/10/50 systems authority;
+- immutable final benchmark sources.
+
+Source registry authority:
+- **26 / 26 sources pinned**;
+- **0 blocked final sources**;
+- **0 mutable revisions**.
+
+Previously blocked sources are now pinned:
+- `LocalLLaMA/typed-decisions@c76749ec58bd8c3d2ea706b31c333a9059c38f90`;
+- `mteb/amazon_massive_intent@940fd47a81eaa7f2cc7b129674d945d618ac38c2`;
+- `mteb/amazon_massive_scenario@58871793b91addb7c5f7afff26ccf08737fb6697`.
+
+Strict benchmark-contract preflight and repo CI pass on the merged W1 head.
+
+This closes source/manifests reproducibility only. It does **not** populate any HIRA scorecard cell.
+
+## NLI repair boundary after R24
+
+R24 closes the deep NLI repair loop for now.
+
+The authoritative R24 result is preserved separately in `research/R24-HANDOFF.md` and `artifacts/r24-sequential-exact-trust-walk/summary.json`.
+
+Do not open another round merely to tune MultiNLI microsteps. The project returns to the original typed-decision/high-cardinality/state-once program.
+
+## Current next task — R8-W2
+
+Issue #48:
+`R8-W2: typed-decisions train adapter and state-once execution`.
+
+W2 is infrastructure-only and TRAIN-only:
+- exact pinned typed-decisions train source;
+- one state encode shared across five decisions;
+- Choice/Score/Noul adapter;
+- full soft-distribution preservation;
+- benchmark-compatible train-only evaluator;
+- state-once training path;
+- option-order/opaque-ID/criteria invariance tests.
+
+The typed-decisions **test** split remains forbidden during W2.
+
+After W2, preregister W3 specialized training/evaluation separately from the zero-shot/generalist lane.
+
+No HIRA benchmark win exists yet. The 53-cell scorecard remains intentionally `MISSING` until authorized final runs produce immutable receipts.
