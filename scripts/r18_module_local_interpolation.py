@@ -18,7 +18,7 @@ from nmd.block_interpolation import (
 )
 from nmd.hard_negative import evaluate_repair_slice
 from nmd.hira import HIRACore, count_parameters
-from nmd.relation_cache import RelationCache
+from nmd.relation_cache import RelationCache, forward_cached, minibatches
 from nmd.semantic import HFAutoSemanticEncoder
 
 
@@ -135,6 +135,29 @@ def evaluate_state(
         evaluate_repair_slice(model, matched_cache, batch_size=batch_size),
         evaluate_repair_slice(model, structural_cache, batch_size=batch_size),
     )
+
+
+@torch.inference_mode()
+def outputs_bit_identical(
+    baseline: HIRACore,
+    candidate: HIRACore,
+    caches: tuple[RelationCache, ...],
+    *,
+    batch_size: int,
+) -> bool:
+    baseline.eval()
+    candidate.eval()
+    for cache in caches:
+        for idx in minibatches(
+            len(cache), batch_size, seed=0, epoch=0, shuffle=False
+        ):
+            a = forward_cached(baseline, cache, idx)
+            b = forward_cached(candidate, cache, idx)
+            if not torch.equal(a.logits, b.logits):
+                return False
+            if not torch.equal(a.probabilities, b.probabilities):
+                return False
+    return True
 
 
 def main() -> None:
@@ -282,6 +305,9 @@ def main() -> None:
     baseline_structural_ne = float(
         baseline_structural["non_entailment_accuracy"]
     )
+    baseline_control_model = HIRACore(d_model=256, dropout=0.0)
+    baseline_control_model.load_state_dict(r15_state, strict=True)
+    budget_control_checks: list[dict[str, object]] = []
 
     candidates: list[dict[str, object]] = [
         {
@@ -295,6 +321,7 @@ def main() -> None:
                 baseline_matched["accuracy"] >= MATCHED_FLOOR
             ),
             "unselected_keys_bit_identical": True,
+            "budget_control_output_bit_identical": True,
         }
     ]
 
@@ -316,6 +343,24 @@ def main() -> None:
                 structural_cache,
                 batch_size=args.eval_batch_size,
             )
+            budget_output_identical = None
+            if group_name == "budget_control":
+                control_model = HIRACore(d_model=256, dropout=0.0)
+                control_model.load_state_dict(state, strict=True)
+                budget_output_identical = outputs_bit_identical(
+                    baseline_control_model,
+                    control_model,
+                    (matched_cache, structural_cache),
+                    batch_size=args.eval_batch_size,
+                )
+                budget_control_checks.append(
+                    {
+                        "alpha": alpha,
+                        "logits_probabilities_bit_identical": (
+                            budget_output_identical
+                        ),
+                    }
+                )
             candidates.append(
                 {
                     "group_name": group_name,
@@ -328,6 +373,9 @@ def main() -> None:
                         matched_metrics["accuracy"] >= MATCHED_FLOOR
                     ),
                     "unselected_keys_bit_identical": unchanged,
+                    "budget_control_output_bit_identical": (
+                        budget_output_identical
+                    ),
                 }
             )
 
@@ -411,6 +459,13 @@ def main() -> None:
         ),
         "selected_eligible": selected_eligible,
         "unselected_keys_bit_identical": selected_unselected_identical,
+        "budget_control_output_bit_identical": (
+            len(budget_control_checks) == len(ALPHAS)
+            and all(
+                bool(row["logits_probabilities_bit_identical"])
+                for row in budget_control_checks
+            )
+        ),
     }
     gates["primary_pass"] = all(
         [
@@ -421,6 +476,7 @@ def main() -> None:
             gates["parameter_count_unchanged"],
             gates["selected_eligible"],
             gates["unselected_keys_bit_identical"],
+            gates["budget_control_output_bit_identical"],
         ]
     )
 
@@ -480,6 +536,12 @@ def main() -> None:
             "matched": baseline_matched,
             "ranked_structural": baseline_structural,
         },
+        "falsification_controls": {
+            "budget_control_checks": budget_control_checks,
+            "budget_control_output_bit_identical": gates[
+                "budget_control_output_bit_identical"
+            ],
+        },
         "candidates": candidates,
         "selected": selected_row,
         "selected_head_sha256": selected_sha,
@@ -496,6 +558,9 @@ def main() -> None:
                 "status": "PASS",
                 "primary_pass": gates["primary_pass"],
                 "support_valid": support_valid,
+                "budget_control_output_bit_identical": gates[
+                    "budget_control_output_bit_identical"
+                ],
                 "group_name": selected_row["group_name"],
                 "atomic_groups": selected_row["atomic_groups"],
                 "alpha": selected_row["alpha"],
