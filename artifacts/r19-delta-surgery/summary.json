@@ -1,0 +1,66 @@
+{
+  "schema_version": "r19-delta-surgery-summary-v1",
+  "empirical_workflow_run_id": 35695702268,
+  "empirical_head_sha": "f9c480b369c9f123d506110246b4126c2fea76e8",
+  "evidence_artifact": {
+    "id": 10680054139,
+    "digest": "sha256:34ef88dbe76c5b1349670f22ae06a27222c6c835674bbe4a6382af86c14e8fd3"
+  },
+  "full_bundle_artifact": {
+    "id": 10680233824,
+    "digest": "sha256:641501e7fc4d09cbafd489cca269ff790cb7dded44c515f418d4c8fdd17828bd"
+  },
+  "frozen_endpoints": {
+    "r15_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+    "r16_failure_analysis_head_sha256": "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+  },
+  "baseline_r15": {
+    "matched_accuracy": 0.5493333339691162,
+    "ranked_structural_non_entailment_accuracy": 0.64
+  },
+  "coordinate_scoring": {
+    "relation_coordinate_count": 198021,
+    "positive_benefit_count": 112729,
+    "positive_benefit_fraction": 0.5692780058680645
+  },
+  "best_retention_candidate": {
+    "scorer": "benefit_over_cost",
+    "fraction": 0.4,
+    "alpha": 0.25,
+    "changed_relation_coordinates": 45092,
+    "matched_accuracy": 0.5473333597183228,
+    "ranked_structural_non_entailment_accuracy": 0.654,
+    "eligible": false
+  },
+  "best_structural_candidate": {
+    "scorer": "benefit",
+    "fraction": 0.4,
+    "alpha": 1.0,
+    "changed_relation_coordinates": 45092,
+    "matched_accuracy": 0.5080000162124634,
+    "ranked_structural_non_entailment_accuracy": 0.69,
+    "eligible": false
+  },
+  "gates": {
+    "positive_support_valid": true,
+    "structural_train_exact_4000": true,
+    "retention_train_exact_6000": true,
+    "train_sets_disjoint": true,
+    "structural_validation_exact_500": true,
+    "structural_validation_disjoint_from_r18": true,
+    "matched_validation_exact_1500": true,
+    "matched_validation_disjoint_from_prior": true,
+    "selected_eligible": false,
+    "matched_absolute_pass": false,
+    "matched_relative_pass": false,
+    "ranked_structural_pass": false,
+    "ranked_structural_gain_pass": false,
+    "non_relation_bit_identical": true,
+    "masked_off_relation_bit_identical": true,
+    "parameter_count_unchanged": true,
+    "masks_nested": true,
+    "primary_pass": false
+  },
+  "diagnosis": "R19 confirms that many R16 relation coordinates are locally aligned with structural utility, but coordinate sparsification alone does not decouple that utility from competence loss. The benefit_over_cost scorer is materially better for retention than benefit-only ranking, yet even its best-retention candidate falls below the preregistered absolute matched floor. The exact R15 baseline itself is 0.54933 on the new disjoint matched slice, so the 0.55 absolute floor is slightly above the baseline on this authority; this does not invalidate R19 because the floor was frozen before evaluation, but it means R20 should use a baseline-relative retention authority whose validity is established before candidate scoring rather than silently lowering the R19 gate.",
+  "next_direction": "R20 should preregister relation-delta projection/rotation using train-only structural and retention gradient subspaces. Rather than select coordinates independently, remove or attenuate the component of the frozen R16 relation delta aligned with retention-sensitive directions, then evaluate a small frozen projection grid on new disjoint MultiNLI development slices. R19 validation examples must not be reused for R20 model selection."
+}

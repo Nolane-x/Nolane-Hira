@@ -1,0 +1,93 @@
+name: r19-relation-delta-surgery
+
+on:
+  push:
+    branches:
+      - feat/r19-relation-delta-surgery
+    paths:
+      - "src/nmd/delta_surgery.py"
+      - "scripts/r19_relation_delta_surgery.py"
+      - "tests/test_delta_surgery.py"
+      - "research/R19-HANDOFF.md"
+      - ".github/workflows/r19-relation-delta-surgery.yml"
+
+concurrency:
+  group: r19-relation-delta-surgery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  surgery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact R15 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r15-retention-evidence
+          path: upstream/r15
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35688830869
+
+      - name: Download exact R16 failure-analysis head
+        uses: actions/download-artifact@v4
+        with:
+          name: r16-structural-evidence
+          path: upstream/r16
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35690994565
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install research stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]"
+          python -m py_compile scripts/r19_relation_delta_surgery.py
+          pytest -q tests/test_delta_surgery.py tests/test_block_interpolation.py tests/test_interpolation.py
+
+      - name: Verify frozen endpoint heads
+        run: |
+          test "$(sha256sum upstream/r15/hira-head.pt | cut -d' ' -f1)" = "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f"
+          test "$(sha256sum upstream/r16/hira-head.pt | cut -d' ' -f1)" = "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+
+      - name: Run frozen R19 relation-delta surgery
+        run: |
+          python scripts/r19_relation_delta_surgery.py \
+            --r15-head upstream/r15/hira-head.pt \
+            --r16-head upstream/r16/hira-head.pt \
+            --out artifacts/r19-delta-surgery \
+            --encode-batch-size 32 \
+            --eval-batch-size 128 \
+            --segments 8 \
+            --seed 13
+          cat artifacts/r19-delta-surgery/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r19-delta-surgery-evidence
+          path: |
+            artifacts/r19-delta-surgery/receipt.json
+            artifacts/r19-delta-surgery/hira-head.pt
+          if-no-files-found: error
+
+      - name: Package exact R19 repository snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R19-FULL.zip HEAD
+          cp research/R19-HANDOFF.md dist/R19-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R19-FULL.zip > dist/NOLANE-HIRA-R19-FULL.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r19-full-bundle
+          path: dist
+          if-no-files-found: error
