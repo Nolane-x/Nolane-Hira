@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 reproducibility authority complete, W2 typed/state-once implementation active; no final HIRA benchmark result yet.**
+Status: **OPEN; W1 reproducibility + W2 typed/state-once infrastructure complete; W3 specialist training protocol is next; no final HIRA benchmark result yet.**
 
 ## Read first
 
@@ -136,22 +136,32 @@ The authoritative R24 result is preserved separately in `research/R24-HANDOFF.md
 
 Do not open another round merely to tune MultiNLI microsteps. The project returns to the original typed-decision/high-cardinality/state-once program.
 
-## Current next task — R8-W2
+## W2 typed/state-once infrastructure — COMPLETE
 
-Issue #48:
-`R8-W2: typed-decisions train adapter and state-once execution`.
+Merged in `425b89ede2de251efa990f5586a92924edb71535`.
 
-W2 is infrastructure-only and TRAIN-only:
-- exact pinned typed-decisions train source;
-- one state encode shared across five decisions;
-- Choice/Score/Noul adapter;
-- full soft-distribution preservation;
-- benchmark-compatible train-only evaluator;
-- state-once training path;
-- option-order/opaque-ID/criteria invariance tests.
+W2 established:
+- pinned typed-decisions TRAIN-only adapter;
+- hard guard rejecting non-train rows;
+- one state encode shared across five typed decisions;
+- one differentiable state graph shared across five typed losses;
+- full soft-distribution evaluator;
+- explicit score support;
+- factors/label_agreement excluded from model input;
+- 18/18 W2 contract tests PASS;
+- repository CI 3.10/3.12 PASS.
 
-The typed-decisions **test** split remains forbidden during W2.
+No test row was used and no scorecard cell was populated.
 
-After W2, preregister W3 specialized training/evaluation separately from the zero-shot/generalist lane.
+## Current next task — R8-W3 specialist lane
 
-No HIRA benchmark win exists yet. The 53-cell scorecard remains intentionally `MISSING` until authorized final runs produce immutable receipts.
+Preregister a specialist train/dev protocol before touching typed-decisions test:
+- train-only deterministic case split;
+- frozen A13 semantic encoder;
+- state-once cached feature path;
+- HIRA-head candidate/loss tournament selected only on train/dev;
+- one frozen candidate before final test;
+- final test executed once after candidate SHA/config are frozen;
+- specialist result labeled separately from Jev generalist.
+
+No HIRA benchmark win exists yet. The 53-cell scorecard remains `MISSING` until authorized final runs produce immutable receipts.
