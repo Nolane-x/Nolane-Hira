@@ -10,7 +10,9 @@ from nmd.typed_feature_cache import (
     cache_role_cases,
     dev_selection_key,
     evaluate_w3_cached_cases,
+    load_w3_feature_cache,
     loss_w3_cached_case,
+    save_w3_feature_cache,
     split_w3_train_dev,
     validate_w3_feature_cache,
 )
@@ -212,3 +214,21 @@ def test_w3_cache_validator_rejects_bad_probability_mass():
         assert "probability mass" in str(exc)
     else:
         raise AssertionError("invalid probability mass was accepted")
+
+
+
+def test_w3_feature_cache_roundtrip_is_weights_only_safe(tmp_path):
+    cache = tiny_cache()
+    path = save_w3_feature_cache(cache, tmp_path / "cache.pt")
+    restored = load_w3_feature_cache(path)
+
+    assert restored["metadata"] == cache["metadata"]
+    assert len(restored["cases"]) == len(cache["cases"])
+    assert torch.equal(
+        restored["cases"][0]["state_segments"],
+        cache["cases"][0]["state_segments"],
+    )
+    assert torch.equal(
+        restored["cases"][0]["decisions"][0]["gold_probabilities"],
+        cache["cases"][0]["decisions"][0]["gold_probabilities"],
+    )
