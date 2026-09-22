@@ -32,6 +32,7 @@ jobs:
         run: |
           python benchmarks/audit_sources.py benchmarks/source_registry.json
           python benchmarks/contract_preflight.py \
+            --strict-final \
             --out artifacts/benchmark-contract-preflight.json
           pytest -q tests/test_benchmark_contracts.py
 
