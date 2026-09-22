@@ -261,6 +261,15 @@ def balanced_ranked_structural_window_indices(
     count_per_label: int,
     min_hypothesis_tokens: int = 3,
 ) -> tuple[list[int], dict[str, object]]:
+    """Exact R18/R19 ranking with LCS evaluated only at the primary cutoff.
+
+    ordered-LCS recall can never exceed multiset recall, so the frozen primary
+    score max(multiset, LCS) is exactly multiset recall. LCS is only the
+    secondary tie-break. We first find the multiset cutoff required to cover
+    the requested rank window, then evaluate LCS for every row at or above
+    that cutoff. This is mathematically identical to exhaustive LCS ranking
+    while avoiding unnecessary LCS work on the large MultiNLI train split.
+    """
     if start_per_label < 0:
         raise ValueError("start_per_label must be non-negative")
     if count_per_label <= 0:
@@ -270,28 +279,22 @@ def balanced_ranked_structural_window_indices(
     if not (len(premises) == len(hypotheses) == len(labels)):
         raise ValueError("premises/hypotheses/labels length mismatch")
 
-    rows: dict[int, list[RankedStructuralWindowExample]] = {1: [], 2: []}
+    stop = start_per_label + count_per_label
+    primary_rows: dict[int, list[tuple[int, float]]] = {1: [], 2: []}
     for i, raw_label in enumerate(labels):
         label = int(raw_label)
-        if label not in rows:
+        if label not in primary_rows:
             continue
         p = tokens(premises[i])
         h = tokens(hypotheses[i])
         if len(h) < min_hypothesis_tokens:
             continue
         multi = multiset_recall(p, h)
-        lcs = ordered_lcs_recall(p, h)
-        rows[label].append(
-            RankedStructuralWindowExample(
-                index=i,
-                label=label,
-                score=max(multi, lcs),
-                secondary_score=min(multi, lcs),
-            )
-        )
+        primary_rows[label].append((i, multi))
 
-    eligible = {label: len(items) for label, items in rows.items()}
-    stop = start_per_label + count_per_label
+    eligible = {
+        label: len(items) for label, items in primary_rows.items()
+    }
     if any(n < stop for n in eligible.values()):
         raise ValueError(
             f"not enough ranked structural examples for window: {eligible}"
@@ -299,22 +302,60 @@ def balanced_ranked_structural_window_indices(
 
     selected_by_label: dict[int, list[RankedStructuralWindowExample]] = {}
     selected: list[RankedStructuralWindowExample] = []
+    cutoff_by_label: dict[str, float] = {}
+    lcs_evaluated_by_label: dict[str, int] = {}
+
     for label in (1, 2):
-        ranked = sorted(
-            rows[label],
-            key=lambda x: (-x.score, -x.secondary_score, x.index),
+        primary_ranked = sorted(
+            primary_rows[label], key=lambda row: (-row[1], row[0])
         )
-        window = ranked[start_per_label:stop]
+        cutoff = float(primary_ranked[stop - 1][1])
+        cutoff_by_label[str(label)] = cutoff
+        contenders = [
+            (index, multi)
+            for index, multi in primary_rows[label]
+            if multi >= cutoff
+        ]
+
+        exact_rows: list[RankedStructuralWindowExample] = []
+        for index, multi in contenders:
+            p = tokens(premises[index])
+            h = tokens(hypotheses[index])
+            lcs = ordered_lcs_recall(p, h)
+            if lcs > multi + 1e-12:
+                raise RuntimeError(
+                    "ordered-LCS recall exceeded multiset recall"
+                )
+            exact_rows.append(
+                RankedStructuralWindowExample(
+                    index=index,
+                    label=label,
+                    score=multi,
+                    secondary_score=lcs,
+                )
+            )
+        lcs_evaluated_by_label[str(label)] = len(exact_rows)
+        exact_rows.sort(
+            key=lambda x: (-x.score, -x.secondary_score, x.index)
+        )
+        window = exact_rows[start_per_label:stop]
+        if len(window) != count_per_label:
+            raise RuntimeError("cutoff ranking produced incomplete window")
         selected_by_label[label] = window
         selected.extend(window)
-    selected.sort(key=lambda x: x.index)
 
+    selected.sort(key=lambda x: x.index)
     stats: dict[str, object] = {
         "eligible_by_label": {str(k): v for k, v in eligible.items()},
         "start_per_label": int(start_per_label),
         "count_per_label": int(count_per_label),
         "selected_total": len(selected),
         "min_hypothesis_tokens": int(min_hypothesis_tokens),
+        "primary_cutoff_by_label": cutoff_by_label,
+        "lcs_evaluated_by_label": lcs_evaluated_by_label,
+        "ranking_optimization": (
+            "exact multiset-primary cutoff; LCS only for cutoff contenders"
+        ),
         "mean_score_by_label": {
             str(label): sum(x.score for x in items) / len(items)
             for label, items in selected_by_label.items()
