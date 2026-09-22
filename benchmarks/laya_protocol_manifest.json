@@ -253,6 +253,22 @@
       ],
       "selection": "~N/3 from each, seeded shuffle, first N",
       "training_overlap": "held-out"
+    },
+    "banking77_full": {
+      "dataset": "mteb/banking77",
+      "revision": "18072d2685ea682290f7b8924d94c62acc19c0b2",
+      "split": "test",
+      "selection": "first N",
+      "n": 400,
+      "labels": 77,
+      "label_order": "sorted(set(label_text))",
+      "state_field": "message <- text",
+      "instructions": "Which banking intent does `message` express?",
+      "option_semantics": "label_text.replace('_', ' ')",
+      "training_overlap": "held-out",
+      "source_script": "bench_apps.py",
+      "source_blob": "c0b255ba89b2ca5ac6674638cfe2ab9f8078ab7b",
+      "headline_target_id": "laya.app.banking77_full"
     }
   },
   "systems": {
