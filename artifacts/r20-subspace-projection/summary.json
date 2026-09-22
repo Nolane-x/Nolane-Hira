@@ -1,0 +1,70 @@
+{
+  "schema_version": "r20-subspace-projection-summary-v1",
+  "empirical_workflow_run_id": 35709849173,
+  "empirical_head_sha": "f52d99f38eb205086755509742c6436279f6611a",
+  "evidence_artifact": {
+    "id": 10686262121,
+    "digest": "sha256:9d84f03e1b14ad049646fb6880e678ec4d79e8b3970ea591ce74c230eac07629"
+  },
+  "full_bundle_artifact": {
+    "id": 10686996378,
+    "digest": "sha256:8aa86a868d4acec99cffde40d8c549bec0074efe3c929cd808b271b77888bede"
+  },
+  "frozen_endpoints": {
+    "r15_head_sha256": "007e24fff0e0e48a096de59276f7ab8d0e25bdb826a3f81a7838c5bd6151723f",
+    "r16_failure_analysis_head_sha256": "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75"
+  },
+  "baseline_r15": {
+    "matched_accuracy": 0.5513333082199097,
+    "ranked_structural_non_entailment_accuracy": 0.708,
+    "matched_label_counts": {"0": 543, "1": 466, "2": 491},
+    "validity": true
+  },
+  "retention_subspace": {
+    "numerical_rank": 63,
+    "orthonormal_error": 4.6091531086737995e-12,
+    "coverage_50_rank": 1,
+    "coverage_50_realized": 0.95047879491855,
+    "coverage_75_rank": 1,
+    "coverage_75_realized": 0.95047879491855,
+    "coverage_90_rank": 1,
+    "coverage_90_realized": 0.95047879491855,
+    "original_relation_delta_l2": 3.9612138365531027,
+    "dominant_projected_delta_energy_fraction": 4.0092600208429434e-05
+  },
+  "best_retention_candidate": {
+    "removal_strength": 1.0,
+    "alpha": 0.25,
+    "matched_accuracy": 0.5453333258628845,
+    "ranked_structural_non_entailment_accuracy": 0.716,
+    "ranked_structural_gain": 0.008000000000000007,
+    "removed_delta_energy_fraction": 4.009260020842943e-05,
+    "eligible": false
+  },
+  "best_structural_candidate": {
+    "removal_strength": 0.5,
+    "alpha": 1.0,
+    "matched_accuracy": 0.512666642665863,
+    "ranked_structural_non_entailment_accuracy": 0.754,
+    "ranked_structural_gain": 0.04600000000000004,
+    "removed_delta_energy_fraction": 1.0023150052107357e-05,
+    "eligible": false
+  },
+  "gates": {
+    "baseline_validity": true,
+    "train_sets_disjoint": true,
+    "structural_validation_disjoint": true,
+    "matched_validation_disjoint": true,
+    "retention_basis_orthonormal_pass": true,
+    "coverage_achieved": true,
+    "selected_eligible": false,
+    "matched_relative_pass": false,
+    "ranked_structural_gain_pass": false,
+    "removed_delta_energy_pass": false,
+    "non_relation_bit_identical": true,
+    "parameter_count_unchanged": true,
+    "primary_pass": false
+  },
+  "diagnosis": "The dominant generic CE-gradient-energy retention direction at exact R15 explains 95.05% of retention gradient energy but captures only about 0.0040% of the frozen R16 relation-delta energy. Projection therefore barely rotates the update and cannot recover the same-slice retention floor. R20 falsifies generic R15 CE-gradient subspace projection as the mechanism for separating R16 structural utility from competence damage.",
+  "next_direction": "R21 should estimate a functional retention-damage subspace conditioned on the actual R16-induced output drift: exact R15 teacher probabilities, a fixed train-only probe along the R16 relation delta, and batch-wise teacher-KL gradients at that probe. New disjoint train and validation authorities are required."
+}
