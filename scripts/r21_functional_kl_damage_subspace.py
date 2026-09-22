@@ -18,7 +18,11 @@ from nmd.delta_surgery import (
     relation_delta,
     relation_layout,
 )
-from nmd.functional_damage import teacher_kl_loss, weighted_batch_gradient_row
+from nmd.functional_damage import (
+    finite_sample_relative_accuracy_pass,
+    teacher_kl_loss,
+    weighted_batch_gradient_row,
+)
 from nmd.hard_negative import anti_entailment_margin_loss, evaluate_repair_slice
 from nmd.hira import HIRACore, count_parameters
 from nmd.relation_cache import RelationCache, forward_cached, minibatches
@@ -806,11 +810,17 @@ def main() -> None:
                     batch_size=args.eval_batch_size,
                 )
                 matched_accuracy = float(matched_metrics["accuracy"])
+                relative_retention_pass = finite_sample_relative_accuracy_pass(
+                    matched_accuracy,
+                    baseline_matched_accuracy,
+                    n=MATCHED_VAL_N,
+                    tolerance=MATCHED_RELATIVE_TOLERANCE,
+                )
                 eligible = (
                     baseline_validity
                     and mechanism_validity
                     and matched_accuracy >= BASELINE_MATCHED_FLOOR
-                    and matched_accuracy >= matched_relative_floor
+                    and relative_retention_pass
                     and float(
                         geometry["first_order_structural_predicted_benefit"]
                     ) > 0.0
@@ -834,6 +844,7 @@ def main() -> None:
                         "matched": matched_metrics,
                         "ranked_structural": structural_metrics,
                         "eligible": eligible,
+                        "relative_retention_pass": relative_retention_pass,
                         "non_relation_bit_identical": non_relation_ok,
                         **geometry,
                     }
@@ -939,7 +950,12 @@ def main() -> None:
         ),
         "matched_relative_pass": (
             selected_eligible
-            and selected_matched >= matched_relative_floor
+            and finite_sample_relative_accuracy_pass(
+                selected_matched,
+                baseline_matched_accuracy,
+                n=MATCHED_VAL_N,
+                tolerance=MATCHED_RELATIVE_TOLERANCE,
+            )
         ),
         "ranked_structural_floor": STRUCTURAL_FLOOR,
         "ranked_structural_pass": (
@@ -1026,6 +1042,10 @@ def main() -> None:
             ),
             "baseline_matched_floor": BASELINE_MATCHED_FLOOR,
             "matched_relative_tolerance": MATCHED_RELATIVE_TOLERANCE,
+            "matched_relative_authority": (
+                "exact finite-sample correct-count comparison; "
+                "0.002 * 1500 = 3 predictions"
+            ),
             "min_matched_label_count": MIN_MATCHED_LABEL_COUNT,
             "structural_floor": STRUCTURAL_FLOOR,
             "structural_gain_floor": STRUCTURAL_GAIN_FLOOR,
