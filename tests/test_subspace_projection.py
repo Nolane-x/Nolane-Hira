@@ -1,6 +1,10 @@
 import torch
 
-from nmd.delta_surgery import (\n    balanced_ranked_structural_window_indices,\n    relation_delta,\n    relation_layout,\n)
+from nmd.delta_surgery import (
+    balanced_ranked_structural_window_indices,
+    relation_delta,
+    relation_layout,
+)
 from nmd.hira import HIRACore, count_parameters
 from nmd.subspace_projection import (
     apply_relation_update,
