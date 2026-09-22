@@ -1,0 +1,28 @@
+name: r15-package
+
+on:
+  push:
+    branches:
+      - feat/r15-retention-repair
+    paths:
+      - ".github/workflows/r15-package.yml"
+      - "artifacts/r15-retention/summary.json"
+      - "artifacts/r15-diagnostics/summary.json"
+      - "research/R15-HANDOFF.md"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact R15 recovery snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R15-FULL.zip HEAD
+          cp research/R15-HANDOFF.md dist/R15-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R15-FULL.zip > dist/NOLANE-HIRA-R15-FULL.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r15-full-final-bundle
+          path: dist
+          if-no-files-found: error

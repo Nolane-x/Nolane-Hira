@@ -1,0 +1,70 @@
+name: r15-adapted-diagnostics
+
+on:
+  push:
+    branches:
+      - feat/r15-retention-repair
+    paths:
+      - "scripts/r15_adapted_diagnostics.py"
+      - ".github/workflows/r15-adapted-diagnostics.yml"
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout pinned HANS
+        uses: actions/checkout@v4
+        with:
+          repository: tommccoy1/hans
+          ref: 7299f6f657089ce06a0f98e7e81f8d0f5b7741ce
+          path: external/hans
+
+      - name: Checkout pinned Breaking NLI
+        uses: actions/checkout@v4
+        with:
+          repository: BIU-NLP/Breaking_NLI
+          ref: 8a7658c1ce6b732f4e8af3b06560f1a13b8b18b0
+          path: external/breaking
+
+      - name: Download exact R15 repair artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: r15-retention-evidence
+          path: upstream/r15
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35688830869
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install evaluator stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+          python -m py_compile scripts/r15_adapted_diagnostics.py
+
+      - name: Run adapted HANS + Breaking diagnostics
+        run: |
+          python scripts/r15_adapted_diagnostics.py \
+            --repair-receipt upstream/r15/receipt.json \
+            --repaired-head upstream/r15/hira-head.pt \
+            --hans-jsonl external/hans/heuristics_evaluation_set.jsonl \
+            --breaking-zip external/breaking/breaking_nli_dataset.zip \
+            --out artifacts/r15-diagnostics/receipt.json \
+            --batch-size 64 \
+            --segments 8
+          cat artifacts/r15-diagnostics/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r15-adapted-diagnostics
+          path: artifacts/r15-diagnostics/receipt.json
+          if-no-files-found: error

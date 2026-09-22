@@ -1,0 +1,86 @@
+name: r15-retention-repair
+
+on:
+  push:
+    branches:
+      - feat/r15-retention-repair
+    paths:
+      - "src/nmd/retention.py"
+      - "scripts/r15_retention_repair.py"
+      - "tests/test_retention.py"
+      - "research/R15-HANDOFF.md"
+      - ".github/workflows/r15-retention-repair.yml"
+
+jobs:
+  tournament:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact R12 selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r12-scale-evidence
+          path: upstream/r12
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35665673683
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install research stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+          python -m py_compile scripts/r15_retention_repair.py
+
+      - name: Verify R12 starting head
+        run: |
+          test "$(sha256sum upstream/r12/hira-head.pt | cut -d' ' -f1)" = "0ca95572399d15717e1069545439165e46083c58afea8707cbbadeca67ad3b86"
+
+      - name: Run retention tournament
+        run: |
+          python scripts/r15_retention_repair.py \
+            --r12-head upstream/r12/hira-head.pt \
+            --out artifacts/r15-retention \
+            --hard-per-label 6000 \
+            --replay-n 15000 \
+            --hard-val-per-label 500 \
+            --matched-val-n 1500 \
+            --kl-weights 0.25,0.5,1.0 \
+            --epochs 5 \
+            --encode-batch-size 32 \
+            --train-batch-size 96 \
+            --segments 8 \
+            --lr 0.0002 \
+            --margin 0.5 \
+            --margin-weight 0.5 \
+            --seed 13
+          cat artifacts/r15-retention/receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r15-retention-evidence
+          path: |
+            artifacts/r15-retention/receipt.json
+            artifacts/r15-retention/hira-head.pt
+          if-no-files-found: error
+
+      - name: Package exact R15 snapshot
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/NOLANE-HIRA-R15-FULL.zip HEAD
+          cp research/R15-HANDOFF.md dist/R15-HANDOFF.md
+          sha256sum dist/NOLANE-HIRA-R15-FULL.zip > dist/NOLANE-HIRA-R15-FULL.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r15-full-bundle
+          path: dist
+          if-no-files-found: error
