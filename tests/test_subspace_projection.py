@@ -1,6 +1,6 @@
 import torch
 
-from nmd.delta_surgery import relation_delta, relation_layout
+from nmd.delta_surgery import (\n    balanced_ranked_structural_window_indices,\n    relation_delta,\n    relation_layout,\n)
 from nmd.hira import HIRACore, count_parameters
 from nmd.subspace_projection import (
     apply_relation_update,
@@ -104,3 +104,25 @@ def test_invalid_coverage_and_rank_fail_closed():
         pass
     else:
         raise AssertionError("invalid rank must fail")
+
+
+def test_structural_ranking_exclusions_are_respected_before_selection():
+    premises = [
+        "a b c d", "a x b c", "a b y c", "a z b c",
+        "u v w x", "u y v w", "u v y w", "u z v w",
+    ]
+    hypotheses = ["a b c"] * 4 + ["u v w"] * 4
+    labels = [1, 1, 1, 1, 2, 2, 2, 2]
+    selected, stats = balanced_ranked_structural_window_indices(
+        premises,
+        hypotheses,
+        labels,
+        start_per_label=0,
+        count_per_label=2,
+        min_hypothesis_tokens=3,
+        exclude_indices=[0, 4],
+    )
+    assert 0 not in selected
+    assert 4 not in selected
+    assert len(selected) == 4
+    assert stats["excluded_source_indices"] == 2
