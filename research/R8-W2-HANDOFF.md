@@ -1,6 +1,6 @@
 # R8-W2 handoff — typed-decisions train adapter + state-once execution
 
-Status: **implementation active under issue #48; final typed-decisions test split remains forbidden.**
+Status: **COMPLETE; merged to `main` in `425b89ede2de251efa990f5586a92924edb71535`; final typed-decisions test split was not exposed.**
 
 ## Frozen source
 
@@ -75,3 +75,17 @@ Do not:
 - infer a benchmark win from train metrics.
 
 W3 must be preregistered separately before specialized training/final evaluation.
+
+
+## Completion receipt
+
+PR #49 merged as `425b89ede2de251efa990f5586a92924edb71535`.
+
+Verification:
+- W2-specific compile PASS;
+- W2-specific contract suite: **18/18 PASS**;
+- repository CI Python 3.10 PASS;
+- repository CI Python 3.12 PASS;
+- repository preflight PASS on both matrix jobs.
+
+W2 produced no final benchmark metric and populated no scorecard cell.
