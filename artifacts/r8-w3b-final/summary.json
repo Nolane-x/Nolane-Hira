@@ -1,0 +1,121 @@
+{
+  "schema_version": "r8-w3b-authoritative-final-v1",
+  "status": "PASS",
+  "scientific_authority": "ONE_SHOT_FINAL",
+  "execution_marker": {
+    "branch": "exec/r8-w3b-final",
+    "commit": "df226492d0387aa8ee91ea513d6aa8557759e770"
+  },
+  "workflow": {
+    "run_id": 35795982760,
+    "job_id": 106975249753,
+    "result": "success",
+    "exposure_boundary": "R8_W3B_FINAL_TEST_EXPOSURE_BEGIN",
+    "artifact": {
+      "id": 10723399141,
+      "name": "r8-w3b-one-shot-final",
+      "size_in_bytes": 3215,
+      "digest": "sha256:2dde91ffe7b79b831fdac5d853093122b99684e0595d4f5e8c3cfdac120023d7"
+    }
+  },
+  "selected_model": {
+    "candidate": "r15-balanced-lr1e3",
+    "selected_epoch": 7,
+    "head_sha256": "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c",
+    "head_parameter_count": 422159,
+    "w3a_run_id": 35748778854,
+    "w3a_artifact_id": 10706135649,
+    "w3a_artifact_digest": "sha256:8a2efd31a6ccea3b987957d328c4b73267ab00ff9024c469bcb7f3cd578d5d92"
+  },
+  "source": {
+    "dataset": "LocalLLaMA/typed-decisions",
+    "revision": "c76749ec58bd8c3d2ea706b31c333a9059c38f90",
+    "config": "all",
+    "split": "test",
+    "selection": "all",
+    "case_count": 400,
+    "decision_count": 2000
+  },
+  "runtime": {
+    "full_k_forced_budget": 255,
+    "adaptive_budget": false,
+    "state_encode_calls": 400,
+    "state_encode_calls_per_case": 1,
+    "decisions_per_state_encode": 5
+  },
+  "laya_typed": {
+    "counts": {
+      "WIN": 1,
+      "TIE": 0,
+      "LOSS": 7
+    },
+    "rows": [
+      {
+        "id": "laya.typed.accuracy",
+        "direction": "higher",
+        "target": 0.766,
+        "value": 0.5245,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.soft_accuracy",
+        "direction": "higher",
+        "target": 0.471,
+        "value": 0.3831433658160666,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.brier",
+        "direction": "lower",
+        "target": 0.061,
+        "value": 0.5749368837317426,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.ece_raw",
+        "direction": "lower",
+        "target": 0.213,
+        "value": 0.06552489292621615,
+        "status": "WIN"
+      },
+      {
+        "id": "laya.typed.score_mae",
+        "direction": "lower",
+        "target": 0.242,
+        "value": 0.5103628148466445,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.noul_accuracy",
+        "direction": "higher",
+        "target": 0.857,
+        "value": 0.7016666666666667,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.choice_accuracy",
+        "direction": "higher",
+        "target": 0.733,
+        "value": 0.41833333333333333,
+        "status": "LOSS"
+      },
+      {
+        "id": "laya.typed.score_accuracy",
+        "direction": "higher",
+        "target": 0.723,
+        "value": 0.47125,
+        "status": "LOSS"
+      }
+    ]
+  },
+  "headline_scorecard": {
+    "WIN": 1,
+    "TIE": 0,
+    "LOSS": 7,
+    "MISSING": 45
+  },
+  "jev_typed_populated": false,
+  "final_test_exposed": true,
+  "rerun_performed": false,
+  "conclusion": "Scientific negative for current HIRA typed specialist quality versus the frozen Laya typed targets; raw ECE is the only winning Laya typed cell. Jev typed comparison remains protocol-separated and MISSING."
+}
