@@ -11,6 +11,10 @@ on:
       - "research/R17-HANDOFF.md"
       - ".github/workflows/r17-weight-interpolation.yml"
 
+concurrency:
+  group: r17-weight-interpolation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   interpolate:
     runs-on: ubuntu-latest
