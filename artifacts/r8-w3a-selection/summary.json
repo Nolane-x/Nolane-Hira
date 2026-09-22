@@ -1,0 +1,70 @@
+{
+  "schema_version": "r8-w3a-authoritative-summary-v1",
+  "status": "PASS",
+  "merged_main_sha": "327679b87988f375e97b2a8a96456d35a8c54dde",
+  "source": {
+    "dataset": "LocalLLaMA/typed-decisions",
+    "revision": "c76749ec58bd8c3d2ea706b31c333a9059c38f90",
+    "split": "train",
+    "case_count": 1200,
+    "decision_count": 6000
+  },
+  "encoder": {
+    "model": "microsoft/xtremedistil-l6-h256-uncased",
+    "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+    "max_length": 256,
+    "segment_tokens": 32
+  },
+  "cache": {
+    "workflow_run_id": 35748778854,
+    "artifact_id": 10705675022,
+    "artifact_digest": "sha256:52dc9d2f2a49de283eb66dd5f4f3730e9a2f606dee2348ceff0dc1008adef34d",
+    "cache_sha256": "7e1e7fcc46cf107be138285efd320b37529adc141d0219e40696842ebd451b6f",
+    "state_encode_calls": 1200,
+    "state_encode_calls_per_case": 1,
+    "train_case_count": 960,
+    "dev_case_count": 240,
+    "train_case_id_sha256": "a9635c534f68870dfc02b5af825a4f6c38b4d23a0ecc6944b154e5b2d62ba0a6",
+    "dev_case_id_sha256": "955206e0594d5819540a68351768d1714f7dea76e0e48665eb4f1264a7c2e305"
+  },
+  "selection": {
+    "candidate_count": 8,
+    "selected_candidate": "r15-balanced-lr1e3",
+    "init": "r15",
+    "loss_family": "balanced",
+    "loss_weights": {
+      "hard_ce": 1,
+      "teacher_kl": 0.5,
+      "brier": 0.1,
+      "soft_brier": 0.5,
+      "ordinal_mae": 0.2
+    },
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "global_seed": 71,
+    "selected_epoch": 7,
+    "full_k_only": true,
+    "adaptive_budget": false,
+    "selected_head_sha256": "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c",
+    "artifact_id": 10706135649,
+    "artifact_digest": "sha256:8a2efd31a6ccea3b987957d328c4b73267ab00ff9024c469bcb7f3cd578d5d92",
+    "final_test_exposed": false,
+    "dev_metrics": {
+      "accuracy": 0.5491666666666667,
+      "choice_accuracy": 0.4777777777777778,
+      "noul_accuracy": 0.7222222222222222,
+      "score_accuracy": 0.47291666666666665,
+      "soft_accuracy": 0.3859879949855313,
+      "hard_brier": 0.5646017493848429,
+      "soft_brier": 0.18618002607829773,
+      "nll": 0.9821908269922051,
+      "kl_gold_to_prediction": 0.33446268810914975,
+      "ece": 0.08553580691417058,
+      "score_mae": 0.5405605145951743,
+      "case_count": 240,
+      "decision_count": 1200
+    }
+  },
+  "scientific_scope": "TRAIN/DEV selection only; no final typed-decisions test exposure and no Laya/Jev final claim"
+}
