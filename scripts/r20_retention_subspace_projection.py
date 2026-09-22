@@ -45,7 +45,6 @@ R16_HEAD_SHA256 = "dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88c
 
 R19_STRUCTURAL_PER_LABEL = 2000
 R19_RETENTION_N = 6000
-R20_STRUCTURAL_START = 2000
 R20_STRUCTURAL_PER_LABEL = 2000
 R20_RETENTION_N = 6000
 R20_RETENTION_SHUFFLE_SEED = 17
@@ -489,7 +488,7 @@ def main() -> None:
         n_segments=args.segments,
         metadata={
             **common,
-            "role": "r20-train-structural-ranks-2001-4000",
+            "role": "r20-train-structural-exclusion-first-top-2000-per-label",
             "n": len(structural_train),
             "index_sha256": hash_indices(structural_train_indices),
         },
