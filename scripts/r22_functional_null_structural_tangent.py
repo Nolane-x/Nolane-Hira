@@ -723,7 +723,19 @@ def main() -> None:
         subspace.orthonormal_error <= ORTHONORMAL_TOLERANCE
     )
 
-    tangent_available = subspace.rank >= DAMAGE_RANK
+    structural_gradient_finite = bool(
+        torch.isfinite(structural_gradient).all()
+    )
+    structural_gradient_nonzero = (
+        structural_gradient_finite
+        and float(structural_gradient.norm()) > 0.0
+    )
+    tangent_available = (
+        subspace.rank >= DAMAGE_RANK
+        and structural_gradient_finite
+        and structural_gradient_nonzero
+    )
+    tangent_failure_reason = None
     tangent = None
     null_update = None
     raw_update = None
@@ -732,11 +744,17 @@ def main() -> None:
     null_leakage_energy_fraction = float("inf")
 
     if tangent_available:
-        tangent = functional_null_structural_tangent(
-            structural_gradient,
-            subspace,
-            rank=DAMAGE_RANK,
-        )
+        try:
+            tangent = functional_null_structural_tangent(
+                structural_gradient,
+                subspace,
+                rank=DAMAGE_RANK,
+            )
+        except ValueError as exc:
+            tangent_available = False
+            tangent_failure_reason = str(exc)
+
+    if tangent is not None:
         retained_structural_energy_fraction = float(
             tangent.retained_energy_fraction
         )
@@ -757,11 +775,6 @@ def main() -> None:
             rank=DAMAGE_RANK,
             removal_strength=0.5,
         )
-
-    structural_gradient_finite = bool(
-        torch.isfinite(structural_gradient).all()
-    )
-    structural_gradient_nonzero = float(structural_gradient.norm()) > 0.0
     retained_structural_energy_pass = (
         tangent_available
         and retained_structural_energy_fraction
@@ -1222,6 +1235,7 @@ def main() -> None:
             "original_relation_delta_l2": float(delta.norm()),
             "structural_gradient_l2": float(structural_gradient.norm()),
             "structural_gradient_meta": structural_grad_meta,
+            "tangent_failure_reason": tangent_failure_reason,
             "retained_structural_gradient_energy_fraction": (
                 retained_structural_energy_fraction
             ),
