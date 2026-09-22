@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 reproducibility + W2 typed/state-once infrastructure complete; W3 specialist training protocol is next; no final HIRA benchmark result yet.**
+Status: **OPEN; W1 + W2 + W3a specialist selection complete; W3b one-shot typed final is next; no final HIRA typed benchmark result yet.**
 
 ## Read first
 
@@ -153,15 +153,28 @@ W2 established:
 
 No test row was used and no scorecard cell was populated.
 
-## Current next task — R8-W3 specialist lane
+## W3a typed specialist selection — COMPLETE
 
-Preregister a specialist train/dev protocol before touching typed-decisions test:
-- train-only deterministic case split;
-- frozen A13 semantic encoder;
-- state-once cached feature path;
-- HIRA-head candidate/loss tournament selected only on train/dev;
-- one frozen candidate before final test;
-- final test executed once after candidate SHA/config are frozen;
-- specialist result labeled separately from Jev generalist.
+Merged in `327679b87988f375e97b2a8a96456d35a8c54dde`.
 
-No HIRA benchmark win exists yet. The 53-cell scorecard remains `MISSING` until authorized final runs produce immutable receipts.
+Selected TRAIN/DEV-only head:
+- candidate `r15-balanced-lr1e3`;
+- epoch 7;
+- head SHA-256 `2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c`;
+- selector explicitly records `final_test_exposed=false`.
+
+No final scorecard cell was populated by W3a.
+
+## Current next task — R8-W3b one-shot final
+
+Implement and unit-test the evaluation-only path first, without final-test access.
+
+Then execute exactly once against:
+- typed-decisions config `all`;
+- split `test`;
+- 400 cases / 2,000 decisions;
+- frozen selected head above.
+
+Populate only the eight metric-compatible Laya typed specialist cells. Do not populate Jev generalist cells with the specialist result.
+
+The remaining 45 headline cells stay `MISSING` until their own authorized lanes execute.
