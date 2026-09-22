@@ -426,7 +426,7 @@ def parse_typed_decisions_train_row(
     return _parse_typed_decisions_row(
         row,
         expected_split="train",
-        authority="TRAIN adapter",
+        authority="TRAIN adapter is train-only",
     )
 
 
