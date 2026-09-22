@@ -120,3 +120,50 @@ Only if primary R16 selection passes may HANS/Breaking be re-evaluated.
 Because their previous failures are already known, those remain **adapted diagnostics**, never restored to held-out status.
 
 XNLI remains unopened as a model-selection source.
+
+
+## Empirical result — PRIMARY GATE FAIL
+
+Workflow run `35690994565` completed successfully as software and preserved the exact tournament artifact.
+
+Frozen R15 baseline:
+- matched accuracy: **0.5613**
+- strict structural non-entailment validation accuracy: **0.5000**
+
+The strict structural miner discovered:
+- structural train: **606** balanced examples (303 neutral + 303 contradiction)
+- validation_mismatched satisfying strict predicates:
+  - neutral available: **1**
+  - contradiction available: **16**
+- balanced structural validation: **2 examples total**
+
+This is an important protocol failure: a 2-example validation set is not a credible model-selection authority. The observed structural 0.50 -> 1.00 jump is therefore **not accepted as meaningful evidence**.
+
+Candidate selected matched accuracies:
+- ratio 1:1, LR 1e-4: 0.4787
+- ratio 1:1, LR 2e-4: **0.5073**
+- ratio 2:1, LR 1e-4: 0.4613
+- ratio 2:1, LR 2e-4: 0.4773
+
+All candidates failed the matched floor 0.5606666613 and all were ineligible.
+
+Failure-analysis head SHA-256:
+`dbe0ddd8bf3811c98f5062bbf482f5d5b4f1f5991fa6f734f7ca88c24e88cc75`
+
+### Conclusion
+
+R16 fails for two reasons:
+1. the strict structural slice is too rare in MultiNLI validation_mismatched to support selection;
+2. over-concentrating on only 606 strict non-entailment examples causes severe retention loss despite the R15 teacher anchor.
+
+No HANS/Breaking diagnostics are authorized. Their frozen adapted gates remain unconsumed for R16.
+
+## Next research direction
+
+Do not merely relax the R16 thresholds.
+
+A successor should:
+- create a **near-structural** MultiNLI slice using a frozen continuous structural score rather than exact subset predicates;
+- require a minimum validation support before any model-selection claim;
+- avoid global fine-tuning toward the structural specialist;
+- test weight interpolation or conditional micro-expert routing so the R15 base competence is preserved by construction.
