@@ -30,7 +30,7 @@ class SchemaCompiler:
 
     def __init__(self, encoder: TextSemanticEncoder):
         self.encoder = encoder
-        self._cache: dict[str, CompiledSchema] = {}
+        self._cache: dict[tuple[str, bool], CompiledSchema] = {}
 
     def _payload(self, primitive: Primitive, question_text: str, options: tuple[LogicalOption, ...]):
         return {
@@ -54,7 +54,8 @@ class SchemaCompiler:
 
     def compile(
         self, *, primitive: Primitive, question_text: str,
-        options: Iterable[LogicalOption], use_cache: bool = True
+        options: Iterable[LogicalOption], use_cache: bool = True,
+        include_token_artifacts: bool = False,
     ) -> tuple[CompiledSchema, SchemaCompileReceipt]:
         opts = tuple(options)
         if len(opts) < 2:
@@ -68,8 +69,9 @@ class SchemaCompiler:
             use_cache = False
 
         key = self.schema_hash(primitive, question_text, opts)
-        if use_cache and key in self._cache:
-            cached = self._cache[key]
+        cache_key = (key, bool(include_token_artifacts))
+        if use_cache and cache_key in self._cache:
+            cached = self._cache[cache_key]
             return cached, SchemaCompileReceipt(
                 key, self.encoder.encoder_hash, True, len(opts), len(opts)
             )
@@ -88,6 +90,15 @@ class SchemaCompiler:
             emb = F.normalize(proto, dim=-1).mean(0)
             logical.append(F.normalize(emb, dim=-1))
 
+        option_token_embeddings = None
+        option_token_mask = None
+        if include_token_artifacts:
+            criterion_batch = self.encoder.encode_texts(
+                [option.criterion_text for option in opts]
+            )
+            option_token_embeddings = criterion_batch.token_embeddings
+            option_token_mask = criterion_batch.attention_mask.bool()
+
         compiled = CompiledSchema(
             schema_hash=key,
             encoder_hash=self.encoder.encoder_hash,
@@ -96,9 +107,11 @@ class SchemaCompiler:
             options=opts,
             question_embedding=q,
             option_embeddings=torch.stack(logical),
+            option_token_embeddings=option_token_embeddings,
+            option_token_mask=option_token_mask,
         )
         if use_cache:
-            self._cache[key] = compiled
+            self._cache[cache_key] = compiled
         return compiled, SchemaCompileReceipt(
             key, self.encoder.encoder_hash, False, len(opts), prototype_count
         )
