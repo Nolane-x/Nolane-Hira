@@ -60,14 +60,14 @@ CONFIRM_TEMPLATES = (
 )
 
 TRAIN_GEMS = (
-    "agate","amber","amethyst","aquamarine","beryl","carnelian","citrine",
-    "coral","diamond","emerald","garnet","jade","jasper","lapis","malachite",
-    "moonstone","obsidian","onyx","opal","pearl","peridot","quartz","sapphire","topaz",
+    "agate","alexandrite","amethyst","aquamarine","beryl","carnelian","citrine",
+    "chrysoberyl","diamond","emerald","garnet","iolite","jasper","lapis","malachite",
+    "moonstone","kunzite","onyx","opal","larimar","peridot","spinel","sapphire","topaz",
 )
 TRAIN_BIRDS = (
-    "albatross","canary","crane","crow","eagle","falcon","finch","flamingo",
-    "heron","ibis","kingfisher","lark","magpie","oriole","osprey","owl","parrot",
-    "pelican","penguin","raven","robin","sparrow","stork","toucan",
+    "albatross","canary","avocet","crow","bittern","bobolink","finch","flamingo",
+    "bunting","curlew","kingfisher","lark","magpie","oriole","osprey","owl","parrot",
+    "pelican","penguin","godwit","robin","sparrow","stork","toucan",
 )
 TRAIN_FLAVORS = (
     "bitter","buttery","citrusy","earthy","floral","fruity","garlicky","herbal",
@@ -75,19 +75,19 @@ TRAIN_FLAVORS = (
     "sour","spicy","sweet","tangy","tart","toasty","umami","vanilla",
 )
 TRAIN_SHAPES = (
-    "arc","cone","crescent","cube","cylinder","diamondshape","ellipse","helix",
-    "hexagon","kite","octagon","oval","pentagon","prism","pyramid","rectangle",
-    "rhombus","ring","sphere","spiral","square","star","trapezoid","triangle",
+    "arc","cardioid","crescent","deltoid","cylinder","diamondshape","dodecagon","helix",
+    "heptagon","kite","octagon","oval","pentagon","nonagon","pyramid","rectangle",
+    "rhombus","ring","torus","spiral","trefoil","star","trapezoid","wedge",
 )
 
 CONFIRM_FLOWERS = (
     "aster","azalea","begonia","camellia","carnation","daffodil","dahlia","daisy",
-    "freesia","gardenia","hibiscus","hyacinth","iris","jasmine","lavender","lilac",
-    "lotus","marigold","orchid","peony","poppy","rose","tulip","violet",
+    "freesia","gardenia","hibiscus","hyacinth","anemone","jasmine","lavender","buttercup",
+    "chrysanthemum","marigold","crocus","peony","poppy","foxglove","geranium","zinnia",
 )
 CONFIRM_VESSELS = (
-    "barge","brig","canoe","caravel","clipper","corvette","dinghy","dory",
-    "ferry","frigate","galleon","junk","ketch","launch","liner","lugger",
+    "catboat","brig","dhow","caravel","clipper","corvette","dinghy","dory",
+    "pinnace","frigate","galleon","junk","ketch","launch","liner","lugger",
     "raft","schooner","skiff","sloop","tanker","trawler","tugboat","wherry",
 )
 CONFIRM_SOUNDS = (
@@ -96,9 +96,9 @@ CONFIRM_SOUNDS = (
     "snap","thud","tinkle","whirr","whistle","whoosh",
 )
 CONFIRM_TERRAINS = (
-    "badland","basin","canyon","delta","dune","estuary","fjord","glacier",
-    "gorge","heath","hillock","isthmus","lagoon","mesa","moor","oasis",
-    "plateau","ravine","reef","ridge","savanna","steppe","tundra","valley",
+    "badland","butte","escarpment","floodplain","grassland","estuary","fjord","glacier",
+    "gorge","heath","hillock","isthmus","headland","karst","moor","oasis",
+    "polder","peninsula","saltflat","swamp","savanna","steppe","volcano","watershed",
 )
 
 
