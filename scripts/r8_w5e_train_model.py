@@ -14,6 +14,8 @@ from nmd.semantic_capacity_control import (
     EPOCHS,
     GLOBAL_SEED,
     LR,
+    MAX_LENGTH,
+    MODEL_SPECS,
     TOP_N,
     generate_capacity_authority,
 )
@@ -24,22 +26,6 @@ from nmd.semantic_encoder_adaptation import (
 )
 
 
-MODELS = {
-    "a13": {
-        "model_id": "microsoft/xtremedistil-l6-h256-uncased",
-        "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
-        "weight_file": "model.safetensors",
-        "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
-        "hidden_size": 256,
-    },
-    "a22": {
-        "model_id": "microsoft/xtremedistil-l6-h384-uncased",
-        "revision": "359df7d52613d4edc15647e6d65e0d87200eb747",
-        "weight_file": "pytorch_model.bin",
-        "weight_sha256": "38bd5f8a7d1b7045de8fee25bfac1777edf5a2ec8cd3399b21bde917b0278e23",
-        "hidden_size": 384,
-    },
-}
 MAX_LENGTH = 256
 
 
@@ -53,14 +39,14 @@ def file_sha256(path: str | Path) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=sorted(MODELS), required=True)
+    parser.add_argument("--model", choices=sorted(MODEL_SPECS), required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
     from huggingface_hub import snapshot_download
     from transformers import AutoModel, AutoTokenizer
 
-    spec = MODELS[args.model]
+    spec = MODEL_SPECS[args.model]
     snapshot = Path(
         snapshot_download(
             repo_id=spec["model_id"],
