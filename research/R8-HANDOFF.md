@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 + W2 + W3 + W4a complete. Campaign now 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. Current task: W4b fresh synthetic K=128/K=255 high-cardinality stress.**
+Status: **OPEN; W1 + W2 + W3 + W4a + W4b complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. W4b proves K=255 mechanics PASS; current blocker is semantic competence/generalization.**
 
 ## Read first
 
@@ -198,21 +198,45 @@ Machine-readable authority:
 
 Do not tune or rerun against the exposed first-400 authority.
 
-## Current next task — W4b fresh K=128/K=255 stress
+## W4b fresh K=128/K=255 stress — COMPLETE
 
-W4b must isolate high-cardinality mechanics from semantic zero-shot generalization.
+Authoritative run `35824879417`.
 
-Use fresh synthetic schemas/data that are generated independently of Banking77 and frozen before execution.
+Track A:
+- **MECHANICS_PASS** at K=128 and K=255;
+- full-K budgets exactly K;
+- tail mass zero;
+- probability mass preserved;
+- permutation equivariance PASS 64/64 at both K;
+- repeatability exact in eval mode.
 
-Required questions:
-1. can HIRA preserve full probability mass at K=128 and K=255?
-2. can option-order permutation be inverted exactly back to canonical probabilities/predictions?
-3. can the correct option remain identifiable when semantic labels are fresh and opaque routing IDs carry no meaning?
-4. how do latency and memory scale from K=77 -> 128 -> 255?
-5. if candidate pruning is tested, what is candidate recall and does the frozen recall gate force all-K fallback?
+Track B:
+- K=128 semantic-key accuracy **2/128 = 1.5625%**;
+- K=255 semantic-key accuracy **1/128 = 0.78125%**;
+- state-once remained exact.
 
-Do not use W4a Banking77 rows, labels, errors or predictions to design W4b examples.
+Interpretation:
+- high-cardinality implementation is viable;
+- semantic ranking/generalization is the dominant blocker;
+- candidate pruning is not the next priority.
 
-After W4b, decide whether high-cardinality mechanics themselves remain viable before any equal-information Jev retrieved-24 challenge.
+Machine-readable authority:
+- `artifacts/r8-w4b-high-cardinality/summary.json`.
+
+## Current next task — fresh semantic competence rebuild
+
+Use new non-benchmark training data and an independent confirmatory set.
+
+Requirements:
+1. no Banking77 rows/labels/predictions;
+2. no typed-decisions final rows;
+3. no MASSIVE/XNLI final rows;
+4. frozen A13 initially;
+5. head-only relation/routing training first;
+6. multi-template/multi-relation curriculum rather than one exact-key template;
+7. untouched confirmatory vocab/template families;
+8. full-K training/evaluation across small and large K;
+9. one frozen candidate before any confirmatory authority;
+10. only after fresh confirmation should public held-out campaign lanes continue.
 
 The remaining 44 headline cells stay `MISSING` until their own authorized lanes execute.
