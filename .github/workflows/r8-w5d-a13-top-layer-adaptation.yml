@@ -1,0 +1,171 @@
+name: r8-w5d-a13-top-layer-adaptation
+
+on:
+  push:
+    branches:
+      - feat/r8-w5d-a13-top-layer-adaptation
+    paths:
+      - "src/nmd/semantic_encoder_adaptation.py"
+      - "tests/test_semantic_encoder_adaptation.py"
+      - "scripts/r8_w5d_train_candidate.py"
+      - "scripts/r8_w5d_select_candidate.py"
+      - "scripts/r8_w5d_confirm.py"
+      - "research/R8-W5D-HANDOFF.md"
+      - ".github/workflows/r8-w5d-a13-top-layer-adaptation.yml"
+  pull_request:
+    paths:
+      - "src/nmd/semantic_encoder_adaptation.py"
+      - "tests/test_semantic_encoder_adaptation.py"
+      - "scripts/r8_w5d_train_candidate.py"
+      - "scripts/r8_w5d_select_candidate.py"
+      - "scripts/r8_w5d_confirm.py"
+      - "research/R8-W5D-HANDOFF.md"
+      - ".github/workflows/r8-w5d-a13-top-layer-adaptation.yml"
+
+concurrency:
+  group: r8-w5d-a13-top-layer-adaptation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile W5d modules
+        run: |
+          python -m py_compile             src/nmd/semantic_encoder_adaptation.py             scripts/r8_w5d_train_candidate.py             scripts/r8_w5d_select_candidate.py             scripts/r8_w5d_confirm.py
+
+      - name: Run W5d unit tests
+        run: |
+          pytest -q             tests/test_semantic_encoder_adaptation.py             tests/test_semantic_alignment_probes.py
+
+  candidate:
+    if: github.event_name == 'push'
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: top1-lr1e5
+            top_n: "1"
+            lr: "0.00001"
+          - name: top1-lr3e5
+            top_n: "1"
+            lr: "0.00003"
+          - name: top2-lr1e5
+            top_n: "2"
+            lr: "0.00001"
+          - name: top2-lr3e5
+            top_n: "2"
+            lr: "0.00003"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen A13 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+
+      - name: Train preregistered W5d candidate
+        run: |
+          python scripts/r8_w5d_train_candidate.py             --top-n "${{ matrix.top_n }}"             --lr "${{ matrix.lr }}"             --name "${{ matrix.name }}"             --out "artifacts/candidates/${{ matrix.name }}"
+          cat "artifacts/candidates/${{ matrix.name }}/receipt.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5d-candidate-${{ matrix.name }}
+          path: artifacts/candidates/${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 14
+
+  select:
+    if: github.event_name == 'push'
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w5d-candidate-*
+          path: inputs/candidates
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install selector stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Freeze one DEV-selected adapted A13
+        run: |
+          python scripts/r8_w5d_select_candidate.py             --candidates inputs/candidates             --out artifacts/selected
+          cat artifacts/selected/selection.json
+          test "$(python -c 'import json; print(json.load(open("artifacts/selected/selection.json"))["confirm_exposed"])')" = "False"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5d-selected-adaptation
+          path: artifacts/selected
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    if: github.event_name == 'push'
+    needs: select
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w5d-selected-adaptation
+          path: inputs/selected
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen A13 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+
+      - name: Evaluate untouched W5d confirm authority
+        run: |
+          python scripts/r8_w5d_confirm.py             --adaptation inputs/selected/adaptation.pt             --selection inputs/selected/selection.json             --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5d-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 30
