@@ -1,0 +1,154 @@
+name: r8-w5e-a22-capacity-control
+
+on:
+  push:
+    branches:
+      - feat/r8-w5e-a22-capacity-control
+    paths:
+      - "src/nmd/semantic_capacity_control.py"
+      - "scripts/r8_w5e_train_model.py"
+      - "scripts/r8_w5e_confirm.py"
+      - "tests/test_semantic_capacity_control.py"
+      - "configs/a22-capacity.json"
+      - "research/R8-W5E-HANDOFF.md"
+      - ".github/workflows/r8-w5e-a22-capacity-control.yml"
+  pull_request:
+    paths:
+      - "src/nmd/semantic_capacity_control.py"
+      - "scripts/r8_w5e_train_model.py"
+      - "scripts/r8_w5e_confirm.py"
+      - "tests/test_semantic_capacity_control.py"
+      - "configs/a22-capacity.json"
+      - "research/R8-W5E-HANDOFF.md"
+      - ".github/workflows/r8-w5e-a22-capacity-control.yml"
+
+concurrency:
+  group: r8-w5e-a22-capacity-control-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile W5e modules
+        run: |
+          python -m py_compile             src/nmd/semantic_capacity_control.py             scripts/r8_w5e_train_model.py             scripts/r8_w5e_confirm.py
+
+      - name: Run W5e unit tests
+        run: |
+          pytest -q             tests/test_semantic_capacity_control.py             tests/test_semantic_encoder_adaptation.py
+
+      - name: Verify frozen A22 config
+        run: |
+          python - <<'PY'
+          import json
+          x = json.load(open("configs/a22-capacity.json"))
+          assert x["resolved_revision"] == "359df7d52613d4edc15647e6d65e0d87200eb747"
+          assert x["primary_weight_sha256"] == "38bd5f8a7d1b7045de8fee25bfac1777edf5a2ec8cd3399b21bde917b0278e23"
+          assert x["verified_hidden_size"] == 384
+          assert x["verified_layers"] == 6
+          print("a22_authority_frozen")
+          PY
+
+  train:
+    if: github.event_name == 'push'
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [a13, a22]
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+
+      - name: Train paired adapted track
+        run: |
+          python scripts/r8_w5e_train_model.py             --model "${{ matrix.model }}"             --out "artifacts/${{ matrix.model }}"
+          cat "artifacts/${{ matrix.model }}/receipt.json"
+          test "$(python -c 'import json; print(json.load(open("artifacts/'"${{ matrix.model }}"'/receipt.json"))["confirm_exposed"])')" = "False"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5e-track-${{ matrix.model }}
+          path: artifacts/${{ matrix.model }}
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    if: github.event_name == 'push'
+    needs: train
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w5e-track-*
+          path: inputs
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+
+      - name: Evaluate untouched paired CONFIRM
+        run: |
+          python scripts/r8_w5e_confirm.py             --a13-adaptation inputs/r8-w5e-track-a13/adaptation.pt             --a13-receipt inputs/r8-w5e-track-a13/receipt.json             --a22-adaptation inputs/r8-w5e-track-a22/adaptation.pt             --a22-receipt inputs/r8-w5e-track-a22/receipt.json             --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+
+      - name: Verify scientific scope
+        run: |
+          python - <<'PY'
+          import json
+          x = json.load(open("artifacts/confirm/confirm.json"))
+          assert x["status"] == "PASS"
+          assert x["confirm_generated_after_both_checkpoint_freezes"] is True
+          assert x["forbidden_benchmark_data_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          assert x["verdict"] in {
+              "A22_CAPACITY_RESCUE",
+              "A22_CAPACITY_AMBIGUOUS",
+              "A22_CAPACITY_NO_RESCUE",
+          }
+          print(x["verdict"])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5e-capacity-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
