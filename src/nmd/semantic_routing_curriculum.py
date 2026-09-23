@@ -156,18 +156,37 @@ def _vocab(split: str):
     raise ValueError(f"unknown split: {split}")
 
 
-def _mutate_signature(
+def _enumerate_neighbors(
     target: tuple[str, str, str, str],
     pools,
-    rng: random.Random,
     changes: int,
-) -> tuple[str, str, str, str]:
-    row = list(target)
-    positions = rng.sample(range(4), changes)
-    for pos in positions:
-        choices = [value for value in pools[pos] if value != row[pos]]
-        row[pos] = rng.choice(choices)
-    return tuple(row)
+) -> list[tuple[str, str, str, str]]:
+    if changes not in {1, 2}:
+        raise ValueError("changes must be 1 or 2")
+    out: list[tuple[str, str, str, str]] = []
+    if changes == 1:
+        for i in range(4):
+            for value in pools[i]:
+                if value == target[i]:
+                    continue
+                row = list(target)
+                row[i] = value
+                out.append(tuple(row))
+        return out
+
+    for i in range(4):
+        for j in range(i + 1, 4):
+            for vi in pools[i]:
+                if vi == target[i]:
+                    continue
+                for vj in pools[j]:
+                    if vj == target[j]:
+                        continue
+                    row = list(target)
+                    row[i] = vi
+                    row[j] = vj
+                    out.append(tuple(row))
+    return out
 
 
 def _random_signature(pools, rng: random.Random) -> tuple[str, str, str, str]:
@@ -201,39 +220,38 @@ def generate_routing_case(
     state_text, question_text = _render_state(target, template_id)
 
     distractor_count = k - 1
-    one_count = int(round(distractor_count * 0.50))
-    two_count = int(round(distractor_count * 0.30))
-    if one_count + two_count > distractor_count:
-        two_count = distractor_count - one_count
-    random_count = distractor_count - one_count - two_count
+    target_one = int(distractor_count * 0.50)
+    target_two = int(distractor_count * 0.30)
+
+    one_neighbors = _enumerate_neighbors(target, pools, 1)
+    two_neighbors = _enumerate_neighbors(target, pools, 2)
+    rng.shuffle(one_neighbors)
+    rng.shuffle(two_neighbors)
+
+    one_count = min(target_one, len(one_neighbors))
+    remaining_after_one = distractor_count - one_count
+    two_count = min(target_two, len(two_neighbors), remaining_after_one)
 
     signatures: set[tuple[str, str, str, str]] = {target}
     distractors: list[tuple[str, str, str, str]] = []
 
-    def add_unique(candidate):
+    for candidate in one_neighbors[:one_count]:
+        signatures.add(candidate)
+        distractors.append(candidate)
+    for candidate in two_neighbors[:two_count]:
         if candidate not in signatures:
             signatures.add(candidate)
             distractors.append(candidate)
-            return True
-        return False
-
-    for changes, count in ((1, one_count), (2, two_count)):
-        attempts = 0
-        while sum(
-            1 for _ in distractors
-        ) < (one_count if changes == 1 else one_count + two_count):
-            attempts += 1
-            if attempts > 100000:
-                raise RuntimeError("unable to generate unique hard distractors")
-            add_unique(_mutate_signature(target, pools, rng, changes))
 
     attempts = 0
-    target_total = one_count + two_count + random_count
-    while len(distractors) < target_total:
+    while len(distractors) < distractor_count:
         attempts += 1
         if attempts > 100000:
             raise RuntimeError("unable to generate unique random distractors")
-        add_unique(_random_signature(pools, rng))
+        candidate = _random_signature(pools, rng)
+        if candidate not in signatures:
+            signatures.add(candidate)
+            distractors.append(candidate)
 
     gold_index = rng.randrange(k)
     rows = list(distractors)
