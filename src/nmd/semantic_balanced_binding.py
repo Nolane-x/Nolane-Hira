@@ -809,32 +809,46 @@ def competence_gates(
     }
 
 
+def _absolute_competence(metrics: dict[str, object]) -> bool:
+    per = metrics["per_k"]
+    return (
+        float(metrics["accuracy"]) >= 0.60
+        and float(per["128"]["accuracy"]) >= 0.40
+        and float(per["255"]["accuracy"]) >= 0.30
+        and float(per["255"]["top5_recall"]) >= 0.70
+        and float(metrics["probability_mass_max_error"]) <= 1e-6
+    )
+
+
 def confirm_verdict(
     selected: dict[str, object],
     control: dict[str, object],
 ) -> tuple[str, dict[str, bool]]:
     gates = competence_gates(selected, control)
-    competence = (
-        gates["overall_accuracy"]
-        and gates["k128_accuracy"]
-        and gates["k255_accuracy"]
-        and gates["k255_top5"]
-        and gates["probability_mass"]
-    )
+    selected_competence = _absolute_competence(selected)
+    control_competence = _absolute_competence(control)
     mechanism = (
         gates["overall_gain_vs_control"]
         and gates["k255_top5_gain_vs_control"]
     )
-    if competence and mechanism:
+    if selected_competence and mechanism:
         return "BALANCED_BINDING_RESCUE", gates
-    if competence and not mechanism:
+    if selected_competence and not mechanism and control_competence:
         return "BALANCED_BINDING_CONTROL_ALREADY_RESCUES", gates
+
     overall_gain = float(selected["accuracy"]) - float(control["accuracy"])
     k255_top5_gain = (
         float(selected["per_k"]["255"]["top5_recall"])
         - float(control["per_k"]["255"]["top5_recall"])
     )
     mrr_gain = float(selected["mrr"]) - float(control["mrr"])
+
+    # Crossing the absolute competence boundary is still scientifically
+    # meaningful even when the frozen mechanism-attribution deltas are too
+    # small. If the control itself has not crossed that boundary, do not
+    # mislabel the outcome as CONTROL_ALREADY_RESCUES.
+    if selected_competence and not control_competence:
+        return "BALANCED_BINDING_PARTIAL", gates
     if overall_gain >= 0.03 or k255_top5_gain >= 0.03 or mrr_gain >= 0.03:
         return "BALANCED_BINDING_PARTIAL", gates
     return "BALANCED_BINDING_FAIL", gates

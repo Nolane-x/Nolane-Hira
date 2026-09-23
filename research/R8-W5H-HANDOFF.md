@@ -48,11 +48,18 @@ Two independent pre-authority audits were completed before accepting any W5h ver
    - only the post-selection CONFIRM evaluator may open it with explicit capability after selector/hash verification;
    - all empirical runs before `8f5dfc559cb905cc8991fc72e709ec73e9a5d79d` are non-authoritative.
 
-The final pre-authority guard was strengthened at
+The final template-freshness guard was strengthened at
 `e0d2798c28048ee12903e1e8d30aaf9b38f78981`
 to reject known rendered scaffold phrases from **W5a through W5g**, not only W5g.
 
-This handoff-only descendant changes no matcher, data generator, optimizer, selector, gate or CONFIRM capability. It is therefore code-identical for the frozen W5h mechanism and is authorized to trigger the clean push authority.
+3. **Verdict-attribution repair**
+   - pre-repair logic could emit `BALANCED_BINDING_CONTROL_ALREADY_RESCUES` whenever the selected candidate crossed absolute competence but mechanism deltas failed, even if the fresh control itself remained below the absolute competence boundary;
+   - this is a labeling/interpretation bug, not a matcher or data change;
+   - the repaired rule emits `CONTROL_ALREADY_RESCUES` only when the control independently satisfies all absolute competence gates;
+   - if selected crosses competence but control does not and mechanism attribution is insufficient, the verdict is conservatively `BALANCED_BINDING_PARTIAL`;
+   - authority run #31 from `a986dbb8...` is therefore non-authoritative and must not supply a verdict. The next code descendant supersedes it before untouched CONFIRM exposure.
+
+The repaired descendant changes no matcher, data generator, optimizer, selector ordering, threshold, or CONFIRM capability. It repairs only verdict attribution and adds regression coverage.
 
 ## Authority contract
 

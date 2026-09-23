@@ -291,6 +291,52 @@ def test_rescue_requires_competence_and_mechanism_gates():
     assert verdict in {"BALANCED_BINDING_PARTIAL", "BALANCED_BINDING_FAIL"}
 
 
+def test_control_already_rescues_requires_control_absolute_competence():
+    control = {
+        "accuracy": 0.61,
+        "mrr": 0.70,
+        "probability_mass_max_error": 1e-7,
+        "per_k": {
+            "128": {"accuracy": 0.45},
+            "255": {"accuracy": 0.34, "top5_recall": 0.72},
+        },
+    }
+    selected = {
+        "accuracy": 0.62,
+        "mrr": 0.71,
+        "probability_mass_max_error": 1e-7,
+        "per_k": {
+            "128": {"accuracy": 0.46},
+            "255": {"accuracy": 0.35, "top5_recall": 0.73},
+        },
+    }
+    verdict, _ = confirm_verdict(selected, control)
+    assert verdict == "BALANCED_BINDING_CONTROL_ALREADY_RESCUES"
+
+
+def test_selected_competence_does_not_mislabel_non_rescuing_control():
+    control = {
+        "accuracy": 0.59,
+        "mrr": 0.68,
+        "probability_mass_max_error": 1e-7,
+        "per_k": {
+            "128": {"accuracy": 0.41},
+            "255": {"accuracy": 0.31, "top5_recall": 0.69},
+        },
+    }
+    selected = {
+        "accuracy": 0.60,
+        "mrr": 0.69,
+        "probability_mass_max_error": 1e-7,
+        "per_k": {
+            "128": {"accuracy": 0.42},
+            "255": {"accuracy": 0.32, "top5_recall": 0.70},
+        },
+    }
+    verdict, _ = confirm_verdict(selected, control)
+    assert verdict == "BALANCED_BINDING_PARTIAL"
+
+
 def test_cache_validator_rejects_non_normalized_salience():
     case = synthetic_case()
     case["option_salience"][0, 1] *= 3
