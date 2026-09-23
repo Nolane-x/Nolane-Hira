@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1–W5c complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS, but frozen A13 semantic representation probes fail; current task is controlled top-layer A13 semantic adaptation before A22 capacity control.**
+Status: **OPEN; W1–W5d complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS; frozen and top-layer-adapted A13 semantic competence fail. A22 capacity-control is now authorized.**
 
 ## Read first
 
@@ -308,3 +308,25 @@ W5d must:
 6. populate zero public campaign cells.
 
 If adapted A13 still misses fresh competence by the frozen gate, the A22 capacity trigger is considered satisfied and the next lane should run the pinned A22 capacity control.
+
+
+## W5d controlled A13 top-layer adaptation — COMPLETE / NEGATIVE
+
+Merged in `c44a16452b9a013fdccdd9486d5fdbca9dab0433`.
+
+Authoritative run `35844159119`:
+- 4/4 top-layer adaptation candidates PASS execution;
+- DEV-only selector chose `top2-lr1e5`, epoch 2;
+- untouched CONFIRM generated after selection;
+- frozen A13 top-1 **0/192**;
+- adapted A13 top-1 **0/192**;
+- adapted MRR **0.04472** vs frozen **0.04022**;
+- K128/K255 top-1 remain **0**;
+- every competence/gain gate FAIL;
+- probability mass PASS;
+- campaign cells populated = 0.
+
+Verdict:
+`A13_ADAPTATION_FAIL_CAPACITY_TRIGGER`.
+
+This satisfies the preregistered capacity trigger. The next authorized lane is **W5e A22 diagnostic capacity control** using `microsoft/xtremedistil-l6-h384-uncased`. Do not continue A13 scorer or adaptation sweeps before that control.
