@@ -17,9 +17,9 @@ TRAIN_K_COUNTS = {8: 128, 16: 112, 32: 96, 64: 80, 128: 64, 255: 32}
 DEV_K_COUNTS = {8: 32, 16: 32, 32: 32, 64: 32, 128: 24, 255: 24}
 CONFIRM_K_COUNTS = {32: 48, 64: 48, 128: 48, 255: 48}
 
-TRAIN_SEED = 131001
-DEV_SEED = 132002
-CONFIRM_SEED = 133003
+TRAIN_SEED = 141109
+DEV_SEED = 142211
+CONFIRM_SEED = 143313
 GLOBAL_SEED = 503
 EPOCHS = 6
 LR = 3e-4
@@ -36,19 +36,19 @@ CANDIDATES = (
 )
 
 TRAIN_TEMPLATES = (
-    "w5h-train-ledger",
-    "w5h-train-dossier",
-    "w5h-train-card",
-    "w5h-train-index",
+    "w5h-train-observation-matrix",
+    "w5h-train-courier-packet",
+    "w5h-train-reference-strip",
+    "w5h-train-keymap",
 )
 DEV_TEMPLATES = (
-    "w5h-dev-placard",
-    "w5h-dev-memo",
+    "w5h-dev-beacon-record",
+    "w5h-dev-notebook-trace",
 )
 CONFIRM_TEMPLATES = (
-    "w5h-confirm-registry",
-    "w5h-confirm-capsule",
-    "w5h-confirm-bulletin",
+    "w5h-confirm-specimen-matrix",
+    "w5h-confirm-dispatch-packet",
+    "w5h-confirm-quadrant-note",
 )
 
 TRAIN_BIRDS = (
@@ -150,50 +150,50 @@ def _render(
     template_id: str,
 ) -> tuple[str, str]:
     a, b, c, d = signature
-    if template_id == "w5h-train-ledger":
+    if template_id == "w5h-train-observation-matrix":
         return (
-            f"Ledger fields: bird {a}; mineral {b}; river {c}; fabric {d}.",
-            "Which candidate preserves every ledger field?",
+            f"Observation matrix has four slots — bird:{a} | mineral:{b} | river:{c} | fabric:{d}.",
+            "Find the candidate whose four slot values coincide with the observation.",
         )
-    if template_id == "w5h-train-dossier":
+    if template_id == "w5h-train-courier-packet":
         return (
-            f"Dossier records river={c}, fabric={d}, bird={a}, mineral={b}.",
-            "Select the candidate matching the complete dossier.",
+            f"Courier packet lists fabric→{d}; bird→{a}; river→{c}; mineral→{b}.",
+            "Choose the row that reproduces every keyed entry in the packet.",
         )
-    if template_id == "w5h-train-card":
+    if template_id == "w5h-train-reference-strip":
         return (
-            f"Card links {a} with {b}; its river is {c} and fabric is {d}.",
-            "Which candidate agrees with all four card attributes?",
+            f"Reference strip reads {c} under river, {b} under mineral, {d} under fabric, and {a} under bird.",
+            "Which candidate reconstructs the complete reference strip?",
         )
-    if template_id == "w5h-train-index":
+    if template_id == "w5h-train-keymap":
         return (
-            f"Index -> fabric {d}; bird {a}; mineral {b}; river {c}.",
-            "Identify the fully matching indexed candidate.",
+            f"Keymap: BIRD[{a}] MINERAL[{b}] RIVER[{c}] FABRIC[{d}].",
+            "Select the candidate with the same four-key mapping.",
         )
-    if template_id == "w5h-dev-placard":
+    if template_id == "w5h-dev-beacon-record":
         return (
-            f"Placard shows mineral {b}, river {c}, fabric {d}, bird {a}.",
-            "Which candidate reconstructs the placard exactly?",
+            f"Beacon record encodes river {c}, bird {a}, fabric {d}, mineral {b}.",
+            "Locate the candidate identical across all beacon attributes.",
         )
-    if template_id == "w5h-dev-memo":
+    if template_id == "w5h-dev-notebook-trace":
         return (
-            f"Memo pairs fabric={d} with river={c}; mineral={b}; bird={a}.",
-            "Choose the candidate consistent with every memo field.",
+            f"Notebook trace: {b} is the mineral; {d} the fabric; {a} the bird; {c} the river.",
+            "Which candidate reproduces all four notebook entries?",
         )
-    if template_id == "w5h-confirm-registry":
+    if template_id == "w5h-confirm-specimen-matrix":
         return (
-            f"Registry fields: fish {a}; flower {b}; mountain {c}; instrument {d}.",
-            "Which candidate matches the registry in every field?",
+            f"Specimen matrix contains fish:{a} / flower:{b} / mountain:{c} / instrument:{d}.",
+            "Find the candidate with the exact four-tag specimen combination.",
         )
-    if template_id == "w5h-confirm-capsule":
+    if template_id == "w5h-confirm-dispatch-packet":
         return (
-            f"Capsule -> instrument {d}; fish {a}; mountain {c}; flower {b}.",
-            "Select the candidate preserving the entire capsule signature.",
+            f"Dispatch packet records instrument→{d}, flower→{b}, fish→{a}, mountain→{c}.",
+            "Select the candidate that reproduces every dispatch tag.",
         )
-    if template_id == "w5h-confirm-bulletin":
+    if template_id == "w5h-confirm-quadrant-note":
         return (
-            f"Bulletin links {b} to {a}; its instrument is {d} and mountain is {c}.",
-            "Which candidate reconstructs all bulletin attributes?",
+            f"Quadrant note assigns mountain {c}, fish {a}, instrument {d}, flower {b}.",
+            "Which candidate reconstructs all four quadrant entries?",
         )
     raise ValueError(f"unknown W5h template: {template_id}")
 
