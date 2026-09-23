@@ -79,7 +79,7 @@ def main() -> None:
         max_length=MAX_LENGTH,
     )
 
-    print("R8_W5H_CONFIRM_GENERATION_BEGIN", flush=True)
+    print("R8_W5I_CONFIRM_GENERATION_BEGIN", flush=True)
     confirm_cases = generate_binding_authority("confirm", allow_confirm=True)
     confirm_cache = compile_binding_cache(encoder, confirm_cases)
 
