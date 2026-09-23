@@ -406,7 +406,7 @@ def compile_binding_cache(
             "option_pooled": batch.pooled_embeddings[2:].detach().cpu().to(torch.float16),
         })
     cache = {
-        "schema_version": "r8-w5h-contrastive-salience-cache-v1",
+        "schema_version": "r8-w5h-balanced-binding-cache-v1",
         "case_count": len(rows),
         "encoder_calls": encoder_calls,
         "state_text_encodes": len(rows),
@@ -422,7 +422,7 @@ def validate_binding_cache(
     *,
     expected_split: str | None = None,
 ) -> None:
-    if cache.get("schema_version") != "r8-w5h-contrastive-salience-cache-v1":
+    if cache.get("schema_version") != "r8-w5h-balanced-binding-cache-v1":
         raise ValueError("unexpected W5h cache schema")
     cases = cache.get("cases")
     if not isinstance(cases, list) or len(cases) != cache.get("case_count"):
