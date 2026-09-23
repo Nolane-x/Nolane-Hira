@@ -9,6 +9,8 @@ import torch
 
 from nmd.semantic import HFAutoSemanticEncoder
 from nmd.semantic_capacity_control import (
+    MAX_LENGTH,
+    MODEL_SPECS,
     capacity_verdict,
     generate_capacity_authority,
 )
@@ -16,7 +18,6 @@ from nmd.semantic_encoder_adaptation import (
     evaluate_encoder,
     load_adaptation_state,
 )
-from scripts.r8_w5e_train_model import MODELS, MAX_LENGTH
 
 
 def file_sha256(path: str | Path) -> str:
@@ -31,7 +32,7 @@ def load_encoder(model_key: str) -> HFAutoSemanticEncoder:
     from huggingface_hub import snapshot_download
     from transformers import AutoModel, AutoTokenizer
 
-    spec = MODELS[model_key]
+    spec = MODEL_SPECS[model_key]
     snapshot = Path(
         snapshot_download(
             repo_id=spec["model_id"],
@@ -156,16 +157,16 @@ def main() -> None:
         "confirm_generated_after_both_checkpoint_freezes": True,
         "confirm_case_count": len(cases),
         "a13": {
-            "revision": MODELS["a13"]["revision"],
-            "weight_sha256": MODELS["a13"]["weight_sha256"],
+            "revision": MODEL_SPECS["a13"]["revision"],
+            "weight_sha256": MODEL_SPECS["a13"]["weight_sha256"],
             "adaptation_sha256": a13_receipt["adaptation_sha256"],
             "selected_epoch": a13_receipt["selected_epoch"],
             "trainable_parameter_count": a13_info["trainable_parameter_count"],
             "total_parameter_count": a13_info["total_parameter_count"],
         },
         "a22": {
-            "revision": MODELS["a22"]["revision"],
-            "weight_sha256": MODELS["a22"]["weight_sha256"],
+            "revision": MODEL_SPECS["a22"]["revision"],
+            "weight_sha256": MODEL_SPECS["a22"]["weight_sha256"],
             "adaptation_sha256": a22_receipt["adaptation_sha256"],
             "selected_epoch": a22_receipt["selected_epoch"],
             "trainable_parameter_count": a22_info["trainable_parameter_count"],
