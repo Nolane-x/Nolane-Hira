@@ -1,6 +1,6 @@
 # R8-W5h handoff — balanced anti-collapse token binding
 
-Status: **implementation active under issue #73; no empirical W5h result yet.**
+Status: **implementation active under issue #73; pre-authority protocol repair applied. No W5h empirical verdict is valid until the repaired fresh authority completes.**
 
 ## Frozen premise
 
@@ -27,13 +27,18 @@ IDF salience and final weighted-mean + minimum-coverage aggregation are frozen.
 
 TRAIN 512 / DEV 176 / post-selection CONFIRM 192.
 
-Seeds:
-- train 131001;
-- dev 132002;
-- confirm 133003;
-- initialization/training 503.
+Repaired fresh-authority seeds:
+- train 141109;
+- dev 142211;
+- confirm 143313;
+- initialization/training 503 (unchanged).
 
-W5h vocab/templates/case IDs must be disjoint from W5a-W5g.
+Protocol repair boundary:
+- branch head `8ebdcac...` still reused W5g textual template scaffolds even though its template IDs and domain vocabulary were new;
+- issue #73 requires templates themselves to be disjoint, so any empirical run from that pre-repair head is non-authoritative and must not supply a W5h verdict;
+- the repair changes only textual templates and authority seeds; candidates, A13, objectives, optimizer budget, selector order and rescue gates remain frozen;
+- repaired template scaffolds are explicitly guarded against the W5g phrases in unit tests;
+- W5h vocabulary/template text/case IDs/seeds must be disjoint from W5a-W5g.
 
 ## Selection
 
