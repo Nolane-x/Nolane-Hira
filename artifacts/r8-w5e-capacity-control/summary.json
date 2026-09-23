@@ -1,0 +1,88 @@
+{
+  "schema_version": "r8-w5e-a13-a22-capacity-summary-v1",
+  "status": "COMPLETE_NEGATIVE",
+  "merge_commit_sha": "c7dd96f0e854ea3ebf14c466ff3574945fa8ebee",
+  "workflow_run_id": 35850323054,
+  "pin_run_id": 35849268011,
+  "a13": {
+    "model": "microsoft/xtremedistil-l6-h256-uncased",
+    "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+    "total_parameter_count": 12750080,
+    "adapted_top2_trainable_parameter_count": 1579520,
+    "adaptation_sha256": "0a37582bb9f1c7ef29052850cf776575eeaf39fac763318ff7802289df19ecac",
+    "selected_epoch": 3
+  },
+  "a22": {
+    "model": "microsoft/xtremedistil-l6-h384-uncased",
+    "revision": "359df7d52613d4edc15647e6d65e0d87200eb747",
+    "weight_sha256": "38bd5f8a7d1b7045de8fee25bfac1777edf5a2ec8cd3399b21bde917b0278e23",
+    "total_parameter_count": 22713216,
+    "encoder_no_pooler_parameter_count": 22565376,
+    "adapted_top2_trainable_parameter_count": 3548928,
+    "adaptation_sha256": "da849785555d33cbc4b2092d997a75d5c1680b21b9e73f56e701b6bfa22742f6",
+    "selected_epoch": 3
+  },
+  "confirm": {
+    "case_count": 192,
+    "generated_after_both_checkpoint_freezes": true,
+    "a13_frozen": {
+      "accuracy": 0,
+      "top5_recall": 0.010416666666666666,
+      "mrr": 0.04069007190417715
+    },
+    "a13_adapted": {
+      "accuracy": 0,
+      "top5_recall": 0.078125,
+      "mrr": 0.06068348150088968,
+      "k128_accuracy": 0,
+      "k128_top5": 0,
+      "k255_accuracy": 0,
+      "k255_top5": 0
+    },
+    "a22_frozen": {
+      "accuracy": 0,
+      "top5_recall": 0.036458333333333336,
+      "mrr": 0.04865605855939145
+    },
+    "a22_adapted": {
+      "accuracy": 0.005208333333333333,
+      "top5_recall": 0.08854166666666667,
+      "mrr": 0.0706514416492734,
+      "k128_accuracy": 0,
+      "k128_top5": 0,
+      "k255_accuracy": 0,
+      "k255_top5": 0.0625
+    },
+    "probability_mass_pass": true
+  },
+  "gates": {
+    "overall_accuracy": false,
+    "overall_capacity_gain": false,
+    "mrr_capacity_gain": false,
+    "k128_accuracy": false,
+    "k128_capacity_gain": false,
+    "k255_accuracy": false,
+    "k255_capacity_gain": false,
+    "k255_top5": false,
+    "probability_mass": true
+  },
+  "verdict": "A22_CAPACITY_NO_RESCUE",
+  "campaign_cells_populated": 0,
+  "forbidden_benchmark_data_used": false,
+  "artifacts": {
+    "a13": {
+      "id": 10744799205,
+      "digest": "sha256:38844a158716bb640733a7c1aea0f2389262974fd78b580c87ca7df96462fe19"
+    },
+    "a22": {
+      "id": 10746245287,
+      "digest": "sha256:d85d4b0c60fc476e99b3464530a928031265e6ef2d029e3c523655a47f62eb2e"
+    },
+    "confirm": {
+      "id": 10746266039,
+      "digest": "sha256:1cc196ba5563d600f113ed204d55a6ce52b33757fba36c31c8ffaaa11c981cd7"
+    }
+  },
+  "conclusion": "Larger A22 encoder capacity alone does not rescue fresh semantic-key competence under the same direct semantic alignment mechanism. Stop automatic backbone scaling and change the semantic learning mechanism/representation objective."
+}
