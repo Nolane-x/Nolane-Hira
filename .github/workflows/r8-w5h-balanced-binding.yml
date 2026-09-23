@@ -68,6 +68,15 @@ jobs:
         run: |
           python scripts/r8_w5h_build_cache.py --out artifacts/cache
           cat artifacts/cache/receipt.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["train_seed"] == 141109
+          assert x["dev_seed"] == 142211
+          assert x["reserved_confirm_seed"] == 143313
+          assert x["w5a_through_w5g_vocab_disjoint"] is True
+          assert x["confirm_exposed"] is False
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: r8-w5h-cache
@@ -171,6 +180,9 @@ jobs:
           x=json.load(open("artifacts/confirm/confirm.json"))
           assert x["status"] == "PASS"
           assert x["confirm_generated_after_selection_freeze"] is True
+          assert x["confirm_seed"] == 143313
+          assert x["trainable_parameter_count"] == 32769
+          assert x["all_candidate_parameter_counts_equal"] is True
           assert x["forbidden_benchmark_data_used"] is False
           assert x["campaign_cells_populated"] == 0
           assert x["verdict"] in {
