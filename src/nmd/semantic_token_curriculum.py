@@ -63,7 +63,7 @@ TRAIN_ROLES = (
 TRAIN_ACTIONS = (
     "align","assemble","audit","balance","classify","clean","collect","compare",
     "count","cut","deliver","examine","fasten","grade","label","load",
-    "mark","measure","package","repair","route","scan","seal","sort",
+    "mark","measure","package","repair","route","scan","stow","sort",
     "stack","test","trace","verify","weigh","inspect","catalog","dispatch",
 )
 TRAIN_SITES = (
