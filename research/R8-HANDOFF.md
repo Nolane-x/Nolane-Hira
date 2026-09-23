@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1–W5f complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. W5f establishes late interaction as a material semantic mechanism (PARTIAL rescue); next priority is fresh contrastive-salience binding, not larger-backbone scaling.**
+Status: **OPEN; W1–W5g complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. W5g raises fresh semantic-routing accuracy to 50.52% with contrastive salience but remains PARTIAL; next priority is fresh balanced/anti-collapse token binding, not backbone scaling or exposed-CONFIRM retuning.**
 
 ## Read first
 
@@ -377,15 +377,79 @@ Interpretation:
 - remaining error is concentrated at high K and near-neighbor distractors;
 - W5f gives every option token uniform aggregation weight, so tokens shared by nearly every option can dilute the discriminative field-value tokens.
 
-## Current next task — W5g contrastive-salience late interaction
+## W5g contrastive-salience late interaction — COMPLETE / PARTIAL
 
-Use entirely fresh TRAIN/DEV/CONFIRM authorities.
+Merged in `1846f2a401e55e35228ef9f14437baa5088af928`.
 
-W5g should compare:
-1. fresh W5f-style proj128 MaxSim baseline;
-2. cross-option salience-weighted MaxSim that downweights tokens common across most candidate options;
-3. salience + common-mode-centered MaxSim that also subtracts option-common similarity.
+Authoritative push run `35862655705` at exact empirical head `e36a57b849db6fec1bb2e570d9e4003a533338b0`.
 
-Do not touch W5f CONFIRM, Banking77, typed final, MASSIVE/XNLI, or any public final row.
+Selected:
+- `idf-proj128`, epoch 6;
+- matcher SHA-256 `f416a2786ed907608017ffffc8cf61442b4cfc68d75bb9f5102841659afd8788`.
 
-The goal is to test whether **candidate-relative token salience** is the missing part of semantic binding, not to retune the exposed W5f thresholds.
+Untouched CONFIRM:
+- overall accuracy **50.5208%** vs fresh uniform **38.5417%** and pooled A13 **0%**;
+- MRR **0.64019** vs uniform **0.54627**;
+- top-5 **79.6875%** vs uniform **75%**;
+- K128 accuracy **47.9167%**, top-5 **72.9167%**;
+- K255 accuracy **41.6667%**, top-5 **64.5833%**;
+- probability-mass max error **2.384e-7**;
+- state text encodes per case **1.0**;
+- forbidden benchmark data used = false;
+- campaign cells populated = 0.
+
+Frozen rescue gates PASS:
+- K128 accuracy;
+- K255 accuracy;
+- overall gain vs uniform;
+- K128 gain vs uniform;
+- K255 gain vs uniform;
+- probability integrity.
+
+Frozen rescue gates FAIL:
+- overall accuracy >= 0.60;
+- K255 top-5 >= 0.70.
+
+Verdict:
+`CONTRASTIVE_SALIENCE_PARTIAL`.
+
+Authoritative closeout:
+`research/R8-W5G-HANDOFF.md`.
+
+Interpretation:
+- candidate-relative salience is a second real semantic-binding mechanism on top of direct late interaction;
+- the remaining blocker is no longer near-random semantic ordering;
+- high-K errors now look like hard-negative binding/ranking ambiguity;
+- W5g still lets every option token independently take MaxSim over the same context tokens, so several semantic fields may collapse onto the same context evidence.
+
+## Current next task — W5h balanced anti-collapse token binding
+
+W5h must be a new fresh authority. Do not reuse W5g TRAIN/DEV/CONFIRM.
+
+Core hypothesis:
+**independent MaxSim creates many-to-one token-binding collapse; a constrained/balanced matching operator can improve hard-negative separation without increasing encoder capacity.**
+
+Keep fixed:
+- exact frozen A13;
+- bias-free 256->128 projection;
+- one scalar logit scale;
+- state-once execution;
+- full-K scoring through K=255;
+- same training objective/optimizer/epoch budget across controlled candidates;
+- opaque option semantics;
+- zero public campaign cells.
+
+The experiment should compare a fresh W5g-style `idf-maxsim` control against anti-collapse alternatives with the same trainable parameter count. Candidate mechanisms should alter only the token-to-context assignment/coverage rule, not backbone size or data access.
+
+The decisive target is not merely another small average gain. W5h should attack the two W5g failures:
+1. overall accuracy < 0.60;
+2. K255 top-5 < 0.70.
+
+Selection must be DEV-only and CONFIRM must be generated only after candidate/checkpoint freeze.
+
+Do not:
+- tune W5g IDF/min-coverage thresholds using exposed CONFIRM;
+- reuse W5g cases/templates/vocabulary/seeds;
+- scale to a larger encoder;
+- reopen Banking77/typed final/MASSIVE/XNLI authorities;
+- populate any public campaign cell before fresh rescue is established.
