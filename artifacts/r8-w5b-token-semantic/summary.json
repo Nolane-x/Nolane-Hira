@@ -1,0 +1,102 @@
+{
+  "schema_version": "r8-w5b-token-semantic-summary-v1",
+  "status": "COMPLETE_NEGATIVE",
+  "merge_commit_sha": "727adae1c80c04ad270326dd999157880272dede",
+  "authoritative_run_id": 35829561505,
+  "authoritative_head_sha": "a68697e78ae022cee8c498019b9af2d8b431cb69",
+  "frozen_inputs": {
+    "artifact_id": 10736054320,
+    "digest": "sha256:f266f8be7e52463e1cf904abecfa5b0e5bac7c8b8dc9cf867f38737f3b881d84"
+  },
+  "candidates": {
+    "pooled": {
+      "artifact_id": 10735769977,
+      "digest": "sha256:41414b0d185c801e9d56ffc89f4e126cda1ad75ad473a56186b0674b2ca4e32a"
+    },
+    "state_tokens": {
+      "artifact_id": 10736664674,
+      "digest": "sha256:ef0d8d79bcea863968b7f206fdfebf9664bf1fd6e0fcd8892c61c8c69b9a1019"
+    },
+    "dual_tokens": {
+      "artifact_id": 10736699699,
+      "digest": "sha256:33f87f67dd686d9c046f55b21a3e906b6613cdd1045a59e4dd208c80ae30ade3"
+    },
+    "option_tokens": {
+      "artifact_id": 10736773443,
+      "digest": "sha256:e0b6f835d68ceabc7d3440e79ac5e16c84d860f081c58ceb46ecbe8016a8be12"
+    }
+  },
+  "selection": {
+    "artifact_id": 10737450030,
+    "digest": "sha256:4471ced8af2d928d0be11ae121ec5af331dd6c2b9e2cd2a21f719d7dba5e5359",
+    "selected_relation_mode": "pooled",
+    "selected_head_sha256": "6b20b16c0edcba63cb8619b09448a24a4e49f216a9504bfce347c24eb51e19bd",
+    "selected_epoch": 7,
+    "mechanism_evidence_gate": false,
+    "selected_vs_pooled_accuracy_gain": 0,
+    "dev_metrics": {
+      "accuracy": 0.01875,
+      "top5_recall": 0.18125,
+      "mrr": 0.11752598401867835,
+      "hard_brier": 0.9526778787374497,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "candidate_dev_accuracy": {
+      "pooled": 0.01875,
+      "option_tokens": 0.0125,
+      "state_tokens": 0.0125,
+      "dual_tokens": 0.0125
+    },
+    "confirm_exposed": false
+  },
+  "confirm": {
+    "artifact_id": 10737100576,
+    "digest": "sha256:3c28209e87b3eee9cb79935f12b56f494595ea15cb986960c15f7760f8b21b46",
+    "case_count": 192,
+    "state_encode_calls": 192,
+    "state_encode_calls_per_case": 1,
+    "accuracy": 0,
+    "top5_recall": 0.010416666666666666,
+    "mrr": 0.037992014711335405,
+    "hard_brier": 0.9854146574313442,
+    "probability_mass_max_error": 1.7881393432617188e-7,
+    "per_k": {
+      "32": {
+        "n": 48,
+        "accuracy": 0,
+        "top5_recall": 0.020833333333333332,
+        "mrr": 0.07419999237896208
+      },
+      "64": {
+        "n": 48,
+        "accuracy": 0,
+        "top5_recall": 0.020833333333333332,
+        "mrr": 0.04963735141803886
+      },
+      "128": {
+        "n": 48,
+        "accuracy": 0,
+        "top5_recall": 0,
+        "mrr": 0.019235900548337233
+      },
+      "255": {
+        "n": 48,
+        "accuracy": 0,
+        "top5_recall": 0,
+        "mrr": 0.008894814500003454
+      }
+    },
+    "mechanics": {
+      "probability_mass": true,
+      "full_k_budget": true,
+      "state_once": true
+    },
+    "mechanism_evidence_gate": false,
+    "verdict": "TOKEN_SEMANTIC_FAIL",
+    "forbidden_benchmark_data_used": false,
+    "campaign_cells_populated": 0
+  },
+  "interpretation": "Existing token-aware wiring in HIRACore does not improve fresh semantic routing. Pooled remains the DEV-selected mode and untouched confirm is 0/192 while mechanics remain healthy. Next step must distinguish scorer failure from representation failure using explicit learned comparison probes.",
+  "public_campaign_impact": "none"
+}
