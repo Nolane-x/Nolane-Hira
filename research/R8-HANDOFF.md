@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 + W2 + W3 typed specialist lane complete. Current exact typed result versus Laya: 1 WIN / 0 TIE / 7 LOSS. Next architecture-revealing lane: E4 high-cardinality.**
+Status: **OPEN; W1 + W2 + W3 + W4a complete. Campaign now 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. Current task: W4b fresh synthetic K=128/K=255 high-cardinality stress.**
 
 ## Read first
 
@@ -177,14 +177,42 @@ Result versus the eight metric-compatible Laya typed cells:
 
 This is a negative result and must remain unchanged. Do not posthoc tune against this final test.
 
-## Current next task — E4 / R8-W4 high cardinality
+## W4a held-out Banking77 direct — COMPLETE
 
-Return to the architecture-specific hypothesis instead of optimizing the now-exposed typed final:
-1. direct held-out Banking77 first, with no Banking77 task training;
-2. explicit all-K K=77 authority;
-3. fresh synthetic K=128 and K=255 schema stress;
-4. candidate-recall measurement if pruning is tested;
-5. fail closed to all-K whenever candidate recall misses its frozen gate;
-6. keep the later Jev retrieved-24 Banking77 challenge protocol-separated and equal-information.
+Authoritative run `35822128041` executed the frozen first-400 Banking77 application protocol exactly once after a pure pre-exposure technical retry.
 
-The remaining 45 headline cells stay `MISSING` until their own authorized lanes execute.
+Result:
+- HIRA accuracy **0.000 = 0/400**;
+- Laya frozen target **0.492**;
+- headline `laya.app.banking77_full` = **LOSS**;
+- full-K K=77 mechanics PASS;
+- state-once PASS;
+- probability mass PASS;
+- no Banking77 task training/retrieval/calibration.
+
+Campaign after W4a:
+- **1 WIN / 0 TIE / 8 LOSS / 44 MISSING**.
+
+Machine-readable authority:
+- `artifacts/r8-w4a-banking77/summary.json`.
+
+Do not tune or rerun against the exposed first-400 authority.
+
+## Current next task — W4b fresh K=128/K=255 stress
+
+W4b must isolate high-cardinality mechanics from semantic zero-shot generalization.
+
+Use fresh synthetic schemas/data that are generated independently of Banking77 and frozen before execution.
+
+Required questions:
+1. can HIRA preserve full probability mass at K=128 and K=255?
+2. can option-order permutation be inverted exactly back to canonical probabilities/predictions?
+3. can the correct option remain identifiable when semantic labels are fresh and opaque routing IDs carry no meaning?
+4. how do latency and memory scale from K=77 -> 128 -> 255?
+5. if candidate pruning is tested, what is candidate recall and does the frozen recall gate force all-K fallback?
+
+Do not use W4a Banking77 rows, labels, errors or predictions to design W4b examples.
+
+After W4b, decide whether high-cardinality mechanics themselves remain viable before any equal-information Jev retrieved-24 challenge.
+
+The remaining 44 headline cells stay `MISSING` until their own authorized lanes execute.
