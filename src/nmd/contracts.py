@@ -37,3 +37,5 @@ class CompiledSchema:
     options: tuple[LogicalOption, ...]
     question_embedding: torch.Tensor
     option_embeddings: torch.Tensor
+    option_token_embeddings: torch.Tensor | None = None
+    option_token_mask: torch.Tensor | None = None
