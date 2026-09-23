@@ -37,23 +37,35 @@ CONFIRM_TEMPLATES = (
     "w5d-confirm-slip",
 )
 
-TRAIN_METALS = (\n    "antimony","molybdenum","niobium","tantalum","vanadium","zirconium","hafnium","rhenium","ruthenium","selenium","tellurium","yttrium","scandium","thallium","indium","germanium","cesium","rubidium","strontium","barium","beryllium","neodymium","praseodymium","samarium",\n)
-TRAIN_INSTRUMENTS = (\n    "sitar","dulcimer","lute","koto","shamisen","erhu","guzheng","theremin","ocarina","recorder","euphonium","bugle","celesta","clavichord","harpsichord","zither","balalaika","oud","didgeridoo","kalimba","panpipe","bagpipe","castanet","gong",\n)
+TRAIN_METALS = (
+    "antimony","molybdenum","niobium","tantalum","vanadium","zirconium","hafnium","rhenium","ruthenium","selenium","tellurium","yttrium","scandium","thallium","indium","germanium","cesium","rubidium","strontium","barium","beryllium","neodymium","praseodymium","samarium",
+)
+TRAIN_INSTRUMENTS = (
+    "sitar","dulcimer","lute","koto","shamisen","erhu","guzheng","theremin","ocarina","recorder","euphonium","bugle","celesta","clavichord","harpsichord","zither","balalaika","oud","didgeridoo","kalimba","panpipe","bagpipe","castanet","gong",
+)
 TRAIN_WEATHER = (
     "misty","sunny","cloudy","windy","stormy","rainy","snowy","humid",
     "dry","foggy","breezy","icy","mild","hot","cold","thunderous",
     "drizzly","hazy","frosty","tropical","arid","chilly","blustery","overcast",
 )
-TRAIN_TOOLS = (\n    "adze","awl","pliers","rasp","sander","mallet","level","ruler","reamer","clamp","file","shovel","rake","trowel","auger","crowbar","screwdriver","spanner","anvil","hatchet","shears","gimlet","caliper","drawknife",\n)
+TRAIN_TOOLS = (
+    "adze","awl","pliers","rasp","sander","mallet","level","ruler","reamer","clamp","file","shovel","rake","trowel","auger","crowbar","screwdriver","spanner","anvil","hatchet","shears","gimlet","caliper","drawknife",
+)
 
-CONFIRM_FRUITS = (\n    "dragonfruit","durian","rambutan","mangosteen","starfruit","breadfruit","tamarind","jackfruit","cherry","mango","papaya","guava","orange","grapefruit","apricot","nectarine","kiwi","banana","coconut","lychee","persimmon","pomegranate","quince","date",\n)
-CONFIRM_VEHICLES = (\n    "sedan","coupe","van","truck","scooter","bicycle","hovercraft","monorail","funicular","gondola","tractor","bulldozer","subway","locomotive","catamaran","helicopter","yacht","airship","taxi","rickshaw","snowmobile","motorcycle","seaplane","kayak",\n)
+CONFIRM_FRUITS = (
+    "dragonfruit","durian","rambutan","mangosteen","starfruit","breadfruit","tamarind","jackfruit","cherry","mango","papaya","guava","orange","grapefruit","apricot","nectarine","kiwi","banana","coconut","lychee","persimmon","pomegranate","quince","date",
+)
+CONFIRM_VEHICLES = (
+    "sedan","coupe","van","truck","scooter","bicycle","hovercraft","monorail","funicular","gondola","tractor","bulldozer","subway","locomotive","catamaran","helicopter","yacht","airship","taxi","rickshaw","snowmobile","motorcycle","seaplane","kayak",
+)
 CONFIRM_TEXTURES = (
     "smooth","rough","silky","grainy","fuzzy","glossy","matte","sticky",
     "slippery","crisp","soft","hard","brittle","rubbery","velvety","waxy",
     "leathery","spongy","flaky","powdery","fibrous","porous","dense","coarse",
 )
-CONFIRM_PLACES = (\n    "lighthouse","vineyard","dockyard","citadel","desert","meadow","bakery","temple","fortress","marina","village","rotunda","boathouse","windmill","arboretum","planetarium","atrium","gazebo","basilica","catacomb","refinery","granary","apiary","aviary",\n)
+CONFIRM_PLACES = (
+    "lighthouse","vineyard","dockyard","citadel","desert","meadow","bakery","temple","fortress","marina","village","rotunda","boathouse","windmill","arboretum","planetarium","atrium","gazebo","basilica","catacomb","refinery","granary","apiary","aviary",
+)
 
 
 @dataclass(frozen=True)
