@@ -9,6 +9,7 @@ import torch
 
 from nmd.semantic import HFAutoSemanticEncoder
 from nmd.semantic_balanced_binding import (
+    CONFIRM_SEED,
     MAX_LENGTH,
     BalancedBindingMatcher,
     compile_binding_cache,
@@ -51,6 +52,12 @@ def main() -> None:
         raise RuntimeError("selected W5h matcher SHA mismatch")
     if file_sha256(args.control_matcher) != selection["control_matcher_sha256"]:
         raise RuntimeError("control W5h matcher SHA mismatch")
+    if selection.get("all_candidate_parameter_counts_equal") is not True:
+        raise RuntimeError("W5h candidate capacity equality not verified")
+    if int(selection.get("selected_trainable_parameter_count", -1)) != 32769:
+        raise RuntimeError("unexpected selected W5h trainable parameter count")
+    if int(selection.get("control_trainable_parameter_count", -1)) != 32769:
+        raise RuntimeError("unexpected control W5h trainable parameter count")
 
     from huggingface_hub import snapshot_download
     from transformers import AutoModel, AutoTokenizer
@@ -103,6 +110,13 @@ def main() -> None:
         "control_candidate": CONTROL,
         "control_epoch": selection["control_epoch"],
         "control_matcher_sha256": selection["control_matcher_sha256"],
+        "confirm_seed": CONFIRM_SEED,
+        "salience_formula": "log((K + 1) / (df(t) + 1)) + 1; valid-token mean normalized to 1",
+        "selected_binding_operator": selection["selected_candidate"],
+        "control_binding_operator": CONTROL,
+        "trainable_parameter_count": selection["selected_trainable_parameter_count"],
+        "all_candidate_parameter_counts_equal": selection["all_candidate_parameter_counts_equal"],
+        "candidate_dev_histories": selection["candidates"],
         "confirm_generated_after_selection_freeze": True,
         "confirm_case_count": len(confirm_cases),
         "confirm_encoder_calls": confirm_cache["encoder_calls"],
