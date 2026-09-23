@@ -102,7 +102,7 @@ def test_w5h_authority_counts_are_frozen():
         generate_binding_authority("confirm")
 
 
-def test_w5h_repaired_authority_is_fresh_and_avoids_w5g_template_scaffolds():
+def test_w5h_repaired_authority_is_fresh_and_avoids_prior_template_scaffolds():
     assert (TRAIN_SEED, DEV_SEED, CONFIRM_SEED) == (141109, 142211, 143313)
     rendered = []
     for split in ("train", "dev"):
@@ -114,18 +114,29 @@ def test_w5h_repaired_authority_is_fresh_and_avoids_w5g_template_scaffolds():
     for template_id in CONFIRM_TEMPLATES:
         rendered.extend(_render(placeholder, template_id))
     text = "\n".join(rendered)
-    forbidden_w5g_scaffolds = (
-        "Ledger fields:",
-        "Dossier records",
-        "Card links",
-        "Index ->",
-        "Placard shows",
-        "Memo pairs",
-        "Registry fields:",
-        "Capsule ->",
-        "Bulletin links",
+    forbidden_prior_scaffolds = (
+        # W5a
+        "The active route uses", "Route attributes:", "Dispatch record says",
+        "Manifest: [", "Ledger entry ->", "Brief: at",
+        # W5b
+        "Record: color=", "The report names", "Note for ", "Dossier says",
+        # W5c
+        "Envelope:", "Message from", "Index entry", "Briefing names",
+        "Summary:", "Register places", "Memo fields:", "Sheet records", "Entry ->",
+        # W5d
+        "Card fields:", "Log says", "Note links", "Ledger ->",
+        "Ticket contains", "Form fields:", "Dossier records", "Slip ->",
+        # W5e
+        "Manifest fields:", "Index lists", "Catalog row:", "Register links",
+        "Sheet ->", "Entry contains", "Brief fields:", "Panel records", "File ->",
+        # W5f
+        "Roster fields:", "Table row lists", "Mapping ->", "Slip records",
+        "Grid cells:", "Page fields:", "Tag ->", "Report links",
+        # W5g
+        "Ledger fields:", "Card links", "Index ->", "Placard shows",
+        "Memo pairs", "Registry fields:", "Capsule ->", "Bulletin links",
     )
-    for phrase in forbidden_w5g_scaffolds:
+    for phrase in forbidden_prior_scaffolds:
         assert phrase not in text
 
 
