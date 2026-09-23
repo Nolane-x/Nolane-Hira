@@ -1,0 +1,60 @@
+{
+  "schema_version": "r8-w5d-a13-adaptation-summary-v1",
+  "status": "COMPLETE_NEGATIVE",
+  "merge_commit_sha": "c44a16452b9a013fdccdd9486d5fdbca9dab0433",
+  "workflow_run_id": 35844159119,
+  "selected": {
+    "candidate": "top2-lr1e5",
+    "top_n": 2,
+    "lr": 0.00001,
+    "epoch": 2,
+    "global_seed": 171,
+    "adaptation_sha256": "a4f2b72a84896178959ee5000028f71c9220ade95f472c8e002eebf4baac6187",
+    "trainable_parameter_count": 1579520,
+    "frozen_parameter_count": 11170560,
+    "dev_accuracy": 0.041666666666666664,
+    "dev_top5_recall": 0.1875,
+    "dev_mrr": 0.13022499918431502
+  },
+  "confirm": {
+    "case_count": 192,
+    "generated_after_selection_freeze": true,
+    "frozen": {
+      "accuracy": 0,
+      "top5_recall": 0.015625,
+      "mrr": 0.04021637789526814
+    },
+    "adapted": {
+      "accuracy": 0,
+      "top5_recall": 0.020833333333333332,
+      "mrr": 0.04472209940874327
+    },
+    "k128_adapted_accuracy": 0,
+    "k255_adapted_accuracy": 0,
+    "probability_mass_pass": true
+  },
+  "gates": {
+    "overall_accuracy": false,
+    "overall_gain_vs_frozen": false,
+    "k128_accuracy": false,
+    "k128_gain_vs_frozen": false,
+    "k255_accuracy": false,
+    "k255_gain_vs_frozen": false,
+    "k255_top5": false,
+    "probability_mass": true
+  },
+  "verdict": "A13_ADAPTATION_FAIL_CAPACITY_TRIGGER",
+  "a22_capacity_control_authorized": true,
+  "campaign_cells_populated": 0,
+  "forbidden_benchmark_data_used": false,
+  "artifacts": {
+    "selected": {
+      "id": 10742754150,
+      "digest": "sha256:b52239222910bc12f81d3ac99a6019ca56959d9896c70a8371960c2dfbe771f5"
+    },
+    "confirm": {
+      "id": 10743381013,
+      "digest": "sha256:9327c703f7d548eaa315598b27884f98dff7ce40ad2ff7c6187200f433731ecf"
+    }
+  }
+}
