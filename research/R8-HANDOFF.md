@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1–W5e complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS; A13 adaptation and A22 capacity control both fail. Next priority is a new semantic learning mechanism, not larger-backbone scaling.**
+Status: **OPEN; W1–W5f complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. W5f establishes late interaction as a material semantic mechanism (PARTIAL rescue); next priority is fresh contrastive-salience binding, not larger-backbone scaling.**
 
 ## Read first
 
@@ -351,3 +351,41 @@ Machine-readable authority:
 `artifacts/r8-w5e-capacity-control/summary.json`.
 
 This falsifies the simple capacity hypothesis. Do not continue by merely scaling A22 to a larger encoder. The next lane must change the semantic representation/learning mechanism while keeping fresh-data and untouched-CONFIRM discipline.
+
+
+## W5f state-once late interaction — COMPLETE / PARTIAL
+
+Merged in `6504e4ebd93efe78c93caaed0f9d18843131402b`.
+
+Authoritative run `35858733250` selected `proj128-maxsim`, epoch 6.
+
+Untouched CONFIRM:
+- selected accuracy **29.6875%** vs pooled **0.5208%**;
+- selected MRR **0.44158** vs pooled **0.04804**;
+- selected top-5 **60.9375%** vs pooled **3.125%**;
+- K128 accuracy **25%** vs pooled 0%;
+- K255 accuracy **16.667%** vs pooled 0%;
+- K255 top-5 **41.667%**;
+- probability integrity PASS;
+- campaign cells populated = 0.
+
+Verdict: `LATE_INTERACTION_PARTIAL`.
+
+Interpretation:
+- independent pooling was a real blocker;
+- direct token binding recovers substantial competence;
+- remaining error is concentrated at high K and near-neighbor distractors;
+- W5f gives every option token uniform aggregation weight, so tokens shared by nearly every option can dilute the discriminative field-value tokens.
+
+## Current next task — W5g contrastive-salience late interaction
+
+Use entirely fresh TRAIN/DEV/CONFIRM authorities.
+
+W5g should compare:
+1. fresh W5f-style proj128 MaxSim baseline;
+2. cross-option salience-weighted MaxSim that downweights tokens common across most candidate options;
+3. salience + common-mode-centered MaxSim that also subtracts option-common similarity.
+
+Do not touch W5f CONFIRM, Banking77, typed final, MASSIVE/XNLI, or any public final row.
+
+The goal is to test whether **candidate-relative token salience** is the missing part of semantic binding, not to retune the exposed W5f thresholds.
