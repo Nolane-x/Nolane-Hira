@@ -1,6 +1,6 @@
 # R8-W5c handoff — semantic alignment + representation probes
 
-Status: **implementation active under issue #63; no empirical W5c result yet.**
+Status: **COMPLETE / NEGATIVE; merged to main as `a691ef7b0fad2ce55cb13d09e0047faa9bd5b0e8`; authoritative verdict `A13_PROBE_FAIL`.**
 
 ## Why W5c exists
 
@@ -111,3 +111,40 @@ Frozen precedence:
 This is diagnostic classification, not model selection.
 
 If all four fail, stop adding scorer variants around frozen A13 and move to encoder representation/capacity research.
+
+
+## Authoritative result
+
+Run: `35834712173`.
+
+Artifacts:
+- frozen inputs `10739205899`;
+- bilinear `10738787670`;
+- pair-MLP `10739275838`;
+- confirm `10738718234`.
+
+Fresh DEV:
+- pooled cosine accuracy 1.0417%;
+- token-max 3.125%;
+- bilinear 4.1667%, K128/K255 0%;
+- pair-MLP 2.0833%, K128/K255 0%.
+
+Untouched CONFIRM:
+- pooled 0/256;
+- token-max 1/256;
+- bilinear 0/256;
+- pair-MLP 0/256;
+- every K128/K255 top-1 gate fails;
+- probability mass PASS;
+- state-once 256/256 PASS.
+
+Verdict:
+`A13_PROBE_FAIL`.
+
+This result closes scorer-only exploration around frozen A13. It does not prove all possible decoders impossible, but it is strong negative evidence across raw pooled, raw token, learned linear/bilinear and learned nonlinear comparison.
+
+## Next scientific step
+
+Run controlled A13 top-layer semantic adaptation on entirely fresh authorities.
+
+Do not run A22 yet unless the existing capacity trigger remains satisfied after this top-layer-unfreezing experiment.
