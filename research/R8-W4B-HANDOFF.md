@@ -1,6 +1,6 @@
 # R8-W4b handoff — fresh K=128/K=255 stress
 
-Status: **implementation active under issue #57; no W4b empirical result yet.**
+Status: **COMPLETE; authoritative W4b empirical result merged and preserved.**
 
 ## Why W4b exists
 
@@ -68,3 +68,65 @@ W4b contains no Banking77 loader, rows, labels, predictions, prompts or error an
 It also does not populate any 53-cell campaign metric.
 
 Issue #57 is the frozen protocol authority.
+
+
+## Authoritative W4b result
+
+Workflow:
+- run `35824879417`;
+- head `b24df386613f66cf5647f83f216601b966262df9`;
+- artifact `10735251248`;
+- digest `sha256:5337fa194ba629bbddeec2190c6b06d94605618c263dffaa5f90dd394d31bbb2`.
+
+### Track A — mechanics
+
+Verdict: **MECHANICS_PASS**.
+
+K=128:
+- 64/64 inverse-permutation argmax invariance;
+- candidate budget 128/128;
+- tail mass 0;
+- probability-mass max error 2.3842e-7;
+- permutation max error 5.9605e-8;
+- repeatability max error 0;
+- p50 1.8216 ms CPU;
+- p95 1.8943 ms CPU.
+
+K=255:
+- 64/64 inverse-permutation argmax invariance;
+- candidate budget 255/255;
+- tail mass 0;
+- probability-mass max error 2.3842e-7;
+- permutation max error 2.9802e-8;
+- repeatability max error 0;
+- p50 2.4213 ms CPU;
+- p95 2.4777 ms CPU.
+
+### Track B — fresh semantic-key diagnostic
+
+K=128:
+- accuracy 0.015625 = 2/128;
+- top-5 recall 0.046875;
+- MRR 0.0437583.
+
+K=255:
+- accuracy 0.0078125 = 1/128;
+- top-5 recall 0.0078125;
+- MRR 0.0263185.
+
+This diagnostic is near-random and is not a campaign cell.
+
+## W4b conclusion
+
+The K=128/K=255 implementation is not the dominant failure.
+
+Large-K probability mass, permutation equivariance, determinism and full-K execution are healthy.
+
+The primary blocker is semantic routing/generalization of the frozen A13 + HIRA head.
+
+Do not proceed to candidate-pruning optimization as the next priority. Pruning cannot rescue near-random semantic ranking.
+
+Next: fresh non-benchmark semantic competence training with independent confirmatory data.
+
+Machine-readable authority:
+`artifacts/r8-w4b-high-cardinality/summary.json`.
