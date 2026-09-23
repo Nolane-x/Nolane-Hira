@@ -24,6 +24,24 @@ GLOBAL_SEED = 271
 EPOCHS = 3
 TOP_N = 2
 LR = 1e-5
+MAX_LENGTH = 256
+
+MODEL_SPECS = {
+    "a13": {
+        "model_id": "microsoft/xtremedistil-l6-h256-uncased",
+        "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+        "weight_file": "model.safetensors",
+        "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+        "hidden_size": 256,
+    },
+    "a22": {
+        "model_id": "microsoft/xtremedistil-l6-h384-uncased",
+        "revision": "359df7d52613d4edc15647e6d65e0d87200eb747",
+        "weight_file": "pytorch_model.bin",
+        "weight_sha256": "38bd5f8a7d1b7045de8fee25bfac1777edf5a2ec8cd3399b21bde917b0278e23",
+        "hidden_size": 384,
+    },
+}
 
 TRAIN_TEMPLATES = (
     "w5e-train-manifest",
