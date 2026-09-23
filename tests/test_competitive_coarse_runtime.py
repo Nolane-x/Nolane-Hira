@@ -383,14 +383,14 @@ def test_option_order_only_permutes_competitive_outputs():
         forced_budget=255,
         coarse_mode="competitive",
     )
-    expected_coarse = oa.hira.coarse_logits[
+    expected_coarse = oa.hira.coarse_logits[0][
         torch.tensor(permutation)
     ]
     expected_probabilities = oa.probabilities[
         torch.tensor(permutation)
     ]
     assert torch.allclose(
-        ob.hira.coarse_logits,
+        ob.hira.coarse_logits[0],
         expected_coarse,
         atol=1e-6,
     )
