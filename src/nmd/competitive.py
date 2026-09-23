@@ -32,12 +32,13 @@ def candidate_relative_idf(
         raise ValueError("every option requires at least one content token")
 
     batch, k, _ = token_ids.shape
-    weights = torch.zeros_like(token_ids, dtype=torch.float32)
 
-    # Token identity is discrete metadata. The fixed IDF calculation is not
-    # part of autograd, while all projected similarities remain differentiable.
+    # Token identity is discrete metadata. Keep the fixed IDF bookkeeping on
+    # CPU so CUDA inference does not perform thousands of scalar host/device
+    # assignments. Similarity/projection tensors stay fully differentiable.
     ids_cpu = token_ids.detach().cpu()
     mask_cpu = token_mask.detach().cpu()
+    weights = torch.zeros(token_ids.shape, dtype=torch.float32)
     for b in range(batch):
         df: dict[int, int] = {}
         for row in range(k):
