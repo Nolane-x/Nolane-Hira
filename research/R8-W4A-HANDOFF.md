@@ -1,6 +1,6 @@
 # R8-W4a handoff — held-out Banking77 full-K direct authority
 
-Status: **PRE-EXPOSURE implementation complete on feature branch; Banking77 one-shot final has not yet executed.**
+Status: **COMPLETE; authoritative held-out Banking77 one-shot executed and preserved as a negative result.**
 
 ## Frozen purpose
 
@@ -114,3 +114,83 @@ Only then does it print:
 and request the frozen Banking77 test source.
 
 If the one-shot result is weak, preserve it unchanged and continue to W4b K=128/K=255 synthetic stress. Do not tune on exposed first-400 rows.
+
+
+## Authoritative W4a result
+
+Pure pre-exposure technical failure:
+- run `35821668904`;
+- exposure boundary not reached;
+- Banking77 not requested;
+- no scientific result.
+
+Valid retry under the frozen issue #54 rule:
+- workflow run `35822128041`;
+- head `6e27b724196bed3cf82976610967f1a7a1122fb7`;
+- artifact `10733603675`;
+- artifact digest `sha256:6bf0aabeabaceda1bdaa570414d47077a647e717d06b6359b0e56182a5bc72ac`.
+
+The explicit boundary `R8_W4A_BANKING77_EXPOSURE_BEGIN` was reached only in the valid authority run.
+
+### Exact held-out outcome
+
+Frozen source/protocol:
+- 400 examples;
+- 77 labels;
+- full-K all 77 options;
+- no Banking77 task training/retrieval/calibration;
+- one state encode per case;
+- forced budget 255 -> K=77;
+- adaptive budget false.
+
+Metrics:
+- accuracy: **0.000000 = 0/400**;
+- macro F1: **0.000000**;
+- hard Brier: **0.9904985925**;
+- NLL: **4.3209583304**;
+- raw ECE: **0.0523322652**;
+- mean confidence: **0.0523322652**;
+- AURC: **1.000000**;
+- CI-hosted CPU p50: **9.321545 ms**;
+- CI-hosted CPU p95: **10.563081 ms**;
+- probability-mass max error: **1.6578e-7**;
+- tail mass max: **0.0**;
+- state encode calls: **400**;
+- state encode calls/case: **1.0**;
+- candidate budget min/max: **77/77**.
+
+Headline:
+- `laya.app.banking77_full`;
+- HIRA = **0.000**;
+- Laya frozen target = **0.492**;
+- status = **LOSS**.
+
+Campaign after W4a:
+- **1 WIN / 0 TIE / 8 LOSS / 44 MISSING**.
+
+The only existing WIN remains the W3 raw ECE typed cell.
+
+Machine-readable evidence:
+- `artifacts/r8-w4a-banking77/summary.json`.
+
+## Scientific interpretation
+
+W4a is a clean negative result for held-out Banking77 semantic generalization of the frozen W3 specialist head.
+
+The mechanics themselves did execute correctly:
+- all-K K=77;
+- one-state-encode;
+- probability mass preserved;
+- no tail truncation;
+- exact frozen head;
+- exact frozen dataset/protocol.
+
+Therefore the 0/400 result must not be hidden by changing the head, prompt, semantic option text, dataset window, or evaluation mapping after exposure.
+
+W4a does **not** prove that HIRA's high-cardinality mechanism is intrinsically broken. It confounds:
+1. large-K mechanics; and
+2. semantic zero-shot/generalization quality of the current head/encoder.
+
+The next lane is W4b fresh synthetic K=128/K=255 stress, designed to isolate large-K mechanics without using the now-exposed Banking77 rows.
+
+Do not rerun or tune W4a against the first-400 authority.
