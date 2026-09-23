@@ -67,16 +67,23 @@ def main() -> None:
         "selected_epoch": selected["selected_epoch"],
         "selected_dev_metrics": selected["selected_dev_metrics"],
         "selected_matcher_sha256": file_sha256(out_selected),
+        "selected_trainable_parameter_count": selected["trainable_parameter_count"],
         "control_candidate": CONTROL,
         "control_epoch": control_receipt["selected_epoch"],
         "control_dev_metrics": control_receipt["selected_dev_metrics"],
         "control_matcher_sha256": file_sha256(out_control),
+        "control_trainable_parameter_count": control_receipt["trainable_parameter_count"],
+        "all_candidate_parameter_counts_equal": (
+            len({int(receipt["trainable_parameter_count"]) for receipt, _ in rows}) == 1
+        ),
         "confirm_exposed": False,
         "candidates": [
             {
                 "candidate": receipt["candidate"],
                 "selected_epoch": receipt["selected_epoch"],
                 "selected_dev_metrics": receipt["selected_dev_metrics"],
+                "trainable_parameter_count": receipt["trainable_parameter_count"],
+                "history": receipt["history"],
                 "matcher_sha256": receipt["matcher_sha256"],
             }
             for receipt, _ in sorted(rows, key=lambda row: ORDER[row[0]["candidate"]])
