@@ -104,6 +104,17 @@ def main() -> None:
         json.dumps(result, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    scorecard_results = {
+        "schema_version": "r8-w4a-scorecard-results-v1",
+        "candidate": "hira-r8-w4a-banking77-direct",
+        "metrics": {
+            "laya.app.banking77_full": float(metrics["accuracy"]),
+        },
+    }
+    (args.out / "results.json").write_text(
+        json.dumps(scorecard_results, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     print(json.dumps(result, sort_keys=True))
 
 
