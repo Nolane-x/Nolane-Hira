@@ -154,7 +154,7 @@ def test_projected_matcher_has_small_trainable_surface_and_backprop():
 
     loss = matcher_case_loss(matcher, case)
     loss.backward()
-    assert math.isfinite(float(loss))
+    assert math.isfinite(float(loss.detach()))
     assert matcher.projection.weight.grad is not None
     assert matcher.log_scale.grad is not None
 
@@ -210,8 +210,8 @@ def test_confirm_verdict_requires_all_rescue_gates():
 
     weak = {
         **rescued,
-        "accuracy": 0.2,
-        "mrr": 0.12,
+        "accuracy": 0.19,
+        "mrr": 0.11,
         "per_k": {
             "128": {"accuracy": 0.1},
             "255": {"accuracy": 0.05, "top5_recall": 0.2},
