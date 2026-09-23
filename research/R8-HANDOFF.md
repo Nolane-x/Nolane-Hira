@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1–W5d complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS; frozen and top-layer-adapted A13 semantic competence fail. A22 capacity-control is now authorized.**
+Status: **OPEN; W1–W5e complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS; A13 adaptation and A22 capacity control both fail. Next priority is a new semantic learning mechanism, not larger-backbone scaling.**
 
 ## Read first
 
@@ -330,3 +330,24 @@ Verdict:
 `A13_ADAPTATION_FAIL_CAPACITY_TRIGGER`.
 
 This satisfies the preregistered capacity trigger. The next authorized lane is **W5e A22 diagnostic capacity control** using `microsoft/xtremedistil-l6-h384-uncased`. Do not continue A13 scorer or adaptation sweeps before that control.
+
+
+## W5e paired A13/A22 capacity control — COMPLETE / NEGATIVE
+
+Merged in `c7dd96f0e854ea3ebf14c466ff3574945fa8ebee`.
+
+Authoritative run `35850323054`:
+- A13 adapted CONFIRM accuracy **0/192**;
+- A22 adapted CONFIRM accuracy **1/192**;
+- A22 adapted MRR **0.07065** vs A13 adapted **0.06068**;
+- A22 adapted K128 top-1/top-5 **0 / 0**;
+- A22 adapted K255 top-1 **0**, top-5 **0.0625**;
+- all capacity-rescue gates FAIL except probability-mass integrity.
+
+Verdict:
+`A22_CAPACITY_NO_RESCUE`.
+
+Machine-readable authority:
+`artifacts/r8-w5e-capacity-control/summary.json`.
+
+This falsifies the simple capacity hypothesis. Do not continue by merely scaling A22 to a larger encoder. The next lane must change the semantic representation/learning mechanism while keeping fresh-data and untouched-CONFIRM discipline.
