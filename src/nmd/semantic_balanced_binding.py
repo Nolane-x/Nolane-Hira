@@ -52,45 +52,45 @@ CONFIRM_TEMPLATES = (
 )
 
 TRAIN_BIRDS = (
-    "albatross","canary","falcon","heron","ibis","kingfisher","lark","magpie",
-    "osprey","partridge","quail","raven","sparrow","toucan","vulture","warbler",
-    "woodpecker","crane","cuckoo","egret","finch","gull","hoopoe","jay",
+    "kestrel","merlin","gannet","petrel","tern","auk","chough","dunlin",
+    "fulmar","grebe","guillemot","harrier","kittiwake","lapwing","moorhen","nuthatch",
+    "oystercatcher","redshank","shelduck","skylark","snipe","stonechat","wagtail","whimbrel",
 )
 TRAIN_MINERALS = (
-    "agate","beryl","calcite","dolomite","fluorite","garnet","hematite","jadeite",
-    "kyanite","lazurite","magnetite","obsidian","olivine","pyrite","quartz","rutile",
-    "serpentine","topaz","turquoise","zircon","malachite","azurite","corundum","feldspar",
+    "andalusite","anhydrite","aragonite","barite","bornite","celestine","chalcopyrite","cinnabar",
+    "diopside","epidote","galena","goethite","gypsum","ilmenite","kaolinite","lepidolite",
+    "molybdenite","nepheline","orthoclase","rhodonite","scheelite","siderite","sodalite","staurolite",
 )
 TRAIN_RIVERS = (
-    "amazon","danube","euphrates","ganges","mekong","nile","rhine","seine",
-    "thames","volga","yangtze","zambezi","orinoco","parana","congo","indus",
-    "loire","rhone","tagus","tigris","yenisei","lena","amur","murray",
+    "adige","dnieper","dniester","donets","drava","elbe","oder","po",
+    "vistula","vltava","sava","morava","narmada","godavari","krishna","kaveri",
+    "brahmaputra","irrawaddy","salween","chao_phraya","redriver","limpopo","senegal","niger",
 )
 TRAIN_FABRICS = (
-    "brocade","calico","canvas","cashmere","chiffon","corduroy","damask","denim",
-    "flannel","gabardine","georgette","gingham","jersey","linen","muslin","organza",
-    "satin","suede","taffeta","tweed","velvet","voile","seersucker","poplin",
+    "batiste","boucle","burlap","cambric","chenille","crepe","faille","fleece",
+    "herringbone","jacquard","lamecloth","mohair","netting","oxfordcloth","plaid","rayon",
+    "ribknit","sateen","silk","twill","wool","moleskin","lawncloth","madras",
 )
 
 CONFIRM_FISH = (
-    "anchovy","barracuda","bonito","carp","catfish","cod","flounder","grouper",
-    "haddock","halibut","herring","mackerel","marlin","perch","pike","salmon",
-    "sardine","snapper","sturgeon","swordfish","tilapia","trout","tuna","turbot",
+    "arapaima","bluefish","bowfin","bream","cobia","coelacanth","dogfish","garfish",
+    "goby","gruntfish","lamprey","lionfish","loach","milkfish","monkfish","moray",
+    "mudskipper","needlefish","parrotfish","pompano","scorpionfish","solefish","tarpon","triggerfish",
 )
 CONFIRM_FLOWERS = (
-    "amaryllis","anemone","aster","azalea","begonia","camellia","carnation","chrysanthemum",
-    "crocus","daffodil","dahlia","foxglove","geranium","hibiscus","hyacinth","iris",
-    "jasmine","lilac","marigold","peony","petunia","primrose","tulip","zinnia",
+    "alyssum","bergamotflower","bluebell","calendula","clematis","columbine","cosmosflower","delphinium",
+    "edelweiss","gladiolus","heather","hollyhock","hydrangea","larkspur","lavenderflower","lupine",
+    "magnoliaflower","nasturtium","oleander","pansy","phlox","poppyflower","ranunculus","gaillardia",
 )
 CONFIRM_MOUNTAINS = (
-    "aconcagua","annapurna","denali","elbrus","everest","fuji","kilimanjaro","matterhorn",
-    "olympus","vesuvius","etna","rainier","shasta","whitney","kosciuszko","ararat",
-    "damavand","montblanc","makalu","manaslu","lhotse","dhaulagiri","chimborazo","cotopaxi",
+    "ama_dablam","antelao","ben_nevis","cerro_torre","cho_oyu","eiger","fitz_roy","gasherbrum",
+    "grand_teton","huascaran","kanchenjunga","kebnekaise","kinabalu","logan_peak","longs_peak","meru_peak",
+    "monte_rosa","pico_bolivar","pico_duarte","puncak_jaya","roraima","ruapehu","sajama","sinai_peak",
 )
 CONFIRM_INSTRUMENTS = (
-    "accordion","bagpipe","banjo","bassoon","cello","clarinet","dulcimer","flute",
-    "harmonica","harpsichord","mandolin","oboe","piccolo","saxophone","sitar","trombone",
-    "trumpet","tuba","ukulele","viola","violin","xylophone","zither","marimba",
+    "bandoneon","baritonehorn","bassclarinet","bassdrum","concertina","cornet","flugelhorn","glockenspiel",
+    "lyre","marimbaone","melodica","sheng","tambourine","timpani","triangleinstrument","vibraphone",
+    "violone","woodblock","rebab","sarangi","tabla","taiko","cajon","charango",
 )
 
 
