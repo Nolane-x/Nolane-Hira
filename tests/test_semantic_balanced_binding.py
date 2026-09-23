@@ -98,6 +98,8 @@ def test_w5h_authority_counts_are_frozen():
     # count contract is checked from constants; seeded CONFIRM generation is
     # reserved for the post-selection confirm job.
     assert sum(CONFIRM_K_COUNTS.values()) == 192
+    with pytest.raises(RuntimeError, match="sealed until post-selection"):
+        generate_binding_authority("confirm")
 
 
 def test_w5h_repaired_authority_is_fresh_and_avoids_w5g_template_scaffolds():
