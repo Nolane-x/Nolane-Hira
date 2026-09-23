@@ -94,7 +94,7 @@ CONFIRM_TOOLS = (
 )
 
 
-@dataclass@dataclass(frozen=True)
+@dataclass(frozen=True)
 class CrossCandidateCase:
     case_id: str
     split: str
