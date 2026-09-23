@@ -7,12 +7,14 @@ from nmd.semantic_balanced_binding import (
     CANDIDATES,
     CONFIRM_K_COUNTS,
     CONFIRM_SEED,
+    CONFIRM_TEMPLATES,
     DEV_K_COUNTS,
     DEV_SEED,
     TRAIN_K_COUNTS,
     TRAIN_SEED,
     BalancedBindingMatcher,
     _option_salience,
+    _render,
     all_w5h_vocab,
     competence_gates,
     confirm_verdict,
@@ -89,20 +91,26 @@ def test_w5h_authority_counts_are_frozen():
     assert sum(CONFIRM_K_COUNTS.values()) == 192
     train = generate_binding_authority("train")
     dev = generate_binding_authority("dev")
-    confirm = generate_binding_authority("confirm")
     assert len(train) == 512
     assert len(dev) == 176
-    assert len(confirm) == 192
     assert {c.case_id for c in train}.isdisjoint({c.case_id for c in dev})
-    assert all(c.split == "confirm" for c in confirm)
+    # CONFIRM is intentionally NOT materialized in unit tests. The frozen
+    # count contract is checked from constants; seeded CONFIRM generation is
+    # reserved for the post-selection confirm job.
+    assert sum(CONFIRM_K_COUNTS.values()) == 192
 
 
 def test_w5h_repaired_authority_is_fresh_and_avoids_w5g_template_scaffolds():
     assert (TRAIN_SEED, DEV_SEED, CONFIRM_SEED) == (141109, 142211, 143313)
     rendered = []
-    for split in ("train", "dev", "confirm"):
+    for split in ("train", "dev"):
         for case in generate_binding_authority(split):
             rendered.extend((case.state_text, case.question_text))
+    # Exercise CONFIRM template scaffolds with placeholders only; never
+    # materialize the seeded CONFIRM authority before DEV selection freezes.
+    placeholder = ("alpha", "beta", "gamma", "delta")
+    for template_id in CONFIRM_TEMPLATES:
+        rendered.extend(_render(placeholder, template_id))
     text = "\n".join(rendered)
     forbidden_w5g_scaffolds = (
         "Ledger fields:",
