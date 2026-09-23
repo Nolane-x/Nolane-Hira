@@ -13,6 +13,10 @@ from nmd.hira import HIRACore, count_parameters
 from nmd.losses import LossWeights
 from nmd.runtime import NolaneHira
 from nmd.semantic import TrainableSemanticEncoder
+from nmd.semantic_balanced_binding import (
+    BalancedBindingMatcher,
+    _option_salience as w5h_option_salience,
+)
 from nmd.training import DecisionExample, loss_example
 from nmd.typed_decisions import (
     TypedDecision,
@@ -99,6 +103,64 @@ def test_candidate_relative_idf_is_candidate_relative_and_mean_normalized():
         assert weights[0, row, 2] > weights[0, row, 0]
         assert weights[0, row, 2] > weights[0, row, 1]
         assert weights[0, row, 3] == 0
+
+
+def test_production_scorer_exactly_ports_w5h_forward_competitive_binding():
+    torch.manual_seed(7013)
+    d = 256
+    state_tokens = torch.randn(4, d)
+    question_tokens = torch.randn(3, d)
+    option_tokens = torch.randn(3, 5, d)
+    state_mask = torch.tensor([True, True, True, False])
+    question_mask = torch.tensor([True, True, False])
+    option_mask = torch.tensor([
+        [True, True, True, False, False],
+        [True, True, True, True, False],
+        [True, True, False, False, False],
+    ])
+    option_ids = torch.tensor([
+        [10, 20, 101, 0, 0],
+        [10, 20, 102, 103, 0],
+        [10, 20, 104, 0, 0],
+    ], dtype=torch.long)
+    salience = w5h_option_salience(option_ids, option_mask)
+
+    reference = BalancedBindingMatcher(
+        "idf-competitive-proj128"
+    )
+    production = CompetitiveCoarseScorer(
+        d_model=256,
+        d_rel=128,
+    )
+    production.load_state_dict(reference.state_dict(), strict=True)
+
+    case = {
+        "state_tokens": state_tokens,
+        "state_mask": state_mask,
+        "question_tokens": question_tokens,
+        "question_mask": question_mask,
+        "option_tokens": option_tokens,
+        "option_mask": option_mask,
+        "option_input_ids": option_ids,
+        "option_salience": salience,
+    }
+    reference_logits = reference.forward_case(case)
+    production_logits = production(
+        state_tokens=state_tokens.unsqueeze(0),
+        state_mask=state_mask.unsqueeze(0),
+        question_tokens=question_tokens.unsqueeze(0),
+        question_mask=question_mask.unsqueeze(0),
+        option_tokens=option_tokens.unsqueeze(0),
+        option_token_ids=option_ids.unsqueeze(0),
+        option_mask=option_mask.unsqueeze(0),
+    )[0]
+
+    assert torch.allclose(
+        production_logits,
+        reference_logits,
+        atol=1e-6,
+        rtol=1e-6,
+    )
 
 
 def test_schema_exposes_competitive_artifacts_only_when_requested():
