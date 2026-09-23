@@ -1,0 +1,218 @@
+name: r8-w5i-cross-candidate-binding
+
+on:
+  push:
+    branches:
+      - feat/r8-w5i-cross-candidate-binding
+    paths:
+      - "src/nmd/semantic_cross_candidate_binding.py"
+      - "scripts/r8_w5i_build_cache.py"
+      - "scripts/r8_w5i_train_candidate.py"
+      - "scripts/r8_w5i_select_candidate.py"
+      - "scripts/r8_w5i_confirm.py"
+      - "tests/test_semantic_cross_candidate_binding.py"
+      - "research/R8-W5I-HANDOFF.md"
+      - ".github/workflows/r8-w5i-cross-candidate-binding.yml"
+
+concurrency:
+  group: r8-w5i-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W5i
+        run: |
+          python -m py_compile src/nmd/semantic_cross_candidate_binding.py scripts/r8_w5i_build_cache.py scripts/r8_w5i_train_candidate.py scripts/r8_w5i_select_candidate.py scripts/r8_w5i_confirm.py
+      - name: Run W5i unit contracts
+        run: pytest -q tests/test_semantic_cross_candidate_binding.py
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Build fresh frozen A13 W5i cache
+        run: |
+          python scripts/r8_w5i_build_cache.py --out artifacts/cache
+          cat artifacts/cache/receipt.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["status"] == "PASS"
+          assert x["train_seed"] == 151117
+          assert x["dev_seed"] == 152219
+          assert x["reserved_confirm_seed"] == 153321
+          assert x["w5a_through_w5h_vocab_disjoint"] is True
+          assert x["train_case_count"] == 512
+          assert x["dev_case_count"] == 176
+          assert x["state_text_encodes_per_case"] == 1.0
+          assert x["confirm_exposed"] is False
+          assert x["forbidden_benchmark_data_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5i-cache
+          path: artifacts/cache
+          if-no-files-found: error
+          retention-days: 14
+
+  candidate:
+    needs: cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate:
+          - idf-competitive-forward-proj128
+          - idf-competitive-bidir-mean-proj128
+          - idf-competitive-bidir-logmeanexp-proj128
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w5i-cache
+          path: inputs/cache
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install matcher stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Train frozen W5i candidate
+        run: |
+          python scripts/r8_w5i_train_candidate.py --train-cache inputs/cache/train.pt --dev-cache inputs/cache/dev.pt --candidate "${{ matrix.candidate }}" --out "artifacts/candidates/${{ matrix.candidate }}"
+          cat "artifacts/candidates/${{ matrix.candidate }}/receipt.json"
+          python - "${{ matrix.candidate }}" <<'PY'
+          import json, pathlib, sys
+          name=sys.argv[1]
+          x=json.load(open(pathlib.Path("artifacts/candidates")/name/"receipt.json"))
+          assert x["status"] == "PASS"
+          assert x["candidate"] == name
+          assert x["trainable_parameter_count"] == 32769
+          assert x["confirm_exposed"] is False
+          assert x["forbidden_benchmark_data_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5i-candidate-${{ matrix.candidate }}
+          path: artifacts/candidates/${{ matrix.candidate }}
+          if-no-files-found: error
+          retention-days: 14
+
+  select:
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w5i-candidate-*
+          path: inputs/candidates
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install selector stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Freeze selected candidate and fresh forward control
+        run: |
+          python scripts/r8_w5i_select_candidate.py --candidates inputs/candidates --out artifacts/selected
+          cat artifacts/selected/selection.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/selected/selection.json"))
+          assert x["status"] == "PASS"
+          assert x["confirm_exposed"] is False
+          assert x["control_candidate"] == "idf-competitive-forward-proj128"
+          assert x["selected_trainable_parameter_count"] == 32769
+          assert x["control_trainable_parameter_count"] == 32769
+          assert x["all_candidate_parameter_counts_equal"] is True
+          assert len(x["candidates"]) == 3
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5i-selected
+          path: artifacts/selected
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    needs: select
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w5i-selected
+          path: inputs/selected
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Evaluate untouched W5i CONFIRM
+        run: |
+          python scripts/r8_w5i_confirm.py --selection inputs/selected/selection.json --matcher inputs/selected/matcher.pt --control-matcher inputs/selected/control-matcher.pt --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+      - name: Verify frozen scientific scope
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/confirm.json"))
+          assert x["status"] == "PASS"
+          assert x["confirm_generated_after_selection_freeze"] is True
+          assert x["confirm_seed"] == 153321
+          assert x["confirm_case_count"] == 192
+          assert x["state_text_encodes_per_case"] == 1.0
+          assert x["trainable_parameter_count"] == 32769
+          assert x["all_candidate_parameter_counts_equal"] is True
+          assert x["forbidden_benchmark_data_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          assert x["verdict"] in {
+              "CROSS_CANDIDATE_BINDING_RESCUE",
+              "CROSS_CANDIDATE_CONTROL_ALREADY_RESCUES",
+              "CROSS_CANDIDATE_BINDING_PARTIAL",
+              "CROSS_CANDIDATE_BINDING_FAIL",
+          }
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5i-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
