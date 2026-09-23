@@ -1,0 +1,74 @@
+{
+  "schema_version": "r8-w5f-late-interaction-summary-v1",
+  "status": "PASS",
+  "verdict": "LATE_INTERACTION_PARTIAL",
+  "merge_commit_sha": "6504e4ebd93efe78c93caaed0f9d18843131402b",
+  "authority_run_id": 35858733250,
+  "authority_head_sha": "5c5fbf829f13b6094a94f6a54a9bebfdaace0046",
+  "a13": {
+    "revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+    "frozen": true
+  },
+  "selected": {
+    "candidate": "proj128-maxsim",
+    "epoch": 6,
+    "matcher_sha256": "a2c862feff387e4fd5af04543ba152016a48aee14ab1977812eb2ec861666e5a",
+    "artifact_id": 10749830949,
+    "artifact_digest": "sha256:08e507548f6efb94affb92d0995aaef12ec39cd48316c393fad44de92554a4b2"
+  },
+  "confirm": {
+    "artifact_id": 10749831453,
+    "artifact_digest": "sha256:31bdc1d5e7ffdef6f4ae527658a286caca228c33f2d2f4943cd6425620a2c766",
+    "case_count": 192,
+    "generated_after_selection_freeze": true,
+    "state_text_encodes_per_case": 1,
+    "accuracy": 0.296875,
+    "top5_recall": 0.609375,
+    "mrr": 0.44158136941430426,
+    "hard_brier": 0.8862873259931803,
+    "probability_mass_max_error": 2.384185791015625e-7,
+    "per_k": {
+      "32": {
+        "accuracy": 0.375,
+        "top5_recall": 0.7291666666666666,
+        "mrr": 0.5599386724386725
+      },
+      "64": {
+        "accuracy": 0.3958333333333333,
+        "top5_recall": 0.7291666666666666,
+        "mrr": 0.5306756118337
+      },
+      "128": {
+        "accuracy": 0.25,
+        "top5_recall": 0.5625,
+        "mrr": 0.3895019608367199
+      },
+      "255": {
+        "accuracy": 0.16666666666666666,
+        "top5_recall": 0.4166666666666667,
+        "mrr": 0.2862092325481246
+      }
+    }
+  },
+  "pooled_baseline": {
+    "accuracy": 0.005208333333333333,
+    "top5_recall": 0.03125,
+    "mrr": 0.04803722067684055
+  },
+  "gates": {
+    "overall_accuracy": false,
+    "k128_accuracy": false,
+    "k255_accuracy": false,
+    "k255_top5": false,
+    "probability_mass": true,
+    "overall_gain_vs_pooled": false,
+    "k128_gain_vs_pooled": true,
+    "k255_gain_vs_pooled": true
+  },
+  "scientific_scope": {
+    "forbidden_benchmark_data_used": false,
+    "campaign_cells_populated": 0
+  },
+  "interpretation": "Direct token late interaction is a material semantic-routing improvement over pooled matching, but uniform token aggregation still misses rescue thresholds. Continue only on fresh authorities with a mechanism that attacks remaining binding ambiguity."
+}
