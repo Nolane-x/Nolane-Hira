@@ -6,7 +6,7 @@ from torch import Tensor
 
 from .contracts import LogicalOption, Primitive, StateMemory
 from .losses import LossWeights, typed_decision_loss
-from .runtime import NolaneHira
+from .runtime import CoarseMode, NolaneHira
 from .typed_decisions import TypedDecision, TypedDecisionCase
 
 
@@ -98,6 +98,7 @@ def forward_example(
     example: DecisionExample,
     *,
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> tuple[Tensor, Tensor]:
     memory = model.compile_state(example.state_text)
     schema, _ = model.compile_schema(
@@ -105,11 +106,13 @@ def forward_example(
         question_text=example.question_text,
         options=example.options,
         use_cache=False,
+        include_token_artifacts=(coarse_mode == "competitive"),
     )
     out = model.forward_compiled(
         memory,
         schema,
         forced_budget=forced_budget,
+        coarse_mode=coarse_mode,
     )
     return out.logits.unsqueeze(0), out.probabilities.unsqueeze(0)
 
@@ -120,11 +123,13 @@ def loss_example(
     *,
     weights: LossWeights = LossWeights(),
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> tuple[Tensor, dict[str, Tensor]]:
     logits, _ = forward_example(
         model,
         example,
         forced_budget=forced_budget,
+        coarse_mode=coarse_mode,
     )
     return _loss_from_logits(
         logits,
@@ -143,17 +148,20 @@ def forward_typed_decision_with_memory(
     decision: TypedDecision,
     *,
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> tuple[Tensor, Tensor]:
     schema, _ = model.compile_schema(
         primitive=decision.primitive,
         question_text=decision.question_text,
         options=decision.options,
         use_cache=False,
+        include_token_artifacts=(coarse_mode == "competitive"),
     )
     out = model.forward_compiled(
         memory,
         schema,
         forced_budget=forced_budget,
+        coarse_mode=coarse_mode,
     )
     return out.logits.unsqueeze(0), out.probabilities.unsqueeze(0)
 
@@ -164,6 +172,7 @@ def loss_typed_case(
     *,
     weights: LossWeights = LossWeights(),
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> tuple[Tensor, dict[str, Tensor], CaseTrainingReceipt]:
     if not case.decisions:
         raise ValueError("typed case must contain at least one decision")
@@ -179,6 +188,7 @@ def loss_typed_case(
             memory,
             decision,
             forced_budget=forced_budget,
+            coarse_mode=coarse_mode,
         )
         loss, parts = _loss_from_logits(
             logits,
@@ -221,6 +231,7 @@ def optimizer_step(
     *,
     weights: LossWeights = LossWeights(),
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> float:
     model.train()
     optimizer.zero_grad(set_to_none=True)
@@ -229,6 +240,7 @@ def optimizer_step(
         example,
         weights=weights,
         forced_budget=forced_budget,
+        coarse_mode=coarse_mode,
     )
     loss.backward()
     optimizer.step()
@@ -242,6 +254,7 @@ def optimizer_step_typed_case(
     *,
     weights: LossWeights = LossWeights(),
     forced_budget: int | None = None,
+    coarse_mode: CoarseMode = "legacy",
 ) -> float:
     model.train()
     optimizer.zero_grad(set_to_none=True)
@@ -250,6 +263,7 @@ def optimizer_step_typed_case(
         case,
         weights=weights,
         forced_budget=forced_budget,
+        coarse_mode=coarse_mode,
     )
     loss.backward()
     optimizer.step()
