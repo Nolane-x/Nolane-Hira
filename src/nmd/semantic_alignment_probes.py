@@ -77,9 +77,9 @@ CONFIRM_CLOTHING = (
     "helmet","sandal","tie","cap","robe","sleeve","uniform","cloak",
 )
 CONFIRM_COMPUTING = (
-    "keyboard","mouse","monitor","router","modem","server","printer","scanner",
+    "keyboard","mouse","projector","router","modem","server","printer","scanner",
     "camera","speaker","microphone","tablet","laptop","desktop","switch","firewall",
-    "gateway","browser","console","terminal","sensor","adapter","controller","display",
+    "gateway","browser","console","workstation","sensor","adapter","controller","display",
 )
 
 
