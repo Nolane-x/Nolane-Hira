@@ -92,12 +92,32 @@ class SchemaCompiler:
 
         option_token_embeddings = None
         option_token_mask = None
+        question_token_embeddings = None
+        question_token_mask = None
+        question_content_token_mask = None
+        option_token_ids = None
+        option_content_token_mask = None
         if include_token_artifacts:
-            criterion_batch = self.encoder.encode_texts(
-                [option.criterion_text for option in opts]
+            token_batch = self.encoder.encode_texts(
+                [question_text, *[option.criterion_text for option in opts]]
             )
-            option_token_embeddings = criterion_batch.token_embeddings
-            option_token_mask = criterion_batch.attention_mask.bool()
+            question_token_embeddings = token_batch.token_embeddings[0]
+            question_token_mask = token_batch.attention_mask[0].bool()
+            option_token_embeddings = token_batch.token_embeddings[1:]
+            option_token_mask = token_batch.attention_mask[1:].bool()
+            if token_batch.token_ids is not None:
+                option_token_ids = token_batch.token_ids[1:]
+            if token_batch.special_token_mask is None:
+                question_content_token_mask = question_token_mask
+                option_content_token_mask = option_token_mask
+            else:
+                special = token_batch.special_token_mask.bool()
+                question_content_token_mask = (
+                    question_token_mask & ~special[0]
+                )
+                option_content_token_mask = (
+                    option_token_mask & ~special[1:]
+                )
 
         compiled = CompiledSchema(
             schema_hash=key,
@@ -109,6 +129,11 @@ class SchemaCompiler:
             option_embeddings=torch.stack(logical),
             option_token_embeddings=option_token_embeddings,
             option_token_mask=option_token_mask,
+            question_token_embeddings=question_token_embeddings,
+            question_token_mask=question_token_mask,
+            question_content_token_mask=question_content_token_mask,
+            option_token_ids=option_token_ids,
+            option_content_token_mask=option_content_token_mask,
         )
         if use_cache:
             self._cache[cache_key] = compiled

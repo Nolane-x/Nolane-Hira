@@ -5,6 +5,7 @@ from typing import Iterable, Literal
 import torch
 from torch import Tensor, nn
 
+from .competitive import CompetitiveCoarseScorer
 from .contracts import CompiledSchema, LogicalOption, Primitive, StateMemory
 from .hira import HIRACore, HIRAOutput
 from .schema import SchemaCompiler, SchemaCompileReceipt
@@ -18,6 +19,8 @@ RELATION_MODES: tuple[RelationMode, ...] = (
     "state_tokens",
     "dual_tokens",
 )
+CoarseMode = Literal["legacy", "competitive"]
+COARSE_MODES: tuple[CoarseMode, ...] = ("legacy", "competitive")
 
 
 @dataclass
@@ -33,10 +36,21 @@ class DecisionOutput:
 class NolaneHira(nn.Module):
     """End-to-end trainable HIRA model with state-once semantics."""
 
-    def __init__(self, encoder: TextSemanticEncoder, hira: HIRACore | None = None):
+    def __init__(
+        self,
+        encoder: TextSemanticEncoder,
+        hira: HIRACore | None = None,
+        coarse_scorer: CompetitiveCoarseScorer | None = None,
+    ):
         super().__init__()
         self.encoder = encoder
         self.hira = hira or HIRACore(d_model=encoder.d_model)
+        if (
+            coarse_scorer is not None
+            and coarse_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("competitive coarse scorer d_model mismatch")
+        self.coarse_scorer = coarse_scorer
         self.schema_compiler = SchemaCompiler(encoder)
         self.state_encode_calls = 0
 
@@ -87,6 +101,53 @@ class NolaneHira(nn.Module):
             device=segments.device,
         )
 
+    def _competitive_coarse(
+        self,
+        memory: StateMemory,
+        schema: CompiledSchema,
+    ) -> Tensor:
+        if self.coarse_scorer is None:
+            raise ValueError(
+                "competitive coarse mode requires CompetitiveCoarseScorer"
+            )
+        if memory.content_token_embeddings is None:
+            raise ValueError(
+                "competitive coarse mode requires state content tokens"
+            )
+        required = (
+            schema.question_token_embeddings,
+            schema.question_content_token_mask,
+            schema.option_token_embeddings,
+            schema.option_token_ids,
+            schema.option_content_token_mask,
+        )
+        if any(value is None for value in required):
+            raise ValueError(
+                "competitive coarse mode requires schema token artifacts"
+            )
+
+        state_tokens = memory.content_token_embeddings.unsqueeze(0)
+        state_mask = torch.ones(
+            1,
+            state_tokens.shape[1],
+            dtype=torch.bool,
+            device=state_tokens.device,
+        )
+        question_tokens = schema.question_token_embeddings.unsqueeze(0)
+        question_mask = schema.question_content_token_mask.unsqueeze(0)
+        option_tokens = schema.option_token_embeddings.unsqueeze(0)
+        option_token_ids = schema.option_token_ids.unsqueeze(0)
+        option_mask = schema.option_content_token_mask.unsqueeze(0)
+        return self.coarse_scorer(
+            state_tokens=state_tokens,
+            state_mask=state_mask,
+            question_tokens=question_tokens,
+            question_mask=question_mask,
+            option_tokens=option_tokens,
+            option_token_ids=option_token_ids,
+            option_mask=option_mask,
+        )
+
     def forward_compiled(
         self,
         memory: StateMemory,
@@ -95,11 +156,14 @@ class NolaneHira(nn.Module):
         forced_budget: int | None = None,
         adaptive_budget: bool = False,
         relation_mode: RelationMode = "pooled",
+        coarse_mode: CoarseMode = "legacy",
     ) -> DecisionOutput:
         if memory.model_hash != schema.encoder_hash:
             raise ValueError("state/schema encoder hash mismatch")
         if relation_mode not in RELATION_MODES:
             raise ValueError(f"unsupported relation_mode: {relation_mode}")
+        if coarse_mode not in COARSE_MODES:
+            raise ValueError(f"unsupported coarse_mode: {coarse_mode}")
         primitive = schema.primitive
         qtype = torch.tensor(
             [PRIMITIVE_TO_ID[primitive]], dtype=torch.long,
@@ -126,6 +190,9 @@ class NolaneHira(nn.Module):
                 )
             option_tokens = schema.option_token_embeddings.unsqueeze(0)
             option_token_mask = schema.option_token_mask.unsqueeze(0)
+        coarse_override = None
+        if coarse_mode == "competitive":
+            coarse_override = self._competitive_coarse(memory, schema)
         out = self.hira(
             schema.question_embedding.unsqueeze(0),
             segments,
@@ -134,6 +201,7 @@ class NolaneHira(nn.Module):
             segment_mask=segment_mask,
             option_tokens=option_tokens,
             option_token_mask=option_token_mask,
+            coarse_override=coarse_override,
             forced_budget=forced_budget,
             adaptive_budget=adaptive_budget,
         )
@@ -171,12 +239,13 @@ class NolaneHira(nn.Module):
         forced_budget: int | None = None,
         use_schema_cache: bool = True,
         relation_mode: RelationMode = "pooled",
+        coarse_mode: CoarseMode = "legacy",
     ) -> DecisionOutput:
         memory = self.compile_state(state_text)
-        needs_option_tokens = relation_mode in {
-            "option_tokens",
-            "dual_tokens",
-        }
+        needs_option_tokens = (
+            relation_mode in {"option_tokens", "dual_tokens"}
+            or coarse_mode == "competitive"
+        )
         schema, _ = self.compile_schema(
             primitive=primitive,
             question_text=question_text,
@@ -189,4 +258,5 @@ class NolaneHira(nn.Module):
             schema,
             forced_budget=forced_budget,
             relation_mode=relation_mode,
+            coarse_mode=coarse_mode,
         )

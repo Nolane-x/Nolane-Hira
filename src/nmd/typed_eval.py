@@ -5,7 +5,7 @@ from typing import Iterable
 
 import torch
 
-from .runtime import NolaneHira
+from .runtime import CoarseMode, NolaneHira
 from .typed_decisions import (
     TypedDecisionCase,
     execute_typed_case,
@@ -44,6 +44,7 @@ def evaluate_typed_cases(
     *,
     forced_budget: int | None = None,
     adaptive_budget: bool = False,
+    coarse_mode: CoarseMode = "legacy",
 ) -> dict[str, object]:
     model.eval()
 
@@ -71,6 +72,7 @@ def evaluate_typed_cases(
             forced_budget=forced_budget,
             adaptive_budget=adaptive_budget,
             use_schema_cache=True,
+            coarse_mode=coarse_mode,
         )
         case_count += 1
         state_encode_calls += execution.receipt.state_encode_calls

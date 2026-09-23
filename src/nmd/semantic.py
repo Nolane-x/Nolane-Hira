@@ -14,6 +14,8 @@ class TextBatch:
     token_embeddings: Tensor
     pooled_embeddings: Tensor
     attention_mask: Tensor
+    token_ids: Tensor | None = None
+    special_token_mask: Tensor | None = None
 
 
 class TextSemanticEncoder(nn.Module):
@@ -37,6 +39,14 @@ class TextSemanticEncoder(nn.Module):
         valid = tokens[mask]
         if valid.shape[0] == 0:
             valid = tokens[:1]
+        if batch.special_token_mask is None:
+            content = valid
+        else:
+            special = batch.special_token_mask[0].bool()
+            content_mask = mask & ~special
+            content = tokens[content_mask]
+            if content.shape[0] == 0:
+                content = valid
         segments = torch.stack(
             [valid[i:i + segment_tokens].mean(0) for i in range(0, valid.shape[0], segment_tokens)]
         )
@@ -47,6 +57,7 @@ class TextSemanticEncoder(nn.Module):
             global_embedding=batch.pooled_embeddings[0],
             segment_embeddings=segments,
             token_embeddings=valid,
+            content_token_embeddings=content,
         )
 
 
@@ -95,15 +106,30 @@ class HFAutoSemanticEncoder(TextSemanticEncoder):
     def encode_texts(self, texts: Sequence[str]) -> TextBatch:
         device = next(self.model.parameters()).device
         encoded = self.tokenizer(
-            list(texts), padding=True, truncation=True, max_length=self.max_length, return_tensors="pt"
+            list(texts),
+            padding=True,
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors="pt",
+            return_special_tokens_mask=True,
         )
+        special = encoded.pop("special_tokens_mask", None)
         encoded = {k: v.to(device) for k, v in encoded.items()}
         out = self.model(**encoded, return_dict=True)
         tokens = out.last_hidden_state
         mask = encoded["attention_mask"].bool()
         weights = mask.to(tokens.dtype)[..., None]
         pooled = (tokens * weights).sum(1) / weights.sum(1).clamp_min(1)
-        return TextBatch(tokens, pooled, mask)
+        special_mask = (
+            None if special is None else special.to(device=device).bool()
+        )
+        return TextBatch(
+            tokens,
+            pooled,
+            mask,
+            token_ids=encoded.get("input_ids"),
+            special_token_mask=special_mask,
+        )
 
 
 class TrainableSemanticEncoder(TextSemanticEncoder):
@@ -163,7 +189,14 @@ class TrainableSemanticEncoder(TextSemanticEncoder):
         x = self.norm(x)
         weights = mask.to(x.dtype)[..., None]
         pooled = (x * weights).sum(1) / weights.sum(1).clamp_min(1)
-        return TextBatch(x, pooled, mask)
+        special = ids.eq(1) & mask
+        return TextBatch(
+            x,
+            pooled,
+            mask,
+            token_ids=ids,
+            special_token_mask=special,
+        )
 
     def encode_state(self, text: str, *, segment_tokens: int = 32) -> StateMemory:
         self.state_encode_calls += 1

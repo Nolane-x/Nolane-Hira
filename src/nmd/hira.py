@@ -207,6 +207,7 @@ class HIRACore(nn.Module):
         segment_mask: Tensor | None = None,
         option_tokens: Tensor | None = None,
         option_token_mask: Tensor | None = None,
+        coarse_override: Tensor | None = None,
         forced_budget: int | None = None,
         adaptive_budget: bool = False,
     ) -> HIRAOutput:
@@ -228,14 +229,24 @@ class HIRACore(nn.Module):
         state = self.state_ln(torch.einsum("bs,bsd->bd", state_attention, seg) + q)
 
         o = self.option_ln(self.opt_proj(options))
-        ctx = F.normalize(q + state, dim=-1)
-        on = F.normalize(o, dim=-1)
-        c = ctx[:, None, :].expand_as(o)
-        coarse = torch.einsum("bd,bkd->bk", ctx, on)
-        coarse = coarse * self.coarse_scale.clamp(0.1, 100.0)
-        coarse = coarse + self.coarse_bias(
-            torch.cat([o, c, o * c, (o - c).abs()], dim=-1)
-        ).squeeze(-1)
+        if coarse_override is None:
+            ctx = F.normalize(q + state, dim=-1)
+            on = F.normalize(o, dim=-1)
+            c = ctx[:, None, :].expand_as(o)
+            coarse = torch.einsum("bd,bkd->bk", ctx, on)
+            coarse = coarse * self.coarse_scale.clamp(0.1, 100.0)
+            coarse = coarse + self.coarse_bias(
+                torch.cat([o, c, o * c, (o - c).abs()], dim=-1)
+            ).squeeze(-1)
+        else:
+            if coarse_override.shape != options.shape[:2]:
+                raise ValueError("coarse_override must be [B,K]")
+            if not torch.isfinite(coarse_override).all():
+                raise ValueError("coarse_override must be finite")
+            coarse = coarse_override.to(
+                device=options.device,
+                dtype=options.dtype,
+            )
         if option_mask is not None:
             coarse = coarse.masked_fill(~option_mask, -1e4)
 

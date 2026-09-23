@@ -16,6 +16,7 @@ class StateMemory:
     global_embedding: torch.Tensor
     segment_embeddings: torch.Tensor
     token_embeddings: Optional[torch.Tensor] = None
+    content_token_embeddings: Optional[torch.Tensor] = None
 
 
 @dataclass(frozen=True)
@@ -39,3 +40,8 @@ class CompiledSchema:
     option_embeddings: torch.Tensor
     option_token_embeddings: torch.Tensor | None = None
     option_token_mask: torch.Tensor | None = None
+    question_token_embeddings: torch.Tensor | None = None
+    question_token_mask: torch.Tensor | None = None
+    question_content_token_mask: torch.Tensor | None = None
+    option_token_ids: torch.Tensor | None = None
+    option_content_token_mask: torch.Tensor | None = None
