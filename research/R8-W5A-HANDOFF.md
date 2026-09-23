@@ -1,6 +1,6 @@
 # R8-W5a handoff — fresh semantic routing competence rebuild
 
-Status: **implementation active under issue #59; no W5a empirical result yet.**
+Status: **COMPLETE empirical negative result; merged to `main` in `ebbba0d29574386624f53b9b0f1538aa75189295`.**
 
 ## Frozen rationale
 
@@ -66,3 +66,48 @@ SEMANTIC_COMPETENCE_PASS requires all:
 - state-once 1 encode/case.
 
 W5a populates zero R8 campaign cells.
+
+
+## Authoritative result
+
+Run `35826397280` completed the full frozen pipeline.
+
+DEV-selected head:
+- candidate `w3-lr3e4`;
+- epoch 1;
+- SHA-256 `c38da77a6b71b249ab02925b2f0581f06f2ef0fb9035bac6c0d4135203b725ec`;
+- DEV accuracy 0.03125;
+- DEV top-5 recall 0.18125.
+
+Untouched CONFIRM:
+- 256 cases;
+- accuracy **0/256 = 0.0**;
+- top-5 recall 0.01171875;
+- MRR 0.0370922766;
+- K=32/64/128/255 accuracy all 0.0;
+- K=255 top-5 recall 0.0;
+- probability mass PASS;
+- exact full-K budget PASS;
+- state-once PASS.
+
+Scientific verdict:
+**SEMANTIC_COMPETENCE_FAIL**.
+
+Artifacts:
+- selected head `10735990905`, digest `sha256:b96ad96eeb5f5dde0e670b4e1623e65741ec0c815ca423bd9fd9b7200b8e0cf1`;
+- confirm `10736475259`, digest `sha256:cbe7fda9a1482e5a54d70416057dd721d031608659ed9152e200a5c51cf1460f`.
+
+Do not change W5a gates, LR, epochs, vocab, templates or CONFIRM after exposure.
+
+## Failure anatomy
+
+W5a confirms that mechanics are healthy but the pooled semantic comparison mechanism is not.
+
+A concrete architectural gap is now explicit:
+- A13 emits token embeddings;
+- HIRACore already supports `option_tokens` and token-level summarization;
+- W5a cache/training supplied only pooled option embeddings;
+- the existing token-aware path therefore received no option tokens;
+- short state descriptions were represented to the relation path through coarse segment pooling.
+
+The next experiment must test a fresh token-aware comparison mechanism on new authorities, not rescue W5a.
