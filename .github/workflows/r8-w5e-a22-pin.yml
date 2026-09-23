@@ -1,0 +1,65 @@
+name: r8-w5e-a22-pin
+
+on:
+  push:
+    branches:
+      - feat/r8-w5e-a22-capacity-control
+    paths:
+      - "scripts/r8_w5e_pin_a22.py"
+      - "configs/a22-capacity.json"
+      - ".github/workflows/r8-w5e-a22-pin.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pin stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf]"
+
+      - name: Compile pin script
+        run: |
+          python -m py_compile scripts/r8_w5e_pin_a22.py
+
+      - name: Resolve and pin A22 bytes only
+        run: |
+          python scripts/r8_w5e_pin_a22.py \
+            --out artifacts/r8-w5e-a22-pin/receipt.json
+          cat artifacts/r8-w5e-a22-pin/receipt.json
+
+      - name: Verify pin scope
+        run: |
+          python - <<'PY'
+          import json
+          x = json.load(open("artifacts/r8-w5e-a22-pin/receipt.json"))
+          assert x["status"] == "PASS"
+          assert len(x["resolved_revision"]) == 40
+          assert x["semantic_cases_generated"] == 0
+          assert x["semantic_cases_evaluated"] == 0
+          assert x["campaign_cells_populated"] == 0
+          assert x["hidden_size"] == 384
+          assert x["num_hidden_layers"] == 6
+          print(x["resolved_revision"])
+          print(x["primary_weight_sha256"])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w5e-a22-pin
+          path: artifacts/r8-w5e-a22-pin/receipt.json
+          if-no-files-found: error
+          retention-days: 30
