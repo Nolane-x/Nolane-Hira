@@ -21,6 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen evaluation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+
       - name: Verify one-shot marker before Banking77 exposure
         run: |
           PYTHONPATH=src python - <<'PY'
@@ -59,16 +69,6 @@ jobs:
           assert x["final_test_exposed"] is False
           print("w3a_selected_head_verified")
           PY
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install frozen evaluation stack
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[hf,research]"
 
       - name: Compile frozen W4a evaluator
         run: |
