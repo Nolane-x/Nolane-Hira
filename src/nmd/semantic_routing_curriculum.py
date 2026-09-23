@@ -408,14 +408,32 @@ def evaluate_routing_cache(hira: HIRACore, cache: dict) -> dict:
         mass.append(abs(float(p.sum())-1.0))
         budgets.append(int(out.candidate_budget.item()))
         k=int(case["k"])
-        slot=per_k.setdefault(k,{"n":0,"correct":0,"top5":0,"rr":[]})
-        slot["n"]+=1; slot["correct"]+=int(pred==gold); slot["top5"]+=int(gold in set(order[:5].tolist())); slot["rr"].append(1.0/rank)
+        slot=per_k.setdefault(
+            k,
+            {
+                "n":0,
+                "correct":0,
+                "top5":0,
+                "rr":[],
+                "budgets":[],
+                "mass_errors":[],
+            },
+        )
+        slot["n"]+=1
+        slot["correct"]+=int(pred==gold)
+        slot["top5"]+=int(gold in set(order[:5].tolist()))
+        slot["rr"].append(1.0/rank)
+        slot["budgets"].append(int(out.candidate_budget.item()))
+        slot["mass_errors"].append(abs(float(p.sum())-1.0))
     per_k_metrics={
         str(k):{
             "n":v["n"],
             "accuracy":v["correct"]/v["n"],
             "top5_recall":v["top5"]/v["n"],
             "mrr":sum(v["rr"])/v["n"],
+            "candidate_budget_min":min(v["budgets"]),
+            "candidate_budget_max":max(v["budgets"]),
+            "probability_mass_max_error":max(v["mass_errors"]),
         }
         for k,v in sorted(per_k.items())
     }
