@@ -45,45 +45,45 @@ CONFIRM_TEMPLATES = (
 )
 
 TRAIN_PROFESSIONS = (
-    "architect","barber","brewer","carpenter","dentist","editor","farmer","florist",
-    "geologist","jeweler","librarian","mason","nurse","optician","painter","plumber",
-    "potter","ranger","sailor","tailor","teacher","weaver","welder","writer",
+    "astronomer","auctioneer","bookbinder","butcher","cashier","engraver","glazier","locksmith",
+    "watchmaker","cartographer","archivist","cartwright","cooper","farrier","miller","notary",
+    "roofer","saddler","tinsmith","upholsterer","vintner","woodcarver","actuary","chandler",
 )
 TRAIN_TREES = (
-    "acacia","alder","aspen","birch","cedar","cypress","elm","fir",
-    "hemlock","hickory","juniper","larch","maple","mulberry","oak","palm",
-    "pine","poplar","redwood","spruce","sycamore","willow","yew","sequoia",
+    "ash","baobab","beech","buckeye","chestnut","dogwood","eucalyptus","hawthorn",
+    "locust","magnolia","mahogany","mangrove","olivewood","orchidtree","pecan","rowan",
+    "rubbertree","teak","walnut","basswood","ironwood","mesquite","tamarack","catalpa",
 )
 TRAIN_CURRENCIES = (
-    "baht","dinar","dirham","dollar","dram","euro","forint","franc",
-    "hryvnia","krona","krone","lari","leu","lira","manat","naira",
-    "peso","pound","rand","rial","ringgit","rupee","shekel","won",
+    "afghani","balboa","birr","bolivar","cedi","colon","cordoba","dalasi",
+    "dong","escudo","gourde","guarani","kip","kwacha","kwanza","lek",
+    "metical","pataca","quetzal","sol","som","taka","tugrik","vatu",
 )
 TRAIN_DANCES = (
-    "ballet","bolero","cancan","conga","foxtrot","gavotte","jig","mambo",
-    "minuet","polka","rumba","salsa","samba","tango","twist","waltz",
-    "mazurka","flamenco","fandango","tarantella","hornpipe","quadrille","reel","jive",
+    "bourree","calypso","csardas","dabke","farandole","galop","gigue","habanera",
+    "kathak","kolo","landler","merengue","pasodoble","pavane","quickstep","schottische",
+    "seguidilla","tapdance","trepak","zumba","hora","bossa","capoeira","contra",
 )
 
 CONFIRM_LANGUAGES = (
-    "arabic","bengali","catalan","danish","dutch","estonian","finnish","greek",
-    "hebrew","hindi","hungarian","icelandic","indonesian","irish","italian","japanese",
-    "korean","latvian","malay","nepali","polish","romanian","swedish","thai",
+    "afrikaans","albanian","amharic","basque","bulgarian","croatian","czech","filipino",
+    "welsh","gujarati","hausa","javanese","khmer","lao","lithuanian","marathi",
+    "mongolian","persian","serbian","slovak","slovenian","swahili","tamil","urdu",
 )
 CONFIRM_MAMMALS = (
-    "alpaca","armadillo","bison","buffalo","camel","capybara","cheetah","cougar",
-    "deer","ferret","gazelle","giraffe","hamster","horse","jaguar","kangaroo",
-    "koala","lemur","moose","porcupine","rabbit","raccoon","wombat","zebra",
+    "anteater","baboon","aardvark","bonobo","caribou","chinchilla","civet","dugong",
+    "echidna","eland","genet","gibbon","gorilla","hyena","ibex","macaque",
+    "manatee","marmot","mink","okapi","opossum","pangolin","tapir","vicuna",
 )
 CONFIRM_SPICES = (
-    "anise","basil","caraway","cardamom","cinnamon","clove","coriander","cumin",
-    "dill","fennel","fenugreek","ginger","mace","mustard","nutmeg","paprika",
-    "parsley","rosemary","saffron","sage","sumac","tarragon","turmeric","wasabi",
+    "allspice","asafoetida","bergamot","chervil","galangal","hyssop","juniperberry","kaffir",
+    "lavenderbud","lemongrass","marjoram","nigella","oregano","pimento","savoryherb","spearmint",
+    "star_anise","thyme","vanillabean","wintergreen","zaatar","angelica","lovage","cassia",
 )
 CONFIRM_STYLES = (
-    "baroque","bauhaus","brutalist","byzantine","carolingian","classical","colonial","deco",
-    "edwardian","georgian","gothic","mannerist","modernist","mughal","neoclassical","palladian",
-    "postmodern","renaissance","roman","romanesque","rococo","tudor","vernacular","victorian",
+    "artnouveau","constructivist","deconstructivist","federal","futurist","international","jacobean","mission",
+    "prairie","queenanne","rationalist","regency","revivalist","richardsonian","shingle","streamline",
+    "structuralist","sullivan","expressionist","metabolist","minimalist","organicist","parametric","soviet",
 )
 
 
