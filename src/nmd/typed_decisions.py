@@ -6,7 +6,7 @@ import math
 from typing import Callable, Iterable, Mapping, Sequence
 
 from .contracts import LogicalOption, Primitive
-from .runtime import DecisionOutput, NolaneHira
+from .runtime import CoarseMode, DecisionOutput, NolaneHira
 
 
 TYPED_DECISIONS_DATASET_ID = "LocalLLaMA/typed-decisions"
@@ -549,6 +549,7 @@ def execute_typed_case(
     forced_budget: int | None = None,
     adaptive_budget: bool = False,
     use_schema_cache: bool = True,
+    coarse_mode: CoarseMode = "legacy",
 ) -> TypedCaseExecution:
     before = model.state_encode_calls
     memory = model.compile_state(case.state_text)
@@ -560,6 +561,7 @@ def execute_typed_case(
             question_text=decision.question_text,
             options=decision.options,
             use_cache=use_schema_cache,
+            include_token_artifacts=(coarse_mode == "competitive"),
         )
         schema_hashes.append(schema.schema_hash)
         outputs.append(
@@ -568,6 +570,7 @@ def execute_typed_case(
                 schema,
                 forced_budget=forced_budget,
                 adaptive_budget=adaptive_budget,
+                coarse_mode=coarse_mode,
             )
         )
     state_encode_calls = model.state_encode_calls - before
