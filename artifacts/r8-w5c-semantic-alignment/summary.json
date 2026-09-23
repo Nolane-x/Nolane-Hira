@@ -1,0 +1,107 @@
+{
+  "schema_version": "r8-w5c-semantic-alignment-summary-v1",
+  "status": "COMPLETE_NEGATIVE",
+  "merge_commit_sha": "a691ef7b0fad2ce55cb13d09e0047faa9bd5b0e8",
+  "authoritative_run_id": 35834712173,
+  "authoritative_head_sha": "11695191d1912944c4b4cf7558954684f9c7016d",
+  "artifacts": {
+    "frozen_inputs": {
+      "id": 10739205899,
+      "digest": "sha256:7bf8eb2de3ba8f3208567a6e0b3119370dc7c0552c527b74638b47d0a11cd901"
+    },
+    "bilinear": {
+      "id": 10738787670,
+      "digest": "sha256:69cb9e7e5107f21a5de1e90bd98de929a55c1dc8e4a3168fd4967c8c237c9c8a",
+      "probe_sha256": "f1fea6bfbe423c04bb90c7caab8dc2ac7cf68497d7d6527ee51484f20edd30ff"
+    },
+    "pair_mlp": {
+      "id": 10739275838,
+      "digest": "sha256:1a1a0351a0847503df029db7a2baff024f94c65ff81186cddbf4ef30a42e5209",
+      "probe_sha256": "df15f554abccc1e0086df36b0ebf5a8235370c62f539d0f0fb43f29f7ebd60d1"
+    },
+    "confirm": {
+      "id": 10738718234,
+      "digest": "sha256:884da337d299daf8c80c9418ac2ac8782a61542ce856b91e5679ac33685f614e"
+    }
+  },
+  "cache": {
+    "train_cases": 768,
+    "dev_cases": 192,
+    "train_state_encode_calls": 768,
+    "dev_state_encode_calls": 192,
+    "train_cache_sha256": "960fca1771efad80a59eb14223053f1a3e309ab6a989f19c0ab3fc3dab96ccc7",
+    "dev_cache_sha256": "603413c17f4e9fda8d2154134f6246b3d22a002d02ea612f2b63c012cb258831"
+  },
+  "dev": {
+    "pooled_cosine": {
+      "accuracy": 0.010416666666666666,
+      "top5_recall": 0.15104166666666666,
+      "mrr": 0.09617461297413749,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "token_max": {
+      "accuracy": 0.03125,
+      "top5_recall": 0.24479166666666666,
+      "mrr": 0.13553028723095248,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "bilinear": {
+      "accuracy": 0.041666666666666664,
+      "top5_recall": 0.2604166666666667,
+      "mrr": 0.15300709802145948,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0,
+      "selected_epoch": 7,
+      "parameter_count": 98305
+    },
+    "pair_mlp": {
+      "accuracy": 0.020833333333333332,
+      "top5_recall": 0.16666666666666666,
+      "mrr": 0.11186703675296872,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0,
+      "selected_epoch": 1,
+      "parameter_count": 164353
+    }
+  },
+  "confirm": {
+    "case_count": 256,
+    "state_encode_calls": 256,
+    "state_encode_calls_per_case": 1,
+    "verdict": "A13_PROBE_FAIL",
+    "pooled_cosine": {
+      "accuracy": 0,
+      "top5_recall": 0.0078125,
+      "mrr": 0.038639514426740344,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "token_max": {
+      "accuracy": 0.00390625,
+      "top5_recall": 0.1015625,
+      "mrr": 0.08069318224621135,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "bilinear": {
+      "accuracy": 0,
+      "top5_recall": 0.0234375,
+      "mrr": 0.05135118427866757,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "pair_mlp": {
+      "accuracy": 0,
+      "top5_recall": 0.00390625,
+      "mrr": 0.03509814118737289,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    },
+    "probability_mass_pass": true,
+    "forbidden_benchmark_data_used": false,
+    "campaign_cells_populated": 0
+  },
+  "interpretation": "Frozen A13 semantic representations do not expose sufficient fresh high-cardinality semantic-key signal to raw pooled/token probes or the preregistered learned bilinear/pair-MLP comparators. Do not continue scorer sweeps around frozen A13. Next step is controlled top-layer A13 semantic adaptation; A22 capacity control becomes eligible only if the capacity trigger remains satisfied after that experiment."
+}
