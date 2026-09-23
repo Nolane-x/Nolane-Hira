@@ -1,0 +1,21 @@
+{
+  "schema_version": "r8-w5e-a22-capacity-v1",
+  "id": "A22",
+  "model_id": "microsoft/xtremedistil-l6-h384-uncased",
+  "role": "diagnostic capacity control after W5d trigger",
+  "expected_hidden_size": 384,
+  "expected_layers": 6,
+  "reported_encoder_params": 22000000,
+  "revision_status": "pending immutable pin receipt",
+  "resolved_revision": null,
+  "primary_weight_file": "pytorch_model.bin",
+  "primary_weight_sha256": null,
+  "config_sha256": null,
+  "vocab_sha256": null,
+  "rules": [
+    "A22 is diagnostic, not production-selected by size alone",
+    "pin immutable revision and weight hash before semantic execution",
+    "W5e populates zero public campaign cells",
+    "do not use public benchmark examples for capacity diagnosis"
+  ]
+}
