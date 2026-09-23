@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1–W5a complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. K=255 mechanics PASS, while W5a fresh CONFIRM fails 0/256; current task is token-aware semantic comparison rebuild.**
+Status: **OPEN; W1–W5c complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. High-K mechanics PASS, but frozen A13 semantic representation probes fail; current task is controlled top-layer A13 semantic adaptation before A22 capacity control.**
 
 ## Read first
 
@@ -261,3 +261,50 @@ W5b must:
 7. proceed to public held-out lanes only if fresh CONFIRM passes.
 
 Do not rerun W5a or tune against its exposed CONFIRM.
+
+## W5b token-aware semantic comparison — COMPLETE / NEGATIVE
+
+Authoritative run `35829561505`:
+- pooled remained DEV-selected;
+- token-aware alternatives did not improve;
+- untouched CONFIRM 0/192 top-1;
+- K128/K255 accuracy 0;
+- mechanics remained healthy.
+
+Verdict: `TOKEN_SEMANTIC_FAIL`.
+
+Machine-readable authority:
+`artifacts/r8-w5b-token-semantic/summary.json`.
+
+## W5c alignment/representation probes — COMPLETE / NEGATIVE
+
+Merged in `a691ef7b0fad2ce55cb13d09e0047faa9bd5b0e8`.
+
+Authoritative run `35834712173`.
+
+Fresh CONFIRM:
+- pooled cosine 0/256;
+- token-max 1/256;
+- learned bilinear 0/256;
+- learned pair-MLP 0/256;
+- all K128/K255 accuracy gates fail;
+- probability mass and state-once PASS.
+
+Verdict: `A13_PROBE_FAIL`.
+
+Machine-readable authority:
+`artifacts/r8-w5c-semantic-alignment/summary.json`.
+
+## Current next task — W5d controlled A13 top-layer adaptation
+
+The repository capacity trigger does not justify jumping directly to A22 before controlled A13 top-layer unfreezing.
+
+W5d must:
+1. use fresh non-public TRAIN/DEV/CONFIRM semantic authorities, disjoint from W5a–W5c;
+2. fine-tune only the upper A13 transformer layers under a frozen lower encoder;
+3. train a direct semantic alignment objective rather than HIRA scorer parameters;
+4. freeze the adapted encoder checkpoint on DEV before untouched CONFIRM;
+5. compare adapted A13 to exact frozen A13 on the same fresh authority;
+6. populate zero public campaign cells.
+
+If adapted A13 still misses fresh competence by the frozen gate, the A22 capacity trigger is considered satisfied and the next lane should run the pinned A22 capacity control.
