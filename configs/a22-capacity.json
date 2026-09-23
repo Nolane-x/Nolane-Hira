@@ -6,16 +6,25 @@
   "expected_hidden_size": 384,
   "expected_layers": 6,
   "reported_encoder_params": 22000000,
-  "revision_status": "pending immutable pin receipt",
-  "resolved_revision": null,
+  "revision_status": "pinned and binary-verified by pin-only run 35849268011",
+  "resolved_revision": "359df7d52613d4edc15647e6d65e0d87200eb747",
   "primary_weight_file": "pytorch_model.bin",
-  "primary_weight_sha256": null,
-  "config_sha256": null,
-  "vocab_sha256": null,
+  "primary_weight_sha256": "38bd5f8a7d1b7045de8fee25bfac1777edf5a2ec8cd3399b21bde917b0278e23",
+  "config_sha256": "d8256cb655c02cda6175822c120adc5182c05e35b9dde700584bb736f7f5dca4",
+  "vocab_sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
   "rules": [
     "A22 is diagnostic, not production-selected by size alone",
     "pin immutable revision and weight hash before semantic execution",
     "W5e populates zero public campaign cells",
     "do not use public benchmark examples for capacity diagnosis"
-  ]
+  ],
+  "verified_encoder_params_no_pooler": 22565376,
+  "verified_total_params": 22713216,
+  "verified_pooler_params": 147840,
+  "verified_hidden_size": 384,
+  "verified_layers": 6,
+  "verified_attention_heads": 12,
+  "pin_run_id": 35849268011,
+  "pin_artifact_id": 10745261136,
+  "pin_artifact_digest": "sha256:69e3e499f120d9685aeb1bd85b04905a040c36daafcbcf6733c1d06427e8d240"
 }
