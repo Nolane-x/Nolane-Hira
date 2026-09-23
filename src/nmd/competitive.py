@@ -57,14 +57,16 @@ def candidate_relative_idf(
                 )
 
     weights = weights.to(device=token_ids.device)
-    for b in range(batch):
-        for row in range(k):
-            valid = token_mask[b, row]
-            mean = weights[b, row][valid].mean()
-            if not torch.isfinite(mean) or float(mean) <= 0.0:
-                raise ValueError("invalid competitive salience mean")
-            weights[b, row][valid] /= mean
-    return weights
+    valid = token_mask.to(weights.dtype)
+    counts = valid.sum(dim=-1, keepdim=True).clamp_min(1.0)
+    means = (weights * valid).sum(dim=-1, keepdim=True) / counts
+    if not torch.isfinite(means).all() or (means <= 0).any():
+        raise ValueError("invalid competitive salience mean")
+    return torch.where(
+        token_mask,
+        weights / means.clamp_min(1e-8),
+        torch.zeros_like(weights),
+    )
 
 
 class CompetitiveCoarseScorer(nn.Module):
