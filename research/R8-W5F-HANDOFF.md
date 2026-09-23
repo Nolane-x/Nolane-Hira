@@ -1,6 +1,6 @@
 # R8-W5f handoff — state-once late-interaction semantic binding
 
-Status: **implementation active under issue #69; no empirical result yet.**
+Status: **COMPLETE / LATE_INTERACTION_PARTIAL; merged to main in `6504e4ebd93efe78c93caaed0f9d18843131402b`.**
 
 ## Why W5f exists
 
@@ -60,3 +60,39 @@ Possible verdicts:
 - LATE_INTERACTION_FAIL.
 
 Zero public campaign cells are populated by W5f.
+
+
+## Authoritative result
+
+Run `35858733250`, exact head `5c5fbf829f13b6094a94f6a54a9bebfdaace0046`.
+
+Selected on DEV:
+- `proj128-maxsim`;
+- epoch 6;
+- matcher SHA-256 `a2c862feff387e4fd5af04543ba152016a48aee14ab1977812eb2ec861666e5a`;
+- selector recorded `confirm_exposed=false`.
+
+Untouched CONFIRM:
+- 192 cases;
+- generated only after selection freeze;
+- state encode/case = 1.0;
+- accuracy **0.296875**;
+- MRR **0.44158**;
+- top-5 **0.609375**;
+- K128 accuracy **0.25**;
+- K255 accuracy **0.16667**;
+- K255 top-5 **0.41667**;
+- probability mass max error **2.38e-7**.
+
+Same-set frozen pooled baseline:
+- accuracy **0.005208**;
+- MRR **0.04804**;
+- top-5 **0.03125**.
+
+Verdict:
+`LATE_INTERACTION_PARTIAL`.
+
+This is the strongest positive semantic-mechanism result in R8 so far, but it misses the frozen rescue thresholds. Do not rerun W5f CONFIRM or alter its fixed coverage weight post hoc.
+
+Machine-readable authority:
+`artifacts/r8-w5f-late-interaction/summary.json`.
