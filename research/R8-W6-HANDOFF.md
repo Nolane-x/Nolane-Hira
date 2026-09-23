@@ -1,6 +1,6 @@
 # R8-W6 handoff — production competitive coarse integration
 
-Status: **Phase A implementation active under issue #77. No W6 empirical typed/reliability verdict exists yet.**
+Status: **Phase A MERGED as `bd250d37726bcbc975c5244ccb8dd0cb597b1351`. Phase B fresh typed/reliability authority is next; no W6 empirical typed/reliability verdict exists yet.**
 
 ## Frozen evidence entering W6
 
@@ -75,3 +75,55 @@ Do not use previously exposed typed-decisions final rows for tuning.
 After Phase A is clean, freeze a fresh train/dev/confirm typed/reliability authority from train-only or newly generated data, with CONFIRM sealed until selection freeze.
 
 No public campaign cells are populated by Phase A.
+
+
+## Phase A authoritative integration closure
+
+Merged PR:
+- PR #78;
+- squash merge `bd250d37726bcbc975c5244ccb8dd0cb597b1351`;
+- exact Phase A head `0b125657109723047bfc4d1476c7e5d68d6c8836`.
+
+Exact-head evidence:
+- dedicated push run `35931861897`: compile PASS, **44/44 PASS**;
+- dedicated PR run `35931867744`: compile PASS, **44/44 PASS**;
+- legacy W5b token-relation PR run `35931867662`: PASS;
+- legacy W2 typed state-once PR run `35931867709`: PASS.
+
+Repo-wide CI on immediate predecessor `fad4a8b...` passed Python 3.10, Python 3.12 and preflight. The only subsequent source change before the frozen Phase A head was vectorized IDF mean normalization inside the new optional competitive scorer; exact-port and W6 integration tests passed on the frozen head.
+
+Phase A proves:
+- production scorer parameter count = 32,769;
+- legacy HIRACore parameter count = 422,159;
+- strict legacy HIRACore state_dict compatibility;
+- default `legacy` coarse mode unchanged;
+- explicit `competitive` full-K coarse injection;
+- exact scorer-port equivalence to W5h `idf-competitive-proj128`;
+- state-once execution;
+- opaque-ID semantic invariance;
+- option-order equivariance;
+- fail-closed artifact/scorer requirements;
+- valid probability normalization;
+- gradients through scorer, trainable encoder and relation head.
+
+No Phase A benchmark/final authority was exposed.
+Campaign cells populated = 0.
+
+## Phase B preregistration boundary
+
+Phase B must branch from merged Phase A and freeze its authority before any empirical run.
+
+It must not:
+- load `typed-decisions` final/test for tuning or selection;
+- reinterpret W3b final;
+- reuse W5 semantic CONFIRM rows;
+- promote W5i reverse/listwise evidence.
+
+Phase B should test the integrated forward competitive scorer on a new typed/reliability authority with:
+- multiple decisions per state;
+- choice, noul and score primitives;
+- soft probability targets;
+- high-cardinality choice slices;
+- one state encode per case;
+- TRAIN/DEV/CONFIRM split with CONFIRM sealed until DEV selection freeze;
+- explicit legacy same-authority control.
