@@ -1,0 +1,68 @@
+{
+  "schema_version": "r8-w4b-high-cardinality-summary-v1",
+  "status": "PASS",
+  "authoritative_run": {
+    "workflow_run_id": 35824879417,
+    "head_sha": "b24df386613f66cf5647f83f216601b966262df9",
+    "artifact_id": 10735251248,
+    "artifact_digest": "sha256:5337fa194ba629bbddeec2190c6b06d94605618c263dffaa5f90dd394d31bbb2"
+  },
+  "selected_head_sha256": "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c",
+  "mechanics": {
+    "verdict": "MECHANICS_PASS",
+    "k128": {
+      "case_count": 64,
+      "argmax_invariant_count": 64,
+      "budget_min": 128,
+      "budget_max": 128,
+      "tail_mass_max": 0,
+      "probability_mass_max_error": 2.384185791015625e-7,
+      "permutation_max_error": 5.960464477539063e-8,
+      "repeatability_max_error": 0,
+      "p50_ms_cpu": 1.8216345000041656,
+      "p95_ms_cpu": 1.8942734000191306,
+      "option_tensor_bytes_per_case": 131072
+    },
+    "k255": {
+      "case_count": 64,
+      "argmax_invariant_count": 64,
+      "budget_min": 255,
+      "budget_max": 255,
+      "tail_mass_max": 0,
+      "probability_mass_max_error": 2.384185791015625e-7,
+      "permutation_max_error": 2.9802322387695312e-8,
+      "repeatability_max_error": 0,
+      "p50_ms_cpu": 2.421283000003882,
+      "p95_ms_cpu": 2.4777457500022138,
+      "option_tensor_bytes_per_case": 261120
+    }
+  },
+  "semantic_key": {
+    "diagnostic_only": true,
+    "k128": {
+      "case_count": 128,
+      "accuracy": 0.015625,
+      "correct": 2,
+      "top5_recall": 0.046875,
+      "mrr": 0.043758309867375535,
+      "mean_correct_option_probability": 0.00755875052891497,
+      "mean_confidence": 0.0204785032037762,
+      "state_encode_calls": 128,
+      "state_encode_calls_per_case": 1
+    },
+    "k255": {
+      "case_count": 128,
+      "accuracy": 0.0078125,
+      "correct": 1,
+      "top5_recall": 0.0078125,
+      "mrr": 0.02631849837260466,
+      "mean_correct_option_probability": 0.00419322498873953,
+      "mean_confidence": 0.011044450766348746,
+      "state_encode_calls": 128,
+      "state_encode_calls_per_case": 1
+    }
+  },
+  "banking77_data_used": false,
+  "campaign_cells_populated": 0,
+  "conclusion": "High-cardinality mechanics are healthy through K=255. The dominant blocker is semantic routing/generalization of the frozen A13+HIRA stack. Do not spend the next lane on candidate pruning; move to fresh non-benchmark semantic competence training with independent confirmation."
+}
