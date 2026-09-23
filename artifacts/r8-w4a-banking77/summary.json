@@ -1,0 +1,69 @@
+{
+  "schema_version": "r8-w4a-banking77-authoritative-summary-v1",
+  "status": "PASS",
+  "scientific_result": "NEGATIVE",
+  "technical_failed_run": {
+    "workflow_run_id": 35821668904,
+    "head_sha": "b9f28e6439a9b2b536e4e19424131fe9f44fa6a6",
+    "exposure_boundary_reached": false,
+    "banking77_requested": false,
+    "cause": "marker validation imported torch before evaluation stack install",
+    "scientific_authority": false
+  },
+  "authoritative_run": {
+    "workflow_run_id": 35822128041,
+    "head_sha": "6e27b724196bed3cf82976610967f1a7a1122fb7",
+    "artifact_id": 10733603675,
+    "artifact_digest": "sha256:6bf0aabeabaceda1bdaa570414d47077a647e717d06b6359b0e56182a5bc72ac"
+  },
+  "frozen_model": {
+    "selected_head_sha256": "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c",
+    "head_parameter_count": 422159,
+    "a13_revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "a13_weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"
+  },
+  "protocol": {
+    "dataset": "mteb/banking77",
+    "revision": "18072d2685ea682290f7b8924d94c62acc19c0b2",
+    "split": "test",
+    "selection": "first_400",
+    "cases": 400,
+    "labels": 77,
+    "task_training_used": false,
+    "forced_budget": 255,
+    "candidate_budget_min": 77,
+    "candidate_budget_max": 77,
+    "adaptive_budget": false,
+    "full_k": true,
+    "state_encode_calls": 400,
+    "state_encode_calls_per_case": 1
+  },
+  "metrics": {
+    "accuracy": 0,
+    "macro_f1": 0,
+    "hard_brier": 0.9904985925206838,
+    "nll": 4.320958330355487,
+    "ece": 0.05233226515352726,
+    "mean_confidence": 0.05233226515352726,
+    "aurc": 1,
+    "p50_ms_cpu_ci": 9.321545000005926,
+    "p95_ms_cpu_ci": 10.563080999986596,
+    "probability_mass_max_error": 1.6577541828155518e-7,
+    "tail_mass_max": 0
+  },
+  "headline": {
+    "id": "laya.app.banking77_full",
+    "target": 0.492,
+    "direction": "higher",
+    "value": 0,
+    "status": "LOSS"
+  },
+  "cumulative_campaign": {
+    "win": 1,
+    "tie": 0,
+    "loss": 8,
+    "missing": 44
+  },
+  "jev_cells_populated": false,
+  "conclusion": "The frozen W3 specialist head fails completely on held-out Banking77 semantic generalization despite correct full-K/state-once mechanics. Preserve unchanged; do not tune against the exposed first-400 rows. Move to fresh synthetic K=128/K=255 stress to isolate high-cardinality mechanics from semantic generalization."
+}
