@@ -52,47 +52,46 @@ CONFIRM_TEMPLATES = (
 )
 
 TRAIN_TREES = (
-    "alder","baobab","birch","cedar","cypress","dogwood","elm","fir",
-    "hawthorn","hemlock","juniper","larch","mahogany","mangrove","maple","olivewood",
-    "poplar","redwood","sequoia","spruce","sycamore","teak","willow","yew",
+    "talvek","brinor","celdan","dorvik","elmaro","fenrix","galdem","hirvon",
+    "ispare","jorlen","kelvot","lumera","morvik","navren","orlith","peldor",
+    "quaris","rendom","selvik","torven","ulmaro","vardek","welrin","zorven",
 )
 TRAIN_SPICES = (
-    "allspice","anise","asafoetida","cardamom","caraway","cassia","clove","cumin",
-    "fenugreek","galangal","juniperberry","mace","marjoram","nigella","nutmeg","paprika",
-    "saffron","savory","sumac","tamarind","tarragon","turmeric","vanilla","zaatar",
+    "ambrik","belvon","corvex","darsin","emrika","falder","gireth","halvon",
+    "imbrak","jersil","kavrin","lorvek","meldit","norvex","oparin","pradel",
+    "qirven","rastel","sivrak","tormel","umbrin","veskar","weldin","xavrel",
 )
 TRAIN_ISLANDS = (
-    "alcatraz","aruba","bali","borneo","capri","corsica","crete","cyprus",
-    "elba","faroe","fiji","guam","hainan","ibiza","java","kauai",
-    "lombok","madeira","malta","maui","naxos","okinawa","samoa","tahiti",
+    "adarim","brelos","carvyn","delmora","erisun","farvek","galdora","hermin",
+    "ilvosa","jarven","kelmora","lorasin","marvek","neldora","orvasa","pelrin",
+    "qavora","rilsan","seldora","tavrin","ulvosa","verdan","wilora","zarev",
 )
 TRAIN_DANCES = (
-    "bolero","bourree","chacha","fandango","flamenco","foxtrot","gavotte","habanera",
-    "jive","kizomba","mazurka","merengue","minuet","pasodoble","polka","quickstep",
-    "rumba","samba","sarabande","tango","tarantella","twistdance","waltz","zouk",
+    "avrel","bormin","cadril","delsa","evrano","farlis","gostel","hadrin",
+    "ivrosa","jalmek","kordil","lervan","mavros","nirel","orsika","pavren",
+    "qorali","ravsen","sildra","torali","uvren","varsol","welsa","zindor",
 )
 
 CONFIRM_INSECTS = (
-    "antlion","aphid","beetle","cicada","damselfly","dragonfly","earwig","firefly",
-    "grasshopper","hornet","katydid","lacewing","leafhopper","mantis","mayfly","mosquito",
-    "moth","sawfly","silverfish","stonefly","termite","thrips","wasp","weevil",
+    "abrixa","beldrix","corlax","denvik","espral","fovrix","galdrix","hervak",
+    "ixorin","jembra","keldrix","lormax","mervik","noxira","opralx","pervix",
+    "qeldra","roxvin","sabrak","teldrix","uvrax","vornix","welbra","xerdan",
 )
 CONFIRM_HERBS = (
-    "angelica","basil","borage","burnet","catnip","chervil","cilantro","dill",
-    "horehound","hyssop","lemongrass","lovage","mint","oregano","parsley","rosemary",
-    "rue","sage","sorrel","stevia","thyme","verbena","watercress","wintergreen",
+    "alveta","briska","corveta","dalmira","evrisa","felnora","gaveta","hirlena",
+    "isvara","jorina","kelmira","lorveta","merisa","navora","orlena","pirveta",
+    "qasmira","ravelia","selnora","tiveta","ulmira","verisa","wilnora","zareta",
 )
 CONFIRM_VOLCANOES = (
-    "agung","arenal","cotopaxi","erebus","etna","fuji","hekla","kilauea",
-    "krakatoa","maunaloa","mayon","merapi","nyiragongo","popocatepetl","rainier","ruiz",
-    "sakurajima","santorini","shasta","stromboli","taal","tambora","vesuvius","villarrica",
+    "arvados","belmora","ceradon","dovaris","eskarin","faloros","garadon","helvris",
+    "irados","joravos","keladon","lorvris","merados","novarin","oradon","pelvris",
+    "qarados","ravarin","seradon","torvris","ulrados","varadin","welaros","zorvris",
 )
 CONFIRM_TOOLS = (
-    "adze","auger","awl","bevel","brace","caliper","chisel","clamp",
-    "crowbar","gimlet","hacksaw","mallet","planetool","pliers","punchtool","rasp",
-    "ratchet","reamer","snips","spanner","tongs","vise","wrench","drawknife",
+    "antrik","beldorx","cavrik","dremox","eltrik","forvex","galtrix","hervox",
+    "iltrik","jorvex","keltrix","lomvex","mertrik","norvexx","optrik","pravex",
+    "qeltrix","ravox","seltrik","torvex","ultrix","varvex","weltrik","zorvex",
 )
-
 
 @dataclass(frozen=True)
 class CrossCandidateCase:
