@@ -7,7 +7,10 @@ from pathlib import Path
 
 from nmd.semantic import HFAutoSemanticEncoder
 from nmd.semantic_balanced_binding import (
+    CONFIRM_SEED,
+    DEV_SEED,
     MAX_LENGTH,
+    TRAIN_SEED,
     all_w5h_vocab,
     compile_binding_cache,
     generate_binding_authority,
@@ -30,6 +33,25 @@ def file_sha256(path: str | Path) -> str:
 def list_hash(values) -> str:
     payload = "\n".join(sorted(map(str, values))).encode("utf-8")
     return sha256(payload).hexdigest()
+
+
+def prior_semantic_vocab() -> set[str]:
+    from nmd.semantic_contrastive_salience import all_w5g_vocab
+    from nmd.semantic_late_interaction import all_w5f_vocab
+    from nmd import semantic_alignment_probes as w5c
+    from nmd import semantic_capacity_control as w5e
+    from nmd import semantic_encoder_adaptation as w5d
+    from nmd import semantic_routing_curriculum as w5a
+    from nmd import semantic_token_curriculum as w5b
+
+    prior = set(all_w5g_vocab()) | set(all_w5f_vocab())
+    for module in (w5a, w5b, w5c, w5d, w5e):
+        for name, value in vars(module).items():
+            if not (name.startswith("TRAIN_") or name.startswith("CONFIRM_")):
+                continue
+            if isinstance(value, tuple) and all(isinstance(item, str) for item in value):
+                prior.update(value)
+    return prior
 
 
 def main() -> None:
@@ -58,6 +80,11 @@ def main() -> None:
         max_length=MAX_LENGTH,
     )
 
+    w5h_vocab = all_w5h_vocab()
+    overlap = sorted(w5h_vocab & prior_semantic_vocab())
+    if overlap:
+        raise RuntimeError(f"W5h vocabulary overlaps W5a-W5g: {overlap}")
+
     train = generate_binding_authority("train")
     dev = generate_binding_authority("dev")
     train_cache = compile_binding_cache(encoder, train)
@@ -75,11 +102,15 @@ def main() -> None:
         "a13_revision": A13_REVISION,
         "a13_weight_sha256": A13_WEIGHT_SHA256,
         "max_length": MAX_LENGTH,
+        "train_seed": TRAIN_SEED,
+        "dev_seed": DEV_SEED,
+        "reserved_confirm_seed": CONFIRM_SEED,
+        "w5a_through_w5g_vocab_disjoint": True,
         "train_case_count": len(train),
         "dev_case_count": len(dev),
         "train_case_id_sha256": list_hash(case.case_id for case in train),
         "dev_case_id_sha256": list_hash(case.case_id for case in dev),
-        "vocab_sha256": list_hash(all_w5h_vocab()),
+        "vocab_sha256": list_hash(w5h_vocab),
         "train_encoder_calls": train_cache["encoder_calls"],
         "dev_encoder_calls": dev_cache["encoder_calls"],
         "state_text_encodes_per_case": 1.0,
