@@ -51,46 +51,46 @@ CONFIRM_TEMPLATES = (
     "w5g-confirm-bulletin",
 )
 
-TRAIN_INSTRUMENTS = (
-    "oboe","bassoon","dulcimer","sitar","koto","shamisen","mbira","ocarina",
-    "theremin","zither","mandolin","banjo","celesta","marimba","vibraphone","piccolo",
-    "euphonium","cornet","harpsichord","lute","lyre","panpipe","didgeridoo","concertina",
+TRAIN_DOGS = (
+    "beagle","collie","corgi","dachshund","dalmatian","doberman","greyhound","husky",
+    "mastiff","poodle","pug","retriever","rottweiler","samoyed","schnauzer","spaniel",
+    "terrier","whippet","akita","borzoi","chihuahua","malamute","papillon","pomeranian",
 )
-TRAIN_MINERALS = (
-    "agate","bauxite","calcite","dolomite","feldspar","galena","hematite","ilmenite",
-    "jadeite","kaolinite","magnetite","nephrite","olivine","pyrite","quartzite","rhodonite",
-    "serpentine","talc","ulexite","vermiculite","wollastonite","zeolite","chromite","fluorite",
+TRAIN_WINES = (
+    "cabernet","merlot","riesling","syrah","pinotnoir","malbec","tempranillo","sangiovese",
+    "grenache","viognier","gewurztraminer","chardonnay","sauvignonblanc","zinfandel","barbera","nebbiolo",
+    "carmenere","albarino","semillon","mourvedre","gamay","vermentino","marsanne","roussanne",
 )
-TRAIN_FABRICS = (
-    "brocade","calico","chambray","chiffon","corduroy","damask","denim","flannel",
-    "gabardine","georgette","gingham","herringbone","jacquard","jersey","muslin","organza",
-    "poplin","sateen","seersucker","taffeta","tweed","velour","voile","worsted",
+TRAIN_PASTA = (
+    "rigatoni","penne","fusilli","farfalle","linguine","tagliatelle","pappardelle","orzo",
+    "cavatappi","conchiglie","bucatini","vermicelli","capellini","manicotti","cannelloni","tortellini",
+    "ravioli","orecchiette","ziti","rotini","gemelli","mafaldine","ditalini","trofie",
 )
-TRAIN_VESSELS = (
-    "barge","brigantine","canoe","catamaran","cutter","dhow","dinghy","ferry",
-    "frigate","gondola","junk","kayak","ketch","longboat","schooner","sloop",
-    "trawler","trimaran","tugboat","yawl","coracle","sampan","skiff","wherry",
+TRAIN_CLOUDS = (
+    "cumulus","cirrus","stratus","nimbus","altocumulus","altostratus","cirrostratus","cirrocumulus",
+    "cumulonimbus","stratocumulus","lenticular","mammatus","noctilucent","pileus","virga","arcus",
+    "contrail","fogbank","scud","fractus","pannus","asperitas","undulatus","floccus",
 )
 
-CONFIRM_CONSTELLATIONS = (
-    "andromeda","aquila","aries","auriga","bootes","cassiopeia","centaurus","cepheus",
-    "cetus","columba","cygnus","delphinus","draco","eridanus","fornax","grus",
-    "hydra","indus","lacerta","lepus","norma","orion","pegasus","perseus",
+CONFIRM_DINOSAURS = (
+    "allosaurus","ankylosaurus","brachiosaurus","diplodocus","iguanodon","stegosaurus","triceratops","velociraptor",
+    "spinosaurus","parasaurolophus","pachycephalosaurus","deinonychus","carnotaurus","compsognathus","gallimimus","archaeopteryx",
+    "apatosaurus","ceratosaurus","coelophysis","edmontosaurus","kentrosaurus","protoceratops","styracosaurus","therizinosaurus",
 )
-CONFIRM_FLOWERS = (
-    "anemone","aster","begonia","camellia","carnation","chrysanthemum","crocus","dahlia",
-    "freesia","gardenia","geranium","hibiscus","hydrangea","iris","jasmine","lilac",
-    "lotus","marigold","narcissus","peony","petunia","primrose","ranunculus","zinnia",
+CONFIRM_CHEESES = (
+    "brie","camembert","cheddar","gouda","gruyere","manchego","mozzarella","parmesan",
+    "pecorino","provolone","ricotta","roquefort","stilton","emmental","havarti","fontina",
+    "asiago","burrata","taleggio","gorgonzola","halloumi","mascarpone","raclette","feta",
 )
-CONFIRM_INFUSIONS = (
-    "assam","ceylon","darjeeling","sencha","matcha","genmaicha","hojicha","oolong",
-    "puerh","rooibos","yerbamate","lapsang","keemun","gunpowdertea","gyokuro","bancha",
-    "kukicha","tieguanyin","nilgiri","chamomile","peppermint","masalachai","moringa","honeybush",
+CONFIRM_GENRES = (
+    "jazz","blues","reggae","salsa","tango","techno","ambient","funk",
+    "soul","gospel","punk","grunge","disco","house","trance","dubstep",
+    "bluegrass","flamenco","polka","ska","swing","bebop","ragtime","folk",
 )
-CONFIRM_MOTIFS = (
-    "chevron","arabesque","paisley","quatrefoil","fretwork","guilloche","meander","rosette",
-    "medallion","trellis","lattice","ogee","scrollwork","palmette","cartouche","dentil",
-    "festoon","acanthus","lozenge","sunburst","starburst","keypattern","knotwork","scallop",
+CONFIRM_MYTHS = (
+    "griffin","phoenix","basilisk","chimera","centaur","minotaur","kraken","hydra",
+    "sphinx","pegasus","unicorn","gorgon","cyclops","mermaid","dryad","nymph",
+    "satyr","gargoyle","wyvern","leviathan","kelpie","selkie","roc","manticore",
 )
 
 
@@ -108,14 +108,14 @@ class SalienceCase:
 
 def all_w5g_vocab() -> set[str]:
     groups = (
-        TRAIN_INSTRUMENTS,
-        TRAIN_MINERALS,
-        TRAIN_FABRICS,
-        TRAIN_VESSELS,
-        CONFIRM_CONSTELLATIONS,
-        CONFIRM_FLOWERS,
-        CONFIRM_INFUSIONS,
-        CONFIRM_MOTIFS,
+        TRAIN_DOGS,
+        TRAIN_WINES,
+        TRAIN_PASTA,
+        TRAIN_CLOUDS,
+        CONFIRM_DINOSAURS,
+        CONFIRM_CHEESES,
+        CONFIRM_GENRES,
+        CONFIRM_MYTHS,
     )
     return {item for group in groups for item in group}
 
@@ -123,17 +123,17 @@ def all_w5g_vocab() -> set[str]:
 def _vocab(split: str):
     if split in {"train", "dev"}:
         return (
-            TRAIN_INSTRUMENTS,
-            TRAIN_MINERALS,
-            TRAIN_FABRICS,
-            TRAIN_VESSELS,
+            TRAIN_DOGS,
+            TRAIN_WINES,
+            TRAIN_PASTA,
+            TRAIN_CLOUDS,
         )
     if split == "confirm":
         return (
-            CONFIRM_CONSTELLATIONS,
-            CONFIRM_FLOWERS,
-            CONFIRM_INFUSIONS,
-            CONFIRM_MOTIFS,
+            CONFIRM_DINOSAURS,
+            CONFIRM_CHEESES,
+            CONFIRM_GENRES,
+            CONFIRM_MYTHS,
         )
     raise ValueError(f"unknown W5g split: {split}")
 
@@ -141,8 +141,8 @@ def _vocab(split: str):
 def _signature_text(signature: tuple[str, str, str, str], split: str) -> str:
     a, b, c, d = signature
     if split in {"train", "dev"}:
-        return f"instrument {a}; mineral {b}; fabric {c}; vessel {d}"
-    return f"constellation {a}; flower {b}; infusion {c}; motif {d}"
+        return f"dog {a}; wine {b}; pasta {c}; cloud {d}"
+    return f"dinosaur {a}; cheese {b}; genre {c}; myth {d}"
 
 
 def _render(
@@ -152,47 +152,47 @@ def _render(
     a, b, c, d = signature
     if template_id == "w5g-train-ledger":
         return (
-            f"Ledger fields: instrument {a}; mineral {b}; fabric {c}; vessel {d}.",
+            f"Ledger fields: dog {a}; wine {b}; pasta {c}; cloud {d}.",
             "Which candidate preserves every ledger field?",
         )
     if template_id == "w5g-train-dossier":
         return (
-            f"Dossier records fabric={c}, vessel={d}, instrument={a}, mineral={b}.",
+            f"Dossier records pasta={c}, cloud={d}, dog={a}, wine={b}.",
             "Select the candidate matching the complete dossier.",
         )
     if template_id == "w5g-train-card":
         return (
-            f"Card links {a} with {b}; its fabric is {c} and vessel is {d}.",
+            f"Card links {a} with {b}; its pasta is {c} and cloud is {d}.",
             "Which candidate agrees with all four card attributes?",
         )
     if template_id == "w5g-train-index":
         return (
-            f"Index -> vessel {d}; instrument {a}; mineral {b}; fabric {c}.",
+            f"Index -> cloud {d}; dog {a}; wine {b}; pasta {c}.",
             "Identify the fully matching indexed candidate.",
         )
     if template_id == "w5g-dev-placard":
         return (
-            f"Placard shows mineral {b}, fabric {c}, vessel {d}, instrument {a}.",
+            f"Placard shows wine {b}, pasta {c}, cloud {d}, dog {a}.",
             "Which candidate reconstructs the placard exactly?",
         )
     if template_id == "w5g-dev-memo":
         return (
-            f"Memo pairs vessel={d} with fabric={c}; mineral={b}; instrument={a}.",
+            f"Memo pairs cloud={d} with pasta={c}; wine={b}; dog={a}.",
             "Choose the candidate consistent with every memo field.",
         )
     if template_id == "w5g-confirm-registry":
         return (
-            f"Registry fields: constellation {a}; flower {b}; infusion {c}; motif {d}.",
+            f"Registry fields: dinosaur {a}; cheese {b}; genre {c}; myth {d}.",
             "Which candidate matches the registry in every field?",
         )
     if template_id == "w5g-confirm-capsule":
         return (
-            f"Capsule -> motif {d}; constellation {a}; infusion {c}; flower {b}.",
+            f"Capsule -> myth {d}; dinosaur {a}; genre {c}; cheese {b}.",
             "Select the candidate preserving the entire capsule signature.",
         )
     if template_id == "w5g-confirm-bulletin":
         return (
-            f"Bulletin links {b} to {a}; its motif is {d} and infusion is {c}.",
+            f"Bulletin links {b} to {a}; its myth is {d} and genre is {c}.",
             "Which candidate reconstructs all bulletin attributes?",
         )
     raise ValueError(f"unknown W5g template: {template_id}")
