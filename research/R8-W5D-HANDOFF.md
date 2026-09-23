@@ -1,6 +1,6 @@
 # R8-W5d handoff — controlled A13 top-layer semantic adaptation
 
-Status: **implementation active under issue #65; no empirical result yet.**
+Status: **COMPLETE / NEGATIVE; merged to `main`; authoritative verdict `A13_ADAPTATION_FAIL_CAPACITY_TRIGGER`; A22 capacity control authorized.**
 
 ## Why W5d exists
 
@@ -77,3 +77,48 @@ Otherwise:
 and A22 capacity-control becomes the next authorized lane.
 
 W5d populates zero campaign cells.
+
+
+## Authoritative W5d result
+
+Merge commit:
+`c44a16452b9a013fdccdd9486d5fdbca9dab0433`.
+
+Authoritative run:
+`35844159119`.
+
+Artifacts:
+- selected adaptation `10742754150`, digest `sha256:b52239222910bc12f81d3ac99a6019ca56959d9896c70a8371960c2dfbe771f5`;
+- untouched confirm `10743381013`, digest `sha256:9327c703f7d548eaa315598b27884f98dff7ce40ad2ff7c6187200f433731ecf`.
+
+DEV selected:
+- candidate `top2-lr1e5`;
+- top 2 / 6 A13 layers trainable;
+- lr 1e-5;
+- epoch 2;
+- adaptation SHA-256 `a4f2b72a84896178959ee5000028f71c9220ade95f472c8e002eebf4baac6187`;
+- trainable params 1,579,520;
+- DEV accuracy 0.0416667;
+- K=128 accuracy 0;
+- K=255 accuracy 0.
+
+Untouched CONFIRM:
+- n = 192;
+- frozen A13 top-1 = 0/192;
+- adapted A13 top-1 = 0/192;
+- frozen MRR = 0.0402164;
+- adapted MRR = 0.0447221;
+- frozen top-5 = 0.015625;
+- adapted top-5 = 0.0208333;
+- K=128 adapted top-1 = 0;
+- K=255 adapted top-1 = 0;
+- probability-mass gate PASS;
+- every competence/gain gate FAIL.
+
+Verdict:
+`A13_ADAPTATION_FAIL_CAPACITY_TRIGGER`.
+
+The confirm receipt explicitly sets:
+`a22_capacity_control_authorized=true`.
+
+This closes A13 scorer/representation/top-layer adaptation sweeps. Do not reopen another A13 tuning lane before the A22 capacity diagnostic.
