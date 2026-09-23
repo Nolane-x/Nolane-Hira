@@ -1,6 +1,6 @@
 # R8 handoff — Laya/Jev benchmark campaign
 
-Status: **OPEN; W1 + W2 + W3 + W4a + W4b complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. W4b proves K=255 mechanics PASS; current blocker is semantic competence/generalization.**
+Status: **OPEN; W1–W5a complete. Campaign remains 1 WIN / 0 TIE / 8 LOSS / 44 MISSING. K=255 mechanics PASS, while W5a fresh CONFIRM fails 0/256; current task is token-aware semantic comparison rebuild.**
 
 ## Read first
 
@@ -223,20 +223,41 @@ Interpretation:
 Machine-readable authority:
 - `artifacts/r8-w4b-high-cardinality/summary.json`.
 
-## Current next task — fresh semantic competence rebuild
+## W5a fresh semantic competence rebuild — COMPLETE / NEGATIVE
 
-Use new non-benchmark training data and an independent confirmatory set.
+Merged in `ebbba0d29574386624f53b9b0f1538aa75189295`.
 
-Requirements:
-1. no Banking77 rows/labels/predictions;
-2. no typed-decisions final rows;
-3. no MASSIVE/XNLI final rows;
-4. frozen A13 initially;
-5. head-only relation/routing training first;
-6. multi-template/multi-relation curriculum rather than one exact-key template;
-7. untouched confirmatory vocab/template families;
-8. full-K training/evaluation across small and large K;
-9. one frozen candidate before any confirmatory authority;
-10. only after fresh confirmation should public held-out campaign lanes continue.
+Authoritative run `35826397280`:
+- 4/4 candidate training PASS;
+- DEV-only selector PASS;
+- selected `w3-lr3e4`, epoch 1;
+- untouched CONFIRM generated after selection;
+- CONFIRM **0/256 top-1**;
+- K=128 and K=255 top-1 both 0;
+- K=255 top-5 0;
+- mechanics, probability mass and state-once all PASS.
 
-The remaining 44 headline cells stay `MISSING` until their own authorized lanes execute.
+Verdict:
+`SEMANTIC_COMPETENCE_FAIL`.
+
+Machine-readable authority:
+`artifacts/r8-w5a-semantic-competence/summary.json`.
+
+## Current next task — W5b token-aware semantic matcher
+
+The failure anatomy reveals an untested path already present in HIRA:
+- A13 exposes token embeddings;
+- HIRACore accepts option-token tensors;
+- W5a supplied only pooled option embeddings;
+- relation context also used segment-pooled state memory.
+
+W5b must:
+1. wire option token embeddings through schema/cache/runtime without changing opaque-ID semantics;
+2. test state-token relation context as a separate mechanism;
+3. use entirely fresh TRAIN/DEV authorities and an untouched post-selection CONFIRM set;
+4. compare pooled baseline vs token-aware mechanisms under the same data and fixed optimization budget;
+5. freeze one candidate on DEV before CONFIRM generation;
+6. populate zero public campaign cells;
+7. proceed to public held-out lanes only if fresh CONFIRM passes.
+
+Do not rerun W5a or tune against its exposed CONFIRM.
