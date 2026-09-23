@@ -1,0 +1,73 @@
+{
+  "schema_version": "r8-w5a-semantic-competence-summary-v1",
+  "status": "PASS",
+  "scientific_verdict": "SEMANTIC_COMPETENCE_FAIL",
+  "merge_commit_sha": "ebbba0d29574386624f53b9b0f1538aa75189295",
+  "authoritative_run": {
+    "workflow_run_id": 35826397280,
+    "head_sha": "2d4b95af7a95d362a144318f427d07b5de16e9e6",
+    "selected_head_artifact": {
+      "id": 10735990905,
+      "digest": "sha256:b96ad96eeb5f5dde0e670b4e1623e65741ec0c815ca423bd9fd9b7200b8e0cf1"
+    },
+    "confirm_artifact": {
+      "id": 10736475259,
+      "digest": "sha256:cbe7fda9a1482e5a54d70416057dd721d031608659ed9152e200a5c51cf1460f"
+    }
+  },
+  "selected": {
+    "candidate": "w3-lr3e4",
+    "init": "w3",
+    "lr": 0.0003,
+    "epoch": 1,
+    "head_sha256": "c38da77a6b71b249ab02925b2f0581f06f2ef0fb9035bac6c0d4135203b725ec",
+    "dev": {
+      "case_count": 160,
+      "accuracy": 0.03125,
+      "top5_recall": 0.18125,
+      "mrr": 0.12302923410551983,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0
+    }
+  },
+  "confirm": {
+    "generated_after_selection": true,
+    "case_count": 256,
+    "state_encode_calls": 256,
+    "state_encode_calls_per_case": 1,
+    "forbidden_benchmark_data_used": false,
+    "campaign_cells_populated": 0,
+    "metrics": {
+      "accuracy": 0,
+      "top5_recall": 0.01171875,
+      "mrr": 0.0370922765575658,
+      "hard_brier": 0.9853377565741539,
+      "k32_accuracy": 0,
+      "k64_accuracy": 0,
+      "k128_accuracy": 0,
+      "k255_accuracy": 0,
+      "k255_top5_recall": 0,
+      "probability_mass_max_error": 1.7881393432617188e-7
+    },
+    "gates": {
+      "overall_accuracy": false,
+      "k128_accuracy": false,
+      "k255_accuracy": false,
+      "k255_top5": false,
+      "probability_mass": true,
+      "state_once": true,
+      "budget_k32": true,
+      "budget_k64": true,
+      "budget_k128": true,
+      "budget_k255": true
+    }
+  },
+  "failure_anatomy": {
+    "mechanics": "PASS",
+    "state_once": "PASS",
+    "probability_mass": "PASS",
+    "semantic_generalization": "FAIL",
+    "architectural_observation": "W5a routing cache used pooled option embeddings only. HIRACore's existing option-token relation path was not supplied with option token embeddings, and relation context used segment-pooled state representations."
+  },
+  "conclusion": "Head-only pooled semantic routing on frozen A13 is insufficient. Preserve W5a unchanged and test a fresh token-aware semantic comparison mechanism rather than more W5a hyperparameter sweeps."
+}
