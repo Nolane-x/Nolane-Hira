@@ -1,6 +1,6 @@
 # R8-W5e handoff — A22 paired semantic capacity control
 
-Status: **implementation active under issue #67; A22 immutable pin complete; no semantic result yet.**
+Status: **COMPLETE / NEGATIVE. W5e merged; authoritative verdict `A22_CAPACITY_NO_RESCUE`.**
 
 ## Authorization
 
@@ -61,3 +61,37 @@ Possible verdicts:
 - A22_CAPACITY_NO_RESCUE.
 
 No public campaign cell is populated by W5e.
+
+
+## Authoritative completion
+
+Merged to `main` as `c7dd96f0e854ea3ebf14c466ff3574945fa8ebee`.
+
+Authoritative run:
+- `35850323054`: PASS technical;
+- A13 track PASS;
+- A22 track PASS;
+- paired untouched CONFIRM PASS;
+- verdict: **`A22_CAPACITY_NO_RESCUE`**.
+
+Untouched CONFIRM, 192 cases:
+- A13 frozen: accuracy 0.0000, top-5 0.0104, MRR 0.04069;
+- A13 adapted: accuracy 0.0000, top-5 0.0781, MRR 0.06068;
+- A22 frozen: accuracy 0.0000, top-5 0.0365, MRR 0.04866;
+- A22 adapted: accuracy **1/192 = 0.00521**, top-5 0.08854, MRR 0.07065.
+
+High-K:
+- A22 adapted K=128 top-1/top-5: 0 / 0;
+- A22 adapted K=255 top-1: 0;
+- A22 adapted K=255 top-5: 0.0625.
+
+All capacity/competence gates fail except probability-mass integrity.
+
+Machine-readable authority:
+`artifacts/r8-w5e-capacity-control/summary.json`.
+
+Interpretation:
+- capacity increase from A13 to A22 gives only small ranking gains;
+- encoder size alone is not the dominant blocker;
+- do not automatically escalate to a larger backbone;
+- next work must change semantic learning/representation mechanism.
