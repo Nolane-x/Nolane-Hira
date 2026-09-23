@@ -1,0 +1,174 @@
+name: r8-w4a-banking77-one-shot
+
+on:
+  push:
+    branches:
+      - exec/r8-w4a-banking77-direct
+    paths:
+      - "research/R8-W4A-BANKING77-FINAL-AUTHORITY.json"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify one-shot marker before Banking77 exposure
+        run: |
+          PYTHONPATH=src python - <<'PY'
+          from nmd.banking77_direct import load_and_validate_marker
+          marker = load_and_validate_marker(
+              "research/R8-W4A-BANKING77-FINAL-AUTHORITY.json"
+          )
+          print("marker_authorized", marker["authorization"])
+          PY
+
+      - name: Verify frozen selected artifact metadata
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10706135649 --jq .digest)" = "sha256:8a2efd31a6ccea3b987957d328c4b73267ab00ff9024c469bcb7f3cd578d5d92"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10706135649 --jq .expired)" = "false"
+
+      - name: Download frozen W3a selected head
+        uses: actions/download-artifact@v4
+        with:
+          name: r8-w3-selected-head
+          path: inputs/selected
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35748778854
+
+      - name: Verify selected head and selection receipt
+        run: |
+          test "$(sha256sum inputs/selected/hira-head.pt | cut -d' ' -f1)" = "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x = json.loads(Path("inputs/selected/selection.json").read_text())
+          assert x["status"] == "PASS"
+          assert x["selected_candidate"] == "r15-balanced-lr1e3"
+          assert x["selected_config"]["selected_epoch"] == 7
+          assert x["selected_head_sha256"] == "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c"
+          assert x["final_test_exposed"] is False
+          print("w3a_selected_head_verified")
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen evaluation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+
+      - name: Compile frozen W4a evaluator
+        run: |
+          python -m py_compile             src/nmd/banking77_direct.py             scripts/r8_w4a_banking77_direct.py             benchmarks/scorecard.py
+
+      - name: Execute one-shot held-out Banking77 authority
+        run: |
+          python scripts/r8_w4a_banking77_direct.py             --marker research/R8-W4A-BANKING77-FINAL-AUTHORITY.json             --selected-head inputs/selected/hira-head.pt             --out artifacts/r8-w4a-final
+
+      - name: Build isolated W4a scorecard
+        run: |
+          python benchmarks/scorecard.py             benchmarks/laya_jev_targets.json             artifacts/r8-w4a-final/results.json             --out artifacts/r8-w4a-final/lane-scorecard.json
+
+      - name: Build cumulative W3 + W4a campaign scorecard
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          w3 = json.loads(
+              Path("artifacts/r8-w3b-final/summary.json").read_text()
+          )
+          w4 = json.loads(
+              Path("artifacts/r8-w4a-final/results.json").read_text()
+          )
+
+          metrics = {
+              row["id"]: row["value"]
+              for row in w3["laya_typed"]["rows"]
+          }
+          metrics.update(w4["metrics"])
+
+          out = {
+              "schema_version": "r8-campaign-results-through-w4a-v1",
+              "candidate": "hira-r8-campaign-through-w4a",
+              "metrics": metrics,
+          }
+          Path("artifacts/r8-w4a-final/campaign-results.json").write_text(
+              json.dumps(out, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+
+          python benchmarks/scorecard.py             benchmarks/laya_jev_targets.json             artifacts/r8-w4a-final/campaign-results.json             --out artifacts/r8-w4a-final/campaign-scorecard.json
+
+      - name: Verify scorecard scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          lane = json.loads(
+              Path("artifacts/r8-w4a-final/lane-scorecard.json").read_text()
+          )
+          campaign = json.loads(
+              Path("artifacts/r8-w4a-final/campaign-scorecard.json").read_text()
+          )
+
+          lane_populated = [
+              row for row in lane["rows"]
+              if row["status"] != "MISSING"
+          ]
+          assert [row["id"] for row in lane_populated] == [
+              "laya.app.banking77_full"
+          ]
+          assert lane["counts"]["MISSING"] == 52
+
+          campaign_populated = [
+              row for row in campaign["rows"]
+              if row["status"] != "MISSING"
+          ]
+          expected = {
+              "laya.typed.accuracy",
+              "laya.typed.soft_accuracy",
+              "laya.typed.brier",
+              "laya.typed.ece_raw",
+              "laya.typed.score_mae",
+              "laya.typed.noul_accuracy",
+              "laya.typed.choice_accuracy",
+              "laya.typed.score_accuracy",
+              "laya.app.banking77_full",
+          }
+          assert {row["id"] for row in campaign_populated} == expected
+          assert campaign["counts"]["MISSING"] == 44
+
+          jev = [
+              row for row in campaign["rows"]
+              if row["id"].startswith("jev.")
+          ]
+          assert jev and all(row["status"] == "MISSING" for row in jev)
+          print(json.dumps(campaign["counts"], sort_keys=True))
+          PY
+
+      - name: Display aggregate final receipts only
+        run: |
+          cat artifacts/r8-w4a-final/result.json
+          cat artifacts/r8-w4a-final/campaign-scorecard.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w4a-banking77-one-shot-final
+          path: artifacts/r8-w4a-final
+          if-no-files-found: error
+          retention-days: 90
