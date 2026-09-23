@@ -52,7 +52,7 @@ jobs:
 
       - name: Run W5b unit and regression tests
         run: |
-          pytest -q             tests/test_token_relation_modes.py             tests/test_semantic_token_curriculum.py             tests/test_schema.py             tests/test_runtime.py
+          pytest -q             tests/test_token_relation_modes.py             tests/test_semantic_token_curriculum.py             tests/test_hira.py             tests/test_runtime.py
 
   cache:
     if: github.event_name == 'push'
