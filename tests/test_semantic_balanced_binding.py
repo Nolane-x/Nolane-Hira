@@ -6,8 +6,11 @@ import torch
 from nmd.semantic_balanced_binding import (
     CANDIDATES,
     CONFIRM_K_COUNTS,
+    CONFIRM_SEED,
     DEV_K_COUNTS,
+    DEV_SEED,
     TRAIN_K_COUNTS,
+    TRAIN_SEED,
     BalancedBindingMatcher,
     _option_salience,
     all_w5h_vocab,
@@ -92,6 +95,28 @@ def test_w5h_authority_counts_are_frozen():
     assert len(confirm) == 192
     assert {c.case_id for c in train}.isdisjoint({c.case_id for c in dev})
     assert all(c.split == "confirm" for c in confirm)
+
+
+def test_w5h_repaired_authority_is_fresh_and_avoids_w5g_template_scaffolds():
+    assert (TRAIN_SEED, DEV_SEED, CONFIRM_SEED) == (141109, 142211, 143313)
+    rendered = []
+    for split in ("train", "dev", "confirm"):
+        for case in generate_binding_authority(split):
+            rendered.extend((case.state_text, case.question_text))
+    text = "\n".join(rendered)
+    forbidden_w5g_scaffolds = (
+        "Ledger fields:",
+        "Dossier records",
+        "Card links",
+        "Index ->",
+        "Placard shows",
+        "Memo pairs",
+        "Registry fields:",
+        "Capsule ->",
+        "Bulletin links",
+    )
+    for phrase in forbidden_w5g_scaffolds:
+        assert phrase not in text
 
 
 def test_w5h_vocab_is_disjoint_from_w5a_through_w5g():
