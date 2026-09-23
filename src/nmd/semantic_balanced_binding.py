@@ -296,12 +296,20 @@ def generate_binding_case(
     )
 
 
-def generate_binding_authority(split: str) -> list[BindingCase]:
+def generate_binding_authority(
+    split: str,
+    *,
+    allow_confirm: bool = False,
+) -> list[BindingCase]:
     if split == "train":
         counts, seed, templates = TRAIN_K_COUNTS, TRAIN_SEED, TRAIN_TEMPLATES
     elif split == "dev":
         counts, seed, templates = DEV_K_COUNTS, DEV_SEED, DEV_TEMPLATES
     elif split == "confirm":
+        if not allow_confirm:
+            raise RuntimeError(
+                "W5h CONFIRM authority is sealed until post-selection evaluation"
+            )
         counts, seed, templates = CONFIRM_K_COUNTS, CONFIRM_SEED, CONFIRM_TEMPLATES
     else:
         raise ValueError(f"unknown W5h split: {split}")
