@@ -1,0 +1,313 @@
+name: r8-w6c-reliability-calibration-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w6c-reliability-calibration
+    paths:
+      - "src/nmd/calibration.py"
+      - "src/nmd/runtime.py"
+      - "src/nmd/typed_reliability_authority.py"
+      - "src/nmd/typed_reliability_cache.py"
+      - "scripts/r8_w6c_build_cache.py"
+      - "scripts/r8_w6c_train_candidate.py"
+      - "scripts/r8_w6c_select_candidate.py"
+      - "scripts/r8_w6c_confirm.py"
+      - "tests/test_typed_reliability_calibration.py"
+      - "tests/test_typed_reliability_authority.py"
+      - "tests/test_typed_reliability_cache.py"
+      - "research/R8-W6C-HANDOFF.md"
+      - ".github/workflows/r8-w6c-reliability-calibration-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w6c-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W6c stack
+        run: |
+          python -m py_compile             src/nmd/calibration.py             src/nmd/runtime.py             src/nmd/typed_reliability_authority.py             src/nmd/typed_reliability_cache.py             scripts/r8_w6c_build_cache.py             scripts/r8_w6c_train_candidate.py             scripts/r8_w6c_select_candidate.py             scripts/r8_w6c_confirm.py
+      - name: Run W6c contracts
+        run: |
+          pytest -q             tests/test_typed_reliability_calibration.py             tests/test_typed_reliability_authority.py             tests/test_typed_reliability_cache.py
+      - name: Run production regressions
+        run: |
+          pytest -q tests/test_competitive_coarse_runtime.py
+          pytest -q tests/test_typed_competitive_cache.py
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify W6b selected artifact metadata
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10792488690 --jq .digest)" = "sha256:3f0fe10a60701a0a654e5c71170432d55a96d1345b42fa2e53a38e9cb1778711"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10792488690 --jq .expired)" = "false"
+      - name: Download frozen W6b DEV-selected production path
+        uses: actions/download-artifact@v4
+        with:
+          name: r8-w6b-selected
+          path: inputs/frozen
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35959578866
+      - name: Verify W6b DEV-selected receipt and checkpoint hashes
+        run: |
+          test "$(sha256sum inputs/frozen/competitive-hira.pt | cut -d' ' -f1)" = "925f74094ac4ae583c015ea2a0be32ec692d885ec64dcf9cf3d94b64be0ccf42"
+          test "$(sha256sum inputs/frozen/competitive-scorer.pt | cut -d' ' -f1)" = "50abb2e8136599bcaf5c41d61036e3c335a7589c6244536cc0292dcea15b1ef0"
+          python - <<'PY'
+          import json
+          x=json.load(open("inputs/frozen/selection.json"))
+          assert x["schema_version"] == "r8-w6b-selection-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["selection_authority"] == "DEV_ONLY"
+          assert x["selected_competitive_candidate"] == "competitive-w5i-scorer-only"
+          assert x["selected_competitive_epoch"] == 6
+          assert x["selected_competitive_hira_sha256"] == "925f74094ac4ae583c015ea2a0be32ec692d885ec64dcf9cf3d94b64be0ccf42"
+          assert x["selected_competitive_scorer_sha256"] == "50abb2e8136599bcaf5c41d61036e3c335a7589c6244536cc0292dcea15b1ef0"
+          assert x["selected_competitive_trainable_parameter_count"] == 32769
+          assert x["confirm_exposed"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6c-frozen-production
+          path: inputs/frozen
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6c-frozen-production
+          path: inputs/frozen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Build fresh W6c frozen production logits
+        run: |
+          python scripts/r8_w6c_build_cache.py             --w6b-hira inputs/frozen/competitive-hira.pt             --w6b-scorer inputs/frozen/competitive-scorer.pt             --out artifacts/cache
+          cat artifacts/cache/receipt.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["status"] == "PASS"
+          assert x["train_seed"] == 171137
+          assert x["dev_seed"] == 172239
+          assert x["reserved_confirm_seed"] == 173341
+          assert x["train_case_count"] == 384
+          assert x["dev_case_count"] == 192
+          assert x["train_decision_count"] == 1920
+          assert x["dev_decision_count"] == 960
+          assert x["joint_strata_balanced"] is True
+          assert x["prior_w6b_w5_value_overlap"] == []
+          assert x["state_encodes_per_case_train"] == 1.0
+          assert x["state_encodes_per_case_dev"] == 1.0
+          assert x["cached_production_logits"] is True
+          assert x["hira_frozen"] is True
+          assert x["competitive_scorer_frozen"] is True
+          assert x["confirm_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6c-cache
+          path: artifacts/cache
+          if-no-files-found: error
+          retention-days: 14
+
+  candidate:
+    needs: cache
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate:
+          - frozen-production-control
+          - primitive-temperature
+          - primitive-temperature-noul-bias
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6c-cache
+          path: inputs/cache
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install calibration stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Train or evaluate W6c candidate
+        run: |
+          python scripts/r8_w6c_train_candidate.py             --train-cache inputs/cache/train.pt             --dev-cache inputs/cache/dev.pt             --candidate "${{ matrix.candidate }}"             --out "artifacts/candidates/${{ matrix.candidate }}"
+          cat "artifacts/candidates/${{ matrix.candidate }}/receipt.json"
+          python - "${{ matrix.candidate }}" <<'PY'
+          import json, pathlib, sys
+          name=sys.argv[1]
+          x=json.load(open(pathlib.Path("artifacts/candidates")/name/"receipt.json"))
+          expected={"frozen-production-control":0,"primitive-temperature":3,"primitive-temperature-noul-bias":4}[name]
+          assert x["status"] == "PASS"
+          assert x["candidate"] == name
+          assert x["trainable_parameter_count"] == expected
+          assert x["base_production_parameter_count"] == 454928
+          assert x["total_parameter_count"] == 454928 + expected
+          assert x["epochs"] == (0 if expected == 0 else 8)
+          assert x["hira_frozen"] is True
+          assert x["competitive_scorer_frozen"] is True
+          assert x["confirm_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6c-candidate-${{ matrix.candidate }}
+          path: artifacts/candidates/${{ matrix.candidate }}
+          if-no-files-found: error
+          retention-days: 14
+
+  select:
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w6c-candidate-*
+          path: inputs/candidates
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install selector stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Freeze W6c calibrator on DEV only
+        run: |
+          python scripts/r8_w6c_select_candidate.py             --candidates inputs/candidates             --out artifacts/selected
+          cat artifacts/selected/selection.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/selected/selection.json"))
+          assert x["status"] == "PASS"
+          assert x["selection_authority"] == "DEV_ONLY"
+          assert x["selected_candidate"] in {
+              "primitive-temperature",
+              "primitive-temperature-noul-bias",
+          }
+          assert x["selected_trainable_parameter_count"] in {3,4}
+          assert x["selected_total_parameter_count"] == 454928 + x["selected_trainable_parameter_count"]
+          assert x["control_candidate"] == "frozen-production-control"
+          assert x["control_trainable_parameter_count"] == 0
+          assert len(x["candidates"]) == 3
+          assert x["confirm_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6c-selected
+          path: artifacts/selected
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    needs: [select, upstream]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6c-selected
+          path: inputs/selected
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6c-frozen-production
+          path: inputs/frozen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen confirm stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Evaluate untouched W6c CONFIRM
+        run: |
+          python scripts/r8_w6c_confirm.py             --selection inputs/selected/selection.json             --calibrator inputs/selected/calibrator.pt             --w6b-hira inputs/frozen/competitive-hira.pt             --w6b-scorer inputs/frozen/competitive-scorer.pt             --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+      - name: Verify frozen scientific scope
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/confirm.json"))
+          assert x["schema_version"] == "r8-w6c-confirm-v1"
+          assert x["status"] == "PASS"
+          assert x["confirm_seed"] == 173341
+          assert x["confirm_generated_after_selection_freeze"] is True
+          assert x["confirm_case_count"] == 192
+          assert x["confirm_decision_count"] == 960
+          assert x["state_encodes_per_case"] == 1.0
+          assert x["selected_trainable_parameter_count"] in {3,4}
+          assert x["hira_frozen"] is True
+          assert x["competitive_scorer_frozen"] is True
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          assert x["selected"]["probability_mass_max_error"] <= 1e-6
+          assert x["frozen_production_control"]["probability_mass_max_error"] <= 1e-6
+          assert x["verdict"] in {
+              "RELIABILITY_CALIBRATION_RESCUE",
+              "RELIABILITY_CONTROL_ALREADY_RESCUES",
+              "RELIABILITY_CALIBRATION_PARTIAL",
+              "RELIABILITY_CALIBRATION_FAIL",
+          }
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6c-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
