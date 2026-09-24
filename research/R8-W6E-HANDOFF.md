@@ -130,6 +130,6 @@ Pre-cache contracts must prove:
 - no exact authority-value overlap with W5/W6b/W6c/W6d;
 - W6e-only case IDs/workflows;
 - CONFIRM-L/M remain sealed;
-- unit tests never request `allow_confirm=True`.
+- unit tests never request the post-freeze confirm capability.
 
 No W6e cache, model training, DEV freeze or CONFIRM materialization is valid until these contracts pass.
