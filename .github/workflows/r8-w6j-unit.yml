@@ -8,6 +8,8 @@ on:
       - "src/nmd/high_cardinality_decomposition.py"
       - "src/nmd/high_cardinality_decomposition_authority.py"
       - "src/nmd/high_cardinality_decomposition_eval.py"
+      - "scripts/r8_w6j_build_cache.py"
+      - "scripts/r8_w6j_evaluate.py"
       - "tests/test_high_cardinality_decomposition.py"
       - "tests/test_high_cardinality_decomposition_authority.py"
       - "tests/test_high_cardinality_decomposition_eval.py"
@@ -18,6 +20,8 @@ on:
       - "src/nmd/high_cardinality_decomposition.py"
       - "src/nmd/high_cardinality_decomposition_authority.py"
       - "src/nmd/high_cardinality_decomposition_eval.py"
+      - "scripts/r8_w6j_build_cache.py"
+      - "scripts/r8_w6j_evaluate.py"
       - "tests/test_high_cardinality_decomposition.py"
       - "tests/test_high_cardinality_decomposition_authority.py"
       - "tests/test_high_cardinality_decomposition_eval.py"
@@ -46,6 +50,8 @@ jobs:
             src/nmd/high_cardinality_decomposition.py \
             src/nmd/high_cardinality_decomposition_authority.py \
             src/nmd/high_cardinality_decomposition_eval.py \
+            scripts/r8_w6j_build_cache.py \
+            scripts/r8_w6j_evaluate.py \
             tests/test_high_cardinality_decomposition.py \
             tests/test_high_cardinality_decomposition_authority.py \
             tests/test_high_cardinality_decomposition_eval.py
