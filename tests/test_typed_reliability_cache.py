@@ -251,3 +251,54 @@ def test_gate_key_sets_are_explicit():
         "hard_brier_nonregression",
         "score_mae_nonregression",
     }
+
+
+def test_temperature_only_preserves_all_hard_predictions_on_cached_production_logits():
+    cache, _ = make_cache("train", 4)
+    control = evaluate_w6c_cases(None, cache)
+    calibrator = TypedReliabilityCalibrator(
+        "primitive-temperature"
+    )
+    with torch.no_grad():
+        calibrator.log_temperature.copy_(
+            torch.tensor([1.0, -0.7, 0.5])
+        )
+    calibrated = evaluate_w6c_cases(
+        calibrator,
+        cache,
+    )
+    assert calibrated["accuracy"] == control["accuracy"]
+    assert (
+        calibrated["primitive_accuracy"]
+        == control["primitive_accuracy"]
+    )
+    assert (
+        calibrated["diagnosis_per_k"]
+        == control["diagnosis_per_k"]
+    )
+
+
+def test_noul_bias_cannot_change_choice_score_or_diagnosis_predictions():
+    cache, _ = make_cache("train", 8)
+    control = evaluate_w6c_cases(None, cache)
+    calibrator = TypedReliabilityCalibrator(
+        "primitive-temperature-noul-bias"
+    )
+    with torch.no_grad():
+        calibrator.noul_true_bias.fill_(5.0)
+    calibrated = evaluate_w6c_cases(
+        calibrator,
+        cache,
+    )
+    assert (
+        calibrated["primitive_accuracy"]["choice"]
+        == control["primitive_accuracy"]["choice"]
+    )
+    assert (
+        calibrated["primitive_accuracy"]["score"]
+        == control["primitive_accuracy"]["score"]
+    )
+    assert (
+        calibrated["diagnosis_per_k"]
+        == control["diagnosis_per_k"]
+    )
