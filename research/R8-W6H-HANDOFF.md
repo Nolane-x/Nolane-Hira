@@ -293,3 +293,93 @@ The 8,192-param residual adapter is not a stable cross-domain field-semantic res
 This exposes an important mismatch between the W6g diagnosis and the first rescue operationalization. W6g localized weak **isolated changed-value retrieval**. W6h trained and gated **full-option one-field pair margins**. Those full-option pairs are already near saturation (~95% on held-out controls), so they are not a sensitive surrogate for the isolated-value failure that W6g identified.
 
 Per the preregistered boundary, do not enlarge A13 and do not stack another local synthetic mechanism onto this adapter. The next lane should reassess the production representation/interface itself, specifically whether free-form textual criterion strings are the right carrier for high-cardinality structured decisions, and should establish a fresh representation-level diagnostic before authorizing another rescue.
+
+
+## Authoritative closure
+
+Status: **CLOSED. Frozen verdict: `FIELD_SEMANTIC_FAIL`.**
+
+Exact empirical head:
+- `8e1fa435318f39780ce0cc4f0acc4f0c7be5770e`.
+
+Authority run:
+- `36016490423`;
+- all jobs PASS through untouched CONFIRM-Y/Z.
+
+CONFIRM artifact:
+- ID `10815792599`;
+- digest `sha256:b600b6cdf45fbea6f5d554d1286a46772610541913e370ac8c2052cce0c3bf19`.
+
+### Untouched CONFIRM-Y
+
+Frozen joint control:
+- overall 90.3125%;
+- diagnosis K64 47.917%;
+- mean one-field pair accuracy 94.820%.
+
+Projection-retune control:
+- overall 89.6875%;
+- diagnosis K64 56.250%;
+- mean one-field pair accuracy 96.141%.
+
+Semantic residual adapter:
+- overall 90.417%;
+- diagnosis K64 45.833%;
+- mean one-field pair accuracy 95.391%;
+- choice 84.375%;
+- noul 98.438%;
+- score 92.448%;
+- probability-mass max error 1.48e-7;
+- state encodes/case 1.0.
+
+Adapter vs frozen control:
+- overall +0.104 pp;
+- K64 -2.083 pp;
+- field-pair +0.572 pp.
+
+The adapter fails the absolute K64 >=55% gate and fails the preregistered K64/pair causal-gain gates on Y.
+
+### Untouched CONFIRM-Z
+
+Frozen joint control:
+- overall 89.479%;
+- diagnosis K64 37.500%;
+- mean one-field pair accuracy 95.129%.
+
+Projection-retune control:
+- overall 90.625%;
+- diagnosis K64 64.583%;
+- mean one-field pair accuracy 96.454%.
+
+Semantic residual adapter:
+- overall 91.146%;
+- diagnosis K64 62.500%;
+- mean one-field pair accuracy 96.132%;
+- choice 82.031%;
+- noul 100%;
+- score 95.833%;
+- probability-mass max error 1.36e-7;
+- state encodes/case 1.0.
+
+Adapter vs frozen control:
+- overall +1.667 pp;
+- K64 +25.000 pp;
+- field-pair +1.003 pp.
+
+The adapter passes all absolute Z competence gates and is K64/pair-comparable to projection retuning, but it fails the preregistered >=+10 pp field-pair causal-gain gate. Therefore Z is not a full rescue either.
+
+### Frozen verdict
+
+`FIELD_SEMANTIC_FAIL`.
+
+No threshold is changed after CONFIRM exposure. Y/Z are permanently exposed and forbidden for future training, selection, threshold tuning or mechanism search.
+
+### Scientific interpretation
+
+W6h exposes an important bridge mismatch between W6g localization and the W6h rescue proxy.
+
+W6g localized weak **isolated changed-value retrieval** on fresh domains. W6h trained/evaluated **full structured one-field option pairs**. On untouched Y/Z, the frozen control already scores about 94.8-95.1% on that structured pair metric before adaptation. The proxy therefore has little headroom and is not equivalent to the weak isolated-value measurement that authorized the lane.
+
+The 8,192-param adapter does not reproducibly rescue K64: it regresses on Y while improving strongly on Z. The 32,769-param projection-retune control is also inconsistent across domains but reaches K64 56.25%/64.58%, showing that frozen projection geometry can move without establishing the adapter's localized causal claim.
+
+Per the preregistered boundary, do not enlarge A13 and do not stack another local semantic adapter. The next lane must reassess the representation/interface bridge itself: whether free-form structured criterion strings and the current pair proxy preserve the field-semantic distinctions that the production decision actually requires.
