@@ -69,6 +69,18 @@ def main() -> None:
         rows.append((receipt, hira_path, scorer))
 
     names = {receipt["candidate"] for receipt, _, _ in rows}
+    cache_pairs = {
+        (
+            receipt.get("train_cache_sha256"),
+            receipt.get("dev_cache_sha256"),
+        )
+        for receipt, _, _ in rows
+    }
+    if len(cache_pairs) != 1:
+        raise RuntimeError("W6b candidates did not use identical TRAIN/DEV caches")
+    train_cache_sha256, dev_cache_sha256 = next(iter(cache_pairs))
+    if not train_cache_sha256 or not dev_cache_sha256:
+        raise RuntimeError("W6b candidate cache provenance missing")
     if names != set(CANDIDATES) or len(rows) != 3:
         raise RuntimeError(
             f"expected exactly three W6b candidates, got {sorted(names)}"
@@ -125,6 +137,8 @@ def main() -> None:
             "total_parameter_count"
         ],
         "base_w3_head_sha256": legacy_receipt["base_w3_head_sha256"],
+        "train_cache_sha256": train_cache_sha256,
+        "dev_cache_sha256": dev_cache_sha256,
         "base_w5i_scorer_sha256": selected_receipt[
             "base_w5i_scorer_sha256"
         ],
@@ -141,6 +155,8 @@ def main() -> None:
                 ],
                 "total_parameter_count": receipt["total_parameter_count"],
                 "hira_sha256": receipt["hira_sha256"],
+                "train_cache_sha256": receipt["train_cache_sha256"],
+                "dev_cache_sha256": receipt["dev_cache_sha256"],
                 "scorer_sha256": receipt["scorer_sha256"],
                 "history": receipt["history"],
             }
