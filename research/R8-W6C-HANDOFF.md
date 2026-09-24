@@ -173,3 +173,18 @@ Forbidden:
 - changing thresholds after W6c CONFIRM generation.
 
 The first empirical authority is valid only after the W6c unit/contract suite passes on the same exact head.
+
+
+## Pre-authority unit findings and repairs
+
+A unit-only pre-authority head failed before upstream/cache/CONFIRM execution and exposed two real defects:
+
+1. TRAIN and DEV initially shared the same field-value pools and the frozen seeds produced one duplicate gold semantic signature across splits.
+   - Repair: TRAIN, DEV and CONFIRM now use pairwise-disjoint field-value lexicons.
+   - Regression contracts require pairwise lexicon disjointness and zero TRAIN↔DEV gold-signature collision.
+
+2. Raw logits were initially cached inside `torch.inference_mode()`.
+   - Such tensors cannot participate in a later autograd graph even when only calibrator parameters require gradients.
+   - Repair: frozen production logit compilation uses `torch.no_grad()`, stores ordinary `requires_grad=False` tensors, and tests require `is_inference() == False`.
+
+The failed head did not generate a W6c cache and did not expose W6c CONFIRM. Existing W6c seeds remain untouched.
