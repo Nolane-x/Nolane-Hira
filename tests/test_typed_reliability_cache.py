@@ -62,6 +62,7 @@ def test_logit_cache_is_state_once_and_contains_no_trainable_model():
     for case in cache["cases"]:
         for decision in case["decisions"]:
             assert decision["raw_logits"].requires_grad is False
+            assert decision["raw_logits"].is_inference() is False
 
 
 def test_control_and_identity_calibrator_are_exactly_equivalent():
