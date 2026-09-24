@@ -510,6 +510,9 @@ def compile_w6g_cache(
                 for domain in ("Q", "R", "S")
             },
             "state_encode_calls": state_calls,
+            "field_probe_encoder_batches": len(bases),
+            "field_probe_texts_per_base": 20,
+            "field_probe_text_count": 20 * len(bases),
             "state_encode_calls_per_base": (
                 state_calls / max(1, len(bases))
             ),
