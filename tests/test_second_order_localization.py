@@ -63,6 +63,9 @@ def test_w6g_cache_is_base_centric_and_state_once_per_base():
     assert cache["metadata"]["base_count"] == 1
     assert cache["metadata"]["view_count"] == 10
     assert cache["metadata"]["state_encode_calls"] == 1
+    assert cache["metadata"]["field_probe_encoder_batches"] == 1
+    assert cache["metadata"]["field_probe_texts_per_base"] == 20
+    assert cache["metadata"]["field_probe_text_count"] == 20
     assert cache["metadata"]["state_encode_calls_per_base"] == 1.0
     assert cache["metadata"]["state_encode_calls_per_view"] == 0.1
     assert len(cache["metadata"]["case_id_sha256"]) == 64
