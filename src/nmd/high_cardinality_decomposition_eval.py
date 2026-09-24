@@ -431,6 +431,7 @@ def _score_subset(
         "final": final_metrics,
         "predicted_master_index": predicted_master,
         "coarse_predicted_master_index": coarse_predicted_master,
+        "probability_mass_error": abs(float(out.probabilities[0].sum()) - 1.0),
     }
 
 
@@ -462,6 +463,7 @@ def _oracle_relation_probe(
     return {
         "coarse": _rank_metrics(out.coarse_logits[0], gold_position),
         "final": _rank_metrics(out.logits[0], gold_position),
+        "probability_mass_error": abs(float(out.probabilities[0].sum()) - 1.0),
     }
 
 
