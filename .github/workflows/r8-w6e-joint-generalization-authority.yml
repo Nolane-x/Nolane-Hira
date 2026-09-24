@@ -1,0 +1,314 @@
+name: r8-w6e-joint-generalization-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w6e-joint-generalization-replication
+    paths:
+      - "src/nmd/typed_joint_replication_authority.py"
+      - "src/nmd/typed_joint_replication.py"
+      - "scripts/r8_w6e_build_cache.py"
+      - "scripts/r8_w6e_train_candidate.py"
+      - "scripts/r8_w6e_freeze_candidates.py"
+      - "scripts/r8_w6e_confirm.py"
+      - "tests/test_typed_joint_replication_authority.py"
+      - "tests/test_typed_joint_replication.py"
+      - "research/R8-W6E-HANDOFF.md"
+      - ".github/workflows/r8-w6e-joint-generalization-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w6e-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W6e stack
+        run: |
+          python -m py_compile             src/nmd/typed_joint_replication_authority.py             src/nmd/typed_joint_replication.py             scripts/r8_w6e_build_cache.py             scripts/r8_w6e_train_candidate.py             scripts/r8_w6e_freeze_candidates.py             scripts/r8_w6e_confirm.py
+      - name: Run W6e contracts and production regressions
+        run: |
+          pytest -q             tests/test_typed_joint_replication_authority.py             tests/test_typed_joint_replication.py             tests/test_typed_domain_generalization_authority.py             tests/test_typed_domain_generalization.py             tests/test_competitive_coarse_runtime.py             tests/test_runtime.py             tests/test_token_relation_modes.py             tests/test_training.py             tests/test_typed_decisions.py             tests/test_typed_competitive_cache.py
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen W6b selected artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10792488690 --jq .digest)" = "sha256:3f0fe10a60701a0a654e5c71170432d55a96d1345b42fa2e53a38e9cb1778711"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10792488690 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6b-selected
+          path: inputs/w6b
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35959578866
+      - name: Verify frozen W6b production identity
+        run: |
+          test "$(sha256sum inputs/w6b/competitive-hira.pt | cut -d' ' -f1)" = "925f74094ac4ae583c015ea2a0be32ec692d885ec64dcf9cf3d94b64be0ccf42"
+          test "$(sha256sum inputs/w6b/competitive-scorer.pt | cut -d' ' -f1)" = "50abb2e8136599bcaf5c41d61036e3c335a7589c6244536cc0292dcea15b1ef0"
+          python - <<'PY'
+          import json
+          x=json.load(open("inputs/w6b/selection.json"))
+          assert x["status"] == "PASS"
+          assert x["selected_competitive_candidate"] == "competitive-w5i-scorer-only"
+          assert x["selected_competitive_hira_sha256"] == "925f74094ac4ae583c015ea2a0be32ec692d885ec64dcf9cf3d94b64be0ccf42"
+          assert x["selected_competitive_scorer_sha256"] == "50abb2e8136599bcaf5c41d61036e3c335a7589c6244536cc0292dcea15b1ef0"
+          assert x["confirm_exposed"] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6e-frozen-w6b
+          path: inputs/w6b
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Build fresh G-J source and DEV-K caches
+        run: |
+          python scripts/r8_w6e_build_cache.py --out artifacts/cache
+          cat artifacts/cache/receipt.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["schema_version"] == "r8-w6e-cache-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["train_case_count"] == 384
+          assert x["dev_case_count"] == 192
+          assert x["train_decision_count"] == 1920
+          assert x["dev_decision_count"] == 960
+          assert x["train_domain_counts"] == {
+              "G":96, "H":96, "I":96, "J":96
+          }
+          assert x["all_value_count"] == 672
+          assert x["prior_authority_value_overlap"] == []
+          assert x["state_encodes_per_case_train"] == 1.0
+          assert x["state_encodes_per_case_dev"] == 1.0
+          assert x["confirm_l_exposed"] is False
+          assert x["confirm_m_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["w6c_confirm_rows_used"] is False
+          assert x["w6d_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6e-cache
+          path: artifacts/cache
+          if-no-files-found: error
+          retention-days: 14
+
+  candidate:
+    needs: [upstream, cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate:
+          - frozen-w6b-control
+          - multi-source-scorer-only
+          - multi-source-joint-primary
+          - multi-source-joint-replica
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6e-cache
+          path: inputs/cache
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6e-frozen-w6b
+          path: inputs/w6b
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install cached training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Freeze/train W6e path on DEV-K
+        run: |
+          python scripts/r8_w6e_train_candidate.py             --train-cache inputs/cache/train-multi.pt             --dev-cache inputs/cache/dev-k.pt             --w6b-hira inputs/w6b/competitive-hira.pt             --w6b-scorer inputs/w6b/competitive-scorer.pt             --candidate "${{ matrix.candidate }}"             --out "artifacts/candidates/${{ matrix.candidate }}"
+          cat "artifacts/candidates/${{ matrix.candidate }}/receipt.json"
+          python - "${{ matrix.candidate }}" <<'PY'
+          import json, pathlib, sys
+          name=sys.argv[1]
+          x=json.load(open(pathlib.Path("artifacts/candidates")/name/"receipt.json"))
+          assert x["schema_version"] == "r8-w6e-candidate-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["candidate"] == name
+          expected={
+              "frozen-w6b-control":(0,0,0),
+              "multi-source-scorer-only":(32769,384,1409),
+              "multi-source-joint-primary":(454928,384,1409),
+              "multi-source-joint-replica":(454928,384,2411),
+          }[name]
+          assert x["trainable_parameter_count"] == expected[0]
+          assert x["total_parameter_count"] == 454928
+          assert x["train_case_count"] == expected[1]
+          assert x["global_seed"] == expected[2]
+          assert x["optimizer_case_steps"] == (0 if name=="frozen-w6b-control" else 2304)
+          assert x["confirm_l_exposed"] is False
+          assert x["confirm_m_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["w6c_confirm_rows_used"] is False
+          assert x["w6d_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6e-candidate-${{ matrix.candidate }}
+          path: artifacts/candidates/${{ matrix.candidate }}
+          if-no-files-found: error
+          retention-days: 14
+
+  freeze:
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w6e-candidate-*
+          path: inputs/candidates
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install freeze stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Freeze every preregistered DEV-K checkpoint
+        run: |
+          python scripts/r8_w6e_freeze_candidates.py             --candidates inputs/candidates             --out artifacts/frozen
+          cat artifacts/frozen/freeze.json
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/frozen/freeze.json"))
+          assert x["schema_version"] == "r8-w6e-freeze-v1"
+          assert x["status"] == "PASS"
+          assert x["selection_authority"] == "DEV_K_INDEPENDENT_PER_CANDIDATE"
+          assert x["all_candidates_frozen_before_confirm"] is True
+          assert len(x["candidates"]) == 4
+          assert x["equal_train_case_budget"] is True
+          assert x["equal_optimizer_steps"] is True
+          assert x["primary_replica_seed_independence"] is True
+          assert x["confirm_l_exposed"] is False
+          assert x["confirm_m_exposed"] is False
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["w6c_confirm_rows_used"] is False
+          assert x["w6d_confirm_rows_used"] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6e-frozen
+          path: artifacts/frozen
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    needs: freeze
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6e-frozen
+          path: inputs/frozen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen dual-CONFIRM stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Evaluate untouched held-out domains L and M
+        run: |
+          python scripts/r8_w6e_confirm.py             --freeze inputs/frozen/freeze.json             --checkpoints inputs/frozen             --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+      - name: Verify frozen scientific scope
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/confirm.json"))
+          assert x["schema_version"] == "r8-w6e-confirm-v1"
+          assert x["status"] == "PASS"
+          assert x["confirm_generated_after_all_dev_freezes"] is True
+          assert x["confirm_domains"] == ["L","M"]
+          assert x["confirm_l_seed"] == 193387
+          assert x["confirm_m_seed"] == 194489
+          assert x["confirm_l_case_count"] == 192
+          assert x["confirm_m_case_count"] == 192
+          assert x["confirm_l_decision_count"] == 960
+          assert x["confirm_m_decision_count"] == 960
+          assert x["state_encodes_per_case_l"] == 1.0
+          assert x["state_encodes_per_case_m"] == 1.0
+          assert set(x["paths"]) == {"L","M"}
+          assert all(len(paths)==4 for paths in x["paths"].values())
+          assert x["equal_train_case_budget"] is True
+          assert x["equal_optimizer_steps"] is True
+          assert x["primary_replica_seed_independence"] is True
+          assert x["w6b_confirm_rows_used"] is False
+          assert x["w6c_confirm_rows_used"] is False
+          assert x["w6d_confirm_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          assert x["verdict"] in {
+              "JOINT_GENERALIZATION_REPLICATION_RESCUE",
+              "JOINT_GENERALIZATION_REPLICATION_PARTIAL",
+              "JOINT_GENERALIZATION_REPLICATION_FAIL",
+          }
+          for paths in x["paths"].values():
+              for metrics in paths.values():
+                  assert metrics["probability_mass_max_error"] <= 1e-6
+                  assert metrics["source_state_encodes_per_case"] == 1.0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w6e-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
