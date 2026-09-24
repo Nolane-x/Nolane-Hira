@@ -5,6 +5,8 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
+import torch
+
 from nmd.competitive import CompetitiveCoarseScorer
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
@@ -43,13 +45,30 @@ def prior_w5_values() -> set[str]:
     from nmd.semantic_contrastive_salience import all_w5g_vocab
     from nmd.semantic_cross_candidate_binding import all_w5i_vocab
     from nmd.semantic_late_interaction import all_w5f_vocab
+    from nmd import semantic_alignment_probes as w5c
+    from nmd import semantic_capacity_control as w5e
+    from nmd import semantic_encoder_adaptation as w5d
+    from nmd import semantic_routing_curriculum as w5a
+    from nmd import semantic_token_curriculum as w5b
 
-    return (
+    prior = (
         set(all_w5f_vocab())
         | set(all_w5g_vocab())
         | set(all_w5h_vocab())
         | set(all_w5i_vocab())
     )
+    for module in (w5a, w5b, w5c, w5d, w5e):
+        for name, value in vars(module).items():
+            if not (
+                name.startswith("TRAIN_")
+                or name.startswith("CONFIRM_")
+            ):
+                continue
+            if isinstance(value, tuple) and all(
+                isinstance(item, str) for item in value
+            ):
+                prior.update(value)
+    return prior
 
 
 def main() -> None:
@@ -98,7 +117,7 @@ def main() -> None:
     )
     hira = HIRACore(d_model=256, dropout=0.0)
     hira.load_state_dict(
-        __import__("torch").load(
+        torch.load(
             args.w6b_hira,
             map_location="cpu",
             weights_only=True,
