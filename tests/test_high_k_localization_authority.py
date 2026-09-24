@@ -137,6 +137,69 @@ def test_w6f_values_are_exactly_fresh_against_prior_authorities():
     assert not overlap, overlap
 
 
+def test_w6f_templates_and_role_wording_are_fresh_against_prior_authorities():
+    from nmd import semantic_balanced_binding as w5h
+    from nmd import semantic_contrastive_salience as w5g
+    from nmd import semantic_cross_candidate_binding as w5i
+    from nmd import semantic_late_interaction as w5f
+    from nmd import typed_competitive_authority as w6b
+    from nmd import typed_reliability_authority as w6c
+    from nmd import typed_domain_generalization_authority as w6d
+    from nmd import typed_joint_replication_authority as w6e
+
+    def module_literal_strings(module):
+        rows = set()
+        for value in vars(module).values():
+            if isinstance(value, str):
+                rows.add(value)
+            elif isinstance(value, (tuple, list, set)) and all(
+                isinstance(item, str) for item in value
+            ):
+                rows.update(value)
+        return rows
+
+    prior_literals = set()
+    for module in (w5f, w5g, w5h, w5i, w6b, w6c):
+        prior_literals.update(module_literal_strings(module))
+
+    prior_templates = set(w6b.TRAIN_TEMPLATES)
+    prior_templates.update(w6b.DEV_TEMPLATES)
+    prior_templates.update(w6b.CONFIRM_TEMPLATES)
+    prior_templates.update(w6c.TRAIN_TEMPLATES)
+    prior_templates.update(w6c.DEV_TEMPLATES)
+    prior_templates.update(w6c.CONFIRM_TEMPLATES)
+    prior_roles = {
+        "equipment", "zone", "anomaly", "channel",
+        "component", "compartment", "fault", "telemetry",
+    }
+
+    for spec in w6d.DOMAINS.values():
+        prior_templates.update(spec.templates)
+        prior_roles.update(spec.roles)
+    for spec in w6e.DOMAINS.values():
+        prior_templates.update(spec.templates)
+        prior_roles.update(spec.roles)
+
+    prior_templates.update(
+        value for value in prior_literals if "w5" in value
+    )
+
+    w6f_templates = {
+        template
+        for spec in DOMAINS.values()
+        for template in spec.templates
+    }
+    w6f_roles = {
+        role
+        for spec in DOMAINS.values()
+        for role in spec.roles
+    }
+    assert w6f_templates.isdisjoint(prior_templates)
+    assert w6f_templates.isdisjoint(prior_literals)
+    assert w6f_roles.isdisjoint(prior_roles)
+    assert w6f_roles.isdisjoint(prior_literals)
+
+
 def test_w6f_is_diagnostic_only_and_contains_no_prior_case_ids():
     rows = generate_w6f_diagnostics()
     ids = [row.typed.case_id for row in rows]
