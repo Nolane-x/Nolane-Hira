@@ -10,9 +10,10 @@ from nmd.competitive import CompetitiveCoarseScorer
 from nmd.high_k_localization import (
     aggregate_w6f_records,
     diagnose_cached_view,
+    load_w6f_cache,
 )
 from nmd.hira import HIRACore
-from nmd.typed_competitive_cache import file_sha256, load_w6b_cache
+from nmd.typed_competitive_cache import file_sha256
 
 
 CANDIDATES = (
@@ -84,12 +85,9 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
-    cache = load_w6b_cache(
-        args.cache,
-        expected_split="diagnostic",
-    )
-    if cache["metadata"].get("w6f_schema_version") != "r8-w6f-high-k-cache-v1":
-        raise RuntimeError("unexpected W6f cache extension schema")
+    cache = load_w6f_cache(args.cache)
+    if cache["metadata"].get("schema_version") != "r8-w6f-high-k-cache-v1":
+        raise RuntimeError("unexpected W6f cache schema")
     if cache["metadata"].get("view_count") != 1152:
         raise RuntimeError("W6f cache must contain 1,152 views")
     if cache["metadata"].get("base_count") != 288:
