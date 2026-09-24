@@ -315,3 +315,33 @@ def test_soft_ece_respects_declared_reliability_targets():
     soft_targets = [0.90, 0.75, 0.60]
     assert _ece15(confidence, soft_targets) < 1e-12
     assert _ece15(confidence, hard_correctness) > 0.15
+
+
+def test_selection_and_gates_use_soft_ece_not_raw_hard_ece():
+    base = metric_fixture(
+        accuracy=0.70,
+        choice=0.70,
+        noul=0.75,
+        score=0.65,
+        k64=0.60,
+        brier=0.45,
+        ece=0.10,
+        score_mae=0.50,
+    )
+    reliability_calibrated = {
+        **base,
+        "ece": 0.40,
+        "raw_ece": 0.40,
+        "soft_ece": 0.08,
+    }
+    hard_calibrated_only = {
+        **base,
+        "ece": 0.01,
+        "raw_ece": 0.01,
+        "soft_ece": 0.18,
+    }
+    assert dev_selection_key(
+        reliability_calibrated, 6
+    ) < dev_selection_key(hard_calibrated_only, 6)
+    gates = absolute_production_gates(reliability_calibrated)
+    assert gates["soft_ece"] is True
