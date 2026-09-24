@@ -167,3 +167,24 @@ def test_domain_registry_is_exactly_t_to_z():
         DOMAIN_Y.domain_id,
         DOMAIN_Z.domain_id,
     } == {"T", "U", "V", "W", "X", "Y", "Z"}
+
+
+def test_every_w6h_case_exposes_all_four_one_field_pairs():
+    rows = generate_w6h_train() + generate_w6h_dev()
+    for case in rows:
+        diagnosis = case.typed.decisions[0]
+        texts = [option.criterion_text for option in diagnosis.options]
+        gold = tuple(part.strip() for part in texts[diagnosis.gold_index].split(";"))
+        seen = set()
+        for index, text in enumerate(texts):
+            if index == diagnosis.gold_index:
+                continue
+            fields = tuple(part.strip() for part in text.split(";"))
+            changed = [
+                role
+                for role, (left, right) in enumerate(zip(gold, fields))
+                if left != right
+            ]
+            if len(changed) == 1:
+                seen.add(changed[0])
+        assert seen == {0, 1, 2, 3}
