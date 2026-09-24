@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from hashlib import sha256
 import math
+from pathlib import Path
 from typing import Iterable, Sequence
 
 import torch
@@ -9,51 +11,320 @@ from torch import Tensor
 
 from .competitive import CompetitiveCoarseScorer, MIN_COVERAGE_WEIGHT
 from .hira import HIRACore
-from .runtime import NolaneHira
-from .typed_competitive_cache import PRIMITIVE_TO_ID, compile_w6b_cache
+from .runtime import NolaneHira, PRIMITIVE_TO_ID
 from .high_k_localization_authority import (
     DOMAINS,
     HighKDiagnosticView,
 )
 
 
+def _case_id_sha256(views: Sequence[HighKDiagnosticView]) -> str:
+    payload = "\n".join(
+        sorted(view.typed.case_id for view in views)
+    ).encode("utf-8")
+    return sha256(payload).hexdigest()
+
+
+def validate_w6f_cache(cache: dict) -> None:
+    if not isinstance(cache, dict):
+        raise ValueError("W6f cache must be a dict")
+    metadata = cache.get("metadata")
+    cases = cache.get("cases")
+    if not isinstance(metadata, dict) or not isinstance(cases, list):
+        raise ValueError("W6f cache requires metadata and cases")
+    if metadata.get("schema_version") != "r8-w6f-high-k-cache-v1":
+        raise ValueError("unexpected W6f cache schema")
+    if metadata.get("split") != "diagnostic":
+        raise ValueError("W6f cache split must be diagnostic")
+    if int(metadata.get("case_count", -1)) != len(cases):
+        raise ValueError("W6f cache case count mismatch")
+    if int(metadata.get("view_count", -1)) != len(cases):
+        raise ValueError("W6f cache view count mismatch")
+    if float(metadata.get("state_encode_calls_per_case", -1.0)) != 1.0:
+        raise ValueError("W6f must encode state exactly once per view")
+
+    seen: set[str] = set()
+    base_ks: dict[str, set[int]] = defaultdict(set)
+    for case in cases:
+        case_id = str(case.get("case_id", ""))
+        if not case_id or case_id in seen:
+            raise ValueError("invalid or duplicate W6f case id")
+        seen.add(case_id)
+        if case.get("split") != "diagnostic":
+            raise ValueError("W6f case split mismatch")
+        if case.get("domain_id") not in {"N", "O", "P"}:
+            raise ValueError("invalid W6f domain")
+        k = int(case.get("diagnosis_k", -1))
+        if k not in {8, 16, 32, 64}:
+            raise ValueError("invalid W6f diagnosis K")
+
+        base_id = str(case.get("base_id", ""))
+        if not base_id:
+            raise ValueError("W6f base id missing")
+        if k in base_ks[base_id]:
+            raise ValueError("duplicate W6f K view inside base")
+        base_ks[base_id].add(k)
+
+        segments = case.get("state_segments")
+        state_tokens = case.get("state_content_tokens")
+        if (
+            not isinstance(segments, Tensor)
+            or segments.ndim != 2
+            or segments.shape[-1] != 256
+        ):
+            raise ValueError("W6f state_segments must be [S,256]")
+        if (
+            not isinstance(state_tokens, Tensor)
+            or state_tokens.ndim != 2
+            or state_tokens.shape[-1] != 256
+            or state_tokens.shape[0] < 1
+        ):
+            raise ValueError("W6f state_content_tokens must be [T,256]")
+
+        decisions = case.get("decisions")
+        if not isinstance(decisions, list) or len(decisions) != 1:
+            raise ValueError("W6f requires diagnosis-only cached views")
+        decision = decisions[0]
+        if (
+            decision.get("question_id") != "diagnosis"
+            or decision.get("primitive") != "choice"
+        ):
+            raise ValueError("W6f cached decision must be diagnosis/choice")
+
+        question = decision.get("question_embedding")
+        options = decision.get("option_embeddings")
+        question_tokens = decision.get("question_tokens")
+        question_mask = decision.get("question_content_mask")
+        option_tokens = decision.get("option_tokens")
+        option_ids = decision.get("option_token_ids")
+        option_mask = decision.get("option_content_mask")
+        gold_probs = decision.get("gold_probabilities")
+
+        if not isinstance(question, Tensor) or question.shape != (256,):
+            raise ValueError("W6f question_embedding must be [256]")
+        if (
+            not isinstance(options, Tensor)
+            or options.shape != (k, 256)
+        ):
+            raise ValueError("W6f option_embeddings must be [K,256]")
+        if (
+            not isinstance(question_tokens, Tensor)
+            or question_tokens.ndim != 2
+            or question_tokens.shape[-1] != 256
+        ):
+            raise ValueError("W6f question_tokens must be [T,256]")
+        if (
+            not isinstance(question_mask, Tensor)
+            or question_mask.shape != question_tokens.shape[:1]
+            or question_mask.dtype != torch.bool
+            or int(question_mask.sum()) < 1
+        ):
+            raise ValueError("W6f question content mask mismatch")
+        if (
+            not isinstance(option_tokens, Tensor)
+            or option_tokens.ndim != 3
+            or option_tokens.shape[0] != k
+            or option_tokens.shape[-1] != 256
+        ):
+            raise ValueError("W6f option_tokens must be [K,T,256]")
+        if (
+            not isinstance(option_ids, Tensor)
+            or option_ids.shape != option_tokens.shape[:2]
+            or option_ids.dtype != torch.long
+        ):
+            raise ValueError("W6f option token IDs mismatch")
+        if (
+            not isinstance(option_mask, Tensor)
+            or option_mask.shape != option_tokens.shape[:2]
+            or option_mask.dtype != torch.bool
+            or (option_mask.sum(-1) < 1).any()
+        ):
+            raise ValueError("W6f option content mask mismatch")
+        if (
+            not isinstance(gold_probs, Tensor)
+            or gold_probs.shape != (k,)
+            or not torch.isfinite(gold_probs).all()
+            or abs(float(gold_probs.sum()) - 1.0) > 1e-6
+        ):
+            raise ValueError("W6f gold probability contract failed")
+        gold = int(decision.get("gold_index", -1))
+        if not 0 <= gold < k or int(gold_probs.argmax()) != gold:
+            raise ValueError("W6f hard/soft gold mismatch")
+
+        signatures = case.get("option_signatures")
+        distances = case.get("option_distances")
+        roles = case.get("roles")
+        if not isinstance(signatures, tuple) or len(signatures) != k:
+            raise ValueError("W6f option signature metadata mismatch")
+        if not isinstance(distances, tuple) or len(distances) != k:
+            raise ValueError("W6f option distance metadata mismatch")
+        if int(distances[gold]) != 0:
+            raise ValueError("W6f gold option distance must be zero")
+        if not isinstance(roles, tuple) or len(roles) != 4:
+            raise ValueError("W6f role metadata mismatch")
+
+    if any(ks != {8, 16, 32, 64} for ks in base_ks.values()):
+        raise ValueError("W6f every base must expose all four K views")
+    if int(metadata.get("base_count", -1)) != len(base_ks):
+        raise ValueError("W6f base count mismatch")
+
+
+@torch.inference_mode()
 def compile_w6f_cache(
     model: NolaneHira,
     views: Sequence[HighKDiagnosticView],
 ) -> dict:
-    """Compile W6f through the already-tested W6b state/schema cache path."""
-    cache = compile_w6b_cache(
-        model,
-        views,
-        expected_split="diagnostic",
-    )
-    if len(cache["cases"]) != len(views):
-        raise RuntimeError("W6f cache/view count mismatch")
-
+    """Compile diagnosis-only diagnostics with production state/schema APIs."""
+    model.eval()
+    before = model.state_encode_calls
+    rows: list[dict] = []
     base_ids: set[str] = set()
-    for row, view in zip(cache["cases"], views):
-        if len(row["decisions"]) != 1:
-            raise RuntimeError("W6f view must contain diagnosis only")
-        row["base_id"] = view.base_id
-        row["domain_id"] = view.domain_id
-        row["gold_signature"] = tuple(view.gold_signature)
-        row["option_signatures"] = tuple(view.option_signatures)
-        row["option_distances"] = tuple(int(x) for x in view.option_distances)
-        row["roles"] = tuple(DOMAINS[view.domain_id].roles)
+
+    for view in views:
+        if view.split != "diagnostic":
+            raise ValueError("W6f view split mismatch")
+        typed = view.typed
+        if len(typed.decisions) != 1:
+            raise ValueError("W6f view must contain diagnosis only")
+        decision = typed.decisions[0]
+        if decision.question_id != "diagnosis" or decision.primitive != "choice":
+            raise ValueError("W6f view must contain diagnosis/choice")
+
+        memory = model.compile_state(
+            typed.state_text,
+            segment_tokens=32,
+        )
+        if memory.content_token_embeddings is None:
+            raise RuntimeError(
+                "W6f cache requires state content token embeddings"
+            )
+
+        schema, receipt = model.compile_schema(
+            primitive=decision.primitive,
+            question_text=decision.question_text,
+            options=decision.options,
+            use_cache=False,
+            include_token_artifacts=True,
+        )
+        required = (
+            schema.question_token_embeddings,
+            schema.question_content_token_mask,
+            schema.option_token_embeddings,
+            schema.option_token_ids,
+            schema.option_content_token_mask,
+        )
+        if any(value is None for value in required):
+            raise RuntimeError("W6f schema token artifacts are incomplete")
+
+        cached_decision = {
+            "question_id": decision.question_id,
+            "primitive": decision.primitive,
+            "schema_hash": receipt.schema_hash,
+            "question_embedding": (
+                schema.question_embedding.detach().cpu().to(torch.float16)
+            ),
+            "option_embeddings": (
+                schema.option_embeddings.detach().cpu().to(torch.float16)
+            ),
+            "question_tokens": (
+                schema.question_token_embeddings.detach().cpu().to(torch.float16)
+            ),
+            "question_content_mask": (
+                schema.question_content_token_mask.detach().cpu().bool()
+            ),
+            "option_tokens": (
+                schema.option_token_embeddings.detach().cpu().to(torch.float16)
+            ),
+            "option_token_ids": (
+                schema.option_token_ids.detach().cpu().long()
+            ),
+            "option_content_mask": (
+                schema.option_content_token_mask.detach().cpu().bool()
+            ),
+            "gold_index": int(decision.gold_index),
+            "gold_probabilities": torch.tensor(
+                decision.gold_probabilities,
+                dtype=torch.float32,
+            ),
+        }
+
+        rows.append(
+            {
+                "case_id": typed.case_id,
+                "split": "diagnostic",
+                "base_id": view.base_id,
+                "domain_id": view.domain_id,
+                "template_id": view.template_id,
+                "diagnosis_k": int(view.diagnosis_k),
+                "severity": int(view.severity),
+                "confidence": view.confidence,
+                "gold_signature": tuple(view.gold_signature),
+                "option_signatures": tuple(view.option_signatures),
+                "option_distances": tuple(
+                    int(x) for x in view.option_distances
+                ),
+                "roles": tuple(DOMAINS[view.domain_id].roles),
+                "state_segments": (
+                    memory.segment_embeddings.detach().cpu().to(torch.float16)
+                ),
+                "state_content_tokens": (
+                    memory.content_token_embeddings.detach().cpu().to(
+                        torch.float16
+                    )
+                ),
+                "decisions": [cached_decision],
+            }
+        )
         base_ids.add(view.base_id)
 
-    cache["metadata"]["w6f_schema_version"] = "r8-w6f-high-k-cache-v1"
-    cache["metadata"]["base_count"] = len(base_ids)
-    cache["metadata"]["view_count"] = len(views)
-    cache["metadata"]["domain_counts"] = dict(
-        Counter(view.domain_id for view in views)
-    )
-    cache["metadata"]["k_counts"] = {
-        str(k): sum(view.diagnosis_k == k for view in views)
-        for k in (8, 16, 32, 64)
+    state_calls = model.state_encode_calls - before
+    if state_calls != len(views):
+        raise RuntimeError(
+            "W6f cache violated one-state-encode-per-view contract"
+        )
+
+    cache = {
+        "metadata": {
+            "schema_version": "r8-w6f-high-k-cache-v1",
+            "split": "diagnostic",
+            "case_count": len(rows),
+            "view_count": len(rows),
+            "base_count": len(base_ids),
+            "case_id_sha256": _case_id_sha256(views),
+            "state_encode_calls": state_calls,
+            "state_encode_calls_per_case": (
+                state_calls / max(1, len(rows))
+            ),
+            "domain_counts": dict(
+                Counter(view.domain_id for view in views)
+            ),
+            "k_counts": {
+                str(k): sum(view.diagnosis_k == k for view in views)
+                for k in (8, 16, 32, 64)
+            },
+        },
+        "cases": rows,
     }
+    validate_w6f_cache(cache)
     return cache
 
+
+def save_w6f_cache(cache: dict, path: str | Path) -> Path:
+    validate_w6f_cache(cache)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(cache, path)
+    return path
+
+
+def load_w6f_cache(path: str | Path) -> dict:
+    cache = torch.load(
+        Path(path),
+        map_location="cpu",
+        weights_only=True,
+    )
+    validate_w6f_cache(cache)
+    return cache
 
 def uniform_salience_logits(
     scorer: CompetitiveCoarseScorer,
