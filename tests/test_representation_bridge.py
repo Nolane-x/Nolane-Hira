@@ -68,6 +68,14 @@ def test_w6i_cache_is_base_centric_and_accounts_extra_probe_encoding():
     assert metadata["representation_texts_per_base"] == 380.0
     assert len(metadata["case_id_sha256"]) == 64
     assert len(metadata["semantic_view_sha256"]) == 64
+    assert len(metadata["production_representation_sha256"]) == 64
+    assert len(metadata["canonical_representation_sha256"]) == 64
+    assert len(metadata["factorized_representation_sha256"]) == 64
+    assert len({
+        metadata["production_representation_sha256"],
+        metadata["canonical_representation_sha256"],
+        metadata["factorized_representation_sha256"],
+    }) == 3
 
     base = cache["bases"][0]
     assert set(base["field_probes"]) == set(ROLE_KEYS)
@@ -138,6 +146,8 @@ def test_w6i_same_case_bridge_evaluator_is_finite():
         assert math.isfinite(
             float(row["role_swap_rejection"]["margin"])
         )
+        assert math.isfinite(float(row["factorized_field_margin_k8"]))
+        assert math.isfinite(float(row["factorized_field_margin_k64"]))
 
     for path in ("production", "canonical"):
         for view_id in (
