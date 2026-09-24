@@ -12,10 +12,10 @@ from nmd.second_order_localization import (
     aggregate_fullset_rank,
     aggregate_role_context,
     diagnose_w6g_view,
+    diagnostic_stability,
     load_w6g_cache,
     pair_context_trajectory,
     role_localization_classification,
-    stable_role_target,
 )
 from nmd.second_order_localization_authority import ROLE_KEYS
 from nmd.typed_competitive_cache import file_sha256
@@ -192,67 +192,6 @@ def _pooled_results(records):
     }
 
 
-def _stability(results):
-    stable = {}
-    for role in ROLE_KEYS:
-        scorer_only = {
-            domain: metrics["roles"][role]["classification"][
-                "classification"
-            ]
-            for domain, metrics in results[
-                "multi-source-scorer-only"
-            ]["per_domain"].items()
-        }
-        primary = {
-            domain: metrics["roles"][role]["classification"][
-                "classification"
-            ]
-            for domain, metrics in results[
-                "multi-source-joint-primary"
-            ]["per_domain"].items()
-        }
-        replica = {
-            domain: metrics["roles"][role]["classification"][
-                "classification"
-            ]
-            for domain, metrics in results[
-                "multi-source-joint-replica"
-            ]["per_domain"].items()
-        }
-        stable[role] = stable_role_target(
-            scorer_only=scorer_only,
-            joint_primary=primary,
-            joint_replica=replica,
-        )
-    targets = {
-        role: result
-        for role, result in stable.items()
-        if result["stable"]
-    }
-    mechanism_labels = sorted({
-        target["targets"][0]["classification"]
-        for target in targets.values()
-        if target["targets"]
-    })
-    authorized = bool(targets) and len(mechanism_labels) == 1
-    outcome = (
-        "STABLE_SECOND_ORDER_LOCALIZATION"
-        if authorized
-        else (
-            "MIXED_STABLE_SECOND_ORDER_LOCALIZATION"
-            if targets
-            else "NO_STABLE_SECOND_ORDER_LOCALIZATION"
-        )
-    )
-    return {
-        "per_role": stable,
-        "stable_target_count": len(targets),
-        "stable_targets": targets,
-        "stable_mechanism_classes": mechanism_labels,
-        "rescue_lane_authorized": authorized,
-        "diagnostic_outcome": outcome,
-    }
-
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -318,7 +257,7 @@ def main() -> None:
             encoding="utf-8",
         )
 
-    stability = _stability(results)
+    stability = diagnostic_stability(results)
     receipt = {
         "schema_version": "r8-w6g-second-order-localization-v1",
         "status": "PASS",
