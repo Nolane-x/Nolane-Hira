@@ -71,7 +71,13 @@ def test_w6g_cache_is_base_centric_and_state_once_per_base():
     assert set(base["field_probes"]) == set(ROLE_KEYS)
     for role in ROLE_KEYS:
         probe = base["field_probes"][role]
-        for key in ("gold", "negative", "role"):
+        for key in (
+            "gold",
+            "negative",
+            "role",
+            "gold_phrase",
+            "negative_phrase",
+        ):
             assert probe[key]["tokens"].shape[-1] == 256
             assert probe[key]["tokens"].shape[0] >= 1
             assert probe[key]["token_ids"].shape[0] == probe[key]["tokens"].shape[0]
@@ -309,7 +315,7 @@ def test_aggregate_role_context_reports_pair_recovery_metrics():
     assert out["isolated_value_accuracy"] == 1.0
 
 
-def test_pair_view_exposes_changed_field_token_evidence():
+def test_pair_view_exposes_tokenizer_robust_field_counterfactuals():
     model, hira, scorer = _small_runtime()
     cache = compile_w6g_cache(model, _one_base_views())
     base = cache["bases"][0]
@@ -322,16 +328,13 @@ def test_pair_view_exposes_changed_field_token_evidence():
         views["pair-entity"],
         core,
     )
-    evidence = result["role_pairs"]["entity"]["token_group_evidence"]
-    assert evidence is not None
-    assert evidence["changed_value_group"] == "value:entity"
-    assert isinstance(evidence["changed_value_favors_gold"], bool)
-    assert "value:entity" in evidence["groups"]
-    assert "role:entity" in evidence["groups"]
-    delta = evidence["groups"]["value:entity"][
-        "gold_minus_negative_weighted_coverage"
-    ]
-    assert math.isfinite(float(delta))
+    role = result["role_pairs"]["entity"]
+    value = role["isolated_value"]
+    phrase = role["role_value_phrase"]
+    assert isinstance(value["gold_wins"], bool)
+    assert isinstance(phrase["gold_wins"], bool)
+    assert math.isfinite(float(value["margin"]))
+    assert math.isfinite(float(phrase["margin"]))
 
 
 def test_stable_role_target_requires_primary_replica_and_noncontradiction():
