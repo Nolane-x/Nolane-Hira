@@ -44,10 +44,13 @@ jobs:
         run: |
           python -m py_compile \
             src/nmd/representation_bridge_authority.py \
-            tests/test_representation_bridge_authority.py
+            src/nmd/representation_bridge.py \
+            tests/test_representation_bridge_authority.py \
+            tests/test_representation_bridge.py
       - name: Run W6i generator and production contracts
         run: |
           pytest -q \
             tests/test_representation_bridge_authority.py \
+            tests/test_representation_bridge.py \
             tests/test_competitive_coarse_runtime.py \
             tests/test_typed_competitive_cache.py
