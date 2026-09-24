@@ -19,7 +19,7 @@ from .representation_bridge_authority import (
     canonical_tagged_text,
     factorized_role_value_phrases,
 )
-from .runtime import NolaneHira
+from .runtime import NolaneHira, PRIMITIVE_TO_ID
 from .second_order_localization import (
     _content_from_text_batch,
     _isolated_score,
@@ -27,7 +27,6 @@ from .second_order_localization import (
     isolated_value_probe,
     role_value_phrase_probe,
 )
-from .typed_decisions import PRIMITIVE_TO_ID
 
 
 PRIOR_W6G_P0_ANCHOR = 0.60
