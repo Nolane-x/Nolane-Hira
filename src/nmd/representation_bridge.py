@@ -907,6 +907,10 @@ def aggregate_w6i_records(
         (not left) and right
         for left, right in zip(p0, p2)
     ]
+    p0_wrong_p3_k64_right = [
+        (not left) and right
+        for left, right in zip(p0, p3_k64)
+    ]
     p0_right_p2_wrong = [
         left and (not right)
         for left, right in zip(p0, p2)
@@ -964,6 +968,9 @@ def aggregate_w6i_records(
         ),
         "p3_k64_fixed_pair_accuracy": _accuracy(p3_k64),
         "p0_wrong_p2_right_rate": _accuracy(p0_wrong_p2_right),
+        "p0_wrong_p3_k64_right_rate": _accuracy(
+            p0_wrong_p3_k64_right
+        ),
         "p0_right_p2_wrong_rate": _accuracy(p0_right_p2_wrong),
         "p0_margin": _mean(
             [
@@ -1010,6 +1017,9 @@ def representation_classification(
     p0 = float(metrics["p0_accuracy"])
     p2 = float(metrics["p2_accuracy"])
     mismatch = float(metrics["p0_wrong_p2_right_rate"])
+    full_set_mismatch = float(
+        metrics["p0_wrong_p3_k64_right_rate"]
+    )
     production_k64 = float(metrics["production_k64"]["top1"])
     fixed_pair = float(metrics["p3_k64_fixed_pair_accuracy"])
     gains = {
@@ -1026,7 +1036,8 @@ def representation_classification(
     proxy_mismatch = (
         p0 < 0.80
         and p2 >= 0.90
-        and mismatch >= 0.15
+        and fixed_pair >= 0.90
+        and full_set_mismatch >= 0.15
     )
     free_form_limit = (
         p2 >= 0.90
@@ -1073,6 +1084,7 @@ def representation_classification(
         "p0_accuracy": p0,
         "p2_accuracy": p2,
         "p0_wrong_p2_right_rate": mismatch,
+        "p0_wrong_p3_k64_right_rate": full_set_mismatch,
         "production_k64_top1": production_k64,
         "fixed_pair_k64_accuracy": fixed_pair,
         "representation_k64_gains": gains,
