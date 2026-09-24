@@ -90,7 +90,7 @@ def test_every_base_uses_same_state_gold_and_nested_candidate_membership():
                 assert len(view.option_signatures) == view.diagnosis_k
                 assert len(view.option_distances) == view.diagnosis_k
                 assert view.option_distances[decision.gold_index] == 0
-                assert sum(decision.gold_probabilities) == 1.0
+                assert abs(sum(decision.gold_probabilities) - 1.0) < 1e-12
 
         assert len(golds) == len(set(golds)) == 96
 
