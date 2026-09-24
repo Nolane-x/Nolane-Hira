@@ -184,3 +184,35 @@ Before any W6g A13 cache existed, the counterfactual probes were therefore froze
 - gold role+value phrase vs negative role+value phrase against the same full state-token sequence.
 
 This keeps the probe tokenizer-robust while making it contextual and non-tautological.
+
+
+## Pre-data gate-alignment audit
+
+Before any W6g A13 cache or diagnostic output existed, the first gated workflow
+attempts stopped in the unit stage.
+
+The audit found three implementation/contract defects and repaired them before
+empirical exposure:
+
+1. the synthetic margin fixture expected the wrong
+   `phrase_to_full_margin_delta`; the implementation correctly defines this
+   as full structured K2 margin minus role+value phrase margin;
+2. cross-checkpoint stability logic lived in the CLI script, making the unit
+   contract depend on importing `scripts/`; the logic is now centralized in
+   `nmd.second_order_localization.diagnostic_stability` and consumed by both
+   tests and the evaluator;
+3. the first localization implementation incorrectly applied the far64
+   stability guard to the IDF-interference classes. The preregistered issue
+   only requires far64 stability for `DENSITY_NEAR_NEIGHBOR_LIMIT`.
+   IDF aggregation/common-mode/mixed classes now use the frozen K2 -> dense64
+   fixed-pair drop, while the density-near-neighbor class alone requires
+   far64 to stay within 0.05 of K2 and dense64 to drop at least 0.10 from
+   far64.
+
+The evaluator also gives `MIXED_IDF_PATHWAY_INTERFERENCE` precedence whenever
+both IDF pathways independently cross their recovery thresholds, matching the
+frozen rule.
+
+These repairs do not change Q/R/S generators, seeds, checkpoints, model
+parameters, diagnostic thresholds or any empirical result. No eligible W6g
+cache/evaluator result existed before the repairs.
