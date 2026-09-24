@@ -227,3 +227,18 @@ def test_w6b_value_lexicon_has_no_exact_overlap_with_w5_authority_values():
 
     overlap = all_w6b_values() & prior
     assert not overlap, overlap
+
+
+def test_train_and_dev_have_no_semantic_diagnosis_signature_collision():
+    train = generate_w6b_authority("train")
+    dev = generate_w6b_authority("dev")
+
+    def gold_signature(case):
+        diagnosis = case.typed.decisions[0]
+        return diagnosis.options[diagnosis.gold_index].criterion_text
+
+    train_signatures = [gold_signature(case) for case in train]
+    dev_signatures = [gold_signature(case) for case in dev]
+    assert len(set(train_signatures)) == len(train_signatures)
+    assert len(set(dev_signatures)) == len(dev_signatures)
+    assert set(train_signatures).isdisjoint(dev_signatures)
