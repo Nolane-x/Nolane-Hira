@@ -174,7 +174,11 @@ def test_isolated_value_probe_is_finite_and_nonmutating():
         key: value.detach().clone()
         for key, value in scorer.state_dict().items()
     }
-    result = isolated_value_probe(scorer, probe)
+    result = isolated_value_probe(
+        scorer,
+        probe,
+        cache["bases"][0]["state_content_tokens"],
+    )
     assert isinstance(result["gold_wins"], bool)
     assert math.isfinite(float(result["margin"]))
     assert math.isfinite(float(result["gold_score"]))
