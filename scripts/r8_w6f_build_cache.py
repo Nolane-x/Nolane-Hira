@@ -5,7 +5,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
-from nmd.high_k_localization import compile_w6f_cache
+from nmd.high_k_localization import compile_w6f_cache, save_w6f_cache
 from nmd.high_k_localization_authority import (
     BASES_PER_DOMAIN,
     DOMAIN_N_SEED,
@@ -22,7 +22,7 @@ from nmd.high_k_localization_authority import (
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
 from nmd.semantic import HFAutoSemanticEncoder
-from nmd.typed_competitive_cache import file_sha256, save_w6b_cache
+from nmd.typed_competitive_cache import file_sha256
 
 
 A13_MODEL = "microsoft/xtremedistil-l6-h256-uncased"
@@ -110,7 +110,7 @@ def main() -> None:
 
     views = generate_w6f_diagnostics()
     cache = compile_w6f_cache(model, views)
-    cache_path = save_w6b_cache(cache, args.out / "diagnostics.pt")
+    cache_path = save_w6f_cache(cache, args.out / "diagnostics.pt")
 
     value_sets = domain_value_sets()
     template_sets = domain_template_sets()
