@@ -141,3 +141,31 @@ The final eligible authority must therefore begin at or after commit
 
 No model formula, optimizer, authority seed, domain vocabulary, DEV ordering,
 gate, or verdict rule changed in this seal repair.
+
+
+## Pre-data authority orchestration repair
+
+The first post-seal authority head `98a992e7e591b83ef704e557c2b1ba4bf8367875`
+failed in the **unit gate before upstream/cache execution** because the authority
+workflow referenced a nonexistent regression file:
+`tests/test_competitive_production.py`.
+
+This was an orchestration error only:
+- compile passed;
+- no W6d source/DEV cache was built by that run;
+- no candidate trained;
+- no DEV checkpoint frozen;
+- CONFIRM-F remained ungenerated.
+
+The workflow now executes the actual production regression set used by W6:
+- `tests/test_competitive_coarse_runtime.py`;
+- `tests/test_runtime.py`;
+- `tests/test_token_relation_modes.py`;
+- `tests/test_training.py`;
+- `tests/test_typed_decisions.py`;
+- plus `tests/test_typed_competitive_cache.py` and both W6d suites.
+
+The standalone W6d unit workflow uses the same regression set so this class of
+workflow drift is caught before future authority execution.
+
+No data/model/seed/gate/verdict change was made.
