@@ -1,0 +1,119 @@
+name: r8-benchmark-campaign-ci
+
+on:
+  push:
+    paths:
+      - "benchmarks/**"
+      - "tests/test_laya_metric_semantics.py"
+      - "tests/test_scorecard.py"
+      - ".github/workflows/r8-benchmark-campaign-ci.yml"
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "tests/test_laya_metric_semantics.py"
+      - "tests/test_scorecard.py"
+      - ".github/workflows/r8-benchmark-campaign-ci.yml"
+
+jobs:
+  validate-campaign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Unit-test score semantics
+        run: |
+          pytest -q tests/test_laya_metric_semantics.py tests/test_scorecard.py
+
+      - name: Audit immutable benchmark sources
+        run: |
+          python benchmarks/audit_sources.py benchmarks/source_registry.json > /tmp/source-audit.json
+          cat /tmp/source-audit.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          audit = json.loads(Path("/tmp/source-audit.json").read_text())
+          expected_blocked = {
+              "typed_decisions",
+              "mteb.massive_intent",
+              "mteb.massive_scenario",
+          }
+          assert audit["invalid"] == [], audit
+          assert set(audit["blocked"]) == expected_blocked, audit
+          assert audit["total"] == audit["pinned"] + len(audit["blocked"]), audit
+          PY
+
+      - name: Validate protocol manifests and frozen target count
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("benchmarks")
+          targets = json.loads((root / "laya_jev_targets.json").read_text())
+          laya = json.loads((root / "laya_protocol_manifest.json").read_text())
+          jev = json.loads((root / "jev_protocol_manifest.json").read_text())
+          allowances = json.loads((root / "training_allowance.json").read_text())
+
+          assert targets["schema_version"] == "r8-benchmark-targets-v1"
+          assert len(targets["targets"]) == 53, len(targets["targets"])
+          ids = [row["id"] for row in targets["targets"]]
+          assert len(ids) == len(set(ids)), "duplicate target ids"
+          assert laya["schema_version"] == "r8-laya-protocol-v1"
+          assert jev["schema_version"].startswith("r8-jev")
+          assert allowances["schema_version"].startswith("r8-")
+          PY
+
+      - name: Scorecard MISSING semantics smoke test
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          sys.path.insert(0, "benchmarks")
+          from scorecard import build_scorecard
+
+          targets = json.loads(Path("benchmarks/laya_jev_targets.json").read_text())
+          score = build_scorecard(
+              targets,
+              {"candidate": "ci-empty", "metrics": {}},
+          )
+          assert score["counts"] == {
+              "WIN": 0,
+              "TIE": 0,
+              "LOSS": 0,
+              "MISSING": 53,
+          }, score["counts"]
+          assert len(score["rows"]) == 53
+          PY
+
+      - name: Enforce anti-benchmaxxing policy
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          targets = json.loads(
+              Path("benchmarks/laya_jev_targets.json").read_text()
+          )
+          rules = targets["rules"]
+          assert rules["no_cross_protocol_winner_claims"] is True
+          assert rules["final_test_selection_forbidden"] is True
+          assert rules["missing_metrics_count_as_missing_not_zero"] is True
+
+          campaign = Path("benchmarks/BENCHMARK_CAMPAIGN.md").read_text().lower()
+          assert "matched hardware" in campaign
+          assert "confirmatory" in campaign
+          assert "unused for architecture/loss/threshold/model selection" in campaign
+          PY
