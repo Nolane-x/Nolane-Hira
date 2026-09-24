@@ -188,6 +188,7 @@ def test_w6i_aggregate_exposes_bridge_and_representation_metrics():
         "role_swap_rejection_accuracy",
         "p3_k64_fixed_pair_accuracy",
         "p0_wrong_p2_right_rate",
+        "p0_wrong_p3_k64_right_rate",
         "p0_right_p2_wrong_rate",
     ):
         assert 0.0 <= float(metrics[key]) <= 1.0
@@ -204,6 +205,7 @@ def _metrics(
     p0,
     p2,
     mismatch=0.0,
+    full_set_mismatch=None,
     production_k64=0.7,
     fixed_pair=0.9,
     canonical_gain=0.0,
@@ -214,6 +216,9 @@ def _metrics(
         "p0_accuracy": p0,
         "p2_accuracy": p2,
         "p0_wrong_p2_right_rate": mismatch,
+        "p0_wrong_p3_k64_right_rate": (
+            mismatch if full_set_mismatch is None else full_set_mismatch
+        ),
         "production_k64": {"top1": production_k64},
         "p3_k64_fixed_pair_accuracy": fixed_pair,
         "canonical_k64_gain": canonical_gain,
