@@ -1,0 +1,155 @@
+# R8-W6g handoff — field-role vs candidate-set interference localization
+
+Status: **PRE-DIAGNOSTIC IMPLEMENTATION ACTIVE. No W6g localization result is valid yet.**
+
+Issue: #89
+
+## Frozen premise
+
+W6f closed with pooled classification `UNRESOLVED_HIGH_K_FAILURE` for:
+- W6e multi-source scorer-only;
+- W6e joint-primary;
+- W6e joint-replica.
+
+W6f also established:
+- uniform salience is dramatically worse than native candidate-relative salience;
+- relation reranking is net helpful, not the dominant high-K failure;
+- K64 errors frequently keep gold inside coarse top5;
+- one-field hard negatives dominate many winning wrong candidates;
+- gold margins and ranks degrade as candidate-set cardinality grows.
+
+Therefore W6g is a second diagnostic localization lane. It performs no training and cannot promote a production mechanism.
+
+## Frozen checkpoints
+
+Use exact W6e checkpoints only:
+- scorer-only artifact `10805971002`;
+- joint-primary artifact `10805567861`;
+- joint-replica artifact `10805871471`.
+
+A13 remains exact and frozen.
+
+Forbidden:
+- all W6b/W6c/W6d/W6e CONFIRM rows;
+- W6f N/O/P diagnostic rows;
+- typed final/test rows;
+- public campaign cells;
+- any parameter update or threshold tuning.
+
+## Fresh domains
+
+Q:
+- orbital greenhouse logistics;
+- seed 211193.
+
+R:
+- biomedical cold-chain instrumentation;
+- seed 211199.
+
+S:
+- geothermal generation control;
+- seed 211213.
+
+Each domain:
+- 64 base states;
+- four semantic roles;
+- 10 controlled views/base.
+
+Total:
+- 192 base states;
+- 1,920 diagnostic views.
+
+## Fixed semantic roles
+
+Every diagnosis signature has exactly four roles:
+1. entity/equipment;
+2. location/zone;
+3. anomaly/event;
+4. channel/source.
+
+Every base state has:
+- one gold signature;
+- one exact one-field distractor per role;
+- three fixed two-field negatives;
+- controlled far and same-role-dense spectators.
+
+## Ten views per base
+
+Pair views:
+- pair-entity K2;
+- pair-location K2;
+- pair-anomaly K2;
+- pair-channel K2.
+
+Reference:
+- core-k8.
+
+Candidate-set controls:
+- far64;
+- dense-entity64;
+- dense-location64;
+- dense-anomaly64;
+- dense-channel64.
+
+The gold and target one-field hard-negative option IDs/texts must remain byte-identical across pair/core/far/dense contexts.
+
+## Primary diagnostic question
+
+For a fixed gold vs one-field hard-negative pair, measure whether the pair margin changes when only the surrounding candidate set changes.
+
+This separates:
+- semantic value separability;
+- role binding;
+- generic cardinality;
+- same-role density;
+- candidate-relative IDF set dependence;
+- common-mode set dependence.
+
+## Frozen mechanism probes
+
+No probe trains or mutates weights.
+
+Required attribution probes for the fixed pair:
+- native production scorer;
+- K8-reference IDF with current-view common mode;
+- K8-reference common mode with current-view IDF;
+- both K8-reference IDF and common mode.
+
+Field-role decomposition must also measure:
+- changed field-value token evidence;
+- unchanged field-value evidence;
+- role-label evidence;
+- residual syntax evidence;
+- isolated changed-value separability.
+
+## Scientific boundary
+
+W6g may only localize.
+
+A rescue lane is authorized only if the same causal classification:
+- appears for joint-primary and joint-replica;
+- holds on at least two of Q/R/S;
+- is not contradicted by scorer-only.
+
+Otherwise W6g must close unresolved/mixed and the project must reassess the textual structured interface before adding more model complexity.
+
+## Current implementation
+
+Implemented:
+- `src/nmd/second_order_localization_authority.py`;
+- `tests/test_second_order_localization_authority.py`.
+
+Frozen generator invariants already encoded:
+- 64 bases/domain;
+- 10 views/base;
+- stable state/gold across all views of a base;
+- exact one-field pair construction;
+- exact K8 core preservation inside every K64 view;
+- far spectators differ in at least three fields;
+- dense spectators differ in exactly the target role;
+- deterministic option IDs across processes;
+- Q/R/S value/template/role disjointness;
+- freshness against W5-W6f values;
+- no prior rows used.
+
+No W6g cache/evaluator/result is valid until unit contracts pass.
