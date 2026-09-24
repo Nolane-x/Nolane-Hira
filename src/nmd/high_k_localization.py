@@ -70,8 +70,6 @@ def uniform_salience_logits(
 
     Everything except candidate-relative IDF is kept identical to production.
     """
-    del option_token_ids  # Identity metadata is intentionally unused here.
-
     if state_tokens.ndim != 3 or state_tokens.shape[-1] != scorer.d_model:
         raise ValueError("state_tokens must be [B,S,D]")
     if question_tokens.ndim != 3 or question_tokens.shape[-1] != scorer.d_model:
@@ -84,6 +82,10 @@ def uniform_salience_logits(
         raise ValueError("question_mask mismatch")
     if option_mask.shape != option_tokens.shape[:3] or option_mask.dtype != torch.bool:
         raise ValueError("option_mask mismatch")
+    if option_token_ids.shape != option_mask.shape:
+        raise ValueError("option_token_ids mismatch")
+    if option_token_ids.dtype != torch.long:
+        raise ValueError("option_token_ids must be torch.long")
     if (option_mask.sum(-1) < 1).any():
         raise ValueError("every option requires content tokens")
 
