@@ -1,6 +1,6 @@
 # R8-W6e handoff — replicated joint-adaptation held-out generalization
 
-Status: **PRE-AUTHORITY IMPLEMENTATION ACTIVE. No W6e empirical verdict is valid yet.**
+Status: **CLOSED. Authoritative verdict: `JOINT_GENERALIZATION_REPLICATION_FAIL`. PR #86 merged into `main` as `295145f1288858a4c3ec4a3d2bca694b54a53086`.**
 
 Issue: #85
 
@@ -133,3 +133,61 @@ Pre-cache contracts must prove:
 - unit tests never request the post-freeze confirm capability.
 
 No W6e cache, model training, DEV freeze or CONFIRM materialization is valid until these contracts pass.
+
+
+## Authoritative closure
+
+Exact empirical head:
+- `1f34b573b000563fa3d5ac3cdb0478c2c2bebf91`.
+
+Authority run:
+- `35993402202`;
+- all jobs PASS.
+
+Untouched CONFIRM artifact:
+- ID `10806405040`;
+- digest `sha256:6bd56e364d5f884d9fbfce593da5be5d56e600e038561b65e7818e99ccfb7c10`.
+
+CONFIRM-L:
+- frozen control overall 38.854%, K64 4.167%;
+- scorer-only overall 88.229%, K64 41.667%;
+- joint primary overall 89.479%, K64 39.583%;
+- joint replica overall 88.438%, K64 37.500%.
+Primary vs scorer-only:
+- overall +1.250 pp;
+- K64 -2.083 pp;
+- choice -1.823 pp;
+- score +4.688 pp.
+
+CONFIRM-M:
+- frozen control overall 38.958%, K64 2.083%;
+- scorer-only overall 84.896%, K64 33.333%;
+- joint primary overall 87.604%, K64 31.250%;
+- joint replica overall 86.875%, K64 39.583%.
+Primary vs scorer-only:
+- overall +2.708 pp;
+- K64 -2.083 pp;
+- choice +2.604 pp;
+- score +3.646 pp.
+
+The primary joint path passes overall, choice, score, noul, probability and state-once competence on both held-out domains. It fails diagnosis K64 competence on both.
+
+It also fails the preregistered overall-gain and K64-gain causal gates on both L and M. The independent joint replica likewise fails K64 competence on both.
+
+Frozen verdict:
+**`JOINT_GENERALIZATION_REPLICATION_FAIL`**.
+
+## Scientific interpretation
+
+W6e falsifies the stronger claim that the current full-core joint-adaptation recipe reproducibly rescues high-cardinality held-out-domain generalization.
+
+The failure is localized:
+- overall typed performance remains high (~87-89%);
+- noul and score remain strong;
+- the failure concentrates in high-cardinality diagnosis;
+- joint adaptation does not consistently improve K64 over scorer-only;
+- optimization-seed replication does not repair the K64 deficit.
+
+Therefore the next lane must **localize the K64 failure inside the relation/binding path** rather than adding more source domains, enlarging A13, retuning exposed CONFIRM rows, or adding richer calibration.
+
+W6e CONFIRM-L/M are exposed and permanently forbidden for future training, selection, threshold tuning, or mechanism search.
