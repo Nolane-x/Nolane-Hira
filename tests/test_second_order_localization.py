@@ -13,6 +13,7 @@ from nmd.second_order_localization import (
     diagnose_w6g_view,
     isolated_value_probe,
     load_w6g_cache,
+    pair_context_trajectory,
     role_localization_classification,
     save_w6g_cache,
 )
@@ -64,6 +65,9 @@ def test_w6g_cache_is_base_centric_and_state_once_per_base():
     assert cache["metadata"]["state_encode_calls"] == 1
     assert cache["metadata"]["state_encode_calls_per_base"] == 1.0
     assert cache["metadata"]["state_encode_calls_per_view"] == 0.1
+    assert len(cache["metadata"]["case_id_sha256"]) == 64
+    assert len(cache["metadata"]["semantic_view_sha256"]) == 64
+    assert set(cache["metadata"]["domain_semantic_view_sha256"]) == {"Q", "R", "S"}
     assert len(cache["bases"]) == 1
     assert len(cache["views"]) == 10
 
@@ -384,3 +388,32 @@ def test_stable_role_target_requires_primary_replica_and_noncontradiction():
         },
     )
     assert contradicted["stable"] is False
+
+
+def test_pair_context_trajectory_and_wrong_winner_anatomy_are_recorded():
+    model, hira, scorer = _small_runtime()
+    cache = compile_w6g_cache(model, _one_base_views())
+    base = cache["bases"][0]
+    views = _view_lookup(cache)
+    core = views["core-k8"]
+    records = [
+        diagnose_w6g_view(hira, scorer, base, view, core)
+        for view in cache["views"]
+    ]
+    trajectory = pair_context_trajectory(records, "entity")
+    assert trajectory["complete_base_count"] == 1
+    assert sum(trajectory["first_pair_loss_context"].values()) == 1
+    for key in (
+        "mean_margin_delta_pair_to_core",
+        "mean_margin_delta_core_to_far",
+        "mean_margin_delta_far_to_dense",
+    ):
+        assert math.isfinite(float(trajectory[key]))
+
+    for row in records:
+        for key in ("native_wrong_winner", "final_wrong_winner"):
+            winner = row[key]
+            if winner is not None:
+                assert winner["distance"] >= 1
+                assert len(winner["changed_roles"]) >= 1
+                assert isinstance(winner["option_id"], str)
