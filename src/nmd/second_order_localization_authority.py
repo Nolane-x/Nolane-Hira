@@ -314,6 +314,8 @@ class SecondOrderDiagnosticView:
     target_role_index: int | None
     gold_signature: tuple[str, str, str, str]
     target_negative_signature: tuple[str, str, str, str] | None
+    one_field_signatures: tuple[tuple[str, str, str, str], ...]
+    one_field_option_ids: tuple[str, str, str, str]
     option_signatures: tuple[tuple[str, str, str, str], ...]
     option_distances: tuple[int, ...]
     option_changed_roles: tuple[tuple[str, ...], ...]
@@ -567,6 +569,16 @@ def _view(
         state_text=state_text,
         decisions=(decision,),
     )
+    one_field_option_ids = tuple(
+        _stable_option_id(
+            base_id,
+            target,
+            signature,
+            one_field,
+            two_field,
+        )
+        for signature in one_field
+    )
     return SecondOrderDiagnosticView(
         typed=typed,
         split="diagnostic",
@@ -585,6 +597,8 @@ def _view(
         target_role_index=target_role_index,
         gold_signature=target,
         target_negative_signature=target_negative,
+        one_field_signatures=one_field,
+        one_field_option_ids=one_field_option_ids,
         option_signatures=tuple(shuffled),
         option_distances=tuple(
             signature_distance(target, row)
