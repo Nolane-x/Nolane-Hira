@@ -93,7 +93,7 @@ Each candidate freezes its own epoch by:
 3. higher soft accuracy;
 4. higher diagnosis K64 accuracy;
 5. lower score MAE;
-6. lower ECE;
+6. lower soft-target ECE;
 7. earlier epoch.
 
 Select one competitive candidate between joint and scorer-only.
@@ -109,7 +109,7 @@ Absolute selected gates:
 - score accuracy >= 0.60;
 - diagnosis K64 accuracy >= 0.55;
 - hard Brier <= 0.50;
-- raw ECE <= 0.15;
+- soft-target ECE <= 0.15;
 - score MAE <= 0.55;
 - probability error <= 1e-6;
 - source state encodes/case = 1.0.
@@ -118,7 +118,7 @@ Mechanism gates vs legacy:
 - overall accuracy gain >= +0.03;
 - diagnosis K64 gain >= +0.05;
 - hard Brier no worse by > 0.02;
-- ECE no worse by > 0.02;
+- soft-target ECE no worse by > 0.02;
 - score MAE no worse by > 0.05.
 
 Valid verdicts:
@@ -146,3 +146,33 @@ The first eligible authority workflow must gate:
 `unit -> upstream provenance -> fresh A13 TRAIN/DEV cache -> 3 candidates -> DEV selection freeze -> untouched CONFIRM`
 
 No branch mutation is allowed while an eligible exact-head authority run is active.
+
+
+## Pre-data calibration amendment
+
+Before any W6b TRAIN/DEV cache or CONFIRM was generated, audit found that hard ECE conflicts with the declared soft reliability targets.
+
+A model matching a target confidence of 0.90/0.75/0.60 should be considered reliability-calibrated. Hard ECE compares those confidences with binary correctness and can penalize an otherwise perfect soft-target match for not being overconfident.
+
+Therefore:
+- raw hard ECE remains recorded as a diagnostic;
+- soft-target ECE compares model confidence with the frozen teacher probability assigned to the predicted class;
+- DEV tie-breaking uses soft-target ECE;
+- the absolute 0.15 calibration gate uses soft-target ECE;
+- the +0.02 non-regression mechanism gate uses soft-target ECE.
+
+Regression coverage explicitly proves that [0.90, 0.75, 0.60] against the same soft targets yields approximately zero soft-target ECE while hard ECE exceeds 0.15.
+
+This amendment occurred before empirical authority execution and does not change authority rows, model architecture, optimizer, loss weights, checkpoint identities, accuracy gates or verdict taxonomy.
+
+## Pre-data integrity strengthening
+
+Also before empirical authority execution:
+- cache receipts were extended with TRAIN/DEV/CONFIRM template IDs and template hash;
+- TRAIN/DEV and reserved-CONFIRM value lexicons receive separate hashes;
+- candidate receipts bind to exact TRAIN/DEV cache SHA-256;
+- selector rejects candidates from mismatched caches;
+- confirm receipt carries cache provenance and explicit parameter counts;
+- a regression contract proves TRAIN and DEV gold diagnosis semantic signatures are internally unique and cross-split disjoint.
+
+Earlier queued authority heads are superseded; only the final post-amendment exact head may be authoritative.
