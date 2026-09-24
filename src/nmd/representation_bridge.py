@@ -212,12 +212,14 @@ def compile_w6i_cache(
                 reference.one_field_signatures[role_index][role_index]
             )
             role_text = spec.roles[role_index]
+            swapped_role = spec.roles[(role_index + 1) % 4]
             probe_texts.extend(
                 [
                     gold_value,
                     negative_value,
                     f"{role_text} {gold_value}",
                     f"{role_text} {negative_value}",
+                    f"{swapped_role} {gold_value}",
                 ]
             )
 
@@ -258,8 +260,11 @@ def compile_w6i_cache(
                 "negative": _content_from_text_batch(rep_batch, cursor + 1),
                 "gold_phrase": _content_from_text_batch(rep_batch, cursor + 2),
                 "negative_phrase": _content_from_text_batch(rep_batch, cursor + 3),
+                "swapped_role_gold_phrase": _content_from_text_batch(
+                    rep_batch, cursor + 4
+                ),
             }
-            cursor += 4
+            cursor += 5
 
         core_canonical = _rendered_option_artifacts(
             rep_batch,
@@ -627,6 +632,31 @@ def _pair_margin_from_logits(
     return float(logits[gold_index] - logits[target_index])
 
 
+def _role_swap_probe(
+    scorer,
+    probe: dict,
+    state_tokens: Tensor,
+) -> dict[str, object]:
+    state = state_tokens.float()
+    correct = _isolated_score(
+        scorer,
+        probe["gold_phrase"]["tokens"].float(),
+        state,
+    )
+    swapped = _isolated_score(
+        scorer,
+        probe["swapped_role_gold_phrase"]["tokens"].float(),
+        state,
+    )
+    margin = float((correct - swapped).detach())
+    return {
+        "rejected": margin > 0.0,
+        "margin": margin,
+        "correct_score": float(correct.detach()),
+        "swapped_score": float(swapped.detach()),
+    }
+
+
 @torch.inference_mode()
 def diagnose_w6i_base(
     hira: HIRACore,
@@ -693,6 +723,11 @@ def diagnose_w6i_base(
             base["field_probes"][role],
             base["state_content_tokens"],
         )
+        role_swap = _role_swap_probe(
+            scorer,
+            base["field_probes"][role],
+            base["state_content_tokens"],
+        )
         pair_logits = production[f"pair-{role}"]["coarse_logits"]
         core_logits = production["core-k8"]["coarse_logits"]
         master_logits = production["master-k64"]["coarse_logits"]
@@ -715,6 +750,7 @@ def diagnose_w6i_base(
             "target_option_id": target_id,
             "p0_isolated_value": p0,
             "p1_role_value_phrase": p1,
+            "role_swap_rejection": role_swap,
             "p2_structured_k2_margin": p2_margin,
             "p2_structured_k2_gold_wins": p2_margin > 0.0,
             "p3_k8_pair_margin": p3_k8_margin,
@@ -789,6 +825,10 @@ def aggregate_w6i_records(
         bool(row["p2_structured_k2_gold_wins"])
         for row in role_rows
     ]
+    role_swap = [
+        bool(row["role_swap_rejection"]["rejected"])
+        for row in role_rows
+    ]
     p3_k64 = [
         bool(row["p3_k64_pair_gold_wins"])
         for row in role_rows
@@ -845,6 +885,13 @@ def aggregate_w6i_records(
         "p0_accuracy": _accuracy(p0),
         "p1_accuracy": _accuracy(p1),
         "p2_accuracy": _accuracy(p2),
+        "role_swap_rejection_accuracy": _accuracy(role_swap),
+        "role_swap_margin": _mean(
+            [
+                float(row["role_swap_rejection"]["margin"])
+                for row in role_rows
+            ]
+        ),
         "p3_k64_fixed_pair_accuracy": _accuracy(p3_k64),
         "p0_wrong_p2_right_rate": _accuracy(p0_wrong_p2_right),
         "p0_right_p2_wrong_rate": _accuracy(p0_right_p2_wrong),
