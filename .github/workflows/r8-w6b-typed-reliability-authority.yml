@@ -133,6 +133,24 @@ jobs:
           assert x["train_decision_count"] == 1600
           assert x["dev_decision_count"] == 640
           assert x["prior_w5_value_overlap"] == []
+          assert x["train_template_ids"] == [
+              "w6b-train-maintenance-capsule",
+              "w6b-train-operations-folio",
+              "w6b-train-diagnostic-slate",
+              "w6b-train-control-summary",
+          ]
+          assert x["dev_template_ids"] == [
+              "w6b-dev-inspection-brief",
+              "w6b-dev-service-tableau",
+          ]
+          assert x["reserved_confirm_template_ids"] == [
+              "w6b-confirm-verification-sheet",
+              "w6b-confirm-assurance-card",
+              "w6b-confirm-reliability-panel",
+          ]
+          assert len(x["template_ids_sha256"]) == 64
+          assert len(x["train_dev_value_lexicon_sha256"]) == 64
+          assert len(x["reserved_confirm_value_lexicon_sha256"]) == 64
           assert x["state_encodes_per_case_train"] == 1.0
           assert x["state_encodes_per_case_dev"] == 1.0
           assert x["confirm_exposed"] is False
@@ -193,6 +211,15 @@ jobs:
           expected_total=422159 if name=="legacy-w3-joint" else 454928
           assert x["trainable_parameter_count"] == expected_trainable
           assert x["total_parameter_count"] == expected_total
+          import hashlib
+          def digest(path):
+              h=hashlib.sha256()
+              with open(path,"rb") as f:
+                  for chunk in iter(lambda:f.read(1024*1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+          assert x["train_cache_sha256"] == digest("inputs/cache/train.pt")
+          assert x["dev_cache_sha256"] == digest("inputs/cache/dev.pt")
           assert x["epochs"] == 6
           assert x["global_seed"] == 809
           assert x["full_k_only"] is True
@@ -242,6 +269,12 @@ jobs:
           assert len(x["candidates"]) == 3
           assert x["base_w3_head_sha256"] == "2505e2cf99d741e590ff26ff7c70a587065e5713a4c6a3e53b6783a03b20446c"
           assert x["base_w5i_scorer_sha256"] == "5ce9cdceb5a87c8b18b8d50e68396f23184e1dfb9acad338f25f24277d438a0d"
+          assert len(x["train_cache_sha256"]) == 64
+          assert len(x["dev_cache_sha256"]) == 64
+          assert {
+              (row["train_cache_sha256"], row["dev_cache_sha256"])
+              for row in x["candidates"]
+          } == {(x["train_cache_sha256"], x["dev_cache_sha256"])}
           assert x["confirm_exposed"] is False
           assert x["typed_decisions_final_or_test_used"] is False
           assert x["campaign_cells_populated"] == 0
@@ -292,6 +325,14 @@ jobs:
           assert x["typed_decisions_final_or_test_used"] is False
           assert x["w5_semantic_confirm_rows_used"] is False
           assert x["campaign_cells_populated"] == 0
+          assert len(x["train_cache_sha256"]) == 64
+          assert len(x["dev_cache_sha256"]) == 64
+          assert x["selected_competitive_trainable_parameter_count"] in {
+              32769, 454928
+          }
+          assert x["selected_competitive_total_parameter_count"] == 454928
+          assert x["legacy_trainable_parameter_count"] == 422159
+          assert x["legacy_total_parameter_count"] == 422159
           assert x["selected"]["probability_mass_max_error"] <= 1e-6
           assert x["legacy_control"]["probability_mass_max_error"] <= 1e-6
           assert x["selected"]["source_state_encodes_per_case"] == 1.0
