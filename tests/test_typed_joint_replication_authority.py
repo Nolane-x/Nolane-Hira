@@ -189,3 +189,23 @@ def test_only_post_freeze_confirm_script_may_eventually_request_confirm_capabili
     source = (tests_root / "test_typed_joint_replication_authority.py").read_text()
     sentinel = "allow_" + "confirm=True"
     assert sentinel not in source
+
+
+def test_confirm_capability_exists_only_in_post_freeze_evaluator():
+    root = Path(__file__).resolve().parents[1]
+    sentinel = "allow_" + "confirm=True"
+    hits = []
+    patterns = (
+        "src/nmd/*joint_replication*.py",
+        "scripts/r8_w6e_*.py",
+        "tests/test_typed_joint_replication*.py",
+        "research/R8-W6E-HANDOFF.md",
+        ".github/workflows/r8-w6e-*.yml",
+    )
+    for pattern in patterns:
+        for path in root.glob(pattern):
+            text = path.read_text(encoding="utf-8")
+            count = text.count(sentinel)
+            if count:
+                hits.append((path.relative_to(root).as_posix(), count))
+    assert hits == [("scripts/r8_w6e_confirm.py", 2)]
