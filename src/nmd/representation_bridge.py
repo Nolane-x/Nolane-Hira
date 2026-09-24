@@ -66,6 +66,35 @@ def _case_id_sha256(
     return sha256(payload).hexdigest()
 
 
+def _representation_identity_sha256(
+    views: Sequence[RepresentationBridgeView],
+    representation: str,
+) -> str:
+    rows: list[str] = []
+    for view in sorted(views, key=lambda row: row.typed.case_id):
+        if view.view_id not in {"core-k8", "master-k64"}:
+            continue
+        spec = DOMAINS[view.domain_id]
+        options = view.typed.decisions[0].options
+        for option, signature in zip(options, view.option_signatures):
+            if representation == "production":
+                rendered = option.criterion_text
+            elif representation == "canonical":
+                rendered = canonical_tagged_text(signature)
+            elif representation == "factorized":
+                rendered = "\x1d".join(
+                    factorized_role_value_phrases(spec, signature)
+                )
+            else:
+                raise ValueError("unsupported W6i representation identity")
+            rows.append(
+                "\x1e".join(
+                    (view.typed.case_id, option.option_id, rendered)
+                )
+            )
+    return sha256("\n".join(rows).encode("utf-8")).hexdigest()
+
+
 def _content_mask(batch) -> Tensor:
     mask = batch.attention_mask.bool()
     if batch.special_token_mask is None:
@@ -428,6 +457,15 @@ def compile_w6i_cache(
             "view_count": len(rows),
             "case_id_sha256": _case_id_sha256(views),
             "semantic_view_sha256": _semantic_view_sha256(views),
+            "production_representation_sha256": (
+                _representation_identity_sha256(views, "production")
+            ),
+            "canonical_representation_sha256": (
+                _representation_identity_sha256(views, "canonical")
+            ),
+            "factorized_representation_sha256": (
+                _representation_identity_sha256(views, "factorized")
+            ),
             "domain_semantic_view_sha256": {
                 domain: _semantic_view_sha256(
                     [
@@ -746,6 +784,36 @@ def diagnose_w6i_base(
             views["master-k64"],
             target_id,
         )
+        core_gold_index = _logical_index(
+            views["core-k8"],
+            views["core-k8"]["gold_option_id"],
+        )
+        core_target_index = _logical_index(
+            views["core-k8"],
+            target_id,
+        )
+        master_gold_index = _logical_index(
+            views["master-k64"],
+            views["master-k64"]["gold_option_id"],
+        )
+        master_target_index = _logical_index(
+            views["master-k64"],
+            target_id,
+        )
+        core_field_scores = factorized_mean["core-k8"][
+            "per_field_scores"
+        ]
+        master_field_scores = factorized_mean["master-k64"][
+            "per_field_scores"
+        ]
+        factorized_field_margin_k8 = float(
+            core_field_scores[core_gold_index, role_index]
+            - core_field_scores[core_target_index, role_index]
+        )
+        factorized_field_margin_k64 = float(
+            master_field_scores[master_gold_index, role_index]
+            - master_field_scores[master_target_index, role_index]
+        )
         role_rows[role] = {
             "target_option_id": target_id,
             "p0_isolated_value": p0,
@@ -757,6 +825,8 @@ def diagnose_w6i_base(
             "p3_k8_pair_gold_wins": p3_k8_margin > 0.0,
             "p3_k64_pair_margin": p3_k64_margin,
             "p3_k64_pair_gold_wins": p3_k64_margin > 0.0,
+            "factorized_field_margin_k8": factorized_field_margin_k8,
+            "factorized_field_margin_k64": factorized_field_margin_k64,
         }
 
     return {
