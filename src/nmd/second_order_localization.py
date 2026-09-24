@@ -743,8 +743,8 @@ def _counterfactual_probe(
     *,
     gold: Tensor,
     negative: Tensor,
+    state: Tensor,
 ) -> dict[str, object]:
-    state = gold
     gold_score = _isolated_score(scorer, gold, state)
     negative_score = _isolated_score(scorer, negative, state)
     margin = float((gold_score - negative_score).detach())
@@ -759,22 +759,26 @@ def _counterfactual_probe(
 def isolated_value_probe(
     scorer: CompetitiveCoarseScorer,
     probe: dict,
+    state_tokens: Tensor,
 ) -> dict[str, object]:
     return _counterfactual_probe(
         scorer,
         gold=probe["gold"]["tokens"].float(),
         negative=probe["negative"]["tokens"].float(),
+        state=state_tokens.float(),
     )
 
 
 def role_value_phrase_probe(
     scorer: CompetitiveCoarseScorer,
     probe: dict,
+    state_tokens: Tensor,
 ) -> dict[str, object]:
     return _counterfactual_probe(
         scorer,
         gold=probe["gold_phrase"]["tokens"].float(),
         negative=probe["negative_phrase"]["tokens"].float(),
+        state=state_tokens.float(),
     )
 
 
@@ -907,10 +911,12 @@ def diagnose_w6g_view(
             "isolated_value": isolated_value_probe(
                 scorer,
                 base["field_probes"][role],
+                base["state_content_tokens"],
             ),
             "role_value_phrase": role_value_phrase_probe(
                 scorer,
                 base["field_probes"][role],
+                base["state_content_tokens"],
             ),
         }
 
