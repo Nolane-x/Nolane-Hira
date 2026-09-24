@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import random
 from typing import Iterable
@@ -607,8 +607,23 @@ def _stratified_take(
     return selected
 
 
+def _as_multi_source_a(
+    case: DomainAuthorityCase,
+    index: int,
+) -> DomainAuthorityCase:
+    typed = replace(
+        case.typed,
+        case_id=f"w6d-train-multi-a-{case.diagnosis_k}-{index:04d}",
+    )
+    return replace(case, typed=typed, split="train-multi")
+
+
 def generate_w6d_multi_train() -> list[DomainAuthorityCase]:
-    source_a = _stratified_take(generate_w6d_single_train(), 2)
+    source_a_raw = _stratified_take(generate_w6d_single_train(), 2)
+    source_a = [
+        _as_multi_source_a(case, index)
+        for index, case in enumerate(source_a_raw)
+    ]
     source_b = _generate_domain(
         DOMAIN_B, split="train-multi", per_k=24, seed=SOURCE_B_SEED
     )
