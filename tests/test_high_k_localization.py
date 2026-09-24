@@ -36,8 +36,7 @@ def test_w6f_cache_reuses_production_compiler_contract():
     views = generate_w6f_domain("N")[:4]
     cache = compile_w6f_cache(model, views)
 
-    assert cache["metadata"]["schema_version"] == "r8-w6b-typed-reliability-cache-v1"
-    assert cache["metadata"]["w6f_schema_version"] == "r8-w6f-high-k-cache-v1"
+    assert cache["metadata"]["schema_version"] == "r8-w6f-high-k-cache-v1"
     assert cache["metadata"]["view_count"] == 4
     assert cache["metadata"]["base_count"] == 1
     assert cache["metadata"]["state_encode_calls_per_case"] == 1.0
