@@ -69,7 +69,7 @@ def _noul_true_mask(decision) -> Tensor:
     )
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def compile_w6c_logit_cache(
     model: NolaneHira,
     cases: Sequence[ReliabilityAuthorityCase],
@@ -148,7 +148,10 @@ def compile_w6c_logit_cache(
                     "question_id": decision.question_id,
                     "primitive": decision.primitive,
                     "qtype": PRIMITIVE_TO_ID[decision.primitive],
-                    "raw_logits": out.logits.detach().cpu().float(),
+                    "raw_logits": torch.tensor(
+                        out.logits.detach().cpu().tolist(),
+                        dtype=torch.float32,
+                    ),
                     "gold_index": int(decision.gold_index),
                     "gold_probabilities": torch.tensor(
                         decision.gold_probabilities,
