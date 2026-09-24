@@ -648,17 +648,28 @@ def _trajectory(records: list[dict]) -> dict[str, object]:
         if set(views) == {8, 16, 32, 64}
     }
     coarse_rank_drift: list[float] = []
+    uniform_rank_drift: list[float] = []
     final_rank_drift: list[float] = []
     coarse_logit_abs_drift: list[float] = []
-    margin_collapse: list[float] = []
-    first_loss = Counter()
+    uniform_logit_abs_drift: list[float] = []
+    native_margin_collapse: list[float] = []
+    uniform_margin_collapse: list[float] = []
+    first_native_loss = Counter()
+    first_uniform_loss = Counter()
+    first_final_loss = Counter()
 
     for views in complete.values():
         k8, k64 = views[8], views[64]
-        coarse_rank_drift.append(
+        native_drift = (
             float(k64["native_coarse"]["rank"])
             - float(k8["native_coarse"]["rank"])
         )
+        uniform_drift = (
+            float(k64["uniform_coarse"]["rank"])
+            - float(k8["uniform_coarse"]["rank"])
+        )
+        coarse_rank_drift.append(native_drift)
+        uniform_rank_drift.append(uniform_drift)
         final_rank_drift.append(
             float(k64["final"]["rank"])
             - float(k8["final"]["rank"])
@@ -669,32 +680,63 @@ def _trajectory(records: list[dict]) -> dict[str, object]:
                 - float(k8["native_coarse"]["gold_logit"])
             )
         )
-        margin_collapse.append(
+        uniform_logit_abs_drift.append(
+            abs(
+                float(k64["uniform_coarse"]["gold_logit"])
+                - float(k8["uniform_coarse"]["gold_logit"])
+            )
+        )
+        native_margin_collapse.append(
             float(k8["native_coarse"]["margin"])
             - float(k64["native_coarse"]["margin"])
         )
+        uniform_margin_collapse.append(
+            float(k8["uniform_coarse"]["margin"])
+            - float(k64["uniform_coarse"]["margin"])
+        )
 
-        lost = "never"
-        for k in (8, 16, 32, 64):
-            if not bool(views[k]["final"]["top1"]):
-                lost = str(k)
-                break
-        first_loss[lost] += 1
+        for key, counter in (
+            ("native_coarse", first_native_loss),
+            ("uniform_coarse", first_uniform_loss),
+            ("final", first_final_loss),
+        ):
+            lost = "never"
+            for k in (8, 16, 32, 64):
+                if not bool(views[k][key]["top1"]):
+                    lost = str(k)
+                    break
+            counter[lost] += 1
 
     def avg(values: list[float]) -> float:
         return sum(values) / len(values) if values else float("nan")
 
+    native_rank_drift = avg(coarse_rank_drift)
+    uniform_rank_drift_mean = avg(uniform_rank_drift)
     return {
         "complete_base_count": len(complete),
-        "mean_native_coarse_rank_drift_k8_to_k64": avg(
-            coarse_rank_drift
+        "mean_native_coarse_rank_drift_k8_to_k64": native_rank_drift,
+        "mean_uniform_coarse_rank_drift_k8_to_k64": (
+            uniform_rank_drift_mean
+        ),
+        "uniform_minus_native_rank_drift_k8_to_k64": (
+            uniform_rank_drift_mean - native_rank_drift
         ),
         "mean_final_rank_drift_k8_to_k64": avg(final_rank_drift),
         "mean_abs_gold_coarse_logit_drift_k8_to_k64": avg(
             coarse_logit_abs_drift
         ),
-        "mean_native_margin_collapse_k8_to_k64": avg(margin_collapse),
-        "first_final_top1_loss_k": dict(first_loss),
+        "mean_abs_gold_uniform_logit_drift_k8_to_k64": avg(
+            uniform_logit_abs_drift
+        ),
+        "mean_native_margin_collapse_k8_to_k64": avg(
+            native_margin_collapse
+        ),
+        "mean_uniform_margin_collapse_k8_to_k64": avg(
+            uniform_margin_collapse
+        ),
+        "first_native_top1_loss_k": dict(first_native_loss),
+        "first_uniform_top1_loss_k": dict(first_uniform_loss),
+        "first_final_top1_loss_k": dict(first_final_loss),
     }
 
 
