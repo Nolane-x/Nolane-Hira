@@ -60,6 +60,25 @@ def test_w6f_seeds_counts_and_domain_identity_are_frozen():
     assert set(by_domain_k.values()) == {96}
 
 
+def test_w6f_base_severity_confidence_strata_are_exactly_balanced():
+    for domain_id in ("N", "O", "P"):
+        rows = generate_w6f_domain(domain_id)
+        bases = {}
+        for row in rows:
+            bases.setdefault(
+                row.base_id,
+                (row.severity, row.confidence),
+            )
+            assert bases[row.base_id] == (
+                row.severity,
+                row.confidence,
+            )
+        assert len(bases) == 96
+        strata = Counter(bases.values())
+        assert len(strata) == 12
+        assert set(strata.values()) == {8}
+
+
 def test_every_base_uses_same_state_gold_and_nested_candidate_membership():
     for domain_id in ("N", "O", "P"):
         rows = generate_w6f_domain(domain_id)
