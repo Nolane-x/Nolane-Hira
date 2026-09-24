@@ -1,6 +1,6 @@
 # R8-W6f handoff — high-K rank-path localization
 
-Status: **PRE-DIAGNOSTIC IMPLEMENTATION ACTIVE. No W6f localization result is valid yet.**
+Status: **CLOSED DIAGNOSTIC. Pooled classification: `UNRESOLVED_HIGH_K_FAILURE` for all three frozen checkpoints.**
 
 Issue: #87
 
@@ -94,3 +94,128 @@ Forbidden:
 - training on W6f diagnostics;
 - threshold changes after W6f results;
 - public benchmark claims.
+
+
+## Authoritative diagnostic closure
+
+Exact diagnostic head:
+- `327099c37a8a1a1eebb7b8e02f2591aaa28cff8c`.
+
+Diagnostic run:
+- `35998772622`;
+- all jobs PASS.
+
+Artifacts:
+- localization artifact `10807488841`;
+- digest `sha256:0d3ec9dd406ba5c615b4531746cf711cc696e2e5d262db40b1fc01864f94ce01`;
+- cache artifact `10807367327`;
+- frozen-W6e bundle artifact `10806619116`.
+
+Scope:
+- 288 fresh base states;
+- 1,152 nested K8/K16/K32/K64 views;
+- no training performed;
+- W6b/W6c/W6d/W6e CONFIRM rows not used;
+- typed final/test rows not used;
+- campaign cells 0.
+
+### Pooled classifications
+
+All three frozen checkpoints classify as:
+- `multi-source-scorer-only` -> `UNRESOLVED_HIGH_K_FAILURE`;
+- `multi-source-joint-primary` -> `UNRESOLVED_HIGH_K_FAILURE`;
+- `multi-source-joint-replica` -> `UNRESOLVED_HIGH_K_FAILURE`.
+
+Per-domain disagreement must be preserved:
+- domain O reaches `COARSE_BINDING_LIMIT` for scorer-only and joint-replica;
+- N/P remain unresolved;
+- joint-primary remains unresolved on N/O/P.
+
+Therefore W6f does **not** authorize a production rescue mechanism.
+
+### Joint-primary pooled rank path
+
+Native production scoring:
+
+K8:
+- coarse top1 69.10%;
+- coarse top5 99.65%;
+- final top1 75.69%;
+- final top5 99.65%.
+
+K16:
+- coarse top1 62.15%;
+- coarse top5 98.26%;
+- final top1 70.14%;
+- final top5 99.31%.
+
+K32:
+- coarse top1 51.39%;
+- coarse top5 95.83%;
+- final top1 55.21%;
+- final top5 97.22%.
+
+K64:
+- coarse top1 32.64%;
+- coarse top5 85.76%;
+- final top1 38.54%;
+- final top5 91.67%;
+- final MRR 0.6115;
+- native coarse MRR 0.5523;
+- final mean gold margin -0.1224;
+- native coarse mean gold margin -0.2347.
+
+Relation anatomy at K64:
+- rescue rate 12.15%;
+- damage rate 6.25%;
+- final-minus-coarse top1 +5.90 pp.
+
+Thus relation reranking is net helpful, not the dominant source of failure.
+
+### Candidate-relative salience ablation
+
+Uniform-salience is substantially worse.
+
+Joint-primary pooled K64:
+- native coarse top1 32.64%;
+- uniform coarse top1 4.17%;
+- delta -28.47 pp;
+- native coarse top5 85.76%;
+- uniform coarse top5 31.25%;
+- delta -54.51 pp.
+
+K8 uniform top1 also regresses by about 41.32 pp.
+
+Native candidate-relative salience is therefore not implicated by the preregistered rule; it materially helps ranking.
+
+### Cardinality trajectory
+
+For joint-primary pooled:
+- mean native coarse rank drift K8 -> K64: 1.708;
+- mean final rank drift: 1.188;
+- mean native margin collapse: 0.515;
+- relation stage reduces rank drift relative to coarse.
+
+The dominant visible pattern is not catastrophic retrieval failure. A large fraction of K64 final errors still have the gold candidate already inside coarse top5, while one-field hard negatives dominate many winning wrong candidates.
+
+### Scientific interpretation
+
+W6f falsifies two simple explanations:
+1. candidate-relative IDF/salience is not the main high-K failure; removing it is much worse;
+2. relation reranking is not the main high-K failure; it usually rescues more cases than it damages.
+
+The remaining signal is finer:
+- as K grows, gold margins collapse;
+- gold often remains in the correct local neighborhood/top5;
+- errors are dominated by near-neighbor candidates differing in one field;
+- domain O sometimes crosses the coarse-binding-limit rule, but that pattern is not stable across checkpoints/domains.
+
+Therefore the next lane must be a **second fresh localization probe**, not a rescue authority.
+
+That probe should decompose hard-negative confusion by field role and candidate-pair structure, while preserving frozen checkpoints and forbidding any training or threshold tuning. It should ask whether one-field confusion is driven by:
+- role-token alignment;
+- option-option interference/common-mode competition;
+- field-specific semantic collapse;
+- or candidate-set density itself.
+
+Only after that second localization produces a stable causal target should a W6 rescue mechanism be preregistered.
