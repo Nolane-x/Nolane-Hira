@@ -42,7 +42,15 @@ jobs:
           python -m py_compile             src/nmd/typed_domain_generalization_authority.py             src/nmd/typed_domain_generalization.py             scripts/r8_w6d_build_cache.py             scripts/r8_w6d_train_candidate.py             scripts/r8_w6d_freeze_candidates.py             scripts/r8_w6d_confirm.py
       - name: Run W6d contracts and production regressions
         run: |
-          pytest -q             tests/test_typed_domain_generalization_authority.py             tests/test_typed_domain_generalization.py             tests/test_competitive_production.py             tests/test_typed_competitive_cache.py
+          pytest -q \
+            tests/test_typed_domain_generalization_authority.py \
+            tests/test_typed_domain_generalization.py \
+            tests/test_competitive_coarse_runtime.py \
+            tests/test_runtime.py \
+            tests/test_token_relation_modes.py \
+            tests/test_training.py \
+            tests/test_typed_decisions.py \
+            tests/test_typed_competitive_cache.py
 
   upstream:
     needs: unit
