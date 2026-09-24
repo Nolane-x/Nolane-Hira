@@ -533,19 +533,50 @@ Completed in this session:
 - PR #94 merged;
 - issue #93 closed;
 - W6j issue #95 created;
+- draft PR #96 opened;
 - branch `feat/r8-w6j-high-cardinality-decomposition` created from exact main;
-- this handoff created.
+- this handoff created and kept current;
+- `src/nmd/high_cardinality_decomposition_authority.py` implemented:
+  - fresh AD/AE/AF domains;
+  - 64 bases/domain;
+  - exact deterministic master K64;
+  - exact distance mix: 12 one-field, 20 two-field, 15 three-field, 16 four-field negatives;
+  - nested K8/K16/K32/K64 identities;
+- `src/nmd/high_cardinality_decomposition.py` implemented:
+  - frozen architectural gates;
+  - no post-hoc mechanism precedence;
+  - mixed classification when multiple gates pass;
+  - cross-checkpoint stability contract;
+- `src/nmd/high_cardinality_decomposition_eval.py` implemented:
+  - base-centric cache;
+  - one state encode/base;
+  - one K64 schema compilation/base;
+  - nested-view reconstruction from master artifacts;
+  - exhaustive 63 K2 gold-vs-negative comparisons;
+  - global-winner reversal metrics;
+  - relation rescue/damage metrics;
+  - oracle-conjunction relation probe;
+  - probability-mass integrity recording;
+- `scripts/r8_w6j_build_cache.py` implemented with exact frozen A13 provenance and prior-value leakage checks;
+- `scripts/r8_w6j_evaluate.py` implemented with exact W6e/W6h checkpoint receipt/SHA checks;
+- generator, classifier and evaluator unit tests added;
+- pre-diagnostic unit workflow added.
 
-Not yet implemented:
-- AD/AE/AF generator;
-- K64 master-set contracts;
-- nested K8/K16/K32 views;
-- K2 exhaustive gold-vs-negative sweep;
-- oracle coarse intervention;
-- W6j evaluator;
-- stability classifier;
-- unit workflow;
-- gated diagnostic authority workflow.
+Pre-data protocol note:
+- if multiple mechanism gates pass, classify as `MIXED_HIGH_CARDINALITY_ARCHITECTURE`; never choose a convenient precedence after seeing results;
+- W6e joint-primary must itself be stable on >=2 fresh domains and at least one W6h-trained checkpoint must agree before a W7 architecture lane can be authorized.
+
+Current implementation head before this handoff update:
+- `28a6d914315717eacc43ecb4ae7bd72a709e564e`.
+
+Earlier generator/classifier heads have passed unit CI. The exact current full-stack head is still in pre-diagnostic unit/CI validation.
+
+Not yet completed:
+- exact current full-stack unit/CI must pass;
+- gated W6j A13 diagnostic authority workflow is not yet enabled;
+- no AD/AE/AF A13 cache has been exposed;
+- no W6j checkpoint evaluation has occurred;
+- no W6j empirical classification exists.
 
 No W6j empirical data exists yet.
 
