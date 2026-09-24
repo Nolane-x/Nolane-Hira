@@ -24,6 +24,10 @@ on:
       - "tests/test_typed_reliability_calibration.py"
       - ".github/workflows/r8-w6c-unit.yml"
 
+concurrency:
+  group: r8-w6c-unit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     runs-on: ubuntu-latest
