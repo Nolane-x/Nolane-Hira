@@ -1,6 +1,6 @@
 # R8-W6j handoff — high-cardinality decision-decomposition audit
 
-Status: **PRE-DIAGNOSTIC ARCHITECTURAL REASSESSMENT ACTIVE. No W6j empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Authoritative outcome: `STABLE_HIGH_CARDINALITY_ARCHITECTURE`; stable target: `COARSE_CONJUNCTION_LIMIT`. W7 architectural phase is authorized.**
 
 Issue: #95
 
@@ -617,3 +617,214 @@ A strong number is not enough.
 - a post-exposure threshold change invalidates causal interpretation.
 
 Preserve negative results. They are part of the project state.
+
+
+---
+
+## 15. Authoritative W6j closure
+
+Exact empirical authority head:
+
+`af33754719b1f70e08f9c01991ea41bfd00c496a`
+
+Authority run:
+
+`36072141944`
+
+All jobs PASS:
+
+`unit -> exact frozen upstream provenance + fresh AD/AE/AF cache -> fixed-checkpoint architectural evaluator`.
+
+### Artifacts
+
+- fresh cache: `10838263710`
+  - digest `sha256:112d60d6fd8cfbb8e4320e242e959ad58550663e3093c2bdca183d22b46b9b23`;
+  - internal cache SHA `62db02fc466d8e70b6fde9054771defbf0d615397e713be37b3b4f315575d59c`;
+- frozen checkpoint bundle: `10838857136`
+  - digest `sha256:975fc537e01079356d728cc96ac82241244cf534f5cb24e2d2be61c8fcef6405`;
+- authoritative decomposition audit: `10838774135`
+  - digest `sha256:3e511325acc1abc9a9fe287224add3d2daeaf97d5033da63bc74e6b6a282ffff`.
+
+Fresh cache integrity:
+
+- 192 bases / 768 nested views;
+- AD/AE/AF: 64 bases each;
+- state encode calls: 192;
+- state encodes/base: 1.0;
+- case ID SHA `b884262217d74e639f8bca676de4a5ef3d9f2155e9d9c5f5e9b9463e0b82e1ad`;
+- semantic-view SHA `e919eafca4bccb94c2b661944b48930411f03fb15fa4f5f12faf429462685172`;
+- all-value SHA `a45c7bf0ba45456823043188513cf9cbac24f1c85a260b41760059a380b1f3d0`;
+- prior-value overlap: 0;
+- no training;
+- no W6b-W6i exposed rows;
+- no typed final/test rows;
+- campaign cells 0.
+
+Probability mass max error:
+
+`2.384185791015625e-07`.
+
+### Frozen checkpoint stability
+
+#### W6e joint-primary
+
+Stable on **all AD/AE/AF** as:
+
+**`COARSE_CONJUNCTION_LIMIT`**
+
+Pooled:
+
+- K8 coarse/final top1: 61.458% / 69.792%;
+- K16: 56.250% / 58.333%;
+- K32: 43.750% / 44.792%;
+- K64: **30.729% / 32.813%**;
+- 129 K64 final errors;
+- 100% of K64 errors have at least one genuine K2 pair loss;
+- eventual K64 wrong winner already beats gold in isolated K2 **coarse** on **91.473%** of K64 errors;
+- winner K2-final -> K64-final reversal: only **3.101%**;
+- all-63-pairs-win case rate: 15.625%;
+- among those certificate cases, K64 failure rate: **0%**;
+- relation net top1 gain: +2.083 pp;
+- oracle-conjunction final top1: **99.479%**;
+- oracle relation damage: 0.521%.
+
+Interpretation:
+the wrong global winner is usually already semantically preferred by the learned coarse scorer before large-set competition. Full-set rank reversal is rare. The relation stage is not the primary failure and preserves an oracle-perfect coarse ranking almost exactly.
+
+#### W6h projection-retune
+
+Per-domain:
+
+- AD -> `COARSE_CONJUNCTION_LIMIT`;
+- AE -> mixed: both pairwise multiplicity and coarse conjunction gates pass;
+- AF -> mixed: both pairwise multiplicity and coarse conjunction gates pass.
+
+Checkpoint stability therefore remains:
+
+`HIGH_CARDINALITY_DECOMPOSITION_UNRESOLVED`.
+
+Pooled:
+
+- K64 coarse/final: 48.958% / 50.521%;
+- global-error pair-loss rate: 96.842%;
+- eventual winner beats gold in K2 coarse: 89.474%;
+- winner reversal: 7.368%;
+- all-pair-win but K64-fail conditional rate: 4.615%;
+- oracle final top1: 99.479%;
+- relation net gain: +1.563 pp.
+
+Important:
+projection retuning materially improves absolute K64 and reduces pair-loss count, but does not change the core causal story enough to produce an opposing stable mechanism.
+
+#### W6h semantic adapter
+
+Stable on AD/AF as:
+
+**`COARSE_CONJUNCTION_LIMIT`**
+
+AE is mixed, not an opposite stable class.
+
+Pooled:
+
+- K64 coarse/final: 39.063% / 42.188%;
+- global-error pair-loss rate: 97.297%;
+- eventual winner beats gold in K2 coarse: 94.595%;
+- winner reversal: 5.405%;
+- all-pair-win but K64-fail conditional rate: 5.769%;
+- oracle final top1: 99.479%;
+- relation net gain: +3.125 pp.
+
+### Authoritative cross-checkpoint outcome
+
+**`STABLE_HIGH_CARDINALITY_ARCHITECTURE`**
+
+Stable causal target:
+
+**`COARSE_CONJUNCTION_LIMIT`**
+
+`rescue_lane_authorized = true`.
+
+This meets the frozen cross-checkpoint rule because:
+
+- W6e joint-primary is stable as coarse-conjunction limit on all three fresh domains;
+- W6h semantic-adapter independently agrees on at least two domains;
+- projection-retune does not produce a stable opposing class.
+
+### What W6j falsifies
+
+The current evidence argues strongly against these being the dominant explanation:
+
+1. **set-context rank reversal**
+   - winner reversal remains only about 3-7% pooled;
+   - the eventual wrong winner usually already beats gold in K2 coarse.
+
+2. **relation decomposition as the main bottleneck**
+   - relation is small/net helpful pooled;
+   - an oracle-perfect conjunction coarse vector survives relation with ~99.48% final top1.
+
+3. **pure large-K multiplicity as the sole cause**
+   - multiplicity is real in some projection-retune domains;
+   - however the stable cross-checkpoint target remains coarse conjunction;
+   - most global errors are traceable to genuine local coarse semantic losses rather than otherwise-correct pair ordering being broken only by K64 context.
+
+### Architectural conclusion
+
+The next architecture must target **learned conjunctive coarse evidence**.
+
+Do not spend W7 on:
+- another calibration-only mechanism;
+- another relation reranker;
+- IDF removal;
+- another unstructured residual adapter;
+- canonical-tag text formatting alone;
+- frozen mean/min factorization;
+- a larger A13 encoder.
+
+The key question is now:
+
+**Can HIRA represent and train an explicit conjunction over independently evidenced schema factors so that a candidate must match all required semantic conditions, while preserving state-once execution and a small parameter budget?**
+
+W7 must answer that question on wholly fresh data and must include an equal-data free-form scorer control.
+
+---
+
+## 16. Authorized next phase: W7
+
+W7 is a genuinely new architectural phase, not W6j tuning.
+
+W7 may test a production-compatible **explicit conjunctive evidence interface** with fresh authority data.
+
+Minimum scientific requirements:
+
+- A13 remains frozen;
+- HIRACore remains frozen in the primary mechanism comparison so the causal question stays coarse-only;
+- current free-form competitive scorer must be a same-data control;
+- conjunctive candidate must expose explicit schema factors rather than infer synthetic gold structure from labels;
+- state is encoded exactly once/case;
+- factor/schema encodings are schema-side and separately accounted;
+- no AD/AE/AF row may be used for W7 training, DEV selection or CONFIRM;
+- use at least two untouched W7 CONFIRM domains;
+- require reproducible K64 gain on both, not pooled-only rescue;
+- record pair-loss counts by Hamming/semantic distance;
+- preserve probability integrity and typed-interface compatibility;
+- do not promote a W7 mechanism unless its gain survives fresh free-form control and both untouched domains.
+
+W6j itself is diagnostic only. Its `COARSE_CONJUNCTION_LIMIT` label does not prove that any particular conjunction architecture will work.
+
+---
+
+## 17. Handoff state after W6j
+
+W6j empirical research is complete.
+
+Before another AI continues implementation:
+
+1. merge PR #96 only after closure docs and repository CI are clean;
+2. close issue #95 after merge;
+3. create W7 from the resulting main commit;
+4. create a new `research/R8-W7-HANDOFF.md` immediately;
+5. preregister W7 architecture, candidates, fresh domains, train/DEV/CONFIRM split, parameter budgets, objective, selection rule and rescue gates **before** any W7 empirical cache is exposed;
+6. preserve every W6j artifact/hash/result above;
+7. never train or tune using AD/AE/AF.
+
+The next AI should read this file first, then issue #95 / PR #96, then the eventual W7 handoff.
