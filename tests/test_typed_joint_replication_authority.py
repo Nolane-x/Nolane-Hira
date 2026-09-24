@@ -177,7 +177,7 @@ def test_w6e_values_do_not_overlap_prior_w5_w6_authorities():
 
 
 def test_reserved_confirm_domains_are_static_and_never_materialized_in_unit_suite():
-    # Static reservation checks only. Never call allow_confirm=True here.
+    # Static reservation checks only; confirm capability stays sealed here.
     assert DOMAINS["L"].workflow == "w6e-mining-heldout-confirm-l"
     assert DOMAINS["M"].workflow == "w6e-datacenter-heldout-confirm-m"
     assert set(DOMAINS["L"].templates).isdisjoint(DOMAINS["M"].templates)
