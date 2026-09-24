@@ -17,6 +17,7 @@ on:
       - "tests/test_typed_reliability_authority.py"
       - "tests/test_typed_reliability_cache.py"
       - "research/R8-W6C-HANDOFF.md"
+      - ".github/workflows/r8-w6c-unit.yml"
       - ".github/workflows/r8-w6c-reliability-calibration-authority.yml"
 
 permissions:
