@@ -421,3 +421,48 @@ def test_pair_context_trajectory_and_wrong_winner_anatomy_are_recorded():
                 assert winner["distance"] >= 1
                 assert len(winner["changed_roles"]) >= 1
                 assert isinstance(winner["option_id"], str)
+
+
+def test_mixed_stable_mechanisms_do_not_authorize_rescue():
+    # The script-level stability aggregator is intentionally stricter than
+    # per-role stability: multiple stable roles with different mechanisms
+    # remain a mixed diagnostic, not a rescue authorization.
+    from scripts.r8_w6g_evaluate import _stability
+
+    def domain_block(label_entity, label_location):
+        return {
+            domain: {
+                "roles": {
+                    "entity": {"classification": {"classification": label_entity}},
+                    "location": {"classification": {"classification": label_location}},
+                    "anomaly": {"classification": {"classification": "NO_SECOND_ORDER_LOCALIZATION"}},
+                    "channel": {"classification": {"classification": "NO_SECOND_ORDER_LOCALIZATION"}},
+                }
+            }
+            for domain in ("Q", "R", "S")
+        }
+
+    results = {
+        "multi-source-scorer-only": {
+            "per_domain": domain_block(
+                "NO_SECOND_ORDER_LOCALIZATION",
+                "NO_SECOND_ORDER_LOCALIZATION",
+            )
+        },
+        "multi-source-joint-primary": {
+            "per_domain": domain_block(
+                "ROLE_BINDING_COLLAPSE",
+                "IDF_AGGREGATION_INTERFERENCE",
+            )
+        },
+        "multi-source-joint-replica": {
+            "per_domain": domain_block(
+                "ROLE_BINDING_COLLAPSE",
+                "IDF_AGGREGATION_INTERFERENCE",
+            )
+        },
+    }
+    out = _stability(results)
+    assert out["stable_target_count"] == 2
+    assert out["rescue_lane_authorized"] is False
+    assert out["diagnostic_outcome"] == "MIXED_STABLE_SECOND_ORDER_LOCALIZATION"
