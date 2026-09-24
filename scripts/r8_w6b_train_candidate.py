@@ -137,6 +137,8 @@ def main() -> None:
         ),
         "history": history,
         "hira_sha256": file_sha256(hira_path),
+        "train_cache_sha256": file_sha256(args.train_cache),
+        "dev_cache_sha256": file_sha256(args.dev_cache),
         "scorer_sha256": (
             None
             if scorer_path is None
