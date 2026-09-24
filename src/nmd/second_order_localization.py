@@ -1199,6 +1199,71 @@ def stable_role_target(
     }
 
 
+def diagnostic_stability(results: dict[str, object]) -> dict[str, object]:
+    """Aggregate per-role cross-checkpoint stability for W6g.
+
+    A rescue lane is authorized only when at least one role is stable across
+    joint-primary and joint-replica on two or more fresh domains, scorer-only
+    does not contradict it, and every stable role points to the same mechanism.
+    """
+    stable: dict[str, dict[str, object]] = {}
+    for role in ROLE_KEYS:
+        scorer_only = {
+            domain: metrics["roles"][role]["classification"]["classification"]
+            for domain, metrics in results[
+                "multi-source-scorer-only"
+            ]["per_domain"].items()
+        }
+        primary = {
+            domain: metrics["roles"][role]["classification"]["classification"]
+            for domain, metrics in results[
+                "multi-source-joint-primary"
+            ]["per_domain"].items()
+        }
+        replica = {
+            domain: metrics["roles"][role]["classification"]["classification"]
+            for domain, metrics in results[
+                "multi-source-joint-replica"
+            ]["per_domain"].items()
+        }
+        stable[role] = stable_role_target(
+            scorer_only=scorer_only,
+            joint_primary=primary,
+            joint_replica=replica,
+        )
+
+    targets = {
+        role: result
+        for role, result in stable.items()
+        if bool(result["stable"])
+    }
+    mechanism_labels = sorted(
+        {
+            target["targets"][0]["classification"]
+            for target in targets.values()
+            if target["targets"]
+        }
+    )
+    authorized = bool(targets) and len(mechanism_labels) == 1
+    outcome = (
+        "STABLE_SECOND_ORDER_LOCALIZATION"
+        if authorized
+        else (
+            "MIXED_STABLE_SECOND_ORDER_LOCALIZATION"
+            if targets
+            else "NO_STABLE_SECOND_ORDER_LOCALIZATION"
+        )
+    )
+    return {
+        "per_role": stable,
+        "stable_target_count": len(targets),
+        "stable_targets": targets,
+        "stable_mechanism_classes": mechanism_labels,
+        "rescue_lane_authorized": authorized,
+        "diagnostic_outcome": outcome,
+    }
+
+
 def role_localization_classification(
     *,
     pair: dict[str, object],
