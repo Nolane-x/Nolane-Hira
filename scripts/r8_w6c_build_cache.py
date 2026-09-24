@@ -161,6 +161,10 @@ def main() -> None:
         w6c_authority.TRAIN_ZONES,
         w6c_authority.TRAIN_ANOMALIES,
         w6c_authority.TRAIN_CHANNELS,
+        w6c_authority.DEV_COMPONENTS,
+        w6c_authority.DEV_ZONES,
+        w6c_authority.DEV_ANOMALIES,
+        w6c_authority.DEV_CHANNELS,
     )
     reserved_confirm_values = set().union(
         w6c_authority.CONFIRM_COMPONENTS,
