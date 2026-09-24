@@ -188,3 +188,51 @@ def test_every_w6h_case_exposes_all_four_one_field_pairs():
             if len(changed) == 1:
                 seen.add(changed[0])
         assert seen == {0, 1, 2, 3}
+
+
+def test_w6h_templates_and_roles_are_fresh_against_prior_w6_lanes():
+    from nmd.high_k_localization_authority import DOMAINS as W6F_DOMAINS
+    from nmd.second_order_localization_authority import DOMAINS as W6G_DOMAINS
+    from nmd.typed_domain_generalization_authority import DOMAINS as W6D_DOMAINS
+    from nmd.typed_joint_replication_authority import DOMAINS as W6E_DOMAINS
+
+    prior_templates = set()
+    prior_roles = set()
+    for collection in (W6D_DOMAINS, W6E_DOMAINS, W6F_DOMAINS, W6G_DOMAINS):
+        for spec in collection.values():
+            prior_templates.update(spec.templates)
+            prior_roles.update(spec.roles)
+
+    current_templates = {
+        template
+        for rows in domain_template_sets().values()
+        for template in rows
+    }
+    current_roles = {
+        role
+        for rows in domain_role_sets().values()
+        for role in rows
+    }
+    assert current_templates.isdisjoint(prior_templates)
+    assert current_roles.isdisjoint(prior_roles)
+
+
+def test_only_confirm_script_can_request_w6h_confirm_materialization():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    sentinel = "allow_" + "confirm=True"
+    allowed = root / "scripts" / "r8_w6h_confirm.py"
+    assert allowed.read_text(encoding="utf-8").count(sentinel) == 2
+
+    protected = [
+        root / "src" / "nmd" / "field_semantic_rescue.py",
+        root / "src" / "nmd" / "field_semantic_rescue_authority.py",
+        root / "scripts" / "r8_w6h_build_cache.py",
+        root / "scripts" / "r8_w6h_train_candidate.py",
+        root / "scripts" / "r8_w6h_freeze_candidates.py",
+        Path(__file__),
+        root / "tests" / "test_field_semantic_rescue.py",
+    ]
+    for path in protected:
+        assert sentinel not in path.read_text(encoding="utf-8"), path
