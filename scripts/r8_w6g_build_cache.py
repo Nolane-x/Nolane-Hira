@@ -141,6 +141,11 @@ def main() -> None:
         "view_count": cache["metadata"]["view_count"],
         "domain_base_counts": cache["metadata"]["domain_base_counts"],
         "view_counts": cache["metadata"]["view_counts"],
+        "case_id_sha256": cache["metadata"]["case_id_sha256"],
+        "semantic_view_sha256": cache["metadata"]["semantic_view_sha256"],
+        "domain_semantic_view_sha256": cache[
+            "metadata"
+        ]["domain_semantic_view_sha256"],
         "view_ids": list(VIEW_IDS),
         "role_keys": list(ROLE_KEYS),
         "state_encode_calls": cache["metadata"]["state_encode_calls"],
