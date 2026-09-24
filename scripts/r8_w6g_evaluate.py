@@ -13,6 +13,7 @@ from nmd.second_order_localization import (
     aggregate_role_context,
     diagnose_w6g_view,
     load_w6g_cache,
+    pair_context_trajectory,
     role_localization_classification,
     stable_role_target,
 )
@@ -107,6 +108,11 @@ def _role_results(records):
                 role,
                 "far64",
             )
+            core = aggregate_role_context(
+                domain_records,
+                role,
+                "core-k8",
+            )
             dense = aggregate_role_context(
                 domain_records,
                 role,
@@ -114,8 +120,13 @@ def _role_results(records):
             )
             role_rows[role] = {
                 "pair": pair,
+                "core_k8": core,
                 "far64": far,
                 "dense64": dense,
+                "trajectory": pair_context_trajectory(
+                    domain_records,
+                    role,
+                ),
                 "classification": role_localization_classification(
                     pair=pair,
                     far=far,
@@ -150,12 +161,15 @@ def _pooled_results(records):
     roles = {}
     for role in ROLE_KEYS:
         pair = aggregate_role_context(records, role, f"pair-{role}")
+        core = aggregate_role_context(records, role, "core-k8")
         far = aggregate_role_context(records, role, "far64")
         dense = aggregate_role_context(records, role, f"dense-{role}64")
         roles[role] = {
             "pair": pair,
+            "core_k8": core,
             "far64": far,
             "dense64": dense,
+            "trajectory": pair_context_trajectory(records, role),
             "classification": role_localization_classification(
                 pair=pair,
                 far=far,
