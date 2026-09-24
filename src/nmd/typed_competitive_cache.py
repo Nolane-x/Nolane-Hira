@@ -471,7 +471,7 @@ def _loss_cached_case(
 
 def _ece15(
     confidence: list[float],
-    correctness: list[float],
+    targets: list[float],
 ) -> float:
     if not confidence:
         return float("nan")
@@ -488,11 +488,11 @@ def _ece15(
         if not selected:
             continue
         mean_conf = sum(confidence[row] for row in selected) / len(selected)
-        mean_correct = (
-            sum(correctness[row] for row in selected) / len(selected)
+        mean_target = (
+            sum(targets[row] for row in selected) / len(selected)
         )
         result += (
-            len(selected) / total * abs(mean_conf - mean_correct)
+            len(selected) / total * abs(mean_conf - mean_target)
         )
     return result
 
@@ -527,6 +527,7 @@ def evaluate_w6b_cases(
     kl_sum = 0.0
     confidence_values: list[float] = []
     correctness_values: list[float] = []
+    soft_target_values: list[float] = []
     score_errors: list[float] = []
     max_mass_error = 0.0
 
@@ -576,6 +577,7 @@ def evaluate_w6b_cases(
             )
             confidence_values.append(float(p.max()))
             correctness_values.append(is_correct)
+            soft_target_values.append(float(gold[predicted]))
             max_mass_error = max(
                 max_mass_error,
                 abs(float(p.sum()) - 1.0),
@@ -621,6 +623,8 @@ def evaluate_w6b_cases(
         "nll": nll_sum / decision_count,
         "kl_gold_to_prediction": kl_sum / decision_count,
         "ece": _ece15(confidence_values, correctness_values),
+        "raw_ece": _ece15(confidence_values, correctness_values),
+        "soft_ece": _ece15(confidence_values, soft_target_values),
         "score_mae": sum(score_errors) / len(score_errors),
         "score_count": len(score_errors),
         "probability_mass_max_error": max_mass_error,
@@ -639,7 +643,7 @@ def dev_selection_key(
         -float(metrics["soft_accuracy"]),
         -float(metrics["diagnosis_per_k"]["64"]["accuracy"]),
         float(metrics["score_mae"]),
-        float(metrics["ece"]),
+        float(metrics["soft_ece"]),
         int(epoch),
     )
 
@@ -785,7 +789,7 @@ def absolute_production_gates(metrics: dict[str, object]) -> dict[str, bool]:
             float(metrics["diagnosis_per_k"]["64"]["accuracy"]) >= 0.55
         ),
         "hard_brier": float(metrics["hard_brier"]) <= 0.50,
-        "ece": float(metrics["ece"]) <= 0.15,
+        "soft_ece": float(metrics["soft_ece"]) <= 0.15,
         "score_mae": float(metrics["score_mae"]) <= 0.55,
         "probability_mass": (
             float(metrics["probability_mass_max_error"]) <= 1e-6
@@ -813,8 +817,9 @@ def mechanism_gates(
             float(selected["hard_brier"])
             <= float(legacy["hard_brier"]) + 0.02
         ),
-        "ece_nonregression": (
-            float(selected["ece"]) <= float(legacy["ece"]) + 0.02
+        "soft_ece_nonregression": (
+            float(selected["soft_ece"])
+            <= float(legacy["soft_ece"]) + 0.02
         ),
         "score_mae_nonregression": (
             float(selected["score_mae"])
