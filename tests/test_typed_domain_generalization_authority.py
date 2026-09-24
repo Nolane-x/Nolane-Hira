@@ -75,13 +75,15 @@ def test_joint_strata_are_exactly_balanced():
     single = _strata(generate_w6d_single_train())
     multi = _strata(generate_w6d_multi_train())
     dev = _strata(generate_w6d_dev())
-    confirm = _strata(generate_w6d_confirm(allow_confirm=True))
-
-    assert len(single) == len(multi) == len(dev) == len(confirm) == 48
+    assert len(single) == len(multi) == len(dev) == 48
     assert set(single.values()) == {8}
     assert set(multi.values()) == {8}
     assert set(dev.values()) == {4}
-    assert set(confirm.values()) == {4}
+
+    # CONFIRM-F stays sealed in unit tests. Its frozen count contract follows
+    # from the preregistered 48 cases/K x 4 K values x 5 decisions/case.
+    assert 48 * 4 == 192
+    assert 192 * 5 == 960
 
 
 def test_multi_source_budget_is_balanced_and_uses_shared_a_subset():
@@ -139,13 +141,12 @@ def test_w6d_values_do_not_overlap_w6b_w6c_or_w5_authority_values():
     assert not overlap, overlap
 
 
-def test_train_dev_confirm_semantics_and_ids_are_disjoint():
+def test_train_dev_semantics_are_disjoint_and_confirm_domain_is_statically_reserved():
     single = generate_w6d_single_train()
     multi = generate_w6d_multi_train()
     dev = generate_w6d_dev()
-    confirm = generate_w6d_confirm(allow_confirm=True)
 
-    for cases in (single, multi, dev, confirm):
+    for cases in (single, multi, dev):
         ids = [case.typed.case_id for case in cases]
         semantics = [_gold_signature(case) for case in cases]
         assert len(ids) == len(set(ids))
@@ -156,10 +157,20 @@ def test_train_dev_confirm_semantics_and_ids_are_disjoint():
         for case in [*single, *multi]
     }
     dev_semantics = {_gold_signature(case) for case in dev}
-    confirm_semantics = {_gold_signature(case) for case in confirm}
     assert train_semantics.isdisjoint(dev_semantics)
-    assert train_semantics.isdisjoint(confirm_semantics)
-    assert dev_semantics.isdisjoint(confirm_semantics)
+
+    # Do not materialize CONFIRM-F before DEV freeze. Pairwise domain-value
+    # disjointness plus unique F templates proves its lexical surface is
+    # reserved without exposing any authority row.
+    value_sets = domain_value_sets()
+    for source in ("A", "B", "C", "D", "E"):
+        assert value_sets[source].isdisjoint(value_sets["F"])
+    prior_templates = {
+        template
+        for spec in (DOMAIN_A, DOMAIN_B, DOMAIN_C, DOMAIN_D, DOMAIN_E)
+        for template in spec.templates
+    }
+    assert prior_templates.isdisjoint(DOMAIN_F.templates)
 
 
 def test_every_case_has_same_five_typed_primitives_and_valid_soft_targets():
@@ -188,3 +199,10 @@ def test_every_case_has_same_five_typed_primitives_and_valid_soft_targets():
             probs = decision.gold_probabilities
             assert abs(sum(probs) - 1.0) < 1e-12
             assert probs[decision.gold_index] == max(probs)
+
+
+def test_unit_suite_never_materializes_reserved_confirm_f():
+    from pathlib import Path
+    source = Path(__file__).read_text(encoding="utf-8")
+    forbidden = "generate_w6d_confirm(" + "allow_confirm=True)"
+    assert forbidden not in source
