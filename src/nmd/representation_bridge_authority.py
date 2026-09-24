@@ -614,6 +614,12 @@ def _make_base_views(
         for role_index in range(4)
     )
 
+    # Freeze the exact combinatorial alternatives before drawing any
+    # additional two-field negatives. This guarantees that the same 11
+    # cross-combinations are present for every base instead of allowing a
+    # random two-field draw to consume one of their identities first.
+    cross = _cross_combinations(target, one_field, forbidden)
+
     pair_cycle = (
         (0, 1),
         (2, 3),
@@ -633,7 +639,6 @@ def _make_base_views(
         for index in range(12)
     ]
 
-    cross = _cross_combinations(target, one_field, forbidden)
     far = _far_candidates(
         target,
         spec,
