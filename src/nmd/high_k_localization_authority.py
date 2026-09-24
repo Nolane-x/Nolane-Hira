@@ -256,6 +256,7 @@ DOMAINS = {
 @dataclass(frozen=True)
 class HighKDiagnosticView:
     typed: TypedDecisionCase
+    split: str
     base_id: str
     domain_id: str
     template_id: str
@@ -471,6 +472,7 @@ def _make_base_views(
         views.append(
             HighKDiagnosticView(
                 typed=typed,
+                split="diagnostic",
                 base_id=base_id,
                 domain_id=spec.domain_id,
                 template_id=template_id,
