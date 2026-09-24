@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+import hashlib
 import random
 
 from .contracts import LogicalOption
@@ -485,8 +486,9 @@ def _stable_option_id(
     for index, row in enumerate(two_field):
         if signature == row:
             return f"{base_id}-two-{index}"
-    # Spectators remain deterministic from their semantic signature.
-    code = "-".join(str(abs(hash(value)) % 100000) for value in signature)
+    # Spectators remain deterministic across processes/runners.
+    payload = "\x1f".join(signature).encode("utf-8")
+    code = hashlib.sha256(payload).hexdigest()[:20]
     return f"{base_id}-spectator-{code}"
 
 
