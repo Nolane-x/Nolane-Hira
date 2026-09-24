@@ -829,9 +829,24 @@ def diagnose_w6i_base(
             "factorized_field_margin_k64": factorized_field_margin_k64,
         }
 
+    core_final_top1 = bool(
+        production["core-k8"]["final"]["top1"]
+    )
+    master_final_top1 = bool(
+        production["master-k64"]["final"]["top1"]
+    )
+    first_rank_loss: int | str
+    if not core_final_top1:
+        first_rank_loss = 8
+    elif not master_final_top1:
+        first_rank_loss = 64
+    else:
+        first_rank_loss = "never"
+
     return {
         "base_id": base["base_id"],
         "domain_id": base["domain_id"],
+        "first_rank_loss": first_rank_loss,
         "roles": role_rows,
         "production": {
             view_id: {
@@ -915,6 +930,14 @@ def aggregate_w6i_records(
         left and (not right)
         for left, right in zip(p0, p2)
     ]
+    p2_to_p3_k64_flip = [
+        left != right
+        for left, right in zip(p2, p3_k64)
+    ]
+    p2_right_p3_k64_wrong = [
+        left and (not right)
+        for left, right in zip(p2, p3_k64)
+    ]
 
     def rank_block(path: str, view_id: str, stage: str | None = None):
         values = []
@@ -972,6 +995,15 @@ def aggregate_w6i_records(
             p0_wrong_p3_k64_right
         ),
         "p0_right_p2_wrong_rate": _accuracy(p0_right_p2_wrong),
+        "p2_to_p3_k64_pair_flip_rate": _accuracy(
+            p2_to_p3_k64_flip
+        ),
+        "p2_right_p3_k64_wrong_rate": _accuracy(
+            p2_right_p3_k64_wrong
+        ),
+        "first_rank_loss": dict(
+            Counter(str(record["first_rank_loss"]) for record in records)
+        ),
         "p0_margin": _mean(
             [
                 float(row["p0_isolated_value"]["margin"])
