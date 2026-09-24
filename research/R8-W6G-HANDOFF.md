@@ -111,9 +111,14 @@ No probe trains or mutates weights.
 
 Required attribution probes for the fixed pair:
 - native production scorer;
-- K8-reference IDF with current-view common mode;
-- K8-reference common mode with current-view IDF;
-- both K8-reference IDF and common mode.
+- K8-reference IDF only in final aggregation/salient-mask, with current-view native-IDF common mode;
+- K8-reference IDF only in common-mode subtraction, with current-view native-IDF aggregation;
+- K8-reference IDF in both pathways.
+
+Important preregistration correction:
+- production common-mode has no independent candidate-set input;
+- its set dependence is downstream of candidate-relative IDF;
+- W6g therefore decomposes **two pathways of IDF drift**, not two independent set-relative mechanisms.
 
 Field-role decomposition must also measure:
 - changed field-value token evidence;
