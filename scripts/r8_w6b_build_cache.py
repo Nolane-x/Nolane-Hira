@@ -8,6 +8,7 @@ from pathlib import Path
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
 from nmd.semantic import HFAutoSemanticEncoder
+from nmd import typed_competitive_authority as w6b_authority
 from nmd.typed_competitive_authority import (
     CONFIRM_SEED,
     DEV_SEED,
@@ -107,6 +108,23 @@ def main() -> None:
     model.eval()
 
     values = all_w6b_values()
+    train_dev_values = set().union(
+        w6b_authority.TRAIN_EQUIPMENT,
+        w6b_authority.TRAIN_ZONES,
+        w6b_authority.TRAIN_ANOMALIES,
+        w6b_authority.TRAIN_CHANNELS,
+    )
+    reserved_confirm_values = set().union(
+        w6b_authority.CONFIRM_EQUIPMENT,
+        w6b_authority.CONFIRM_ZONES,
+        w6b_authority.CONFIRM_ANOMALIES,
+        w6b_authority.CONFIRM_CHANNELS,
+    )
+    template_ids = (
+        *w6b_authority.TRAIN_TEMPLATES,
+        *w6b_authority.DEV_TEMPLATES,
+        *w6b_authority.CONFIRM_TEMPLATES,
+    )
     overlap = sorted(values & prior_w5_values())
     if overlap:
         raise RuntimeError(
@@ -152,6 +170,16 @@ def main() -> None:
         "dev_case_id_sha256": dev_cache["metadata"]["case_id_sha256"],
         "value_lexicon_sha256": list_hash(values),
         "value_count": len(values),
+        "train_dev_value_lexicon_sha256": list_hash(train_dev_values),
+        "reserved_confirm_value_lexicon_sha256": list_hash(
+            reserved_confirm_values
+        ),
+        "train_template_ids": list(w6b_authority.TRAIN_TEMPLATES),
+        "dev_template_ids": list(w6b_authority.DEV_TEMPLATES),
+        "reserved_confirm_template_ids": list(
+            w6b_authority.CONFIRM_TEMPLATES
+        ),
+        "template_ids_sha256": list_hash(template_ids),
         "prior_w5_value_overlap": [],
         "state_encodes_per_case_train": train_cache[
             "metadata"
