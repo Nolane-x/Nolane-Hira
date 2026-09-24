@@ -148,6 +148,15 @@ def main() -> None:
         "role_keys": list(ROLE_KEYS),
         "case_id_sha256": cache["metadata"]["case_id_sha256"],
         "semantic_view_sha256": cache["metadata"]["semantic_view_sha256"],
+        "production_representation_sha256": cache[
+            "metadata"
+        ]["production_representation_sha256"],
+        "canonical_representation_sha256": cache[
+            "metadata"
+        ]["canonical_representation_sha256"],
+        "factorized_representation_sha256": cache[
+            "metadata"
+        ]["factorized_representation_sha256"],
         "domain_semantic_view_sha256": cache[
             "metadata"
         ]["domain_semantic_view_sha256"],
