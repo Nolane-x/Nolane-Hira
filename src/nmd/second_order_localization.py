@@ -1064,6 +1064,19 @@ def aggregate_role_context(
         float(row["isolated_value"]["margin"])
         for row in rows
     ]
+    token_rows = [
+        row["token_group_evidence"]
+        for row in rows
+        if row.get("token_group_evidence") is not None
+    ]
+    changed_token_deltas = []
+    changed_token_wins = []
+    for evidence in token_rows:
+        key = evidence["changed_value_group"]
+        group = evidence["groups"][key]
+        delta = float(group["gold_minus_negative_weighted_coverage"])
+        changed_token_deltas.append(delta)
+        changed_token_wins.append(bool(group["favors_gold"]))
     return {
         "n": len(rows),
         "native_pair_accuracy": sum(value > 0 for value in native) / len(native),
@@ -1085,6 +1098,85 @@ def aggregate_role_context(
             sum(value > 0 for value in isolated) / len(isolated)
         ),
         "isolated_value_margin_mean": _mean(isolated),
+        "changed_value_token_count": len(changed_token_deltas),
+        "changed_value_token_accuracy": (
+            sum(changed_token_wins) / len(changed_token_wins)
+            if changed_token_wins
+            else float("nan")
+        ),
+        "changed_value_token_margin_mean": _mean(changed_token_deltas),
+    }
+
+
+def aggregate_fullset_rank(
+    records: Sequence[dict],
+    view_id: str,
+) -> dict[str, object]:
+    rows = [row for row in records if row["view_id"] == view_id]
+    if not rows:
+        raise ValueError("W6g full-set rank aggregation is empty")
+    return {
+        "n": len(rows),
+        "native_top1": sum(bool(row["native"]["top1"]) for row in rows) / len(rows),
+        "native_top5": sum(bool(row["native"]["top5"]) for row in rows) / len(rows),
+        "native_mrr": _mean([
+            float(row["native"]["reciprocal_rank"]) for row in rows
+        ]),
+        "native_margin_mean": _mean([
+            float(row["native"]["margin"]) for row in rows
+        ]),
+        "final_top1": sum(bool(row["final"]["top1"]) for row in rows) / len(rows),
+        "final_top5": sum(bool(row["final"]["top5"]) for row in rows) / len(rows),
+        "final_mrr": _mean([
+            float(row["final"]["reciprocal_rank"]) for row in rows
+        ]),
+        "final_margin_mean": _mean([
+            float(row["final"]["margin"]) for row in rows
+        ]),
+        "probability_mass_max_error": max(
+            float(row["probability_mass_error"]) for row in rows
+        ),
+    }
+
+
+def stable_role_target(
+    *,
+    scorer_only: dict[str, str],
+    joint_primary: dict[str, str],
+    joint_replica: dict[str, str],
+) -> dict[str, object]:
+    labels = {
+        label
+        for label in joint_primary.values()
+        if label != "NO_SECOND_ORDER_LOCALIZATION"
+    }
+    winners = []
+    for label in sorted(labels):
+        agreeing_domains = [
+            domain
+            for domain in sorted(joint_primary)
+            if (
+                joint_primary.get(domain) == label
+                and joint_replica.get(domain) == label
+            )
+        ]
+        if len(agreeing_domains) < 2:
+            continue
+        contradicted = any(
+            scorer_only.get(domain)
+            not in {label, "NO_SECOND_ORDER_LOCALIZATION"}
+            for domain in agreeing_domains
+        )
+        if not contradicted:
+            winners.append(
+                {
+                    "classification": label,
+                    "domains": agreeing_domains,
+                }
+            )
+    return {
+        "stable": len(winners) == 1,
+        "targets": winners,
     }
 
 
