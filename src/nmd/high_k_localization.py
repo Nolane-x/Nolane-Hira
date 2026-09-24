@@ -42,7 +42,7 @@ def compile_w6f_cache(
         row["roles"] = tuple(DOMAINS[view.domain_id].roles)
         base_ids.add(view.base_id)
 
-    cache["metadata"]["schema_version"] = "r8-w6f-high-k-cache-v1"
+    cache["metadata"]["w6f_schema_version"] = "r8-w6f-high-k-cache-v1"
     cache["metadata"]["base_count"] = len(base_ids)
     cache["metadata"]["view_count"] = len(views)
     cache["metadata"]["domain_counts"] = dict(
