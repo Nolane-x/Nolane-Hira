@@ -254,7 +254,12 @@ def test_aggregate_reports_cardinality_trajectory_and_error_anatomy():
     trajectory = out["base_trajectory"]
     assert trajectory["complete_base_count"] == 2
     assert trajectory["mean_native_coarse_rank_drift_k8_to_k64"] == 1.0
+    assert trajectory["mean_uniform_coarse_rank_drift_k8_to_k64"] == 0.0
+    assert trajectory["uniform_minus_native_rank_drift_k8_to_k64"] == -1.0
     assert trajectory["mean_final_rank_drift_k8_to_k64"] == 1.0
+    assert trajectory["first_native_top1_loss_k"] == {"64": 2}
+    assert trajectory["first_uniform_top1_loss_k"] == {"never": 2}
+    assert trajectory["first_final_top1_loss_k"] == {"32": 2}
     assert out["winning_wrong_field_counts"]["field-a"] == 4
     assert out["winning_wrong_distance_counts"][1] == 4
 
