@@ -1,0 +1,40 @@
+name: r8-w6d-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w6d-domain-generalization
+    paths:
+      - "src/nmd/typed_domain_generalization_authority.py"
+      - "tests/test_typed_domain_generalization_authority.py"
+      - "research/R8-W6D-HANDOFF.md"
+      - ".github/workflows/r8-w6d-unit.yml"
+  pull_request:
+    paths:
+      - "src/nmd/typed_domain_generalization_authority.py"
+      - "tests/test_typed_domain_generalization_authority.py"
+      - "research/R8-W6D-HANDOFF.md"
+      - ".github/workflows/r8-w6d-unit.yml"
+
+concurrency:
+  group: r8-w6d-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W6d authority
+        run: |
+          python -m py_compile src/nmd/typed_domain_generalization_authority.py
+      - name: Run W6d unit contracts
+        run: pytest -q tests/test_typed_domain_generalization_authority.py
