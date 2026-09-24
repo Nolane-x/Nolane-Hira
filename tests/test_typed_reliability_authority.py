@@ -121,6 +121,11 @@ def test_w6c_values_are_fresh_against_w6b_and_w5():
     from nmd.semantic_contrastive_salience import all_w5g_vocab
     from nmd.semantic_cross_candidate_binding import all_w5i_vocab
     from nmd.semantic_late_interaction import all_w5f_vocab
+    from nmd import semantic_alignment_probes as w5c
+    from nmd import semantic_capacity_control as w5e
+    from nmd import semantic_encoder_adaptation as w5d
+    from nmd import semantic_routing_curriculum as w5a
+    from nmd import semantic_token_curriculum as w5b
 
     prior = (
         set(all_w6b_values())
@@ -129,6 +134,17 @@ def test_w6c_values_are_fresh_against_w6b_and_w5():
         | set(all_w5h_vocab())
         | set(all_w5i_vocab())
     )
+    for module in (w5a, w5b, w5c, w5d, w5e):
+        for name, value in vars(module).items():
+            if not (
+                name.startswith("TRAIN_")
+                or name.startswith("CONFIRM_")
+            ):
+                continue
+            if isinstance(value, tuple) and all(
+                isinstance(item, str) for item in value
+            ):
+                prior.update(value)
     overlap = all_w6c_values() & prior
     assert not overlap, overlap
 
@@ -177,3 +193,19 @@ def test_w6c_templates_are_split_disjoint_and_render_fresh_scaffolds():
     )
     for phrase in forbidden:
         assert phrase not in text
+
+
+def test_noul_true_false_is_exactly_balanced_per_k_on_train_and_dev():
+    for split in ("train", "dev"):
+        cases = generate_w6c_authority(split)
+        for k in (8, 16, 32, 64):
+            rows = [case for case in cases if case.diagnosis_k == k]
+            labels = []
+            for case in rows:
+                review = next(
+                    decision
+                    for decision in case.typed.decisions
+                    if decision.question_id == "needs_review"
+                )
+                labels.append(review.gold_index)
+            assert labels.count(0) == labels.count(1)
