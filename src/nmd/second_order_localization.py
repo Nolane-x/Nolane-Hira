@@ -1298,29 +1298,56 @@ def role_localization_classification(
         common_acc_recovery >= 0.07
         or common_margin_recovery >= 0.15
     )
-    density_sensitive = (
+
+    # The preregistered IDF-interference rules compare dense64 directly with
+    # the fixed K2 pair. The far64 stability guard is specific to the
+    # DENSITY_NEAR_NEIGHBOR_LIMIT rule.
+    idf_interference_context = (
+        pair_acc >= 0.90
+        and dense_acc <= pair_acc - 0.10
+    )
+    near_neighbor_density = (
         pair_acc >= 0.90
         and far_acc >= pair_acc - 0.05
         and dense_acc <= far_acc - 0.10
+    )
+
+    aggregation_dominates = (
+        common_acc_recovery < aggregation_acc_recovery / 2
+        and common_margin_recovery < aggregation_margin_recovery / 2
+    )
+    common_dominates = (
+        aggregation_acc_recovery < common_acc_recovery / 2
+        and aggregation_margin_recovery < common_margin_recovery / 2
     )
 
     if pair_acc < 0.85 and isolated_acc < 0.85:
         label = "FIELD_SEMANTIC_COLLAPSE"
     elif pair_acc < 0.85 and isolated_acc >= 0.90:
         label = "ROLE_BINDING_COLLAPSE"
-    elif density_sensitive and aggregation_recovers and (
-        common_acc_recovery < aggregation_acc_recovery / 2
-        and common_margin_recovery < aggregation_margin_recovery / 2
+    elif (
+        idf_interference_context
+        and aggregation_recovers
+        and common_recovers
+    ):
+        label = "MIXED_IDF_PATHWAY_INTERFERENCE"
+    elif (
+        idf_interference_context
+        and aggregation_recovers
+        and aggregation_dominates
     ):
         label = "IDF_AGGREGATION_INTERFERENCE"
-    elif density_sensitive and common_recovers and (
-        aggregation_acc_recovery < common_acc_recovery / 2
-        and aggregation_margin_recovery < common_margin_recovery / 2
+    elif (
+        idf_interference_context
+        and common_recovers
+        and common_dominates
     ):
         label = "IDF_COMMON_MODE_INTERFERENCE"
-    elif density_sensitive and aggregation_recovers and common_recovers:
-        label = "MIXED_IDF_PATHWAY_INTERFERENCE"
-    elif density_sensitive and not aggregation_recovers and not common_recovers:
+    elif (
+        near_neighbor_density
+        and not aggregation_recovers
+        and not common_recovers
+    ):
         label = "DENSITY_NEAR_NEIGHBOR_LIMIT"
     else:
         label = "NO_SECOND_ORDER_LOCALIZATION"
@@ -1331,7 +1358,8 @@ def role_localization_classification(
         "far_accuracy": far_acc,
         "dense_accuracy": dense_acc,
         "isolated_value_accuracy": isolated_acc,
-        "density_sensitive": density_sensitive,
+        "idf_interference_context": idf_interference_context,
+        "density_sensitive": near_neighbor_density,
         "aggregation_accuracy_recovery": aggregation_acc_recovery,
         "common_mode_accuracy_recovery": common_acc_recovery,
         "aggregation_margin_recovery": aggregation_margin_recovery,
