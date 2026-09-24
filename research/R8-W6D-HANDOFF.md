@@ -169,3 +169,119 @@ The standalone W6d unit workflow uses the same regression set so this class of
 workflow drift is caught before future authority execution.
 
 No data/model/seed/gate/verdict change was made.
+
+
+## Authoritative closure
+
+Exact empirical head:
+- `eb72c1da5c91b511bf9ce727a1c639b06bcb2359`.
+
+Authority run:
+- `35987408790`;
+- all jobs PASS;
+- chain: unit -> upstream provenance/cache -> four preregistered paths -> independent DEV-E freeze -> untouched CONFIRM-F.
+
+Untouched CONFIRM-F:
+- seed `183353`;
+- 192 states / 960 decisions;
+- generated only after every DEV-E checkpoint froze;
+- state encodes/case = 1.0;
+- probability integrity PASS;
+- W6b CONFIRM rows used = false;
+- W6c CONFIRM rows used = false;
+- typed final/test rows used = false.
+
+### Frozen control
+
+`frozen-w6b-control`:
+- overall **40.208%**;
+- choice **30.208%**;
+- noul **66.146%**;
+- score **37.240%**;
+- diagnosis K64 **6.25%**;
+- hard Brier **0.74910**;
+- soft-target ECE **0.22282**;
+- score MAE **0.75852**.
+
+### Primary causal comparison
+
+`single-source-scorer-only`:
+- overall **84.792%**;
+- choice **69.531%**;
+- noul **99.479%**;
+- score **92.708%**;
+- diagnosis K64 **25.00%**;
+- hard Brier **0.22452**;
+- soft-target ECE **0.09738**;
+- score MAE **0.15985**.
+
+`multi-source-scorer-only`:
+- overall **84.271%**;
+- choice **70.313%**;
+- noul **91.667%**;
+- score **94.531%**;
+- diagnosis K64 **27.083%**;
+- hard Brier **0.25611**;
+- soft-target ECE **0.07859**;
+- score MAE **0.16150**.
+
+Same-budget scorer-only comparison:
+- equal cases: true;
+- equal optimizer steps: true;
+- equal trainable parameters: true;
+- overall delta multi - single: **-0.521 pp**;
+- K64 delta: **+2.083 pp**;
+- choice delta: **+0.781 pp**;
+- score delta: **+1.823 pp**.
+
+Therefore the preregistered diversity gates fail. Domain diversity applied only to the 32,769-parameter scorer does **not** causally rescue held-out semantic generalization.
+
+### Joint localization diagnostic
+
+`multi-source-joint`:
+- 454,928 trainable parameters;
+- overall **89.167%**;
+- choice **82.813%**;
+- noul **93.229%**;
+- score **93.490%**;
+- diagnosis K64 **54.167%**;
+- hard Brier **0.21205**;
+- soft-target ECE **0.14365**;
+- score MAE **0.13817**.
+
+Relative to multi-source scorer-only:
+- overall gain **+4.896 pp**;
+- K64 gain **+27.083 pp**.
+
+The joint path passes the frozen overall/choice/score/noul competence gates and has a very large K64 gain, but misses the absolute K64 >=55% competence gate:
+- observed 26/48 = **54.167%**;
+- required at least 27/48 = **56.25%** under this finite sample;
+- margin to the preregistered threshold corresponds to **one CONFIRM-F K64 case**.
+
+This is not promoted to rescue. The frozen verdict remains:
+
+**`GENERALIZATION_FAIL`**
+
+The result is nevertheless highly diagnostic: the remaining domain sensitivity is not confined to the 32,769-parameter competitive projection. Joint adaptation of the typed HIRA core and scorer recovers a large amount of held-out performance.
+
+### Preserved artifacts
+
+- CONFIRM artifact ID `10802909682`;
+- CONFIRM artifact digest `sha256:011c25e500dc5a8913b904ca0b43422a09789dce494444198af4a2097b02325a`;
+- frozen checkpoint artifact ID `10802804564`;
+- frozen checkpoint artifact digest `sha256:7ab1fce8732d5f0c5b84b54149e1918470544a0bb94429167edcd1bad8e46b34`.
+
+## Scientific interpretation
+
+W6d falsifies the narrow hypothesis that equal-budget multi-domain diversity in the scorer alone is sufficient.
+
+It provides strong evidence that domain robustness is a property of the **full typed decision path**, because joint HIRA+scorer adaptation improves held-out K64 by 27.08 points over scorer-only while also improving overall accuracy.
+
+Because CONFIRM-F is exposed, do not:
+- lower the 55% K64 gate;
+- retune on domain F;
+- add epochs based on F;
+- reuse F rows or values in the next lane;
+- call the near-miss a rescue.
+
+The next lane should be a wholly fresh held-out-domain replication of the **joint-adaptation hypothesis**, with new domains/seeds/lexicons and preregistered gates. If joint adaptation reproduces competence there, promote full-core domain-robust training; if not, investigate the residual high-K binding failure without using exposed W6d rows.
