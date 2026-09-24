@@ -64,8 +64,8 @@ def test_w6i_cache_is_base_centric_and_accounts_extra_probe_encoding():
     assert metadata["state_encode_calls"] == 1
     assert metadata["state_encodes_per_base"] == 1.0
     assert metadata["representation_encoder_batches"] == 1
-    assert metadata["representation_text_count"] == 376
-    assert metadata["representation_texts_per_base"] == 376.0
+    assert metadata["representation_text_count"] == 380
+    assert metadata["representation_texts_per_base"] == 380.0
     assert len(metadata["case_id_sha256"]) == 64
     assert len(metadata["semantic_view_sha256"]) == 64
 
@@ -78,6 +78,7 @@ def test_w6i_cache_is_base_centric_and_accounts_extra_probe_encoding():
             "negative",
             "gold_phrase",
             "negative_phrase",
+            "swapped_role_gold_phrase",
         }
         for value in probe.values():
             assert value["tokens"].shape[-1] == 256
@@ -130,6 +131,13 @@ def test_w6i_same_case_bridge_evaluator_is_finite():
             row["p1_role_value_phrase"]["gold_wins"],
             bool,
         )
+        assert isinstance(
+            row["role_swap_rejection"]["rejected"],
+            bool,
+        )
+        assert math.isfinite(
+            float(row["role_swap_rejection"]["margin"])
+        )
 
     for path in ("production", "canonical"):
         for view_id in (
@@ -167,6 +175,7 @@ def test_w6i_aggregate_exposes_bridge_and_representation_metrics():
         "p0_accuracy",
         "p1_accuracy",
         "p2_accuracy",
+        "role_swap_rejection_accuracy",
         "p3_k64_fixed_pair_accuracy",
         "p0_wrong_p2_right_rate",
         "p0_right_p2_wrong_rate",
