@@ -113,7 +113,13 @@ def validate_w6g_cache(cache: dict) -> None:
         for role, probe in probes.items():
             if role not in ROLE_KEYS or not isinstance(probe, dict):
                 raise ValueError("invalid W6g field probe")
-            for key in ("gold", "negative", "role"):
+            for key in (
+                "gold",
+                "negative",
+                "role",
+                "gold_phrase",
+                "negative_phrase",
+            ):
                 item = probe.get(key)
                 if not isinstance(item, dict):
                     raise ValueError("W6g field probe item missing")
@@ -292,11 +298,16 @@ def compile_w6g_cache(
         spec = DOMAINS[reference.domain_id]
         probe_texts: list[str] = []
         for index, role in enumerate(ROLE_KEYS):
+            gold_value = reference.gold_signature[index]
+            negative_value = reference.one_field_signatures[index][index]
+            role_text = spec.roles[index]
             probe_texts.extend(
                 [
-                    reference.gold_signature[index],
-                    reference.one_field_signatures[index][index],
-                    spec.roles[index],
+                    gold_value,
+                    negative_value,
+                    role_text,
+                    f"{role_text} {gold_value}",
+                    f"{role_text} {negative_value}",
                 ]
             )
         probe_batch = model.encoder.encode_texts(probe_texts)
@@ -307,8 +318,14 @@ def compile_w6g_cache(
                 "gold": _content_from_text_batch(probe_batch, cursor),
                 "negative": _content_from_text_batch(probe_batch, cursor + 1),
                 "role": _content_from_text_batch(probe_batch, cursor + 2),
+                "gold_phrase": _content_from_text_batch(
+                    probe_batch, cursor + 3
+                ),
+                "negative_phrase": _content_from_text_batch(
+                    probe_batch, cursor + 4
+                ),
             }
-            cursor += 3
+            cursor += 5
 
         bases.append(
             {
@@ -657,199 +674,6 @@ def _pair_pathway_logits(
 
 
 
-def _find_subsequence(
-    sequence: list[int],
-    pattern: list[int],
-    *,
-    start: int = 0,
-) -> tuple[int, int]:
-    if not pattern:
-        raise ValueError("W6g token-group pattern cannot be empty")
-    stop = len(sequence) - len(pattern) + 1
-    for index in range(start, max(start, stop)):
-        if sequence[index:index + len(pattern)] == pattern:
-            return index, index + len(pattern)
-    raise ValueError("W6g token-group subsequence not found")
-
-
-def _native_token_coverage(
-    scorer: CompetitiveCoarseScorer,
-    *,
-    tensors: dict[str, Tensor],
-) -> tuple[Tensor, Tensor]:
-    context = torch.cat(
-        [tensors["state_tokens"], tensors["question_tokens"]],
-        dim=1,
-    )
-    context_mask = torch.cat(
-        [tensors["state_mask"], tensors["question_mask"]],
-        dim=1,
-    )
-    projected_context = scorer._project(context)
-    projected_options = scorer._project(tensors["option_tokens"])
-    similarity = torch.einsum(
-        "bktd,bcd->bktc",
-        projected_options,
-        projected_context,
-    )
-    similarity = similarity.masked_fill(
-        ~context_mask[:, None, None, :],
-        -1e4,
-    )
-    salience = candidate_relative_idf(
-        tensors["option_token_ids"],
-        tensors["option_mask"],
-    ).to(similarity.dtype)
-    weights = salience * tensors["option_mask"].to(similarity.dtype)
-    denom = weights.sum(dim=2, keepdim=True).clamp_min(1e-8)
-    common = (similarity * weights[..., None]).sum(dim=2) / denom
-    adjusted = similarity - common[:, :, None, :]
-    adjusted = adjusted.masked_fill(
-        ~context_mask[:, None, None, :],
-        -1e4,
-    )
-    coverage = adjusted.max(dim=-1).values
-    return coverage[0], salience[0]
-
-
-def _option_group_positions(
-    *,
-    full_ids: Tensor,
-    full_mask: Tensor,
-    base: dict,
-    role_index_changed: int,
-    negative: bool,
-) -> dict[str, list[int]]:
-    valid_positions = full_mask.bool().nonzero(as_tuple=False).flatten().tolist()
-    valid_ids = full_ids[full_mask.bool()].long().tolist()
-    groups: dict[str, list[int]] = {}
-    cursor = 0
-
-    for role_index, role in enumerate(ROLE_KEYS):
-        probe = base["field_probes"][role]
-        role_ids = probe["role"]["token_ids"].long().tolist()
-        value_key = (
-            "negative"
-            if negative and role_index == role_index_changed
-            else "gold"
-        )
-        value_ids = probe[value_key]["token_ids"].long().tolist()
-
-        role_start, role_end = _find_subsequence(
-            valid_ids,
-            role_ids,
-            start=cursor,
-        )
-        value_start, value_end = _find_subsequence(
-            valid_ids,
-            value_ids,
-            start=role_end,
-        )
-        groups[f"role:{role}"] = valid_positions[role_start:role_end]
-        groups[f"value:{role}"] = valid_positions[value_start:value_end]
-        cursor = value_end
-
-    claimed = {
-        position
-        for positions in groups.values()
-        for position in positions
-    }
-    groups["residual"] = [
-        position
-        for position in valid_positions
-        if position not in claimed
-    ]
-    return groups
-
-
-def _group_coverage_summary(
-    coverage: Tensor,
-    salience: Tensor,
-    positions: list[int],
-) -> dict[str, float]:
-    if not positions:
-        return {
-            "weighted_coverage": float("nan"),
-            "mean_coverage": float("nan"),
-            "min_coverage": float("nan"),
-        }
-    idx = torch.tensor(positions, dtype=torch.long, device=coverage.device)
-    cov = coverage[idx]
-    weight = salience[idx].to(cov.dtype)
-    weighted = (cov * weight).sum() / weight.sum().clamp_min(1e-8)
-    return {
-        "weighted_coverage": float(weighted),
-        "mean_coverage": float(cov.mean()),
-        "min_coverage": float(cov.min()),
-    }
-
-
-def pair_token_group_evidence(
-    scorer: CompetitiveCoarseScorer,
-    *,
-    tensors: dict[str, Tensor],
-    base: dict,
-    gold_index: int,
-    negative_index: int,
-    role_index: int,
-) -> dict[str, object]:
-    coverage, salience = _native_token_coverage(
-        scorer,
-        tensors=tensors,
-    )
-    decision_ids = tensors["option_token_ids"][0]
-    decision_mask = tensors["option_mask"][0]
-
-    gold_groups = _option_group_positions(
-        full_ids=decision_ids[gold_index],
-        full_mask=decision_mask[gold_index],
-        base=base,
-        role_index_changed=role_index,
-        negative=False,
-    )
-    negative_groups = _option_group_positions(
-        full_ids=decision_ids[negative_index],
-        full_mask=decision_mask[negative_index],
-        base=base,
-        role_index_changed=role_index,
-        negative=True,
-    )
-    if set(gold_groups) != set(negative_groups):
-        raise ValueError("W6g pair token-group keys drift")
-
-    groups = {}
-    for key in gold_groups:
-        gold_summary = _group_coverage_summary(
-            coverage[gold_index],
-            salience[gold_index],
-            gold_groups[key],
-        )
-        negative_summary = _group_coverage_summary(
-            coverage[negative_index],
-            salience[negative_index],
-            negative_groups[key],
-        )
-        delta = (
-            gold_summary["weighted_coverage"]
-            - negative_summary["weighted_coverage"]
-        )
-        groups[key] = {
-            "gold": gold_summary,
-            "negative": negative_summary,
-            "gold_minus_negative_weighted_coverage": delta,
-            "favors_gold": bool(delta > 0.0),
-        }
-
-    changed_key = f"value:{ROLE_KEYS[role_index]}"
-    return {
-        "groups": groups,
-        "changed_value_group": changed_key,
-        "changed_value_favors_gold": bool(
-            groups[changed_key]["favors_gold"]
-        ),
-    }
-
-
 def _pair_margin(logits: Tensor, gold_position: int = 0) -> float:
     if logits.numel() != 2:
         raise ValueError("W6g pair margin requires two logits")
@@ -857,30 +681,60 @@ def _pair_margin(logits: Tensor, gold_position: int = 0) -> float:
     return float(logits[gold_position] - logits[other])
 
 
-def _isolated_score(scorer: CompetitiveCoarseScorer, candidate: Tensor, state: Tensor) -> Tensor:
+def _isolated_score(
+    scorer: CompetitiveCoarseScorer,
+    candidate: Tensor,
+    state: Tensor,
+) -> Tensor:
     p_candidate = scorer._project(candidate.unsqueeze(0))[0]
     p_state = scorer._project(state.unsqueeze(0))[0]
     similarity = torch.einsum("td,sd->ts", p_candidate, p_state)
     coverage = similarity.max(dim=-1).values
-    return coverage.mean() + MIN_COVERAGE_WEIGHT * coverage.min()
+    return (
+        coverage.mean()
+        + MIN_COVERAGE_WEIGHT * coverage.min()
+    )
+
+
+@torch.inference_mode()
+def _counterfactual_probe(
+    scorer: CompetitiveCoarseScorer,
+    *,
+    gold: Tensor,
+    negative: Tensor,
+) -> dict[str, object]:
+    state = gold
+    gold_score = _isolated_score(scorer, gold, state)
+    negative_score = _isolated_score(scorer, negative, state)
+    margin = float((gold_score - negative_score).detach())
+    return {
+        "gold_wins": margin > 0.0,
+        "margin": margin,
+        "gold_score": float(gold_score.detach()),
+        "negative_score": float(negative_score.detach()),
+    }
 
 
 def isolated_value_probe(
     scorer: CompetitiveCoarseScorer,
     probe: dict,
 ) -> dict[str, object]:
-    gold = probe["gold"]["tokens"].float()
-    negative = probe["negative"]["tokens"].float()
-    state = probe["gold"]["tokens"].float()
-    gold_score = _isolated_score(scorer, gold, state)
-    negative_score = _isolated_score(scorer, negative, state)
-    margin = float(gold_score - negative_score)
-    return {
-        "gold_wins": margin > 0.0,
-        "margin": margin,
-        "gold_score": float(gold_score),
-        "negative_score": float(negative_score),
-    }
+    return _counterfactual_probe(
+        scorer,
+        gold=probe["gold"]["tokens"].float(),
+        negative=probe["negative"]["tokens"].float(),
+    )
+
+
+def role_value_phrase_probe(
+    scorer: CompetitiveCoarseScorer,
+    probe: dict,
+) -> dict[str, object]:
+    return _counterfactual_probe(
+        scorer,
+        gold=probe["gold_phrase"]["tokens"].float(),
+        negative=probe["negative_phrase"]["tokens"].float(),
+    )
 
 
 @torch.inference_mode()
@@ -996,17 +850,9 @@ def diagnose_w6g_view(
                 scorer,
                 base["field_probes"][role],
             ),
-            "token_group_evidence": (
-                pair_token_group_evidence(
-                    scorer,
-                    tensors=tensors,
-                    base=base,
-                    gold_index=gold_index,
-                    negative_index=current_target,
-                    role_index=role_index,
-                )
-                if str(view["view_id"]).startswith("pair-")
-                else None
+            "role_value_phrase": role_value_phrase_probe(
+                scorer,
+                base["field_probes"][role],
             ),
         }
 
@@ -1064,19 +910,10 @@ def aggregate_role_context(
         float(row["isolated_value"]["margin"])
         for row in rows
     ]
-    token_rows = [
-        row["token_group_evidence"]
+    phrases = [
+        float(row["role_value_phrase"]["margin"])
         for row in rows
-        if row.get("token_group_evidence") is not None
     ]
-    changed_token_deltas = []
-    changed_token_wins = []
-    for evidence in token_rows:
-        key = evidence["changed_value_group"]
-        group = evidence["groups"][key]
-        delta = float(group["gold_minus_negative_weighted_coverage"])
-        changed_token_deltas.append(delta)
-        changed_token_wins.append(bool(group["favors_gold"]))
     return {
         "n": len(rows),
         "native_pair_accuracy": sum(value > 0 for value in native) / len(native),
@@ -1098,13 +935,24 @@ def aggregate_role_context(
             sum(value > 0 for value in isolated) / len(isolated)
         ),
         "isolated_value_margin_mean": _mean(isolated),
-        "changed_value_token_count": len(changed_token_deltas),
-        "changed_value_token_accuracy": (
-            sum(changed_token_wins) / len(changed_token_wins)
-            if changed_token_wins
-            else float("nan")
+        "role_value_phrase_accuracy": (
+            sum(value > 0 for value in phrases) / len(phrases)
         ),
-        "changed_value_token_margin_mean": _mean(changed_token_deltas),
+        "role_value_phrase_margin_mean": _mean(phrases),
+        "value_to_phrase_accuracy_delta": (
+            sum(value > 0 for value in phrases) / len(phrases)
+            - sum(value > 0 for value in isolated) / len(isolated)
+        ),
+        "phrase_to_full_accuracy_delta": (
+            sum(value > 0 for value in native) / len(native)
+            - sum(value > 0 for value in phrases) / len(phrases)
+        ),
+        "value_to_phrase_margin_delta": (
+            _mean(phrases) - _mean(isolated)
+        ),
+        "phrase_to_full_margin_delta": (
+            _mean(native) - _mean(phrases)
+        ),
     }
 
 
