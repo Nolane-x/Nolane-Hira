@@ -192,6 +192,20 @@ def main() -> None:
         "a13_weight_sha256": A13_WEIGHT_SHA256,
         "base_w3_head_sha256": W3_HEAD_SHA256,
         "base_w5i_scorer_sha256": W5I_SCORER_SHA256,
+        "train_cache_sha256": selection["train_cache_sha256"],
+        "dev_cache_sha256": selection["dev_cache_sha256"],
+        "selected_competitive_trainable_parameter_count": selection[
+            "selected_competitive_trainable_parameter_count"
+        ],
+        "selected_competitive_total_parameter_count": selection[
+            "selected_competitive_total_parameter_count"
+        ],
+        "legacy_trainable_parameter_count": selection[
+            "legacy_trainable_parameter_count"
+        ],
+        "legacy_total_parameter_count": selection[
+            "legacy_total_parameter_count"
+        ],
         "confirm_seed": CONFIRM_SEED,
         "confirm_generated_after_selection_freeze": True,
         "confirm_case_count": len(confirm_cases),
