@@ -201,8 +201,23 @@ def test_every_case_has_same_five_typed_primitives_and_valid_soft_targets():
             assert probs[decision.gold_index] == max(probs)
 
 
-def test_unit_suite_never_materializes_reserved_confirm_f():
+def test_only_post_freeze_confirm_script_can_materialize_reserved_confirm_f():
     from pathlib import Path
-    source = Path(__file__).read_text(encoding="utf-8")
-    forbidden = "generate_w6d_confirm(" + "allow_confirm=True)"
-    assert forbidden not in source
+
+    root = Path(__file__).resolve().parents[1]
+    forbidden = "allow_confirm=True"
+    allowed = root / "scripts" / "r8_w6d_confirm.py"
+    allowed_hits = allowed.read_text(encoding="utf-8").count(forbidden)
+    assert allowed_hits == 1
+
+    protected = [
+        root / "src" / "nmd" / "typed_domain_generalization_authority.py",
+        root / "src" / "nmd" / "typed_domain_generalization.py",
+        root / "scripts" / "r8_w6d_build_cache.py",
+        root / "scripts" / "r8_w6d_train_candidate.py",
+        root / "scripts" / "r8_w6d_freeze_candidates.py",
+        Path(__file__),
+        root / "tests" / "test_typed_domain_generalization.py",
+    ]
+    for path in protected:
+        assert forbidden not in path.read_text(encoding="utf-8"), path
