@@ -7,7 +7,11 @@ on:
     paths:
       - "src/nmd/calibration.py"
       - "src/nmd/runtime.py"
+      - "src/nmd/typed_reliability_authority.py"
+      - "src/nmd/typed_reliability_cache.py"
       - "tests/test_typed_reliability_calibration.py"
+      - "tests/test_typed_reliability_authority.py"
+      - "tests/test_typed_reliability_cache.py"
       - ".github/workflows/r8-w6c-unit.yml"
   pull_request:
     paths:
@@ -31,9 +35,9 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile
         run: |
-          python -m py_compile src/nmd/calibration.py src/nmd/runtime.py tests/test_typed_reliability_calibration.py
+          python -m py_compile src/nmd/calibration.py src/nmd/runtime.py src/nmd/typed_reliability_authority.py src/nmd/typed_reliability_cache.py tests/test_typed_reliability_calibration.py tests/test_typed_reliability_authority.py tests/test_typed_reliability_cache.py
       - name: Run W6c Phase A contracts
-        run: pytest -q tests/test_typed_reliability_calibration.py
+        run: pytest -q tests/test_typed_reliability_calibration.py tests/test_typed_reliability_authority.py tests/test_typed_reliability_cache.py
       - name: Run W6/W6b regressions
         run: |
           pytest -q tests/test_competitive_coarse_runtime.py
