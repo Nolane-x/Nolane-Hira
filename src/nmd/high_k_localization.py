@@ -432,18 +432,29 @@ def _rank_metrics(logits: Tensor, gold_index: int) -> dict[str, float | int | bo
     row = logits.detach().cpu().to(torch.float64).flatten()
     if not 0 <= gold_index < row.numel():
         raise ValueError("gold index outside logits")
-    gold_logit = float(row[gold_index])
-    rank = 1 + int((row > row[gold_index]).sum().item())
-    predicted = int(row.argmax().item())
+    values = [float(value) for value in row.tolist()]
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("rank metrics require finite logits")
 
-    negative = row.clone()
-    negative[gold_index] = -math.inf
-    best_negative_index = int(negative.argmax().item())
-    margin = gold_logit - float(negative[best_negative_index])
+    # Match deterministic argmax semantics under ties: lower option index wins.
+    order = sorted(
+        range(len(values)),
+        key=lambda index: (-values[index], index),
+    )
+    rank = order.index(gold_index) + 1
+    predicted = order[0]
+    topk = set(order[: min(5, len(order))])
+
+    negative_indices = [index for index in order if index != gold_index]
+    if not negative_indices:
+        raise ValueError("rank metrics require at least two options")
+    best_negative_index = negative_indices[0]
+    gold_logit = values[gold_index]
+    margin = gold_logit - values[best_negative_index]
     return {
         "rank": rank,
-        "top1": rank == 1,
-        "top5": rank <= min(5, row.numel()),
+        "top1": predicted == gold_index,
+        "top5": gold_index in topk,
         "reciprocal_rank": 1.0 / rank,
         "gold_logit": gold_logit,
         "margin": margin,
