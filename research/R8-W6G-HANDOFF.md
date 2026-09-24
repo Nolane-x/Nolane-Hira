@@ -120,12 +120,13 @@ Important preregistration correction:
 - its set dependence is downstream of candidate-relative IDF;
 - W6g therefore decomposes **two pathways of IDF drift**, not two independent set-relative mechanisms.
 
-Field-role decomposition must also measure:
-- changed field-value token evidence;
-- unchanged field-value evidence;
-- role-label evidence;
-- residual syntax evidence;
-- isolated changed-value separability.
+Field-role decomposition uses tokenizer-robust counterfactual probes:
+- isolated changed-value separability;
+- role+value phrase separability;
+- full structured K2 pair separability;
+- value-only -> role+value -> full-pair accuracy/margin degradation.
+
+A pre-data unit audit rejected the earlier token-span attribution idea because punctuation/tokenization made separately encoded substrings fail exact alignment inside full option text. No W6g A13 empirical cache existed. The protocol was amended before diagnostic exposure rather than weakening token matching.
 
 ## Scientific boundary
 
@@ -158,3 +159,17 @@ Frozen generator invariants already encoded:
 - no prior rows used.
 
 No W6g cache/evaluator/result is valid until unit contracts pass.
+
+
+## Pre-data tokenizer-robust attribution amendment
+
+Before any W6g A13 cache or diagnostic result existed, unit tests showed that matching separately encoded role/value token-ID subsequences inside punctuated full option text is not tokenizer invariant.
+
+The failed pre-data heads are not diagnostic authorities. They performed only local unit tests using the self-contained trainable test encoder.
+
+W6g now uses three nested frozen counterfactual contexts for every one-field pair:
+1. value-only;
+2. role+value phrase;
+3. full structured K2 production option.
+
+All use the same frozen scorer projection and perform no training. This preserves the field-binding question while removing dependence on punctuation-specific token span recovery.
