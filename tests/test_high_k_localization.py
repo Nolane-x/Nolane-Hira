@@ -120,8 +120,8 @@ def test_uniform_salience_ablation_is_permutation_equivariant_and_nonmutating():
 
 def test_diagnose_cached_view_exposes_coarse_final_and_relation_anatomy():
     model, hira, scorer = _small_runtime()
-    view = generate_w6f_domain("N")[0]
-    cache = compile_w6f_cache(model, [view])
+    views = generate_w6f_domain("N")[:4]
+    cache = compile_w6f_cache(model, views)
     result = diagnose_cached_view(hira, scorer, cache["cases"][0])
 
     assert result["diagnosis_k"] == 8
