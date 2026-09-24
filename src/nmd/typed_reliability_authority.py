@@ -77,6 +77,39 @@ TRAIN_CHANNELS = (
     "vega bus", "waypoint bus", "xenon bus", "zenith bus",
 )
 
+DEV_COMPONENTS = (
+    "flux valve", "attitude computer", "thermal reservoir",
+    "power monitor", "guidance filter", "orbit timer",
+    "propellant sensor", "command router", "sunshade actuator",
+    "data concentrator", "reaction jet valve", "voltage supervisor",
+    "telemetry formatter", "pressure sampler", "coolant controller",
+    "antenna drive",
+)
+DEV_ZONES = (
+    "flight software rack", "forward service compartment",
+    "aft guidance shelf", "payload control drawer",
+    "power supervision bay", "thermal checkout tunnel",
+    "telemetry routing cabinet", "propulsion monitor panel",
+    "sensor processing niche", "navigation support cage",
+    "communications service tray", "battery control locker",
+    "attitude verification bench", "instrument power alcove",
+    "diagnostic relay frame", "command interface bay",
+)
+DEV_ANOMALIES = (
+    "clock slip", "routing fault", "thermal overshoot",
+    "packet duplication", "valve lag", "sensor quantization",
+    "power ripple", "command timeout", "pressure settling",
+    "drive resonance", "telemetry framing error",
+    "guidance phase error", "coolant pulsation",
+    "relay timing fault", "attitude offset", "filter ringing",
+)
+DEV_CHANNELS = (
+    "albedo link", "comet link", "ecliptic link", "fusion link",
+    "gravity link", "halo link", "inclination link", "jovian link",
+    "kinetic link", "lunar link", "magnetar link", "occultation link",
+    "periapsis link", "radiant link", "sidereal link", "terminator link",
+)
+
 CONFIRM_COMPONENTS = (
     "momentum damper", "propellant heater", "sun sensor",
     "command decoder", "power latch", "thermal mixer",
@@ -193,6 +226,10 @@ def all_w6c_values() -> set[str]:
         TRAIN_ZONES,
         TRAIN_ANOMALIES,
         TRAIN_CHANNELS,
+        DEV_COMPONENTS,
+        DEV_ZONES,
+        DEV_ANOMALIES,
+        DEV_CHANNELS,
         CONFIRM_COMPONENTS,
         CONFIRM_ZONES,
         CONFIRM_ANOMALIES,
@@ -202,12 +239,19 @@ def all_w6c_values() -> set[str]:
 
 
 def _pools(split: str):
-    if split in {"train", "dev"}:
+    if split == "train":
         return (
             TRAIN_COMPONENTS,
             TRAIN_ZONES,
             TRAIN_ANOMALIES,
             TRAIN_CHANNELS,
+        )
+    if split == "dev":
+        return (
+            DEV_COMPONENTS,
+            DEV_ZONES,
+            DEV_ANOMALIES,
+            DEV_CHANNELS,
         )
     if split == "confirm":
         return (
