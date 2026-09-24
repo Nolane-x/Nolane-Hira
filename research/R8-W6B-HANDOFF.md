@@ -1,6 +1,6 @@
 # R8-W6b handoff — fresh typed/reliability production authority
 
-Status: **PRE-AUTHORITY FROZEN. No W6b CONFIRM result is valid yet.**
+Status: **CLOSED — authoritative verdict `PRODUCTION_COMPETITIVE_PARTIAL`.**
 
 Issue: #79
 PR: #80
@@ -176,3 +176,174 @@ Also before empirical authority execution:
 - a regression contract proves TRAIN and DEV gold diagnosis semantic signatures are internally unique and cross-split disjoint.
 
 Earlier queued authority heads are superseded; only the final post-amendment exact head may be authoritative.
+
+
+## Authoritative closure
+
+Status: **CLOSED — authoritative verdict `PRODUCTION_COMPETITIVE_PARTIAL`.**
+
+Final exact authority head:
+- `883e15bb37bf887401865d73f37eaf88e97af2c2`.
+
+Sole authoritative end-to-end run:
+- `35959578866`;
+- unit -> upstream provenance -> fresh TRAIN/DEV cache -> 3 candidates -> DEV-only selector -> untouched CONFIRM;
+- every job PASS.
+
+Exact-head validation:
+- frozen W6b contracts: **17/17 PASS**;
+- PR unit run `35959582383`: PASS;
+- push unit run `35959578839`: PASS;
+- repo CI run `35959581533`: PASS.
+
+### Fresh cache receipt
+
+TRAIN:
+- 320 cases / 1,600 decisions;
+- seed 161127;
+- cache SHA-256 `1a99f9068c1aa527fc00d13024e47e1714bd17a5e84404ac71fff493fdb31866`.
+
+DEV:
+- 128 cases / 640 decisions;
+- seed 162229;
+- cache SHA-256 `48282d09e170964d6634d18789647728ee6c347254118a17b541cc1c3d58d0ce`.
+
+Reserved CONFIRM seed:
+- 163331.
+
+Integrity:
+- TRAIN state encodes/case = 1.0;
+- DEV state encodes/case = 1.0;
+- prior-W5 value overlap = empty;
+- typed-decisions final/test used = false;
+- campaign cells populated = 0.
+
+### DEV selection
+
+Competitive joint:
+- epoch 6;
+- accuracy 90.94%;
+- K64 diagnosis accuracy 84.38%;
+- hard Brier 0.2356;
+- score MAE 0.2018;
+- soft ECE 0.1609;
+- HIRA SHA `fdad44c5d30cc93ceb2efa80ff38ab5800e2493b8087886a9db9b4c923719f1b`;
+- scorer SHA `32379f0dfcec0d7d98107fd7ec26693ffd9504c1dafc4ecb1492caa5a35cb244`.
+
+Competitive scorer-only:
+- epoch 6;
+- **accuracy 93.13%**;
+- K64 diagnosis accuracy 84.38%;
+- hard Brier 0.2160;
+- score MAE 0.1513;
+- soft ECE 0.1833;
+- HIRA SHA `925f74094ac4ae583c015ea2a0be32ec692d885ec64dcf9cf3d94b64be0ccf42`;
+- scorer SHA `50abb2e8136599bcaf5c41d61036e3c335a7589c6244536cc0292dcea15b1ef0`.
+
+Legacy:
+- epoch 6;
+- accuracy 44.38%;
+- K64 diagnosis accuracy 0%;
+- hard Brier 0.6254;
+- score MAE 0.5767;
+- soft ECE 0.0341;
+- HIRA SHA `a83da6c92aaa515518600bf379c897d90f27d12b5a6ef9f31b76c68297139e7e`.
+
+DEV selector froze:
+- `competitive-w5i-scorer-only`;
+- epoch 6;
+- trainable parameters **32,769**;
+- total production path parameters 454,928.
+
+### Untouched CONFIRM
+
+CONFIRM:
+- 160 cases / 800 decisions;
+- generated only after DEV freeze;
+- cache SHA-256 `3c0ebd9c9f516ea51778da8557eb13893459da34e195037dc36c03eec3714292`;
+- source state encodes/case = 1.0.
+
+Selected scorer-only production path:
+- overall accuracy **81.50%**;
+- choice accuracy **80.31%**;
+- noul accuracy **69.375%**;
+- score accuracy **88.75%**;
+- diagnosis K8 **57.50%**;
+- diagnosis K16 **67.50%**;
+- diagnosis K32 **65.00%**;
+- diagnosis K64 **60.00%**;
+- hard Brier **0.3283**;
+- raw hard ECE **0.1333**;
+- soft-target ECE **0.1637**;
+- score MAE **0.2367**;
+- probability mass max error **1.4063e-7**.
+
+Legacy same-authority control:
+- overall accuracy **40.125%**;
+- choice accuracy **21.25%**;
+- noul accuracy **66.25%**;
+- score accuracy **45.94%**;
+- diagnosis K8 **12.50%**;
+- diagnosis K16/K32/K64 **0%**;
+- hard Brier **0.6519**;
+- raw hard ECE **0.0839**;
+- soft-target ECE **0.0607**;
+- score MAE **0.6398**.
+
+Same-authority deltas:
+- overall accuracy **+41.375 percentage points**;
+- diagnosis K64 **+60.0 points**;
+- hard Brier improvement **0.3236**;
+- score MAE improvement **0.4031**;
+- soft-target ECE worsened by about **0.1030**.
+
+Frozen absolute gates:
+- PASS overall accuracy;
+- PASS choice accuracy;
+- **FAIL noul accuracy**: 0.69375 < 0.70;
+- PASS score accuracy;
+- PASS diagnosis K64;
+- PASS hard Brier;
+- **FAIL soft-target ECE**: 0.16373 > 0.15;
+- PASS score MAE;
+- PASS probability integrity;
+- PASS state-once.
+
+Frozen mechanism gates:
+- PASS overall accuracy gain;
+- PASS diagnosis K64 gain;
+- PASS hard-Brier non-regression;
+- **FAIL soft-ECE non-regression**;
+- PASS score-MAE non-regression.
+
+Therefore the frozen verdict is:
+
+**`PRODUCTION_COMPETITIVE_PARTIAL`**
+
+It is not RESCUE because two absolute production gates fail and the calibration mechanism gate fails.
+
+### Evidence artifacts
+
+- frozen upstream: `10792845362`, digest `sha256:12cc959893474bef1a6ef387f5ab34ce3b10f4fb55da4ea5696e3e8ddaa7ba66`;
+- fresh cache: `10792084200`, digest `sha256:ec8dc1ef205bb4f773fca12f4136d097f1bab6b87d9478241689612dd041d509`;
+- competitive joint: `10792562782`, digest `sha256:f9040d77709e71fc0313a21b8887b618868a7088f7e23efa71e116d55577cb8a`;
+- legacy: `10792905891`, digest `sha256:a38dee06a9abb395f734aaef8a7c7491254a4381f57f31c895fb9b92deb5a454`;
+- competitive scorer-only: `10792970760`, digest `sha256:abc6856162d0320074eec0ac9532a3cd73d54164b3d902e9318e3ac2b86b462a`;
+- selected: `10792488690`, digest `sha256:3f0fe10a60701a0a654e5c71170432d55a96d1345b42fa2e53a38e9cb1778711`;
+- CONFIRM: `10792554860`, digest `sha256:bc3d62e644d0e0124467d45c14dd73319a219384b973885bd8f13b5cba7ca170`.
+
+### Scientific interpretation
+
+The semantic/coarse-routing question is no longer the dominant blocker:
+- a 32,769-trainable-parameter scorer-only adaptation on frozen HIRA more than doubles same-authority legacy overall accuracy;
+- high-cardinality diagnosis transfers to fresh reserved vocabulary, including 60% at K64 while legacy is 0%;
+- choice, score, Brier and score-MAE production gates pass.
+
+The remaining blocker is concentrated in **reliability/review calibration**:
+1. `needs_review` misses by only 0.625 percentage points;
+2. soft-target ECE exceeds the absolute limit by about 0.0137;
+3. competitive soft-ECE is materially worse than legacy despite far higher correctness.
+
+Do not reopen W5 semantic scorer search and do not retune exposed W6b CONFIRM.
+
+The next lane should preserve the scorer-only winner and target reliability/review calibration on a wholly fresh authority.
