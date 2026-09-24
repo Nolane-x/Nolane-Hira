@@ -173,3 +173,14 @@ W6g now uses three nested frozen counterfactual contexts for every one-field pai
 3. full structured K2 production option.
 
 All use the same frozen scorer projection and perform no training. This preserves the field-binding question while removing dependence on punctuation-specific token span recovery.
+
+
+## Pre-data contextual-probe refinement
+
+A second pre-data audit found that using the gold value itself as the probe reference would make value-only retrieval too close to a self-match.
+
+Before any W6g A13 cache existed, the counterfactual probes were therefore frozen to score:
+- gold value vs negative value against the full cached state-token sequence;
+- gold role+value phrase vs negative role+value phrase against the same full state-token sequence.
+
+This keeps the probe tokenizer-robust while making it contextual and non-tautological.
