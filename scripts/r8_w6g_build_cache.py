@@ -149,6 +149,15 @@ def main() -> None:
         "view_ids": list(VIEW_IDS),
         "role_keys": list(ROLE_KEYS),
         "state_encode_calls": cache["metadata"]["state_encode_calls"],
+        "field_probe_encoder_batches": cache[
+            "metadata"
+        ]["field_probe_encoder_batches"],
+        "field_probe_texts_per_base": cache[
+            "metadata"
+        ]["field_probe_texts_per_base"],
+        "field_probe_text_count": cache[
+            "metadata"
+        ]["field_probe_text_count"],
         "state_encodes_per_base": cache[
             "metadata"
         ]["state_encode_calls_per_base"],
