@@ -1,6 +1,6 @@
 # R8-W6d handoff — held-out domain generalization
 
-Status: **PRE-AUTHORITY IMPLEMENTATION ACTIVE. No W6d empirical verdict is valid yet.**
+Status: **PRE-AUTHORITY FROZEN. CONFIRM-F sealing repaired before empirical execution; no W6d empirical verdict is valid yet.**
 
 Issue: #83
 
@@ -97,8 +97,13 @@ No cross-candidate winner selection is allowed before CONFIRM. Each trainable pa
 ## Current implementation
 
 Implemented:
-- `src/nmd/typed_domain_generalization_authority.py`;
-- `tests/test_typed_domain_generalization_authority.py`.
+- six-domain authority generator;
+- equal-budget source/cache builder;
+- three trainable paths plus frozen production control;
+- independent DEV-E checkpoint freezing;
+- post-freeze CONFIRM-F evaluator;
+- full gated GitHub Actions authority;
+- leakage/balance/freshness/parameter/step-parity contracts.
 
 Before any authority cache is generated:
 1. unit tests must prove counts/balance;
@@ -109,3 +114,30 @@ Before any authority cache is generated:
 6. CONFIRM must remain sealed.
 
 No W6d empirical authority is valid before these gates pass.
+
+
+## Pre-authority CONFIRM-F seal repair
+
+A protocol audit found that an early unit-test version explicitly called
+`generate_w6d_confirm(allow_confirm=True)` to inspect balance and semantic
+disjointness. That violates the preregistered rule that domain-F authority rows
+must not be materialized before all DEV-E checkpoints freeze.
+
+This was repaired before an eligible empirical authority executed:
+- unit tests no longer materialize domain F;
+- CONFIRM-F balance is checked from frozen static count contracts;
+- F lexical/template reservation is checked statically from domain specs;
+- source/DEV semantic disjointness is tested without F generation;
+- a repository-level regression contract requires exactly one
+  `allow_confirm=True` capability, in `scripts/r8_w6d_confirm.py`;
+- build, train, freeze, source modules and unit tests are forbidden from
+  carrying that capability.
+
+Any authority run/head before this repair is non-authoritative even if it did
+not reach data execution.
+
+The final eligible authority must therefore begin at or after commit
+`a53346d4f0d76badfad99ca06b4e800e83a122a2`.
+
+No model formula, optimizer, authority seed, domain vocabulary, DEV ordering,
+gate, or verdict rule changed in this seal repair.
