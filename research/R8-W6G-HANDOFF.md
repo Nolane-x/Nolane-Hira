@@ -1,6 +1,6 @@
 # R8-W6g handoff — field-role vs candidate-set interference localization
 
-Status: **PRE-DIAGNOSTIC IMPLEMENTATION ACTIVE. No W6g localization result is valid yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `STABLE_SECOND_ORDER_LOCALIZATION`; field-semantic rescue is authorized.**
 
 Issue: #89
 
@@ -216,3 +216,48 @@ frozen rule.
 These repairs do not change Q/R/S generators, seeds, checkpoints, model
 parameters, diagnostic thresholds or any empirical result. No eligible W6g
 cache/evaluator result existed before the repairs.
+
+
+## Authoritative diagnostic closure
+
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `STABLE_SECOND_ORDER_LOCALIZATION`.**
+
+Exact diagnostic head:
+- `e2cd382a0c253365cdcead53d7997d5cee36c912`.
+
+Authority run:
+- `36006988217`;
+- all jobs PASS.
+
+Artifacts:
+- cache `10811578569`, digest `sha256:754c36900308e27190b886a4e2e7f8bf614134b5d67f970fda8987b68cea1396`;
+- localization `10812031197`, digest `sha256:e8b20394e9981ecbd845827dabb47b3f36cd10e50c8e3c9f94778980eaf86a46`.
+
+Fresh scope:
+- 192 Q/R/S base states;
+- 1,920 controlled views;
+- state encode exactly 1/base;
+- no training;
+- no W6b/W6c/W6d/W6e CONFIRM rows;
+- no W6f diagnostic rows;
+- campaign cells 0.
+
+Cross-checkpoint stability:
+- entity -> `FIELD_SEMANTIC_COLLAPSE`;
+- location -> `FIELD_SEMANTIC_COLLAPSE`;
+- anomaly -> `FIELD_SEMANTIC_COLLAPSE`;
+- channel -> `FIELD_SEMANTIC_COLLAPSE`.
+
+All four targets are stable across Q/R/S for joint-primary and joint-replica without a contradictory scorer-only mechanism.
+
+Frozen stability summary:
+- stable target count: 4;
+- stable mechanism classes: [`FIELD_SEMANTIC_COLLAPSE`];
+- `rescue_lane_authorized = true`.
+
+The isolated changed-value probe itself is weak across fresh domains/roles, frequently around 0.53-0.67 accuracy. This places the stable failure before pure high-K candidate-density competition. W6g therefore does not support relation reranking, removing candidate-relative salience, or a single IDF pathway as the root cause.
+
+Scientific consequence:
+- W6h is authorized only as a fresh rescue authority for field-semantic separability;
+- Q/R/S are exposed diagnostics and permanently forbidden for W6h training, selection, gate tuning or mechanism search;
+- W6h must not enlarge A13 or specialize the production interface to W6g domain labels.
