@@ -122,6 +122,7 @@ def test_w6i_same_case_bridge_evaluator_is_finite():
 
     record = diagnose_w6i_base(hira, scorer, base, views)
     assert record["domain_id"] == "AA"
+    assert record["first_rank_loss"] in {8, 64, "never"}
     assert set(record["roles"]) == set(ROLE_KEYS)
     for role in ROLE_KEYS:
         row = record["roles"][role]
@@ -190,8 +191,11 @@ def test_w6i_aggregate_exposes_bridge_and_representation_metrics():
         "p0_wrong_p2_right_rate",
         "p0_wrong_p3_k64_right_rate",
         "p0_right_p2_wrong_rate",
+        "p2_to_p3_k64_pair_flip_rate",
+        "p2_right_p3_k64_wrong_rate",
     ):
         assert 0.0 <= float(metrics[key]) <= 1.0
+    assert sum(metrics["first_rank_loss"].values()) == 1
     for key in (
         "canonical_k64_gain",
         "factorized_mean_k64_gain",
