@@ -663,50 +663,6 @@ def _pair_margin(logits: Tensor, gold_position: int = 0) -> float:
     return float(logits[gold_position] - logits[other])
 
 
-def isolated_value_probe(
-    scorer: CompetitiveCoarseScorer,
-    probe: dict,
-) -> dict[str, object]:
-    gold_tokens = probe["gold"]["tokens"].float().unsqueeze(0)
-    negative_tokens = probe["negative"]["tokens"].float().unsqueeze(0)
-    state_tokens = probe["gold"]["tokens"].float().unsqueeze(0)
-
-    state = scorer._project(state_tokens)
-    candidates = scorer._project(
-        torch.stack([gold_tokens[0], negative_tokens[0]])
-        if gold_tokens.shape[1] == negative_tokens.shape[1]
-        else _pad_pair(gold_tokens[0], negative_tokens[0])
-    )
-    similarity = torch.einsum("ktd,sd->kts", candidates, state[0])
-    coverage = similarity.max(dim=-1).values
-    scores = coverage.mean(-1) + MIN_COVERAGE_WEIGHT * coverage.min(-1).values
-    margin = float(scores[0] - scores[1])
-    return {
-        "gold_wins": margin > 0.0,
-        "margin": margin,
-        "gold_score": float(scores[0]),
-        "negative_score": float(scores[1]),
-    }
-
-
-def _pad_pair(left: Tensor, right: Tensor) -> Tensor:
-    length = max(left.shape[0], right.shape[0])
-    out = torch.zeros(
-        2,
-        length,
-        left.shape[-1],
-        dtype=left.dtype,
-        device=left.device,
-    )
-    out[0, : left.shape[0]] = left
-    out[1, : right.shape[0]] = right
-    # Padding zeros normalize to zero in scorer._project and are weak; the
-    # isolated probe is diagnostic only. Return lengths through a mask would
-    # be cleaner, but unequal lexical lengths are handled below by direct
-    # per-candidate scoring instead of this branch.
-    return out
-
-
 def _isolated_score(scorer: CompetitiveCoarseScorer, candidate: Tensor, state: Tensor) -> Tensor:
     p_candidate = scorer._project(candidate.unsqueeze(0))[0]
     p_state = scorer._project(state.unsqueeze(0))[0]
