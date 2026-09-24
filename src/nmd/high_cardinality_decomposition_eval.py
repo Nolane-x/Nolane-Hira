@@ -436,6 +436,111 @@ def _score_subset(
 
 
 @torch.inference_mode()
+def _score_all_gold_negative_pairs(
+    hira: HIRACore,
+    scorer: nn.Module,
+    base: dict,
+) -> list[dict[str, object]]:
+    """Evaluate the 63 independent gold-vs-negative K2 contexts in one batch.
+
+    Each batch row remains a distinct two-candidate scorer context, so
+    candidate-relative IDF/common-mode are computed independently per pair.
+    This is a compute optimization only; it does not change the diagnostic.
+    """
+    gold = int(base["gold_master_index"])
+    negatives = [index for index in range(64) if index != gold]
+    pair_indices = torch.tensor(
+        [sorted((gold, negative)) for negative in negatives],
+        dtype=torch.long,
+    )
+    batch = pair_indices.shape[0]
+
+    state_segments = base["state_segments"].float().unsqueeze(0).expand(
+        batch, -1, -1
+    )
+    state_tokens = base["state_content_tokens"].float().unsqueeze(0).expand(
+        batch, -1, -1
+    )
+    state_mask = torch.ones(
+        batch,
+        state_tokens.shape[1],
+        dtype=torch.bool,
+    )
+    question = base["question_embedding"].float().unsqueeze(0).expand(
+        batch, -1
+    )
+    question_tokens = base["question_tokens"].float().unsqueeze(0).expand(
+        batch, -1, -1
+    )
+    question_mask = base["question_content_mask"].bool().unsqueeze(0).expand(
+        batch, -1
+    )
+
+    master_options = base["master_option_embeddings"].float()
+    master_option_tokens = base["master_option_tokens"].float()
+    master_option_ids = base["master_option_token_ids"].long()
+    master_option_mask = base["master_option_content_mask"].bool()
+
+    options = master_options[pair_indices]
+    option_tokens = master_option_tokens[pair_indices]
+    option_token_ids = master_option_ids[pair_indices]
+    option_mask = master_option_mask[pair_indices]
+    qtype = torch.full(
+        (batch,),
+        PRIMITIVE_TO_ID["choice"],
+        dtype=torch.long,
+    )
+
+    coarse = scorer(
+        state_tokens=state_tokens,
+        state_mask=state_mask,
+        question_tokens=question_tokens,
+        question_mask=question_mask,
+        option_tokens=option_tokens,
+        option_token_ids=option_token_ids,
+        option_mask=option_mask,
+    )
+    out = hira(
+        question,
+        state_segments,
+        options,
+        qtype,
+        coarse_override=coarse,
+        forced_budget=2,
+        adaptive_budget=False,
+    )
+
+    records: list[dict[str, object]] = []
+    for row_index, negative in enumerate(negatives):
+        indices = tuple(int(x) for x in pair_indices[row_index].tolist())
+        gold_position = indices.index(gold)
+        coarse_metrics = _rank_metrics(
+            out.coarse_logits[row_index],
+            gold_position,
+        )
+        final_metrics = _rank_metrics(
+            out.logits[row_index],
+            gold_position,
+        )
+        records.append(
+            {
+                "negative_master_index": negative,
+                "distance": int(
+                    base["master_option_distances"][negative]
+                ),
+                "coarse_gold_win": bool(coarse_metrics["top1"]),
+                "final_gold_win": bool(final_metrics["top1"]),
+                "coarse_margin": float(coarse_metrics["margin"]),
+                "final_margin": float(final_metrics["margin"]),
+                "probability_mass_error": abs(
+                    float(out.probabilities[row_index].sum()) - 1.0
+                ),
+            }
+        )
+    return records
+
+
+@torch.inference_mode()
 def _oracle_relation_probe(
     hira: HIRACore,
     base: dict,
@@ -487,22 +592,11 @@ def diagnose_w6j_base(
     }
 
     gold = int(base["gold_master_index"])
-    pairs: list[dict[str, object]] = []
-    for negative in range(64):
-        if negative == gold:
-            continue
-        pair_indices = tuple(sorted((gold, negative)))
-        scored = _score_subset(hira, scorer, base, pair_indices)
-        pairs.append(
-            {
-                "negative_master_index": negative,
-                "distance": int(base["master_option_distances"][negative]),
-                "coarse_gold_win": bool(scored["coarse"]["top1"]),
-                "final_gold_win": bool(scored["final"]["top1"]),
-                "coarse_margin": float(scored["coarse"]["margin"]),
-                "final_margin": float(scored["final"]["margin"]),
-            }
-        )
+    pairs = _score_all_gold_negative_pairs(
+        hira,
+        scorer,
+        base,
+    )
 
     master_indices = tuple(
         int(x) for x in base["view_indices"]["64"]
