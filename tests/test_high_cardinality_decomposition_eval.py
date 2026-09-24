@@ -6,6 +6,8 @@ import torch
 
 from nmd.competitive import CompetitiveCoarseScorer
 from nmd.high_cardinality_decomposition_eval import (
+    _score_all_gold_negative_pairs,
+    _score_subset,
     aggregate_w6j_records,
     compile_w6j_cache,
     diagnose_w6j_base,
@@ -125,3 +127,39 @@ def test_w6j_aggregation_exposes_frozen_classification_metrics():
         "MIXED_HIGH_CARDINALITY_ARCHITECTURE",
         "HIGH_CARDINALITY_DECOMPOSITION_UNRESOLVED",
     }
+
+
+def test_batched_k2_sweep_matches_independent_subset_scoring():
+    model, hira, scorer = _small_runtime()
+    cache = compile_w6j_cache(model, _one_base_views())
+    base = cache["bases"][0]
+    gold = int(base["gold_master_index"])
+
+    batched = {
+        int(row["negative_master_index"]): row
+        for row in _score_all_gold_negative_pairs(hira, scorer, base)
+    }
+    assert len(batched) == 63
+
+    # Compare several positions including both sides of the gold index so the
+    # pair-order/gold-position handling is covered.
+    negatives = [
+        index
+        for index in (0, 1, 17, 31, 47, 63)
+        if index != gold
+    ]
+    for negative in negatives:
+        indices = tuple(sorted((gold, negative)))
+        scalar = _score_subset(hira, scorer, base, indices)
+        row = batched[negative]
+        assert row["coarse_gold_win"] == bool(scalar["coarse"]["top1"])
+        assert row["final_gold_win"] == bool(scalar["final"]["top1"])
+        assert abs(
+            float(row["coarse_margin"])
+            - float(scalar["coarse"]["margin"])
+        ) < 1e-6
+        assert abs(
+            float(row["final_margin"])
+            - float(scalar["final"]["margin"])
+        ) < 1e-6
+        assert float(row["probability_mass_error"]) <= 1e-6
