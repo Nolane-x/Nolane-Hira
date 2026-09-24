@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from hashlib import sha256
+import json
 import math
 from pathlib import Path
 from typing import Sequence
@@ -28,6 +29,39 @@ from .second_order_localization_authority import (
 def _case_id_sha256(views: Sequence[SecondOrderDiagnosticView]) -> str:
     payload = "\n".join(
         sorted(view.typed.case_id for view in views)
+    ).encode("utf-8")
+    return sha256(payload).hexdigest()
+
+
+def _semantic_view_sha256(
+    views: Sequence[SecondOrderDiagnosticView],
+) -> str:
+    rows = []
+    for view in sorted(views, key=lambda item: item.typed.case_id):
+        decision = view.typed.decisions[0]
+        rows.append(
+            {
+                "case_id": view.typed.case_id,
+                "base_id": view.base_id,
+                "domain_id": view.domain_id,
+                "view_id": view.view_id,
+                "state_text": view.typed.state_text,
+                "question_text": decision.question_text,
+                "gold_index": int(decision.gold_index),
+                "options": [
+                    {
+                        "option_id": option.option_id,
+                        "criterion_text": option.criterion_text,
+                    }
+                    for option in decision.options
+                ],
+            }
+        )
+    payload = json.dumps(
+        rows,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
     ).encode("utf-8")
     return sha256(payload).hexdigest()
 
@@ -468,6 +502,13 @@ def compile_w6g_cache(
             "base_count": len(bases),
             "view_count": len(rows),
             "case_id_sha256": _case_id_sha256(views),
+            "semantic_view_sha256": _semantic_view_sha256(views),
+            "domain_semantic_view_sha256": {
+                domain: _semantic_view_sha256(
+                    [view for view in views if view.domain_id == domain]
+                )
+                for domain in ("Q", "R", "S")
+            },
             "state_encode_calls": state_calls,
             "state_encode_calls_per_base": (
                 state_calls / max(1, len(bases))
@@ -737,6 +778,23 @@ def role_value_phrase_probe(
     )
 
 
+def _wrong_winner_anatomy(
+    view: dict,
+    metrics: dict[str, object],
+    gold_index: int,
+) -> dict[str, object] | None:
+    predicted = int(metrics["predicted_index"])
+    if predicted == gold_index:
+        return None
+    return {
+        "option_id": tuple(view["option_ids"])[predicted],
+        "distance": int(tuple(view["option_distances"])[predicted]),
+        "changed_roles": tuple(
+            tuple(view["option_changed_roles"])[predicted]
+        ),
+    }
+
+
 @torch.inference_mode()
 def diagnose_w6g_view(
     hira: HIRACore,
@@ -865,6 +923,12 @@ def diagnose_w6g_view(
         "diagnosis_k": int(view["diagnosis_k"]),
         "native": native_rank,
         "final": final_rank,
+        "native_wrong_winner": _wrong_winner_anatomy(
+            view, native_rank, gold_index
+        ),
+        "final_wrong_winner": _wrong_winner_anatomy(
+            view, final_rank, gold_index
+        ),
         "role_pairs": roles,
         "probability_mass_error": abs(
             float(probabilities.sum()) - 1.0
@@ -956,6 +1020,74 @@ def aggregate_role_context(
     }
 
 
+def pair_context_trajectory(
+    records: Sequence[dict],
+    role: str,
+) -> dict[str, object]:
+    contexts = (
+        f"pair-{role}",
+        "core-k8",
+        "far64",
+        f"dense-{role}64",
+    )
+    by_base: dict[str, dict[str, dict]] = defaultdict(dict)
+    for row in records:
+        if row["view_id"] in contexts and role in row["role_pairs"]:
+            by_base[str(row["base_id"])][str(row["view_id"])] = row
+
+    complete = {
+        base_id: views
+        for base_id, views in by_base.items()
+        if set(views) == set(contexts)
+    }
+    if not complete:
+        raise ValueError("W6g pair trajectory has no complete bases")
+
+    deltas = {
+        "pair_to_core": [],
+        "core_to_far": [],
+        "far_to_dense": [],
+    }
+    first_loss = Counter()
+    for views in complete.values():
+        margins = {
+            context: float(
+                views[context]["role_pairs"][role]["native_margin"]
+            )
+            for context in contexts
+        }
+        deltas["pair_to_core"].append(
+            margins["core-k8"] - margins[f"pair-{role}"]
+        )
+        deltas["core_to_far"].append(
+            margins["far64"] - margins["core-k8"]
+        )
+        deltas["far_to_dense"].append(
+            margins[f"dense-{role}64"] - margins["far64"]
+        )
+
+        label = "never"
+        for context in contexts:
+            if margins[context] <= 0.0:
+                label = context
+                break
+        first_loss[label] += 1
+
+    return {
+        "complete_base_count": len(complete),
+        "mean_margin_delta_pair_to_core": _mean(
+            deltas["pair_to_core"]
+        ),
+        "mean_margin_delta_core_to_far": _mean(
+            deltas["core_to_far"]
+        ),
+        "mean_margin_delta_far_to_dense": _mean(
+            deltas["far_to_dense"]
+        ),
+        "first_pair_loss_context": dict(first_loss),
+    }
+
+
 def aggregate_fullset_rank(
     records: Sequence[dict],
     view_id: str,
@@ -983,6 +1115,36 @@ def aggregate_fullset_rank(
         ]),
         "probability_mass_max_error": max(
             float(row["probability_mass_error"]) for row in rows
+        ),
+        "native_wrong_winner_distance_counts": dict(
+            Counter(
+                int(row["native_wrong_winner"]["distance"])
+                for row in rows
+                if row["native_wrong_winner"] is not None
+            )
+        ),
+        "final_wrong_winner_distance_counts": dict(
+            Counter(
+                int(row["final_wrong_winner"]["distance"])
+                for row in rows
+                if row["final_wrong_winner"] is not None
+            )
+        ),
+        "native_wrong_winner_role_counts": dict(
+            Counter(
+                role
+                for row in rows
+                if row["native_wrong_winner"] is not None
+                for role in row["native_wrong_winner"]["changed_roles"]
+            )
+        ),
+        "final_wrong_winner_role_counts": dict(
+            Counter(
+                role
+                for row in rows
+                if row["final_wrong_winner"] is not None
+                for role in row["final_wrong_winner"]["changed_roles"]
+            )
         ),
     }
 
