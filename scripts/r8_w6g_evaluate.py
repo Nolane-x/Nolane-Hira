@@ -229,16 +229,28 @@ def _stability(results):
         for role, result in stable.items()
         if result["stable"]
     }
+    mechanism_labels = sorted({
+        target["targets"][0]["classification"]
+        for target in targets.values()
+        if target["targets"]
+    })
+    authorized = bool(targets) and len(mechanism_labels) == 1
+    outcome = (
+        "STABLE_SECOND_ORDER_LOCALIZATION"
+        if authorized
+        else (
+            "MIXED_STABLE_SECOND_ORDER_LOCALIZATION"
+            if targets
+            else "NO_STABLE_SECOND_ORDER_LOCALIZATION"
+        )
+    )
     return {
         "per_role": stable,
         "stable_target_count": len(targets),
         "stable_targets": targets,
-        "rescue_lane_authorized": bool(targets),
-        "diagnostic_outcome": (
-            "STABLE_SECOND_ORDER_LOCALIZATION"
-            if targets
-            else "NO_STABLE_SECOND_ORDER_LOCALIZATION"
-        ),
+        "stable_mechanism_classes": mechanism_labels,
+        "rescue_lane_authorized": authorized,
+        "diagnostic_outcome": outcome,
     }
 
 
