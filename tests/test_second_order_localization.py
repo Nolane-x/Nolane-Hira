@@ -302,6 +302,7 @@ def test_aggregate_role_context_reports_pair_recovery_metrics():
                         "common_mode_idf_reference_margin": 0.25,
                         "full_idf_reference_margin": 0.35,
                         "isolated_value": {"margin": 1.0},
+                        "role_value_phrase": {"margin": 0.6},
                     }
                 },
             }
@@ -313,6 +314,10 @@ def test_aggregate_role_context_reports_pair_recovery_metrics():
     assert out["common_mode_idf_reference_accuracy"] == 1.0
     assert out["full_idf_reference_accuracy"] == 1.0
     assert out["isolated_value_accuracy"] == 1.0
+    assert out["role_value_phrase_accuracy"] == 1.0
+    assert out["role_value_phrase_margin_mean"] == 0.6
+    assert out["value_to_phrase_margin_delta"] == -0.4
+    assert abs(out["phrase_to_full_margin_delta"] + 0.05) < 1e-12
 
 
 def test_pair_view_exposes_tokenizer_robust_field_counterfactuals():
