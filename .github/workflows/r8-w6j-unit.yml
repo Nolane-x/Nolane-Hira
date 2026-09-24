@@ -6,9 +6,9 @@ on:
       - feat/r8-w6j-high-cardinality-decomposition
     paths:
       - "src/nmd/high_cardinality_decomposition.py"
-      - "src/nmd/high_cardinality_decomposition_authority.py"
+      - "src/nmd/high_cardinality_decomposition_authority.py"\n      - "src/nmd/high_cardinality_decomposition_eval.py"
       - "tests/test_high_cardinality_decomposition.py"
-      - "tests/test_high_cardinality_decomposition_authority.py"
+      - "tests/test_high_cardinality_decomposition_authority.py"\n      - "tests/test_high_cardinality_decomposition_eval.py"
       - "research/R8-W6J-HANDOFF.md"
       - ".github/workflows/r8-w6j-unit.yml"
   pull_request:
@@ -42,7 +42,7 @@ jobs:
             src/nmd/high_cardinality_decomposition.py \
             src/nmd/high_cardinality_decomposition_authority.py \
             tests/test_high_cardinality_decomposition.py \
-            tests/test_high_cardinality_decomposition_authority.py
+            tests/test_high_cardinality_decomposition_authority.py \\\n            tests/test_high_cardinality_decomposition_eval.py
       - name: Run W6j pre-diagnostic contracts
         run: |
           pytest -q \
