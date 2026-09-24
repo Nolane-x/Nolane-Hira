@@ -9,6 +9,8 @@ from nmd.high_k_localization import (
     compile_w6f_cache,
     diagnose_cached_view,
     localization_classification,
+    load_w6f_cache,
+    save_w6f_cache,
     uniform_salience_logits,
 )
 from nmd.high_k_localization_authority import generate_w6f_domain
@@ -48,6 +50,25 @@ def test_w6f_cache_reuses_production_compiler_contract():
         assert tuple(case["option_distances"]) == view.option_distances
         assert len(case["decisions"]) == 1
         assert case["decisions"][0]["question_id"] == "diagnosis"
+
+
+def test_w6f_cache_roundtrip_is_weights_only_safe(tmp_path):
+    model, _, _ = _small_runtime()
+    views = generate_w6f_domain("N")[:4]
+    cache = compile_w6f_cache(model, views)
+    path = save_w6f_cache(cache, tmp_path / "diagnostics.pt")
+    loaded = load_w6f_cache(path)
+
+    assert loaded["metadata"] == cache["metadata"]
+    assert len(loaded["cases"]) == 4
+    for original, restored in zip(cache["cases"], loaded["cases"]):
+        assert restored["case_id"] == original["case_id"]
+        assert restored["option_signatures"] == original["option_signatures"]
+        assert restored["option_distances"] == original["option_distances"]
+        assert torch.equal(
+            restored["state_content_tokens"],
+            original["state_content_tokens"],
+        )
 
 
 def test_uniform_salience_ablation_is_permutation_equivariant_and_nonmutating():
