@@ -1,0 +1,53 @@
+name: r8-w6i-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w6i-representation-bridge-audit
+    paths:
+      - "src/nmd/representation_bridge_authority.py"
+      - "src/nmd/representation_bridge.py"
+      - "tests/test_representation_bridge_authority.py"
+      - "tests/test_representation_bridge.py"
+      - "research/R8-W6I-HANDOFF.md"
+      - ".github/workflows/r8-w6i-unit.yml"
+  pull_request:
+    paths:
+      - "src/nmd/representation_bridge_authority.py"
+      - "src/nmd/representation_bridge.py"
+      - "tests/test_representation_bridge_authority.py"
+      - "tests/test_representation_bridge.py"
+      - "research/R8-W6I-HANDOFF.md"
+      - ".github/workflows/r8-w6i-unit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w6i-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W6i stack
+        run: |
+          python -m py_compile \
+            src/nmd/representation_bridge_authority.py \
+            tests/test_representation_bridge_authority.py
+      - name: Run W6i generator and production contracts
+        run: |
+          pytest -q \
+            tests/test_representation_bridge_authority.py \
+            tests/test_competitive_coarse_runtime.py \
+            tests/test_typed_competitive_cache.py
