@@ -58,4 +58,10 @@ jobs:
         run: |
           pytest -q \
             tests/test_typed_domain_generalization_authority.py \
-            tests/test_typed_domain_generalization.py
+            tests/test_typed_domain_generalization.py \
+            tests/test_competitive_coarse_runtime.py \
+            tests/test_runtime.py \
+            tests/test_token_relation_modes.py \
+            tests/test_training.py \
+            tests/test_typed_decisions.py \
+            tests/test_typed_competitive_cache.py
