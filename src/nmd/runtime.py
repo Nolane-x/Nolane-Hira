@@ -5,6 +5,7 @@ from typing import Iterable, Literal
 import torch
 from torch import Tensor, nn
 
+from .calibration import TypedReliabilityCalibrator
 from .competitive import CompetitiveCoarseScorer
 from .contracts import CompiledSchema, LogicalOption, Primitive, StateMemory
 from .hira import HIRACore, HIRAOutput
@@ -41,6 +42,7 @@ class NolaneHira(nn.Module):
         encoder: TextSemanticEncoder,
         hira: HIRACore | None = None,
         coarse_scorer: CompetitiveCoarseScorer | None = None,
+        reliability_calibrator: TypedReliabilityCalibrator | None = None,
     ):
         super().__init__()
         self.encoder = encoder
@@ -51,6 +53,7 @@ class NolaneHira(nn.Module):
         ):
             raise ValueError("competitive coarse scorer d_model mismatch")
         self.coarse_scorer = coarse_scorer
+        self.reliability_calibrator = reliability_calibrator
         self.schema_compiler = SchemaCompiler(encoder)
         self.state_encode_calls = 0
 
@@ -148,6 +151,56 @@ class NolaneHira(nn.Module):
             option_mask=option_mask,
         )
 
+    def _apply_reliability_calibration(
+        self,
+        out: HIRAOutput,
+        schema: CompiledSchema,
+        qtype: Tensor,
+    ) -> HIRAOutput:
+        calibrator = self.reliability_calibrator
+        if calibrator is None:
+            return out
+
+        noul_true_mask = None
+        if schema.primitive == "noul":
+            raw_values = [option.value for option in schema.options]
+            if (
+                any(value is None for value in raw_values)
+                or sorted(float(value) for value in raw_values) != [0.0, 1.0]
+            ):
+                raise ValueError(
+                    "noul calibration requires option values exactly 0 and 1"
+                )
+            noul_true_mask = torch.tensor(
+                [[float(value) == 1.0 for value in raw_values]],
+                dtype=torch.bool,
+                device=out.logits.device,
+            )
+
+        logits = calibrator(
+            out.logits,
+            qtype,
+            noul_true_mask=noul_true_mask,
+        )
+        probabilities = torch.softmax(logits, dim=-1)
+
+        reranked = torch.zeros_like(probabilities, dtype=torch.bool)
+        reranked.scatter_(1, out.selected_indices, out.selected_mask)
+        tail_mass = probabilities.masked_fill(reranked, 0).sum(-1)
+
+        return HIRAOutput(
+            logits=logits,
+            probabilities=probabilities,
+            coarse_logits=out.coarse_logits,
+            selected_indices=out.selected_indices,
+            selected_mask=out.selected_mask,
+            relation_delta=out.relation_delta,
+            candidate_budget=out.candidate_budget,
+            budget_logits=out.budget_logits,
+            tail_mass=tail_mass,
+            state_attention=out.state_attention,
+        )
+
     def forward_compiled(
         self,
         memory: StateMemory,
@@ -204,6 +257,11 @@ class NolaneHira(nn.Module):
             coarse_override=coarse_override,
             forced_budget=forced_budget,
             adaptive_budget=adaptive_budget,
+        )
+        out = self._apply_reliability_calibration(
+            out,
+            schema,
+            qtype,
         )
         p = out.probabilities[0]
         selected_option_id = None
