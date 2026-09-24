@@ -7,8 +7,12 @@ from nmd.typed_reliability_authority import (
     CONFIRM_K_COUNTS,
     CONFIRM_SEED,
     CONFIRM_TEMPLATES,
+    DEV_ANOMALIES,
+    DEV_CHANNELS,
+    DEV_COMPONENTS,
     DEV_K_COUNTS,
     DEV_SEED,
+    DEV_ZONES,
     TRAIN_K_COUNTS,
     TRAIN_SEED,
     TRAIN_TEMPLATES,
@@ -209,3 +213,33 @@ def test_noul_true_false_is_exactly_balanced_per_k_on_train_and_dev():
                 )
                 labels.append(review.gold_index)
             assert labels.count(0) == labels.count(1)
+
+
+def test_train_dev_confirm_field_lexicons_are_pairwise_disjoint():
+    from nmd.typed_reliability_authority import (
+        CONFIRM_ANOMALIES,
+        CONFIRM_CHANNELS,
+        CONFIRM_COMPONENTS,
+        CONFIRM_ZONES,
+    )
+    train_values = set().union(
+        TRAIN_COMPONENTS,
+        TRAIN_ZONES,
+        TRAIN_ANOMALIES,
+        TRAIN_CHANNELS,
+    )
+    dev_values = set().union(
+        DEV_COMPONENTS,
+        DEV_ZONES,
+        DEV_ANOMALIES,
+        DEV_CHANNELS,
+    )
+    confirm_values = set().union(
+        CONFIRM_COMPONENTS,
+        CONFIRM_ZONES,
+        CONFIRM_ANOMALIES,
+        CONFIRM_CHANNELS,
+    )
+    assert train_values.isdisjoint(dev_values)
+    assert train_values.isdisjoint(confirm_values)
+    assert dev_values.isdisjoint(confirm_values)
