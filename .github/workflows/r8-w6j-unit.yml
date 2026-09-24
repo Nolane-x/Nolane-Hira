@@ -5,13 +5,17 @@ on:
     branches:
       - feat/r8-w6j-high-cardinality-decomposition
     paths:
+      - "src/nmd/high_cardinality_decomposition.py"
       - "src/nmd/high_cardinality_decomposition_authority.py"
+      - "tests/test_high_cardinality_decomposition.py"
       - "tests/test_high_cardinality_decomposition_authority.py"
       - "research/R8-W6J-HANDOFF.md"
       - ".github/workflows/r8-w6j-unit.yml"
   pull_request:
     paths:
+      - "src/nmd/high_cardinality_decomposition.py"
       - "src/nmd/high_cardinality_decomposition_authority.py"
+      - "tests/test_high_cardinality_decomposition.py"
       - "tests/test_high_cardinality_decomposition_authority.py"
       - "research/R8-W6J-HANDOFF.md"
       - ".github/workflows/r8-w6j-unit.yml"
@@ -32,9 +36,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Compile W6j generator
+      - name: Compile W6j stack
         run: |
-          python -m py_compile             src/nmd/high_cardinality_decomposition_authority.py             tests/test_high_cardinality_decomposition_authority.py
+          python -m py_compile \
+            src/nmd/high_cardinality_decomposition.py \
+            src/nmd/high_cardinality_decomposition_authority.py \
+            tests/test_high_cardinality_decomposition.py \
+            tests/test_high_cardinality_decomposition_authority.py
       - name: Run W6j pre-diagnostic contracts
         run: |
-          pytest -q tests/test_high_cardinality_decomposition_authority.py
+          pytest -q \
+            tests/test_high_cardinality_decomposition.py \
+            tests/test_high_cardinality_decomposition_authority.py
