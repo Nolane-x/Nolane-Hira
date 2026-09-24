@@ -307,3 +307,72 @@ def test_aggregate_role_context_reports_pair_recovery_metrics():
     assert out["common_mode_idf_reference_accuracy"] == 1.0
     assert out["full_idf_reference_accuracy"] == 1.0
     assert out["isolated_value_accuracy"] == 1.0
+
+
+def test_pair_view_exposes_changed_field_token_evidence():
+    model, hira, scorer = _small_runtime()
+    cache = compile_w6g_cache(model, _one_base_views())
+    base = cache["bases"][0]
+    views = _view_lookup(cache)
+    core = views["core-k8"]
+    result = diagnose_w6g_view(
+        hira,
+        scorer,
+        base,
+        views["pair-entity"],
+        core,
+    )
+    evidence = result["role_pairs"]["entity"]["token_group_evidence"]
+    assert evidence is not None
+    assert evidence["changed_value_group"] == "value:entity"
+    assert isinstance(evidence["changed_value_favors_gold"], bool)
+    assert "value:entity" in evidence["groups"]
+    assert "role:entity" in evidence["groups"]
+    delta = evidence["groups"]["value:entity"][
+        "gold_minus_negative_weighted_coverage"
+    ]
+    assert math.isfinite(float(delta))
+
+
+def test_stable_role_target_requires_primary_replica_and_noncontradiction():
+    from nmd.second_order_localization import stable_role_target
+
+    stable = stable_role_target(
+        scorer_only={
+            "Q": "NO_SECOND_ORDER_LOCALIZATION",
+            "R": "IDF_AGGREGATION_INTERFERENCE",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+        joint_primary={
+            "Q": "IDF_AGGREGATION_INTERFERENCE",
+            "R": "IDF_AGGREGATION_INTERFERENCE",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+        joint_replica={
+            "Q": "IDF_AGGREGATION_INTERFERENCE",
+            "R": "IDF_AGGREGATION_INTERFERENCE",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+    )
+    assert stable["stable"] is True
+    assert stable["targets"][0]["classification"] == "IDF_AGGREGATION_INTERFERENCE"
+    assert stable["targets"][0]["domains"] == ["Q", "R"]
+
+    contradicted = stable_role_target(
+        scorer_only={
+            "Q": "ROLE_BINDING_COLLAPSE",
+            "R": "NO_SECOND_ORDER_LOCALIZATION",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+        joint_primary={
+            "Q": "IDF_AGGREGATION_INTERFERENCE",
+            "R": "IDF_AGGREGATION_INTERFERENCE",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+        joint_replica={
+            "Q": "IDF_AGGREGATION_INTERFERENCE",
+            "R": "IDF_AGGREGATION_INTERFERENCE",
+            "S": "NO_SECOND_ORDER_LOCALIZATION",
+        },
+    )
+    assert contradicted["stable"] is False
