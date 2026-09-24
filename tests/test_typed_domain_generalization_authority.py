@@ -205,7 +205,7 @@ def test_only_post_freeze_confirm_script_can_materialize_reserved_confirm_f():
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
-    forbidden = "allow_confirm=True"
+    forbidden = "allow_" + "confirm=True"
     allowed = root / "scripts" / "r8_w6d_confirm.py"
     allowed_hits = allowed.read_text(encoding="utf-8").count(forbidden)
     assert allowed_hits == 1
