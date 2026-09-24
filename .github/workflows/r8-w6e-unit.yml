@@ -6,13 +6,25 @@ on:
       - feat/r8-w6e-joint-generalization-replication
     paths:
       - "src/nmd/typed_joint_replication_authority.py"
+      - "src/nmd/typed_joint_replication.py"
+      - "scripts/r8_w6e_build_cache.py"
+      - "scripts/r8_w6e_train_candidate.py"
+      - "scripts/r8_w6e_freeze_candidates.py"
+      - "scripts/r8_w6e_confirm.py"
       - "tests/test_typed_joint_replication_authority.py"
+      - "tests/test_typed_joint_replication.py"
       - "research/R8-W6E-HANDOFF.md"
       - ".github/workflows/r8-w6e-unit.yml"
   pull_request:
     paths:
       - "src/nmd/typed_joint_replication_authority.py"
+      - "src/nmd/typed_joint_replication.py"
+      - "scripts/r8_w6e_build_cache.py"
+      - "scripts/r8_w6e_train_candidate.py"
+      - "scripts/r8_w6e_freeze_candidates.py"
+      - "scripts/r8_w6e_confirm.py"
       - "tests/test_typed_joint_replication_authority.py"
+      - "tests/test_typed_joint_replication.py"
       - "research/R8-W6E-HANDOFF.md"
       - ".github/workflows/r8-w6e-unit.yml"
 
