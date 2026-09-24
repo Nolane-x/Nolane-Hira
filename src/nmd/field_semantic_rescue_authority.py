@@ -293,7 +293,76 @@ def domain_role_sets() -> dict[str, set[str]]:
     }
 
 
-def _relabel(rows: list[DomainAuthorityCase]) -> list[DomainAuthorityCase]:
+def _criterion_fields(text: str) -> tuple[str, str, str, str]:
+    fields = tuple(part.strip() for part in text.split(";"))
+    if len(fields) != 4:
+        raise RuntimeError("W6h diagnosis criterion must contain four fields")
+    return fields  # type: ignore[return-value]
+
+
+def _ensure_four_one_field_pairs(
+    row: DomainAuthorityCase,
+    spec: DomainSpec,
+) -> DomainAuthorityCase:
+    diagnosis = row.typed.decisions[0]
+    options = list(diagnosis.options)
+    gold_index = int(diagnosis.gold_index)
+    gold_fields = _criterion_fields(options[gold_index].criterion_text)
+
+    present: set[int] = set()
+    replaceable: list[int] = []
+    used_texts = {option.criterion_text for option in options}
+    for index, option in enumerate(options):
+        if index == gold_index:
+            continue
+        fields = _criterion_fields(option.criterion_text)
+        changed = [
+            role
+            for role, (left, right) in enumerate(zip(gold_fields, fields))
+            if left != right
+        ]
+        if len(changed) == 1:
+            present.add(changed[0])
+        else:
+            replaceable.append(index)
+
+    missing = [role for role in range(4) if role not in present]
+    if len(replaceable) < len(missing):
+        raise RuntimeError("W6h lacks replacement budget for semantic pairs")
+
+    for role in missing:
+        replacement_text = None
+        for value in spec.pools[role]:
+            field = f"{spec.roles[role]} {value}"
+            if field == gold_fields[role]:
+                continue
+            candidate_fields = list(gold_fields)
+            candidate_fields[role] = field
+            candidate = "; ".join(candidate_fields)
+            if candidate not in used_texts:
+                replacement_text = candidate
+                break
+        if replacement_text is None:
+            raise RuntimeError("W6h could not construct fresh one-field pair")
+        option_index = replaceable.pop()
+        options[option_index] = replace(
+            options[option_index],
+            criterion_text=replacement_text,
+        )
+        used_texts.add(replacement_text)
+
+    diagnosis = replace(diagnosis, options=tuple(options))
+    typed = replace(
+        row.typed,
+        decisions=(diagnosis, *row.typed.decisions[1:]),
+    )
+    return replace(row, typed=typed)
+
+
+def _relabel(
+    rows: list[DomainAuthorityCase],
+    spec: DomainSpec,
+) -> list[DomainAuthorityCase]:
     result: list[DomainAuthorityCase] = []
     for row in rows:
         if not row.typed.case_id.startswith("w6d-"):
@@ -302,7 +371,8 @@ def _relabel(rows: list[DomainAuthorityCase]) -> list[DomainAuthorityCase]:
             row.typed,
             case_id="w6h-" + row.typed.case_id[len("w6d-"):],
         )
-        result.append(replace(row, typed=typed))
+        relabeled = replace(row, typed=typed)
+        result.append(_ensure_four_one_field_pairs(relabeled, spec))
     return result
 
 
@@ -319,7 +389,8 @@ def _generate(
             split=split,
             per_k=per_k,
             seed=seed,
-        )
+        ),
+        spec,
     )
 
 
