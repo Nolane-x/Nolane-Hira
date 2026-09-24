@@ -1,6 +1,6 @@
 # R8-W6c handoff — typed reliability calibration
 
-Status: **PRE-AUTHORITY IMPLEMENTATION ACTIVE. No W6c empirical verdict is valid yet.**
+Status: **CLOSED. Authoritative verdict: `RELIABILITY_CALIBRATION_PARTIAL`. PR #82 merged into `main` as `dda8c6a9e0927aa234b13594a953457d774c69aa`.**
 
 Issue: #81
 PR: #82
@@ -188,3 +188,83 @@ A unit-only pre-authority head failed before upstream/cache/CONFIRM execution an
    - Repair: frozen production logit compilation uses `torch.no_grad()`, stores ordinary `requires_grad=False` tensors, and tests require `is_inference() == False`.
 
 The failed head did not generate a W6c cache and did not expose W6c CONFIRM. Existing W6c seeds remain untouched.
+
+
+## Authoritative closure
+
+Exact empirical head:
+- `a502fe580ec74fbc590684f228c50b5fc948eaa7`.
+
+Authority run:
+- `35982081999`;
+- all jobs PASS.
+
+Selected DEV calibrator:
+- candidate `primitive-temperature`;
+- epoch 8;
+- 3 trainable parameters;
+- calibrator SHA-256 `3e75d1122004cdaf26676963a647cf3f814afcd5a039a177e6e7c1a6e0bde2ab`;
+- temperatures approximately [1.6991, 4.0277, 10.0].
+
+Fresh untouched CONFIRM:
+- 192 states / 960 decisions;
+- seed 173341;
+- generated only after DEV selection freeze;
+- selected overall accuracy **45.729%**;
+- frozen production control overall **45.729%**;
+- choice accuracy **43.49%** selected/control;
+- noul accuracy **55.21%** selected/control;
+- score accuracy **43.23%** selected/control;
+- diagnosis K64 accuracy **43.75%** selected/control;
+- selected hard Brier **0.6641** vs control **0.7042**;
+- selected soft-target ECE **0.09721** vs control **0.24553**;
+- selected score MAE **0.8244** vs control **0.7236**;
+- probability-mass error <= 1e-6;
+- source state encodes/case = 1.0.
+
+Absolute gates PASS:
+- soft-target ECE;
+- probability integrity;
+- state-once.
+
+Absolute gates FAIL:
+- overall accuracy;
+- choice accuracy;
+- noul accuracy;
+- score accuracy;
+- diagnosis K64 accuracy;
+- hard Brier;
+- score MAE.
+
+Mechanism gates PASS:
+- soft-ECE improvement;
+- overall non-regression;
+- K64 non-regression;
+- hard-Brier non-regression.
+
+Mechanism gates FAIL:
+- noul gain/control-pass;
+- score-MAE non-regression.
+
+Frozen verdict:
+**`RELIABILITY_CALIBRATION_PARTIAL`**.
+
+Preserved CONFIRM artifact:
+- ID `10801538283`;
+- digest `sha256:2fef68358c0b5c0afb5075ef3b732ddc1a098c3615b9162448888302154834b1`.
+
+## Scientific interpretation
+
+W6c supports only the calibration half of its hypothesis.
+
+Three primitive temperatures substantially reduce soft-target ECE on a fresh authority, so reliability calibration is a real separable problem.
+
+However temperature scaling cannot change choice/score/noul argmax, and the fresh frozen production control itself fell from the W6b authority's 81.50% overall to 45.73% on W6c CONFIRM. Therefore the dominant unresolved problem is no longer post-hoc calibration.
+
+The next falsifiable bottleneck is **fresh-domain semantic generalization**: the promoted W6b competitive scorer is not yet robust to wholly new lexical/domain surfaces while HIRA/scorer are frozen.
+
+Do not:
+- retune W6c CONFIRM;
+- reuse W6c CONFIRM rows for training/selection;
+- add a richer calibrator as a substitute for fixing semantic hard accuracy;
+- claim broad external generalization from W6b or W6c alone.
