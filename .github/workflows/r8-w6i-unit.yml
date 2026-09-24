@@ -9,6 +9,8 @@ on:
       - "src/nmd/representation_bridge.py"
       - "tests/test_representation_bridge_authority.py"
       - "tests/test_representation_bridge.py"
+      - "scripts/r8_w6i_build_cache.py"
+      - "scripts/r8_w6i_evaluate.py"
       - "research/R8-W6I-HANDOFF.md"
       - ".github/workflows/r8-w6i-unit.yml"
   pull_request:
@@ -17,6 +19,8 @@ on:
       - "src/nmd/representation_bridge.py"
       - "tests/test_representation_bridge_authority.py"
       - "tests/test_representation_bridge.py"
+      - "scripts/r8_w6i_build_cache.py"
+      - "scripts/r8_w6i_evaluate.py"
       - "research/R8-W6I-HANDOFF.md"
       - ".github/workflows/r8-w6i-unit.yml"
 
@@ -46,7 +50,9 @@ jobs:
             src/nmd/representation_bridge_authority.py \
             src/nmd/representation_bridge.py \
             tests/test_representation_bridge_authority.py \
-            tests/test_representation_bridge.py
+            tests/test_representation_bridge.py \
+            scripts/r8_w6i_build_cache.py \
+            scripts/r8_w6i_evaluate.py
       - name: Run W6i generator and production contracts
         run: |
           pytest -q \
