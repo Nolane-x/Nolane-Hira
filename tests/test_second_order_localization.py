@@ -252,6 +252,26 @@ def test_role_localization_rules_do_not_overclaim():
     )
     assert aggregation["classification"] == "IDF_AGGREGATION_INTERFERENCE"
 
+    # IDF interference is a fixed-pair K2->dense64 rule. A far64
+    # degradation does not veto it; far64 stability belongs only to the
+    # DENSITY_NEAR_NEIGHBOR_LIMIT classification.
+    aggregation_with_far_drop = role_localization_classification(
+        pair=_metrics(acc=0.95, margin=0.4),
+        far=_metrics(acc=0.70, margin=0.1),
+        dense=_metrics(
+            acc=0.75,
+            margin=0.0,
+            agg_acc=0.85,
+            common_acc=0.77,
+            agg_margin=0.20,
+            common_margin=0.04,
+        ),
+    )
+    assert (
+        aggregation_with_far_drop["classification"]
+        == "IDF_AGGREGATION_INTERFERENCE"
+    )
+
     common = role_localization_classification(
         pair=_metrics(acc=0.95, margin=0.4),
         far=_metrics(acc=0.94, margin=0.35),
