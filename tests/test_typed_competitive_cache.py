@@ -14,6 +14,7 @@ from nmd.typed_competitive_cache import (
     absolute_production_gates,
     compile_w6b_cache,
     configure_candidate_trainability,
+    _ece15,
     confirm_verdict,
     dev_selection_key,
     evaluate_w6b_cases,
@@ -88,6 +89,8 @@ def test_cached_legacy_and_competitive_paths_are_finite_and_normalized():
         assert math.isfinite(float(metrics["accuracy"]))
         assert math.isfinite(float(metrics["hard_brier"]))
         assert math.isfinite(float(metrics["ece"]))
+        assert math.isfinite(float(metrics["raw_ece"]))
+        assert math.isfinite(float(metrics["soft_ece"]))
         assert math.isfinite(float(metrics["score_mae"]))
         assert metrics["probability_mass_max_error"] <= 1e-6
         assert metrics["source_state_encodes_per_case"] == 1.0
@@ -155,6 +158,8 @@ def metric_fixture(
         "hard_brier": brier,
         "soft_accuracy": max(0.0, accuracy - 0.1),
         "ece": ece,
+        "raw_ece": ece,
+        "soft_ece": ece,
         "score_mae": score_mae,
         "probability_mass_max_error": 1e-7,
         "source_state_encodes_per_case": 1.0,
@@ -290,7 +295,7 @@ def test_absolute_and_mechanism_gate_helpers_are_explicit():
         "score_accuracy",
         "diagnosis_k64_accuracy",
         "hard_brier",
-        "ece",
+        "soft_ece",
         "score_mae",
         "probability_mass",
         "state_once",
@@ -299,6 +304,14 @@ def test_absolute_and_mechanism_gate_helpers_are_explicit():
         "overall_accuracy_gain",
         "diagnosis_k64_gain",
         "hard_brier_nonregression",
-        "ece_nonregression",
+        "soft_ece_nonregression",
         "score_mae_nonregression",
     }
+
+
+def test_soft_ece_respects_declared_reliability_targets():
+    confidence = [0.90, 0.75, 0.60]
+    hard_correctness = [1.0, 1.0, 1.0]
+    soft_targets = [0.90, 0.75, 0.60]
+    assert _ece15(confidence, soft_targets) < 1e-12
+    assert _ece15(confidence, hard_correctness) > 0.15
