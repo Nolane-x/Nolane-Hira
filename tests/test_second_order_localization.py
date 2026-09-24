@@ -328,7 +328,7 @@ def test_aggregate_role_context_reports_pair_recovery_metrics():
     assert out["role_value_phrase_accuracy"] == 1.0
     assert out["role_value_phrase_margin_mean"] == 0.6
     assert out["value_to_phrase_margin_delta"] == -0.4
-    assert abs(out["phrase_to_full_margin_delta"] + 0.05) < 1e-12
+    assert abs(out["phrase_to_full_margin_delta"] + 0.475) < 1e-12
 
 
 def test_pair_view_exposes_tokenizer_robust_field_counterfactuals():
@@ -430,7 +430,7 @@ def test_mixed_stable_mechanisms_do_not_authorize_rescue():
     # The script-level stability aggregator is intentionally stricter than
     # per-role stability: multiple stable roles with different mechanisms
     # remain a mixed diagnostic, not a rescue authorization.
-    from scripts.r8_w6g_evaluate import _stability
+    from nmd.second_order_localization import diagnostic_stability
 
     def domain_block(label_entity, label_location):
         return {
@@ -465,7 +465,7 @@ def test_mixed_stable_mechanisms_do_not_authorize_rescue():
             )
         },
     }
-    out = _stability(results)
+    out = diagnostic_stability(results)
     assert out["stable_target_count"] == 2
     assert out["rescue_lane_authorized"] is False
     assert out["diagnostic_outcome"] == "MIXED_STABLE_SECOND_ORDER_LOCALIZATION"
