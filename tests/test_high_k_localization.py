@@ -4,6 +4,7 @@ import torch
 
 from nmd.competitive import CompetitiveCoarseScorer
 from nmd.high_k_localization import (
+    _rank_metrics,
     aggregate_w6f_records,
     compile_w6f_cache,
     diagnose_cached_view,
@@ -256,3 +257,16 @@ def test_aggregate_reports_cardinality_trajectory_and_error_anatomy():
     assert trajectory["mean_final_rank_drift_k8_to_k64"] == 1.0
     assert out["winning_wrong_field_counts"]["field-a"] == 4
     assert out["winning_wrong_distance_counts"][1] == 4
+
+
+def test_rank_metrics_match_deterministic_argmax_under_exact_ties():
+    logits = torch.tensor([[1.0, 1.0, 0.5]])
+    first = _rank_metrics(logits[0], 0)
+    tied_later = _rank_metrics(logits[0], 1)
+    assert first["predicted_index"] == 0
+    assert first["rank"] == 1
+    assert first["top1"] is True
+    assert tied_later["predicted_index"] == 0
+    assert tied_later["rank"] == 2
+    assert tied_later["top1"] is False
+    assert tied_later["margin"] == 0.0
