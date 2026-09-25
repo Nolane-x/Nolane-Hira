@@ -1,6 +1,6 @@
 # R8-W7b handoff — free-form retune attribution and replication
 
-Status: **PRE-DATA. No W7b empirical cache, training result, DEV selection or CONFIRM result exists yet.**
+Status: **CLOSED EMPIRICAL ATTRIBUTION AUTHORITY. Frozen verdict: `FREEFORM_RETUNE_NONREPLICATING`. AS/AT are exposed and forbidden for future tuning.**
 
 Issue: #99
 
@@ -382,3 +382,238 @@ At every meaningful session update:
 - forbidden next moves.
 
 A future AI should be able to continue without chat memory.
+
+
+---
+
+## 18. Authoritative W7b closure
+
+Exact empirical head:
+`6abc16b579b19e6cae75770e69c7da388194ce78`
+
+Authority run:
+`36107487032`
+
+All jobs PASS:
+
+`unit -> fresh AN-AR cache + exact W6e provenance -> five factorial candidates -> independent DEV-AR freezes -> untouched AS/AT confirm`.
+
+Artifacts:
+- cache `10851274466`, digest `sha256:2044ac2456931b2abc4441e01c6cda08d54dcab809972694f3a8efb1a95514b7`;
+- pair-only `10851358236`, digest `sha256:d907e66a52b189d5afd6a8027f727fc914b60f009ef854ec821f2d4d9a8f7e22`;
+- typed+pair replica `10851579577`, digest `sha256:897d555326499af83a5a4e55f3a306da668d374f4cdf71b6739038d917d48140`;
+- frozen W6e provenance `10851967193`, digest `sha256:1995eb327a022d6a3cfe8c7e616ea05393a373c0d37f8827204baba2cc7971ec`;
+- typed-only `10852317190`, digest `sha256:301eb3a22ef3ef0e15cabc77367d0a6f498064a18b6fac00138c5367532d5b4e`;
+- frozen candidate `10852365517`, digest `sha256:c844cfd556140b287c0910eb12caea27c069cc1c0d59e50a377a64fb70eef8e1`;
+- authoritative CONFIRM `10852381753`, digest `sha256:b19691e0709f127ffc19bb4f8dcfa7ac7dc23e82ef9a4035eeca5a25e07b67ba`;
+- typed+pair primary `10852495137`, digest `sha256:0395f7aca1430279677e8b0f16b3671dc7511cacd3ad1de9b92060dc43a63ffc`;
+- freeze `10852555298`, digest `sha256:e586cdb2ddea0185ff6663690868fec586a98b7eb617804eb4ea92ed8f45a6f4`.
+
+Integrity:
+- AS/AT each 192 states / 960 decisions;
+- AS/AT generated only after all DEV freezes;
+- state encodes/case = 1.0;
+- factor encoder batches = 0;
+- equal TRAIN case budget preserved;
+- primary/replica seeds independent;
+- no prior exposed CONFIRM/diagnostic rows used;
+- no typed final/test rows;
+- campaign cells 0;
+- probability mass error <2e-7.
+
+### Frozen outcome
+
+**`FREEFORM_RETUNE_NONREPLICATING`**
+
+`replication_pass = false`.
+
+Stable attribution:
+- none.
+
+Do not change the +30 pp frozen gain gate after exposure.
+
+### CONFIRM-AS
+
+Frozen W6e:
+- overall 86.146%;
+- diagnosis 61.979%;
+- choice 79.948%;
+- K32 final 54.167%;
+- K64 final **52.083%**;
+- one-field K2 coarse 77.148%;
+- mean K64 coarse pair-loss count 6.688.
+
+Typed-only:
+- overall 94.688%;
+- diagnosis 84.896%;
+- choice 92.448%;
+- K32 final 85.417%;
+- K64 final **66.667%**;
+- one-field K2 coarse 91.797%;
+- pair-loss count 2.083.
+
+Pair-only:
+- overall 80.938%;
+- diagnosis 69.271%;
+- choice 81.250%;
+- K32 final 64.583%;
+- K64 final **56.250%**;
+- one-field K2 coarse 73.611%;
+- pair-loss count 9.021.
+
+Typed+pair primary:
+- overall 91.875%;
+- diagnosis 88.021%;
+- choice 93.229%;
+- K32 final 87.500%;
+- K64 final **79.167%**;
+- one-field K2 coarse 95.551%;
+- pair-loss count 0.875.
+
+Typed+pair replica:
+- overall 92.813%;
+- diagnosis 88.542%;
+- choice 93.229%;
+- K32 final 87.500%;
+- K64 final **81.250%**;
+- one-field K2 coarse 95.486%;
+- pair-loss count 1.167.
+
+Primary vs frozen AS:
+- K64 gain **+27.083 pp**;
+- frozen gate required **+30 pp**;
+- miss = **2.917 pp**;
+- one-field gain +18.403 pp;
+- pair-loss reduction 86.9%.
+
+AS therefore passes every primary replication gate except the frozen K64 gain-vs-frozen gate.
+
+### CONFIRM-AT
+
+Frozen W6e:
+- overall 86.875%;
+- diagnosis 48.438%;
+- choice 73.438%;
+- K32 final 45.833%;
+- K64 final **31.250%**;
+- one-field K2 coarse 70.660%;
+- pair-loss count 13.521.
+
+Typed-only:
+- overall 88.750%;
+- diagnosis 76.042%;
+- choice 86.719%;
+- K32 final 70.833%;
+- K64 final **75.000%**;
+- one-field K2 coarse 88.520%;
+- pair-loss count 2.167.
+
+Pair-only:
+- overall 79.896%;
+- diagnosis 55.208%;
+- choice 73.177%;
+- K32 final 58.333%;
+- K64 final **33.333%**;
+- one-field K2 coarse 69.900%;
+- pair-loss count 11.479.
+
+Typed+pair primary:
+- overall 93.438%;
+- diagnosis 80.208%;
+- choice 89.844%;
+- K32 final 81.250%;
+- K64 final **79.167%**;
+- one-field K2 coarse 91.580%;
+- pair-loss count 1.667.
+
+Typed+pair replica:
+- overall 93.229%;
+- diagnosis 76.563%;
+- choice 88.281%;
+- K32 final 72.917%;
+- K64 final **72.917%**;
+- one-field K2 coarse 91.471%;
+- pair-loss count 1.333.
+
+Primary vs frozen AT:
+- K64 gain +47.917 pp;
+- one-field gain +20.920 pp;
+- pair-loss reduction 87.7%.
+
+AT passes all frozen primary replication gates.
+
+Replica robustness passes on both AS and AT.
+
+### Attribution result
+
+No stable attribution class is authorized.
+
+AS:
+- the domain-local `PAIR_MARGIN_CAUSAL_CONTRIBUTOR` gates pass;
+- pair-only independent-signal subgate does not pass;
+- typed-retune-dominant does not pass;
+- pair-margin-primary does not pass.
+
+AT:
+- none of the three attribution classes pass.
+
+The strongest descriptive pattern is:
+- typed-only retuning itself accounts for a large fraction of the gain;
+- pair-only training is weak and can damage typed competence;
+- adding pair margin to typed training often improves high-K/pair-loss behavior further;
+- however the preregistered causal attribution is not stable across AS and AT.
+
+This is descriptive only. Do not rename it as a stable mixed mechanism because the frozen overall verdict is nonreplicating.
+
+### Scientific interpretation
+
+W7b falsifies two overly simple stories:
+
+1. **pair-margin alone is the explanation** — false:
+   - pair-only is weak on both fresh domains and can regress typed accuracy.
+
+2. **typed-only fully explains the result** — not established:
+   - primary typed+pair materially exceeds typed-only on AS K64 (+12.50 pp) and on AT K32/overall, but the frozen attribution rules do not produce a stable cross-domain class.
+
+The W7 free-form control signal therefore remains promising but is **not reproducibly proven under the preregistered replication standard**.
+
+Crucially, the failure is not because the primary/replica models are generally weak:
+- primary K64 = 79.17% on both AS and AT;
+- replica K64 = 81.25% AS / 72.92% AT;
+- state-once/probability integrity all pass.
+
+The frozen failure is caused by the AS gain-vs-frozen requirement because AS's frozen baseline is already 52.08%.
+
+This observation may motivate future study design, but it does not authorize changing W7b's gate or declaring rescue.
+
+### Exposed/forbidden rows after W7b
+
+AS and AT are permanently exposed.
+
+Do not use AS/AT for:
+- training;
+- DEV selection;
+- seed choice;
+- loss-weight choice;
+- pair-margin choice;
+- threshold/gate tuning;
+- mechanism selection.
+
+AN-AR have also been used by W7b and should not become future untouched authority rows.
+
+### Authorized continuation
+
+Because the frozen verdict is `FREEFORM_RETUNE_NONREPLICATING`, W7b does **not** authorize production promotion of the free-form recipe.
+
+The next research should stop synthetic recipe optimization and test the frozen scientific picture against **external/public task structure without tuning on those evaluation rows**.
+
+Recommended next phase:
+- external/public task-decomposition study;
+- no production claim;
+- no W7b AS/AT reuse;
+- frozen checkpoints only;
+- measure whether high-cardinality improvement and pair-loss anatomy transfer outside the synthetic four-factor authority;
+- use any public benchmark only as evaluation, never as W7/W7b selection data;
+- create a fresh handoff before external evaluation begins.
+
+If external behavior does not support the same anatomy, return to architecture research rather than retuning synthetic gates.
