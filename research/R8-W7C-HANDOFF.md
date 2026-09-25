@@ -197,12 +197,38 @@ Completed:
 - W7c branch created from exact post-W7b main;
 - this handoff created before external row exposure.
 
+Implemented pre-exposure:
+- src/nmd/banking77_transfer.py:
+  - deterministic rows 400:800 loader;
+  - exact 77-label schema;
+  - competitive full-K production runtime evaluation;
+  - accuracy/F1/Brier/NLL/ECE/AURC/integrity metrics;
+  - frozen transfer classifier.
+- scripts/r8_w7c_banking77_transfer.py:
+  - exact W7b freeze/checkpoint SHA verification;
+  - exact pinned A13 verification;
+  - five-path frozen evaluation;
+  - no scorecard population.
+- tests/test_banking77_transfer.py:
+  - exact slice identity;
+  - frozen candidate identity;
+  - SIGNAL/WEAK/ABSENT gate semantics.
+- .github/workflows/r8-w7c-unit.yml pre-exposure unit gate.
+
+Exact implementation head before this handoff-only update:
+203f30a6c97f2dfd4a5a018588ecae7e630dce7c
+
+Current validation:
+- W7c unit run 36111320621 is the exact-head validation run;
+- repository CI run 36111320689 is the exact-head CI run;
+- no external authority workflow exists yet;
+- no Banking77 rows 400–799 have been requested or exposed.
+
 Not yet completed:
-- W7c external evaluator;
-- checkpoint provenance guard;
-- unit tests;
-- external authority workflow;
-- no Banking77 rows 400–799 exposed yet.
+- wait for exact-head unit/CI PASS;
+- add gated external authority workflow;
+- execute one frozen public transfer run;
+- freeze result into this handoff.
 
 ## 11. Immediate next work
 
