@@ -223,8 +223,8 @@ def evaluate_anchor_residual(
             "anchor_to_final": _transition(records["A"], records["F"], domain_keys),
         }
 
-    guard_high_summary = _summary(guard_high)
-    guard_low_summary = _summary(guard_low)
+    guard_high_summary = _summary(guard_high, views=("definition",))
+    guard_low_summary = _summary(guard_low, views=("definition",))
 
     for domain in DOMAINS:
         per_domain[domain]["guards"] = {
