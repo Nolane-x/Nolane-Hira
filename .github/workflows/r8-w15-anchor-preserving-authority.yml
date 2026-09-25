@@ -1,0 +1,396 @@
+name: r8-w15-anchor-preserving-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w15-anchor-preserving-residual
+    paths:
+      - ".github/workflows/r8-w15-anchor-preserving-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w15-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile frozen W15 stack
+        run: |
+          python -m py_compile \
+            src/nmd/anchor_preserving_residual.py \
+            src/nmd/anchor_preserving_residual_authority.py \
+            src/nmd/anchor_preserving_residual_cache.py \
+            src/nmd/anchor_preserving_residual_training.py \
+            scripts/r8_w15_build_cache.py \
+            scripts/r8_w15_train_candidate.py \
+            scripts/r8_w15_freeze_candidates.py \
+            scripts/r8_w15_confirm.py
+      - name: Run frozen W15 contracts
+        run: |
+          pytest -q \
+            tests/test_anchor_preserving_residual.py \
+            tests/test_anchor_preserving_residual_authority.py \
+            tests/test_anchor_preserving_residual_execution.py \
+            tests/test_anchor_preserving_residual_execution_contracts.py
+      - name: Guard sealed CONFIRM capability
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              Path("tests/test_anchor_preserving_residual.py"),
+              Path("tests/test_anchor_preserving_residual_authority.py"),
+              Path("tests/test_anchor_preserving_residual_execution.py"),
+              Path("tests/test_anchor_preserving_residual_execution_contracts.py"),
+              Path("scripts/r8_w15_build_cache.py"),
+              Path("scripts/r8_w15_train_candidate.py"),
+              Path("scripts/r8_w15_freeze_candidates.py"),
+          ]
+          for path in files:
+              text = path.read_text(encoding="utf-8")
+              assert "allow_confirm=True" not in text, path
+          confirm = Path("scripts/r8_w15_confirm.py").read_text(encoding="utf-8")
+          assert 'generate_w15_confirm("CE", allow_confirm=True)' in confirm
+          assert 'generate_w15_confirm("CF", allow_confirm=True)' in confirm
+          print("w15_confirm_capability_guard_pass")
+          PY
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W9 freeze artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .digest)" = "sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: inputs/w9
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36122220588
+      - name: Verify frozen W9 projection provenance
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("inputs/w9")
+          x=json.load(open(root/"freeze.json"))
+          assert x["schema_version"] == "r8-w9-freeze-v1"
+          assert x["status"] == "PASS"
+          assert x["all_candidates_frozen_before_confirm"] is True
+          rows={r["candidate"]:r for r in x["candidates"]}
+          row=rows["projection-semantic-control"]
+          assert row["selected_epoch"] == 5
+          assert row["hira_sha256"] == "d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588"
+          assert row["scorer_sha256"] == "8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          ck=root/row["checkpoint_dir"]
+          assert hashlib.sha256((ck/"hira.pt").read_bytes()).hexdigest() == row["hira_sha256"]
+          assert hashlib.sha256((ck/"scorer.pt").read_bytes()).hexdigest() == row["scorer_sha256"]
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          print("w15_w9_projection_provenance_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w15-frozen-w9-projection
+          path: inputs/w9
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen cache stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark first eligible W15 TRAIN/DEV exposure
+        run: echo R8_W15_BZ_CD_A13_EXPOSURE_BEGIN
+      - name: Build fresh BZ-CC TRAIN and DEV-CD cache
+        run: |
+          python scripts/r8_w15_build_cache.py --out artifacts/cache
+          cat artifacts/cache/receipt.json
+      - name: Verify pre-CONFIRM cache boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["schema_version"] == "r8-w15-train-dev-cache-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["train_case_count"] == 384
+          assert x["dev_case_count"] == 96
+          assert x["train_decision_count"] == 1920
+          assert x["dev_decision_count"] == 480
+          assert x["train_domain_case_counts"] == {"BZ":96,"CA":96,"CB":96,"CC":96}
+          assert x["dev_domain_case_counts"] == {"CD":96}
+          assert x["train_diagnosis_k_counts"] == {"4":128,"8":128,"16":128}
+          assert x["dev_diagnosis_k_counts"] == {"4":32,"8":32,"16":32}
+          assert x["train_state_encodes_per_case"] == 1.0
+          assert x["dev_state_encodes_per_case"] == 1.0
+          assert x["prior_exact_text_overlap"] == []
+          assert x["confirm_ce_exposed"] is False
+          assert x["confirm_cf_exposed"] is False
+          assert x["training_performed"] is False
+          assert x["w12_rows_used"] is False
+          assert x["w13_rows_used"] is False
+          assert x["w14_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print("w15_cache_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w15-cache
+          path: artifacts/cache
+          if-no-files-found: error
+          retention-days: 30
+
+  candidate:
+    needs: [upstream, cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate:
+          - production-frozen-control
+          - multiview-anchor-control
+          - unbounded-residual-control
+          - bounded-residual-primary
+          - bounded-residual-replica
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w15-cache
+          path: inputs/cache
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w15-frozen-w9-projection
+          path: inputs/w9
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[research]"
+      - name: Train/evaluate candidate and independently DEV-freeze
+        run: |
+          python scripts/r8_w15_train_candidate.py \
+            --train-cache inputs/cache/train.pt \
+            --dev-cache inputs/cache/dev-cd.pt \
+            --w9-hira inputs/w9/checkpoints/projection-semantic-control/hira.pt \
+            --w9-scorer inputs/w9/checkpoints/projection-semantic-control/scorer.pt \
+            --candidate "${{ matrix.candidate }}" \
+            --out artifacts/candidate
+          cat artifacts/candidate/receipt.json
+      - name: Verify candidate receipt
+        run: |
+          python - <<'PY'
+          import json, os
+          x=json.load(open("artifacts/candidate/receipt.json"))
+          name=os.environ["CANDIDATE"]
+          assert x["schema_version"] == "r8-w15-candidate-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["candidate"] == name
+          controls={"production-frozen-control","multiview-anchor-control"}
+          if name in controls:
+              assert x["trainable_parameter_count"] == 0
+              assert x["selected_epoch"] == 0
+              assert x["optimizer_case_steps"] == 0
+              assert x["mixer_sha256"] is None
+          else:
+              assert x["trainable_parameter_count"] == 6
+              assert 1 <= x["selected_epoch"] <= 8
+              assert x["optimizer_case_steps"] == 384*8
+              assert x["train_case_count"] == 384
+              assert x["epochs"] == 8
+              assert x["lr"] == 0.03
+              assert x["weight_decay"] == 0.0
+              assert x["mixer_sha256"]
+          assert x["hira_frozen"] is True
+          assert x["scorer_frozen"] is True
+          assert x["a13_frozen"] is True
+          assert x["forced_full_k"] is True
+          assert x["adaptive_budget"] is False
+          assert x["confirm_ce_exposed"] is False
+          assert x["confirm_cf_exposed"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+        env:
+          CANDIDATE: ${{ matrix.candidate }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w15-candidate-${{ matrix.candidate }}
+          path: artifacts/candidate
+          if-no-files-found: error
+          retention-days: 30
+
+  freeze:
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w15-candidate-*
+          path: inputs/candidates
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "."
+      - name: Freeze all DEV-CD checkpoints
+        run: |
+          python scripts/r8_w15_freeze_candidates.py --candidates inputs/candidates --out artifacts/freeze
+          cat artifacts/freeze/freeze.json
+      - name: Verify freeze boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/freeze/freeze.json"))
+          assert x["schema_version"] == "r8-w15-freeze-v1"
+          assert x["status"] == "PASS"
+          assert x["selection_authority"] == "DEV_CD_INDEPENDENT_PER_CANDIDATE"
+          assert x["all_candidates_frozen_before_confirm"] is True
+          assert {r["candidate"] for r in x["candidates"]} == {
+              "production-frozen-control",
+              "multiview-anchor-control",
+              "unbounded-residual-control",
+              "bounded-residual-primary",
+              "bounded-residual-replica",
+          }
+          assert x["equal_train_case_budget"] is True
+          assert x["equal_optimizer_steps"] is True
+          assert x["primary_replica_seed_independence"] is True
+          assert x["confirm_ce_exposed"] is False
+          assert x["confirm_cf_exposed"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print("w15_freeze_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w15-freeze
+          path: artifacts/freeze
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    needs: [freeze, upstream]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w15-freeze
+          path: inputs/freeze
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w15-frozen-w9-projection
+          path: inputs/w9
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen CONFIRM stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Materialize untouched CE/CF once and evaluate frozen candidates
+        run: |
+          python scripts/r8_w15_confirm.py \
+            --freeze inputs/freeze/freeze.json \
+            --checkpoints inputs/freeze \
+            --w9-hira inputs/w9/checkpoints/projection-semantic-control/hira.pt \
+            --w9-scorer inputs/w9/checkpoints/projection-semantic-control/scorer.pt \
+            --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+      - name: Verify authoritative CONFIRM receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/confirm.json"))
+          assert x["schema_version"] == "r8-w15-confirm-v1"
+          assert x["status"] == "PASS"
+          assert x["confirm_generated_after_all_dev_freezes"] is True
+          assert x["confirm_domains"] == ["CE","CF"]
+          assert x["confirm_ce_case_count"] == 96
+          assert x["confirm_cf_case_count"] == 96
+          assert x["confirm_ce_decision_count"] == 480
+          assert x["confirm_cf_decision_count"] == 480
+          assert x["state_encodes_per_case_ce"] == 1.0
+          assert x["state_encodes_per_case_cf"] == 1.0
+          names={
+              "production-frozen-control",
+              "multiview-anchor-control",
+              "unbounded-residual-control",
+              "bounded-residual-primary",
+              "bounded-residual-replica",
+          }
+          assert set(x["paths"]["CE"]) == names
+          assert set(x["paths"]["CF"]) == names
+          assert x["verdict"] in {
+              "BOUNDED_ANCHOR_RESIDUAL_RESCUE",
+              "ANCHOR_RESIDUAL_RESCUE_NO_BOUNDING_CAUSAL",
+              "ANCHOR_ONLY_PRODUCTION_REDESIGN",
+              "ANCHOR_PRESERVING_PARTIAL",
+              "ANCHOR_PRESERVING_FAIL",
+          }
+          assert x["equal_train_case_budget"] is True
+          assert x["equal_optimizer_steps"] is True
+          assert x["primary_replica_seed_independence"] is True
+          assert x["w12_rows_used"] is False
+          assert x["w13_rows_used"] is False
+          assert x["w14_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print(x["verdict"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w15-authoritative-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
