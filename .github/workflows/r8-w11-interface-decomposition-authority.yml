@@ -1,0 +1,207 @@
+name: r8-w11-interface-decomposition-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w11-interface-decomposition
+    paths:
+      - ".github/workflows/r8-w11-interface-decomposition-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w11-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile frozen W11 stack
+        run: |
+          python -m py_compile \
+            src/nmd/interface_decomposition.py \
+            src/nmd/interface_decomposition_authority.py \
+            src/nmd/interface_decomposition_cache.py \
+            src/nmd/interface_decomposition_eval.py \
+            scripts/r8_w11_build_cache.py \
+            scripts/r8_w11_evaluate.py
+      - name: Run frozen W11 contracts
+        run: pytest -q tests/test_interface_decomposition.py
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W9 freeze artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .digest)" = "sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: inputs/freeze
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36122220588
+      - name: Verify W9 frozen provenance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("inputs/freeze/freeze.json").read_text())
+          assert x["schema_version"] == "r8-w9-freeze-v1"
+          assert x["status"] == "PASS"
+          assert x["all_candidates_frozen_before_confirm"] is True
+          rows={r["candidate"]:r for r in x["candidates"]}
+          assert {"frozen-w6e-control","projection-semantic-control"} <= set(rows)
+          assert rows["projection-semantic-control"]["scorer_sha256"] == "8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          assert rows["frozen-w6e-control"]["hira_sha256"] == "d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588"
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          print("w11_upstream_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w11-frozen-w9-checkpoints
+          path: inputs/freeze
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen cache stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark first eligible W11 exposure
+        run: echo R8_W11_BJ_BM_A13_EXPOSURE_BEGIN
+      - name: Build fresh interface cache
+        run: |
+          python scripts/r8_w11_build_cache.py --out artifacts/w11-cache
+          cat artifacts/w11-cache/receipt.json
+      - name: Verify cache receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w11-cache/receipt.json"))
+          assert x["schema_version"] == "r8-w11-cache-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["base_count"] == 256
+          assert x["view_count"] == 1536
+          assert x["state_encode_calls"] == 256
+          assert x["state_encodes_per_base"] == 1.0
+          assert x["domain_base_counts"] == {"BJ":64,"BK":64,"BL":64,"BM":64}
+          assert x["prior_exact_text_overlap"] == []
+          assert x["training_performed"] is False
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["w9_confirm_rows_used"] is False
+          assert x["w10_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print("w11_cache_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w11-interface-cache
+          path: artifacts/w11-cache
+          if-no-files-found: error
+          retention-days: 30
+
+  evaluate:
+    needs: [upstream, cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w11-frozen-w9-checkpoints
+          path: inputs/freeze
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w11-interface-cache
+          path: inputs/cache
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen evaluator stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]"
+      - name: Evaluate frozen interface stages
+        run: |
+          python scripts/r8_w11_evaluate.py \
+            --cache inputs/cache/diagnostic.pt \
+            --freeze inputs/freeze/freeze.json \
+            --checkpoints inputs/freeze \
+            --out artifacts/w11-audit
+          cat artifacts/w11-audit/audit.json
+      - name: Verify authoritative audit
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w11-audit/audit.json"))
+          assert x["schema_version"] == "r8-w11-interface-decomposition-v1"
+          assert x["status"] == "PASS"
+          assert x["training_performed"] is False
+          assert x["cached_base_count"] == 256
+          assert x["cached_view_count"] == 1536
+          assert x["state_encodes_per_base"] == 1.0
+          assert x["probability_mass_max_error"] <= 1e-6
+          assert set(x["stages"]) == {"Q0","Q1","Q2","Q3","Q4","Q5","Q6","Q7"}
+          assert x["reference_model"] == "sentence-transformers/all-MiniLM-L6-v2"
+          assert x["reference_revision"] == "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+          assert x["reference_weight_sha256"] == "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
+          assert x["reference_is_hira_candidate"] is False
+          for k in ("4","8","16"):
+              assert x["q5_q6_equivalence"][k]["top1_identity_rate"] == 1.0
+              assert x["q5_q6_equivalence"][k]["full_rank_order_identity_rate"] == 1.0
+          assert x["outcome"] in {
+              "STABLE_INTERFACE_LOCALIZATION",
+              "MIXED_INTERFACE_LOCALIZATION",
+              "INTERFACE_DECOMPOSITION_UNRESOLVED",
+          }
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["w9_confirm_rows_used"] is False
+          assert x["w10_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print(x["outcome"], x["stable_classification"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w11-interface-decomposition-audit
+          path: artifacts/w11-audit
+          if-no-files-found: error
+          retention-days: 90
