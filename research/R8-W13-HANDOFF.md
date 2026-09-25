@@ -391,3 +391,83 @@ At every meaningful update record:
 - forbidden next moves.
 
 A future AI must be able to continue from this file without chat memory.
+
+
+## 18. Pre-data implementation update
+
+Implemented before any BR/BS/BT/BU empirical exposure:
+
+- `src/nmd/semantic_consistency.py`
+  - STRICT / MAJORITY / SPLIT label-free top1 agreement;
+  - full-rank pairwise Spearman stability;
+  - equal-coverage count-matched scalar-margin control;
+  - frozen domain classifiers;
+  - frozen cross-domain outcome.
+
+- `src/nmd/semantic_consistency_authority.py`
+  - BR/BS/BT/BU fresh domain generator;
+  - 16 intents/domain;
+  - 4 state variants/intent;
+  - three prewritten meaning-equivalent definitions D0/D1/D2;
+  - exact paired nested K4/K8/K16 identity.
+
+- `src/nmd/semantic_consistency_cache.py`
+  - state-once A13 cache;
+  - 9 views/base;
+  - paraphrase identity enforcement;
+  - nested candidate membership/order enforcement.
+
+- `src/nmd/semantic_consistency_eval.py`
+  - A0/A1/A2 candidate-independent W9 semantic anchors;
+  - equal-weight E ensemble;
+  - exact D0 production F path;
+  - consistency strata;
+  - guard/control evaluation;
+  - rank stability / top3 union / vote diagnostics.
+
+- `scripts/r8_w13_build_cache.py`
+  - exact frozen A13 verification;
+  - exact-text freshness firewall through W12;
+  - 256-base / 2,304-view receipt.
+
+- `scripts/r8_w13_evaluate.py`
+  - exact W9 semantic projection/HIRACore provenance;
+  - pinned MiniLM adequacy reference;
+  - frozen W13 classifier/outcome.
+
+- `tests/test_semantic_consistency.py`
+  - paired paraphrase/nested-K contracts;
+  - consistency category contracts;
+  - rank-stability contracts;
+  - deterministic count-matched margin control;
+  - classifier semantics;
+  - state-once cache.
+
+- `.github/workflows/r8-w13-unit.yml`
+  - branch-scoped pre-data compile/test gate.
+
+- `research/R8-W13-PRIOR-ART.md`
+  - frozen pre-data motivation.
+
+Draft PR:
+- #114.
+
+### Pre-data evaluability amendment
+
+Before any W13 cache/reference exposure, issue #113 comment froze one additional adequacy condition:
+
+- NON_STRICT coverage >= .10 at K4;
+- NON_STRICT coverage >= .10 at K16.
+
+Reason:
+STRICT-vs-NON_STRICT causal reliability is not evaluable if essentially every case is STRICT.
+
+No other gate, precedence, domain, seed, paraphrase, score operator or guard changed.
+
+### Current exposure state
+
+**No BR/BS/BT/BU A13 cache exists.**
+**No MiniLM W13 score exists.**
+**No W13 classification exists.**
+
+Authority workflow remains intentionally absent until the exact implementation head is green under W13 unit + repository CI.
