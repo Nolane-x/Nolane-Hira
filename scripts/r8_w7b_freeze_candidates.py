@@ -33,9 +33,9 @@ def main() -> None:
         if receipt.get("candidate") not in CANDIDATES:
             raise RuntimeError("W7b candidate identity changed")
         if receipt.get("confirm_as_exposed") is not False:
-            raise RuntimeError("W7b candidate exposed CONFIRM-AL")
+            raise RuntimeError("W7b candidate exposed CONFIRM-AS")
         if receipt.get("confirm_at_exposed") is not False:
-            raise RuntimeError("W7b candidate exposed CONFIRM-AM")
+            raise RuntimeError("W7b candidate exposed CONFIRM-AT")
         for key in (
             "w6b_confirm_rows_used",
             "w6c_confirm_rows_used",
@@ -95,8 +95,8 @@ def main() -> None:
     if by_name["frozen-w6e-control"]["selected_epoch"] != 0:
         raise RuntimeError("W7b frozen control must remain epoch 0")
     if (
-        by_name["conjunctive-primary"]["optimization_seed"]
-        == by_name["conjunctive-replica"]["optimization_seed"]
+        by_name["typed-plus-pair-primary"]["optimization_seed"]
+        == by_name["typed-plus-pair-replica"]["optimization_seed"]
     ):
         raise RuntimeError("W7b primary and replica seeds must differ")
 
