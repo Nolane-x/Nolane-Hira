@@ -1,6 +1,6 @@
 # R8-W14 handoff — continuous multiview semantic-reliability audit
 
-Status: **PRE-DIAGNOSTIC. No BV/BW/BX/BY A13/reference cache or W14 classification exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `STABLE_CONTINUOUS_RELIABILITY_LOCALIZATION`; stable target: `CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`.**
 
 Issue: #115
 
@@ -468,3 +468,336 @@ Exposure state at this freeze:
 **No W14 empirical metric/classification exists.**
 
 Authority may be enabled only after the doc-only freeze head is green.
+
+
+---
+
+## 21. Authoritative W14 closure
+
+Exact empirical head:
+`401bcd266fd4a465db8bd492533833db8a6fa76b`
+
+Authority run:
+`36144650389`
+
+All authority jobs PASS:
+- frozen unit gate;
+- exact W9 checkpoint provenance;
+- fresh BV/BW/BX/BY state-once cache;
+- continuous reliability evaluator;
+- pinned MiniLM adequacy reference;
+- frozen classifier and cross-domain outcome.
+
+First eligible exposure marker:
+`R8_W14_BV_BY_A13_EXPOSURE_BEGIN`
+
+Exposure began during authority run `36144650389`.
+BV/BW/BX/BY are permanently exposed from this point onward.
+
+### Artifacts
+
+Frozen W9 checkpoint bundle:
+- artifact `10868692915`;
+- digest `sha256:009cf70d5592a33dfd9fc2758ce8ec8b4414ed280fd2d8ea30a9a03ff2eb00c8`.
+
+Fresh W14 cache:
+- artifact `10868639335`;
+- artifact digest `sha256:b59bb98ed8e64d3477e50f209e11aa757a4d46a5b611e618269b0522e1bc064c`;
+- internal cache SHA `58eb78e0f50359012c8fc459bc7cdf6b4bf765314e1a06d838bd68703f620be3`;
+- all-text-atom SHA `54f1e85315c8593d08c3c2d3ff2f595570a86338c2abda03963cdb692157f474`;
+- base-ID SHA `77d6a72818d52d7f02ff06eda2392ab72a76b3d57622c4dcc49424341d415042`;
+- case-ID SHA `185b9abb156a0742e48955cff3cca4ff68a00baf536820eb124ccd09b68b5cdd`.
+
+Authoritative W14 audit:
+- artifact `10869068957`;
+- digest `sha256:782661ec37590ce7fea1f7dd555970967006885a66fe4335424541ba94bd2d65`.
+
+### Integrity
+
+- 256 fresh bases;
+- 2,304 paired schema/cardinality views;
+- BV/BW/BX/BY 64 bases each;
+- state encodes/base = 1.0;
+- probability mass max error = `2.141459845006466e-07`;
+- no training;
+- no W8-W13 exposed rows;
+- no Banking77 reuse;
+- no typed final/test rows;
+- campaign cells = 0;
+- exact A13 revision/SHA verified;
+- exact W9 projection/HIRACore provenance verified;
+- exact pinned MiniLM revision/SHA verified;
+- prior exact-text overlap = [].
+
+## 22. Frozen overall outcome
+
+**`STABLE_CONTINUOUS_RELIABILITY_LOCALIZATION`**
+
+Stable classification:
+
+**`CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`**
+
+Classification counts:
+- `CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`: **4/4**.
+
+This is a stable W14 target.
+
+However, this is **not** evidence that the preregistered continuous reliability score R is a successful router.
+The stronger and more stable result is that the candidate-independent multiview semantic ensemble E broadly dominates the production final path F across fresh domains, including both HIGH and LOW reliability regions.
+
+## 23. Pooled W14 anatomy
+
+Frozen multiview semantic ensemble E:
+- K4 **94.922%**;
+- K8 **90.234%**;
+- K16 **84.766%**.
+
+Current production final F:
+- K4 **66.797%**;
+- K8 **53.906%**;
+- K16 **40.234%**.
+
+Thus E -> F pooled degradation:
+- K4 **-28.125 pp**;
+- K8 **-36.328 pp**;
+- K16 **-44.531 pp**.
+
+Pinned MiniLM reference R0:
+- K4 **95.313%**;
+- K8 **87.891%**;
+- K16 **86.719%**.
+
+A striking result:
+- E K4 94.922% vs R0 95.313%;
+- E K8 90.234% vs R0 87.891%;
+- E K16 84.766% vs R0 86.719%.
+
+On this fresh authority, HIRA's frozen candidate-independent multiview semantic representation is close to the pinned semantic reference at K4/K16 and slightly above it at K8.
+
+This does not establish broad external superiority; MiniLM is only a frozen diagnostic reference and the authority is internal synthetic/naturalistic fresh data.
+
+### Diagnostic guards
+
+`G_consistency_high`:
+- K4 75.000%;
+- K8 65.625%;
+- K16 52.344%.
+
+Equal-coverage scalar-margin control `G_margin_high`:
+- K4 75.000%;
+- K8 64.063%;
+- K16 53.516%.
+
+Descriptive `G_consistency_nonlow`:
+- K4 **85.156%**;
+- K8 **78.125%**;
+- K16 **69.141%**.
+
+The HIGH-only continuous consistency guard does **not** stably beat the scalar-margin control:
+- K4 tie;
+- K8 +1.56 pp;
+- K16 -1.17 pp.
+
+Therefore the R score is not promoted as a superior confidence router.
+
+The non-LOW descriptive guard is much stronger, but it remains a post-defined descriptive guard under the frozen protocol and cannot be promoted into a mechanism from W14.
+
+## 24. Per-domain frozen classifications
+
+### BV — municipal waste-collection services
+
+Classification:
+**`CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`**
+
+Adequacy:
+- E K4 96.875%;
+- E K16 87.500%.
+
+Production:
+- F K4 67.188%;
+- F K16 42.188%.
+
+HIGH:
+- E K4 100% -> F 76.19%;
+- E K16 90.48% -> F 52.38%.
+
+LOW:
+- E K4 90.48% -> F 66.67%;
+- E K16 85.71% -> F 47.62%.
+
+LOW pooled K4+K16 transition:
+- E->F c->w 35.71%;
+- w->c 4.76%.
+
+R correctness correlation:
+- K4 0.2629;
+- K16 0.1049.
+
+The production loss is broad, not confined to LOW reliability.
+
+### BW — university transcript administration
+
+Classification:
+**`CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`**
+
+- E K4 96.875%;
+- E K16 78.125%;
+- F K4 76.563%;
+- F K16 46.875%.
+
+HIGH:
+- E K4 100% -> F 76.19%;
+- E K16 90.48% -> F 47.62%.
+
+LOW:
+- E K4 95.24% -> F 66.67%;
+- E K16 52.38% -> F 42.86%.
+
+R correlation:
+- K4 0.2003;
+- K16 0.4297.
+
+Even where R has useful K16 ordering, F remains materially below E in both HIGH and LOW regions.
+
+### BX — home internet account support
+
+Classification:
+**`CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`**
+
+- E K4 96.875%;
+- E K16 90.625%;
+- F K4 65.625%;
+- F K16 37.500%.
+
+HIGH:
+- E K4 95.24% -> F 71.43%;
+- E K16 85.71% -> F 42.86%.
+
+LOW:
+- E K4 95.24% -> F 57.14%;
+- E K16 95.24% -> F 33.33%.
+
+R is actually weakly anti-correlated with E correctness here:
+- K4 -0.0491;
+- K16 -0.0987.
+
+This directly falsifies a universal interpretation of R as the correct reliability coordinate, while strongly supporting broad anchor dominance.
+
+### BY — community recreation membership services
+
+Classification:
+**`CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE`**
+
+- E K4 89.063%;
+- E K16 82.813%;
+- F K4 57.813%;
+- F K16 34.375%.
+
+HIGH:
+- E K4 100% -> F 71.43%;
+- E K16 85.71% -> F 61.90%.
+
+LOW:
+- E K4 85.71% -> F 57.14%;
+- E K16 85.71% -> F **4.76%**.
+
+LOW pooled:
+- c->w 57.14%;
+- w->c 2.38%.
+
+This is especially strong evidence that production competition can catastrophically destroy already-good candidate-independent semantics even in cases classified as lower R.
+
+## 25. Scientific interpretation
+
+W14 materially changes the architecture target.
+
+W12 asked whether one scalar margin could tell us when production should override the anchor: unresolved.
+
+W13 asked whether exact 3/3 paraphrase agreement could define a reliable region: descriptively strong, but support failed the frozen K16 coverage gate.
+
+W14 removed the coverage problem by using a continuous full-coverage score.
+
+The result is not a successful router.
+
+Instead, the more stable fact is stronger:
+
+> **Across four wholly fresh domains, the multiview candidate-independent semantic anchor E is broadly superior to the existing competitive production final path F, including in both HIGH and LOW continuous-consistency tertiles.**
+
+This reaches the frozen 4/4 stability criterion.
+
+Therefore the next architecture question is no longer primarily “when should we trust competition?”
+
+It is:
+
+> **How should HIRA preserve the multiview candidate-independent semantic anchor as the primary decision signal, while allowing typed/relation reasoning to contribute only as a bounded non-destructive residual?**
+
+This is an anchor-preserving production redesign problem.
+
+### What W14 supports
+
+- candidate-independent semantic evidence is now a stable first-class architecture target;
+- three-view semantic aggregation can be dramatically stronger than the current production interface;
+- current competitive production transforms can destroy correct semantic ranking broadly;
+- this is reproducible on 4/4 fresh W14 domains.
+
+### What W14 does not support
+
+- the frozen R score as a stable router;
+- learning a confidence gate from BV/BW/BX/BY;
+- deleting all typed/relation reasoning;
+- promoting E alone to final production;
+- using three paraphrases as an unquestioned production requirement;
+- broad external superiority claims.
+
+HIRACore/relation remained historically net-positive in W6f/W11 after coarse scoring. The redesign should preserve useful typed reasoning while preventing destructive coarse replacement.
+
+## 26. Permanent forbidden evidence after W14
+
+BV/BW/BX/BY are permanently exposed.
+
+Never use them for:
+- training;
+- architecture selection;
+- mixing-weight selection;
+- residual bound tuning;
+- paraphrase-count selection;
+- reliability-feature tuning;
+- threshold/tertile tuning;
+- checkpoint/seed selection;
+- calibration.
+
+All previous exposed authorities remain forbidden.
+
+## 27. Authorized W15 boundary
+
+W14's stable target authorizes a fresh **anchor-preserving production redesign** experiment.
+
+W15 must **not** be a confidence router.
+
+A valid W15 should compare, on wholly fresh TRAIN/DEV/dual-CONFIRM data:
+
+1. current production control F;
+2. multiview semantic anchor control E;
+3. an anchor-preserving residual architecture where:
+   - E is the primary coarse semantic score;
+   - typed/relation or competitive evidence may add a bounded residual;
+   - the residual cannot arbitrarily replace/reorder strong semantic geometry;
+   - no W14 data selects residual scale/bounds;
+4. equal-data/equal-step controls;
+5. frozen A13;
+6. preferably frozen HIRACore in the primary architecture comparison unless the experiment explicitly preregisters otherwise.
+
+W15 must preregister:
+- exact residual equation;
+- parameter budget;
+- whether paraphrases are runtime schema inputs or compressed into schema-side cached representations;
+- fresh domains/seeds;
+- TRAIN/DEV/dual CONFIRM;
+- K4/K8/K16 and high-K follow-up;
+- semantic retention gates;
+- typed primitive gates;
+- external/public validation boundary.
+
+Do not use BV/BW/BX/BY to choose any W15 hyperparameter.
+
+A future AI should read W14 first, then W13/W12/W11/W10.
