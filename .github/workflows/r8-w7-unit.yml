@@ -10,7 +10,7 @@ on:
       - "src/nmd/conjunctive_cache.py"
       - "tests/test_conjunctive_coarse.py"
       - "tests/test_conjunctive_authority.py"
-      - "tests/test_conjunctive_cache.py"
+      - "tests/test_conjunctive_cache.py"\n      - "src/nmd/conjunctive_training.py"\n      - "scripts/r8_w7_build_cache.py"\n      - "scripts/r8_w7_train_candidate.py"\n      - "scripts/r8_w7_freeze_candidates.py"\n      - "scripts/r8_w7_confirm.py"\n      - "tests/test_conjunctive_training.py"\n      - "tests/test_conjunctive_execution_contracts.py"\n      - "src/nmd/conjunctive_training.py"\n      - "scripts/r8_w7_build_cache.py"\n      - "scripts/r8_w7_train_candidate.py"\n      - "scripts/r8_w7_freeze_candidates.py"\n      - "scripts/r8_w7_confirm.py"\n      - "tests/test_conjunctive_training.py"\n      - "tests/test_conjunctive_execution_contracts.py"
       - "research/R8-W7-HANDOFF.md"
       - ".github/workflows/r8-w7-unit.yml"
   pull_request:
@@ -46,13 +46,22 @@ jobs:
             src/nmd/conjunctive_coarse.py \
             src/nmd/conjunctive_authority.py \
             src/nmd/conjunctive_cache.py \
+            src/nmd/conjunctive_training.py \
+            scripts/r8_w7_build_cache.py \
+            scripts/r8_w7_train_candidate.py \
+            scripts/r8_w7_freeze_candidates.py \
+            scripts/r8_w7_confirm.py \
             tests/test_conjunctive_coarse.py \
             tests/test_conjunctive_authority.py \
-            tests/test_conjunctive_cache.py
+            tests/test_conjunctive_cache.py \
+            tests/test_conjunctive_training.py \
+            tests/test_conjunctive_execution_contracts.py
       - name: Run W7 scorer and production contracts
         run: |
           pytest -q \
             tests/test_conjunctive_coarse.py \
             tests/test_conjunctive_authority.py \
             tests/test_conjunctive_cache.py \
+            tests/test_conjunctive_training.py \
+            tests/test_conjunctive_execution_contracts.py \
             tests/test_competitive_coarse_runtime.py
