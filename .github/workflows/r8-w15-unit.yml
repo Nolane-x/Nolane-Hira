@@ -12,6 +12,11 @@ on:
       - "tests/test_anchor_preserving_residual.py"
       - "tests/test_anchor_preserving_residual_authority.py"
       - "tests/test_anchor_preserving_residual_execution.py"
+      - "tests/test_anchor_preserving_residual_execution_contracts.py"
+      - "scripts/r8_w15_build_cache.py"
+      - "scripts/r8_w15_train_candidate.py"
+      - "scripts/r8_w15_freeze_candidates.py"
+      - "scripts/r8_w15_confirm.py"
       - "research/R8-W15-HANDOFF.md"
       - "research/R8-W15-PRIOR-ART.md"
       - ".github/workflows/r8-w15-unit.yml"
@@ -49,10 +54,15 @@ jobs:
             src/nmd/anchor_preserving_residual.py \
             src/nmd/anchor_preserving_residual_authority.py \
             src/nmd/anchor_preserving_residual_cache.py \
-            src/nmd/anchor_preserving_residual_training.py
+            src/nmd/anchor_preserving_residual_training.py \
+            scripts/r8_w15_build_cache.py \
+            scripts/r8_w15_train_candidate.py \
+            scripts/r8_w15_freeze_candidates.py \
+            scripts/r8_w15_confirm.py
       - name: Run W15 pre-data core contracts
         run: |
           pytest -q \
             tests/test_anchor_preserving_residual.py \
             tests/test_anchor_preserving_residual_authority.py \
-            tests/test_anchor_preserving_residual_execution.py
+            tests/test_anchor_preserving_residual_execution.py \
+            tests/test_anchor_preserving_residual_execution_contracts.py
