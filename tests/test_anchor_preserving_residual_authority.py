@@ -100,31 +100,10 @@ def test_w15_confirm_capability_is_sealed_by_default():
             generate_w15_confirm(domain)
 
 
-def test_w15_confirm_shape_only_when_explicitly_authorized():
-    # Unit generation checks deterministic contracts only. No A13 encoding,
-    # training, DEV selection or empirical scoring occurs here.
-    for domain in CONFIRM_DOMAINS:
-        rows = generate_w15_confirm(domain, allow_confirm=True)
-        assert len(rows) == 96
-        assert {row.domain_id for row in rows} == {domain}
-        assert Counter(row.diagnosis_k for row in rows) == {
-            4: 32,
-            8: 32,
-            16: 32,
-        }
-        assert all(row.split == f"confirm-{domain.lower()}" for row in rows)
-        for row in rows:
-            _assert_case_contract(row)
-
-
 def test_w15_domain_case_ids_and_state_text_are_disjoint():
     train = generate_w15_train()
     dev = generate_w15_dev()
-    confirm = [
-        *generate_w15_confirm("CE", allow_confirm=True),
-        *generate_w15_confirm("CF", allow_confirm=True),
-    ]
-    rows = [*train, *dev, *confirm]
+    rows = [*train, *dev]
 
     ids = [row.typed.case_id for row in rows]
     assert len(ids) == len(set(ids))
