@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import random
 from typing import Iterable
 
+from .contracts import LogicalOption
+
 
 TRAIN_DOMAINS = ("AY", "AZ", "BA", "BB")
 DEV_DOMAINS = ("BC",)
@@ -70,6 +72,12 @@ class SemanticAlignmentView:
     option_ids: tuple[str, ...]
     option_texts: tuple[str, ...]
     gold_index: int
+
+    def logical_options(self) -> tuple[LogicalOption, ...]:
+        return tuple(
+            LogicalOption(option_id=option_id, criterion_text=text)
+            for option_id, text in zip(self.option_ids, self.option_texts)
+        )
 
 
 def _travel() -> DomainSpec:
