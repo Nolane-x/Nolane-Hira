@@ -33,6 +33,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: r8-w7b-unit-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     runs-on: ubuntu-latest
