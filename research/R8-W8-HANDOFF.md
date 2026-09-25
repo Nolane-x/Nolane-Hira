@@ -331,15 +331,61 @@ Completed:
 
 No W8 AU/AV/AW/AX data has been materialized or encoded.
 
-Not yet implemented:
-- fresh W8 paired-domain generator;
-- representation-view contracts;
-- nested K identities;
-- state-once/token cache;
-- fixed-checkpoint evaluator;
-- frozen classification library/tests;
-- W8 unit workflow;
-- W8 diagnostic authority workflow.
+Implemented pre-diagnostic:
+- src/nmd/semantic_transfer_authority.py:
+  - fresh AU/AV/AW/AX domains;
+  - 16 latent intents/domain;
+  - 4 state variants/intent -> 64 bases/domain;
+  - V0/V1/V2/V3 paired schema ladder;
+  - nested K4/K8/K16 identities.
+- src/nmd/semantic_transfer.py:
+  - frozen per-domain classifiers;
+  - no post-hoc precedence;
+  - >=3/4 domain checkpoint stability;
+  - cross-checkpoint stability contract.
+- src/nmd/semantic_transfer_cache.py:
+  - one state encode/base;
+  - paired schema-token cache;
+  - candidate/gold identity validation;
+  - nested K relative-order validation.
+- src/nmd/semantic_transfer_eval.py:
+  - frozen competitive scorer + HIRACore evaluation;
+  - coarse/final ranks, margins, MRR, relation rescue/damage;
+  - K4 representation transitions;
+  - K4->K16 paired transitions;
+  - classifier metric aggregation.
+- scripts/r8_w8_build_cache.py:
+  - exact A13 provenance;
+  - exact prior text-atom freshness check;
+  - 256-base / 3,072-view cache receipt.
+- scripts/r8_w8_evaluate.py:
+  - exact W7b freeze/checkpoint SHA validation;
+  - four frozen checkpoint evaluation;
+  - cross-checkpoint stability output.
+- tests/test_semantic_transfer.py;
+- tests/test_semantic_transfer_cache.py;
+- .github/workflows/r8-w8-unit.yml.
+
+Pre-data transition-stage semantics were frozen in issue #103 before any A13 exposure.
+
+Exact full implementation head:
+705cf7a84629be0ed7f20037df5abf34d199ff7e
+
+Exact W8 unit run:
+36113431426 — PASS.
+
+Repository CI for the same implementation head:
+36113434791 — still running at this handoff update.
+
+No AU/AV/AW/AX A13 cache exists yet.
+No W8 empirical localization exists yet.
+
+Not yet completed:
+- exact implementation repo CI completion;
+- gated W8 diagnostic authority workflow;
+- fresh A13 cache exposure;
+- fixed-checkpoint evaluation;
+- authoritative W8 outcome.
 
 ## 13. Immediate continuation
 
