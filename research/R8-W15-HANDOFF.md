@@ -761,3 +761,158 @@ Next:
 14. freeze exact result here before merge.
 
 A future AI must update this file after every meaningful session.
+
+
+---
+
+## 23. Pre-data implementation update — full execution stack
+
+Scientific exposure remains:
+
+**NONE.**
+
+No BZ/CA/CB/CC/CD/CE/CF A13 cache has been materialized.
+No W15 model has been trained.
+No DEV-CD checkpoint has been selected.
+No CONFIRM-CE/CF row has been materialized.
+
+Implemented on `feat/r8-w15-anchor-preserving-residual`:
+
+### Core
+- `src/nmd/anchor_preserving_residual.py`
+  - exactly six primitive-specific residual scalars;
+  - robust midpoint-MAD anchor spread;
+  - centered competitive and relation residuals;
+  - bounded and equal-parameter unbounded paths;
+  - structural source cap <= .25*g and combined cap <= .5*g.
+- core commit: `4d1f741f914ad7e4e45006e56efaefc2baee5357`.
+
+### Core contracts
+- `tests/test_anchor_preserving_residual.py`
+  - exact six-param budget;
+  - beta=.025 near-anchor initialization;
+  - exact zero-residual anchor identity;
+  - residual shift invariance;
+  - source/combined bound;
+  - equal-parameter unbounded control can exceed cap;
+  - candidate permutation equivariance;
+  - gradients reach every primitive-specific scalar;
+  - masked candidates do not affect valid statistics.
+- float-only test tolerance repair after first pre-data CI failure:
+  `7347ba1e4eeec54d3dda2a862b483a8c7c0a7c87`.
+  This changed test tolerance only, not mechanism/scoring/data/gates.
+
+### Fresh authority
+- `src/nmd/anchor_preserving_residual_authority.py`
+  - BZ/CA/CB/CC TRAIN;
+  - CD DEV;
+  - CE/CF sealed CONFIRM;
+  - 16 natural intents/domain;
+  - six independent state variants/intent;
+  - exactly 96 cases/domain;
+  - diagnosis K4/K8/K16 balanced 32/32/32;
+  - five typed decisions/case;
+  - every option has frozen D0/D1/D2;
+  - D0 is exact production criterion;
+  - confidence targets .90/.75/.60.
+- commit `9a79eb9210c46fc9ce497bd5abb54258d72f6b39`.
+- confirm materialization was removed from unit tests; default seal is tested without invoking capability.
+
+### State-once multiview cache
+- `src/nmd/anchor_preserving_residual_cache.py`
+  - state compiled exactly once/case;
+  - D0/D1/D2 compiled schema-side only;
+  - exact option IDs/order preserved across views;
+  - D0 stores production question/option token artifacts;
+  - custom K4/K8/K16 validator;
+  - five-decision typed target validation.
+- commit `533e08200dc681196ad4a61a0eb585c0bce03936`.
+
+### Train/eval/verdict core
+- `src/nmd/anchor_preserving_residual_training.py`
+  - exact W14 `_q0_symmetric` semantic operator reused;
+  - E and D0 anchor logits use frozen scorer scale;
+  - exact production C and F references;
+  - relation residual computed from frozen HIRACore on anchor coarse override, forced full-K;
+  - final residual logits do not run production again;
+  - only mixer parameters receive gradient;
+  - typed W6/W7 loss weights reused;
+  - mandatory typed/calibration/K metrics;
+  - anchor retention/rescue/damage;
+  - residual magnitude/saturation/bound diagnostics;
+  - DEV-CD selection key;
+  - frozen gates and verdicts from issue #117.
+- commit `071b8cdb593fa28e5246c5596a71cdb49b480886`.
+
+### Download-free execution tests
+- `tests/test_anchor_preserving_residual_authority.py`;
+- `tests/test_anchor_preserving_residual_execution.py`;
+- `tests/test_anchor_preserving_residual_execution_contracts.py`.
+- one-case execution uses only local `TrainableSemanticEncoder` for shape/state-once testing, never as authority evidence.
+- unit checks include:
+  - state encode exactly once;
+  - D0/D1/D2 identity;
+  - E/F/residual shape/integrity;
+  - bound diagnostics;
+  - candidate set/seeds/epochs;
+  - CE/CF capability literal confined to confirm script;
+  - train/dev builder cannot import confirm capability;
+  - exact W15 text atoms disjoint from all prior W5-W14 manifests before exposure.
+
+### Authority scripts
+Implemented but **not yet executed**:
+- `scripts/r8_w15_build_cache.py`
+  - exact A13 SHA verification;
+  - full W5-W14 exact-text freshness firewall;
+  - BZ-CC TRAIN + CD DEV only;
+  - no confirm capability.
+- `scripts/r8_w15_train_candidate.py`
+  - exact W9 HIRA/scorer SHA verification;
+  - controls epoch 0;
+  - residual candidates exactly six trainable params;
+  - 3,072 optimizer case-steps each.
+- `scripts/r8_w15_freeze_candidates.py`
+  - requires all five candidate receipts;
+  - verifies exact shared cache/base provenance;
+  - independent DEV selection;
+  - primary/replica seed independence;
+  - emits `all_candidates_frozen_before_confirm=true`.
+- `scripts/r8_w15_confirm.py`
+  - sole W15 file allowed to contain `allow_confirm=True`;
+  - exact freeze boundary required;
+  - materializes CE then CF only post-freeze;
+  - evaluates all five frozen paths;
+  - computes the frozen W15 verdict;
+  - records CE/CF cache hashes and integrity flags.
+
+### CI
+- `.github/workflows/r8-w15-unit.yml`
+  - pre-data branch-scoped gate;
+  - compiles core + all execution scripts;
+  - runs all W15 tests;
+  - does not download A13;
+  - does not materialize CE/CF;
+  - authority workflow does not exist yet.
+
+Earlier green pre-data checkpoint:
+- W15 unit run on head `7e29deda89720c836e36ae82e8b00cd1cce33e1b`: PASS;
+- repository CI on same head: PASS.
+
+The complete-stack exact-head unit/CI after scripts + freshness guard is currently being validated.
+
+Current latest implementation head at this handoff update:
+`410d54794052763fb63b668f0d546349e6129327`.
+
+### Remaining pre-exposure sequence
+
+1. obtain W15 unit PASS on exact complete-stack head;
+2. obtain repository CI PASS on the same exact head;
+3. record exact run IDs here and in issue #117;
+4. only then add/enable W15 authority workflow;
+5. authority chain must be:
+   `unit -> exact W9 provenance + BZ-CC/CD cache -> five candidates -> independent DEV-CD freeze -> CE/CF once -> frozen verdict`;
+6. after CE/CF exposure, no scientific mutation is allowed;
+7. freeze exact metrics/artifacts/verdict in this file;
+8. merge only a clean, frozen result.
+
+A future AI must not treat any current implementation test as empirical evidence.
