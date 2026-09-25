@@ -71,9 +71,13 @@ def test_w15_confirm_script_requires_frozen_candidate_boundary():
 
 
 def test_w15_exact_text_atoms_are_fresh_against_all_prior_authorities():
-    from scripts.r8_w15_build_cache import _prior_text_atoms
+    import runpy
 
-    overlap = sorted(all_w15_text_atoms() & _prior_text_atoms())
+    root = Path(__file__).resolve().parents[1]
+    namespace = runpy.run_path(str(root / "scripts" / "r8_w15_build_cache.py"))
+    overlap = sorted(
+        all_w15_text_atoms() & namespace["_prior_text_atoms"]()
+    )
     assert overlap == []
 
 
