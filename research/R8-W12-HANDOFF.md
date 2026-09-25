@@ -389,3 +389,66 @@ Pre-data runs in progress at this update:
 - repository CI run `36134194851` on latest head `26758fce46efec42529515e49956b097fab37bf5`.
 
 Authority workflow remains intentionally absent until pre-data validation is green.
+
+
+## 17. First authority invalidation and post-exposure infrastructure boundary
+
+First authority attempt:
+- run `36134781906`;
+- exact head `0244954b657a32a4a4722d5a5e74cfc24d611d56`.
+
+Authority progression:
+- unit: PASS;
+- upstream W9 provenance: PASS;
+- cache: PASS;
+- evaluate: FAIL before audit/classification emission.
+
+Exposure occurred:
+- marker `R8_W12_BN_BQ_A13_EXPOSURE_BEGIN`;
+- BN/BO/BP/BQ A13 cache was materialized;
+- 256 bases / 1,536 views;
+- state encode calls = 256;
+- prior exact-text overlap = [];
+- training_performed = false;
+- cache artifact `10863541450`;
+- artifact digest `sha256:b06a09e02db71bfa73c4fcf88e0b4d4bb9edc5bdb7c075e240a4e79079e00a86`;
+- internal cache SHA `9eab23c3b448a46f83bc4071c28a7973d995cdb85c265688cd74779c4935b022`.
+
+The evaluate failure was a pure summary-plumbing exception:
+
+`NameError: name 'views' is not defined`
+
+inside `_summary(...)` while summarizing definition-only guard records.
+
+No authoritative metrics, classifications, stable target, or outcome were emitted before the crash.
+
+Post-exposure repair boundary:
+- only `src/nmd/anchor_residual_eval.py` summary API and `tests/test_anchor_residual.py` were changed;
+- no A/C/F scorer equations changed;
+- no semantic projection/HIRACore weights changed;
+- no confidence equation/quartile rule changed;
+- no MiniLM reference changed;
+- no classifier threshold/precedence changed;
+- no fresh-domain text/IDs/seeds changed;
+- no gold labels were used to design the repair.
+
+Diff from authority head `0244954...` to repaired head `d5dc3d3...` is limited to:
+1. adding an explicit `views` argument to the generic summary helper;
+2. calling guard summaries with `views=("definition",)`;
+3. adding a unit contract for the definition-only summary.
+
+Repaired head:
+`d5dc3d3b7e1436845b29bf68fe47651aea27548d`.
+
+Validation on repaired head:
+- W12 unit run `36135836895`: PASS;
+- repository CI run `36135841981`: PASS.
+
+Scientific status:
+- BN/BO/BP/BQ are already exposed and remain permanently forbidden for any scientific tuning;
+- first authority run is invalid as a verdict-bearing authority;
+- a rerun is allowed only as an exact-protocol infrastructure recovery;
+- no scientific mutation may occur before or during the rerun;
+- the rerun must preserve every frozen gate and use the exact deterministic BN/BO/BP/BQ generator.
+
+No W12 scientific verdict exists yet.
