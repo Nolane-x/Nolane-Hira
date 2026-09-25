@@ -11,7 +11,7 @@ from torch import Tensor
 from .anchor_residual_authority import AnchorResidualView
 from .runtime import NolaneHira
 
-CACHE_SCHEMA = "r8-w12-interface-decomposition-cache-v1"
+CACHE_SCHEMA = "r8-w12-anchor-residual-cache-v1"
 
 
 def _hash_ids(values: Sequence[str]) -> str:
