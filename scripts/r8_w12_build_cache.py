@@ -27,6 +27,7 @@ def _prior_text_atoms() -> set[str]:
     from nmd.freeform_attribution_authority import all_w7b_values
     from nmd.high_cardinality_decomposition_authority import all_w6j_values
     from nmd.high_k_localization_authority import all_w6f_values
+    from nmd.interface_decomposition_authority import all_w11_text_atoms
     from nmd.representation_bridge_authority import all_w6i_values
     from nmd.representation_ceiling_authority import all_w10_text_atoms
     from nmd.second_order_localization_authority import all_w6g_values
@@ -60,6 +61,7 @@ def _prior_text_atoms() -> set[str]:
         | set(all_w8_text_atoms())
         | set(all_w9_text_atoms(include_confirm=True))
         | set(all_w10_text_atoms())
+        | set(all_w11_text_atoms())
     )
 
 
