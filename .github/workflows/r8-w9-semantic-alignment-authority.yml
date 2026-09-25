@@ -1,0 +1,424 @@
+name: r8-w9-semantic-alignment-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w9-semantic-alignment
+    paths:
+      - "src/nmd/semantic_alignment_bridge.py"
+      - "src/nmd/semantic_alignment_authority.py"
+      - "src/nmd/semantic_alignment_cache.py"
+      - "src/nmd/semantic_alignment_eval.py"
+      - "src/nmd/semantic_alignment_probes.py"
+      - "src/nmd/semantic_alignment_training.py"
+      - "src/nmd/semantic_alignment_verdict.py"
+      - "scripts/r8_w9_build_cache.py"
+      - "scripts/r8_w9_train_candidate.py"
+      - "scripts/r8_w9_freeze_candidates.py"
+      - "scripts/r8_w9_confirm.py"
+      - "tests/test_semantic_alignment_bridge.py"
+      - "tests/test_semantic_alignment_authority.py"
+      - "tests/test_semantic_alignment_cache.py"
+      - "tests/test_semantic_alignment_eval.py"
+      - "tests/test_semantic_alignment_probes.py"
+      - "tests/test_semantic_alignment_training.py"
+      - "tests/test_semantic_alignment_verdict.py"
+      - ".github/workflows/r8-w9-unit.yml"
+      - ".github/workflows/r8-w9-semantic-alignment-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w9-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W9 stack
+        run: |
+          python -m py_compile \
+            src/nmd/semantic_alignment_bridge.py \
+            src/nmd/semantic_alignment_authority.py \
+            src/nmd/semantic_alignment_cache.py \
+            src/nmd/semantic_alignment_eval.py \
+            src/nmd/semantic_alignment_probes.py \
+            src/nmd/semantic_alignment_training.py \
+            src/nmd/semantic_alignment_verdict.py \
+            scripts/r8_w9_build_cache.py \
+            scripts/r8_w9_train_candidate.py \
+            scripts/r8_w9_freeze_candidates.py \
+            scripts/r8_w9_confirm.py
+      - name: Run W9 contracts
+        run: |
+          pytest -q \
+            tests/test_semantic_alignment_bridge.py \
+            tests/test_semantic_alignment_authority.py \
+            tests/test_semantic_alignment_cache.py \
+            tests/test_semantic_alignment_eval.py \
+            tests/test_semantic_alignment_probes.py \
+            tests/test_semantic_alignment_training.py \
+            tests/test_semantic_alignment_verdict.py \
+            tests/test_competitive_coarse_runtime.py
+      - name: Guard sealed confirm capability
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              Path("tests/test_semantic_alignment_bridge.py"),
+              Path("tests/test_semantic_alignment_authority.py"),
+              Path("tests/test_semantic_alignment_cache.py"),
+              Path("tests/test_semantic_alignment_eval.py"),
+              Path("tests/test_semantic_alignment_probes.py"),
+              Path("tests/test_semantic_alignment_training.py"),
+              Path("tests/test_semantic_alignment_verdict.py"),
+              Path("scripts/r8_w9_build_cache.py"),
+              Path("scripts/r8_w9_train_candidate.py"),
+              Path("scripts/r8_w9_freeze_candidates.py"),
+          ]
+          for path in files:
+              text = path.read_text(encoding="utf-8")
+              assert 'allow_confirm=True' not in text, path
+          confirm = Path("scripts/r8_w9_confirm.py").read_text(encoding="utf-8")
+          assert 'generate_w9_domain("BD", allow_confirm=True)' in confirm
+          assert 'generate_w9_domain("BE", allow_confirm=True)' in confirm
+          print("w9_confirm_capability_guard_pass")
+          PY
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W6e joint-primary artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10805567861 --jq .digest)" = "sha256:fe0f176514b1cee0964212978b839b351ba6f35260ce0a035a1346680fc855bd"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10805567861 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w6e-candidate-multi-source-joint-primary
+          path: inputs/upstream
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 35993402202
+      - name: Verify exact W6e receipt and checkpoint hashes
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("inputs/upstream")
+          x=json.load(open(root/"receipt.json"))
+          assert x["schema_version"] == "r8-w6e-candidate-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["candidate"] == "multi-source-joint-primary"
+          assert x["selected_epoch"] == 6
+          assert x["confirm_l_exposed"] is False
+          assert x["confirm_m_exposed"] is False
+          expected={
+              "hira.pt":"d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588",
+              "scorer.pt":"6d5a7f2d3ed63ecd756181b1cb54e4704f68e5f74983a897f0a68fb4d1d63d2e",
+          }
+          for name,digest in expected.items():
+              actual=hashlib.sha256((root/name).read_bytes()).hexdigest()
+              assert actual == digest, (name,actual)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w9-frozen-w6e-joint-primary
+          path: inputs/upstream
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen encoder stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Build fresh AY-BB TRAIN and DEV-BC cache
+        run: |
+          python scripts/r8_w9_build_cache.py --out artifacts/cache
+          cat artifacts/cache/receipt.json
+      - name: Verify pre-confirm cache boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/cache/receipt.json"))
+          assert x["schema_version"] == "r8-w9-cache-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["train_domains"] == ["AY","AZ","BA","BB"]
+          assert x["dev_domains"] == ["BC"]
+          assert x["reserved_confirm_domains"] == ["BD","BE"]
+          assert x["train_base_count"] == 256
+          assert x["dev_base_count"] == 64
+          assert x["state_encodes_per_base_train"] == 1.0
+          assert x["state_encodes_per_base_dev"] == 1.0
+          assert x["prior_exact_text_overlap"] == []
+          assert x["confirm_bd_exposed"] is False
+          assert x["confirm_be_exposed"] is False
+          assert x["w7_confirm_rows_used"] is False
+          assert x["w7b_confirm_rows_used"] is False
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w9-cache
+          path: artifacts/cache
+          if-no-files-found: error
+          retention-days: 30
+
+  candidate:
+    needs: [upstream, cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate:
+          - frozen-w6e-control
+          - projection-semantic-control
+          - shared-bridge-semantic-control
+          - asymmetric-bridge-primary
+          - asymmetric-bridge-replica
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-cache
+          path: inputs/cache
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-frozen-w6e-joint-primary
+          path: inputs/upstream
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[research]"
+      - name: Train and independently DEV-freeze candidate
+        run: |
+          python scripts/r8_w9_train_candidate.py \
+            --train-cache inputs/cache/train.pt \
+            --dev-cache inputs/cache/dev-bc.pt \
+            --w6e-hira inputs/upstream/hira.pt \
+            --w6e-scorer inputs/upstream/scorer.pt \
+            --candidate "${{ matrix.candidate }}" \
+            --out artifacts/candidate
+          cat artifacts/candidate/receipt.json
+      - name: Verify candidate receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/candidate/receipt.json"))
+          assert x["schema_version"] == "r8-w9-candidate-receipt-v1"
+          assert x["status"] == "PASS"
+          names={
+              "frozen-w6e-control",
+              "projection-semantic-control",
+              "shared-bridge-semantic-control",
+              "asymmetric-bridge-primary",
+              "asymmetric-bridge-replica",
+          }
+          assert x["candidate"] in names
+          expected_trainable={
+              "frozen-w6e-control":0,
+              "projection-semantic-control":32768,
+              "shared-bridge-semantic-control":4096,
+              "asymmetric-bridge-primary":8192,
+              "asymmetric-bridge-replica":8192,
+          }
+          expected_total={
+              "frozen-w6e-control":32769,
+              "projection-semantic-control":32769,
+              "shared-bridge-semantic-control":36865,
+              "asymmetric-bridge-primary":40961,
+              "asymmetric-bridge-replica":40961,
+          }
+          assert x["trainable_parameter_count"] == expected_trainable[x["candidate"]]
+          assert x["scorer_parameter_count"] == expected_total[x["candidate"]]
+          assert x["hira_frozen"] is True
+          assert x["a13_frozen"] is True
+          assert x["typed_loss_enabled"] is False
+          assert x["pair_margin_loss_enabled"] is False
+          assert x["confirm_bd_exposed"] is False
+          assert x["confirm_be_exposed"] is False
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          if x["candidate"]=="frozen-w6e-control":
+              assert x["selected_epoch"] == 0
+              assert x["optimizer_steps"] == 0
+              assert x["alignment_loss_enabled"] is False
+          else:
+              assert 1 <= x["selected_epoch"] <= 8
+              assert x["optimizer_steps"] == 256*8
+              assert len(x["history"]) == 8
+              assert x["alignment_loss_enabled"] is True
+          if x["candidate"]=="projection-semantic-control":
+              assert x["projection_log_scale_frozen"] is True
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w9-candidate-${{ matrix.candidate }}
+          path: artifacts/candidate
+          if-no-files-found: error
+          retention-days: 30
+
+  freeze:
+    needs: candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r8-w9-candidate-*
+          path: inputs/candidates
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "."
+      - name: Freeze all DEV-BC checkpoints
+        run: |
+          python scripts/r8_w9_freeze_candidates.py --candidates inputs/candidates --out artifacts/freeze
+          cat artifacts/freeze/freeze.json
+      - name: Verify freeze boundary
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/freeze/freeze.json"))
+          assert x["schema_version"] == "r8-w9-freeze-v1"
+          assert x["status"] == "PASS"
+          assert x["all_candidates_frozen_before_confirm"] is True
+          assert x["selection_authority"] == "DEV_BC_INDEPENDENT_PER_CANDIDATE"
+          assert {r["candidate"] for r in x["candidates"]} == {
+              "frozen-w6e-control",
+              "projection-semantic-control",
+              "shared-bridge-semantic-control",
+              "asymmetric-bridge-primary",
+              "asymmetric-bridge-replica",
+          }
+          assert x["equal_train_base_budget"] is True
+          assert x["equal_optimizer_steps"] is True
+          assert x["trainable_optimizer_steps"] == 256*8
+          assert x["primary_replica_seed_independence"] is True
+          assert x["confirm_bd_exposed"] is False
+          assert x["confirm_be_exposed"] is False
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: artifacts/freeze
+          if-no-files-found: error
+          retention-days: 30
+
+  confirm:
+    needs: freeze
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: inputs/freeze
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen confirm stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Generate untouched BD/BE and evaluate frozen candidates
+        run: |
+          python scripts/r8_w9_confirm.py \
+            --freeze inputs/freeze/freeze.json \
+            --checkpoints inputs/freeze \
+            --out artifacts/confirm
+          cat artifacts/confirm/confirm.json
+      - name: Verify confirm receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/confirm.json"))
+          assert x["schema_version"] == "r8-w9-confirm-v1"
+          assert x["status"] == "PASS"
+          assert x["confirm_generated_after_all_dev_freezes"] is True
+          assert x["confirm_domains"] == ["BD","BE"]
+          assert x["confirm_bd_base_count"] == 64
+          assert x["confirm_be_base_count"] == 64
+          assert x["state_encodes_per_base_bd"] == 1.0
+          assert x["state_encodes_per_base_be"] == 1.0
+          names={
+              "frozen-w6e-control",
+              "projection-semantic-control",
+              "shared-bridge-semantic-control",
+              "asymmetric-bridge-primary",
+              "asymmetric-bridge-replica",
+          }
+          assert set(x["paths"]["BD"]) == names
+          assert set(x["paths"]["BE"]) == names
+          assert x["verdict"] in {
+              "ASYMMETRIC_SEMANTIC_BRIDGE_RESCUE",
+              "SEMANTIC_ALIGNMENT_RESCUE_NO_ASYMMETRY",
+              "SEMANTIC_ALIGNMENT_PARTIAL",
+              "SEMANTIC_ALIGNMENT_FAIL",
+          }
+          assert x["external_public_phase_authorized"] is (
+              x["verdict"] in {
+                  "ASYMMETRIC_SEMANTIC_BRIDGE_RESCUE",
+                  "SEMANTIC_ALIGNMENT_RESCUE_NO_ASYMMETRY",
+              }
+          )
+          assert x["w7_confirm_rows_used"] is False
+          assert x["w7b_confirm_rows_used"] is False
+          assert x["w8_diagnostic_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w9-authoritative-confirm
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
