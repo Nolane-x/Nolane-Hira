@@ -1,6 +1,6 @@
 # R8-W10 handoff — representation-ceiling decomposition audit
 
-Status: **PRE-DIAGNOSTIC. No W10 BF/BG/BH/BI empirical cache or result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Authoritative outcome: `REPRESENTATION_CEILING_UNRESOLVED`. No rescue mechanism is authorized from W10.**
 
 Issue: #107
 
@@ -273,3 +273,267 @@ If mixed/unresolved:
 do not train another local mechanism; perform a representation/prior-art reassessment.
 
 A future AI must be able to continue from this file without chat memory.
+
+
+---
+
+## 12. Authoritative W10 closure
+
+Exact empirical head:
+`c5e8846851d4f520771d402be132f03a25622807`
+
+Authority run:
+`36126611084`
+
+All jobs PASS:
+- unit `108044069062`;
+- upstream provenance `108044454245`;
+- fresh cache `108044454240`;
+- evaluate `108045394558`.
+
+Pre-data exact-head gates:
+- W10 unit `36126239741`: PASS;
+- repository CI `36126239687`: PASS;
+- exact pre-exposure head `a4ab787cfbae88ec09251ada5dec6db0c63edcd6`.
+
+Authority artifacts:
+- W10 fresh representation cache:
+  - ID `10860406331`;
+  - digest `sha256:297054bd1a5d9987a70de150d2d2dfbbeb494003224d303e0d2c8c51334bc1d0`;
+- repackaged frozen W9 checkpoint bundle:
+  - ID `10860395891`;
+  - digest `sha256:94db4b9aba69f2211cb5cf394f9252700e6890efd4b235f0fa0359e0f8855e65`;
+- authoritative representation-ceiling audit:
+  - ID `10860241732`;
+  - digest `sha256:cc8470a1b841af89de01680e3b54276e565f37f7c9a03ba79fb6c232d6dad12e`.
+
+### Integrity
+
+- 256 fresh base states;
+- 1,536 paired K/view cases;
+- BF/BG/BH/BI each 64 bases;
+- one A13 state encode/base;
+- training performed: false;
+- probability mass max error: `1.771841198205948e-07`;
+- no W8 diagnostic rows;
+- no W9 CONFIRM rows;
+- no Banking77 rows;
+- no typed final/test rows;
+- campaign cells populated: 0.
+
+Frozen reference:
+- `sentence-transformers/all-MiniLM-L6-v2`;
+- revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`;
+- downloaded `model.safetensors` SHA256:
+  `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db`;
+- diagnostic only;
+- never used as a HIRA candidate, training target, checkpoint selector or calibration source.
+
+### Frozen outcome
+
+**`REPRESENTATION_CEILING_UNRESOLVED`**
+
+Stable classification:
+- none.
+
+Frozen classification counts:
+- `SCORING_INTERFACE_LIMIT`: 2 domains;
+- every other primary class: 0 stable-domain count reaching the required threshold.
+
+The preregistered rule requires >=3/4 domains for a stable target. That gate is not changed after exposure.
+
+## 13. Per-domain frozen anatomy
+
+### BF
+Classification:
+**`SCORING_INTERFACE_LIMIT`**
+
+Natural-definition top1:
+- A0 raw A13 mean K4: 57.81%;
+- A1 raw A13 symmetric MaxSim K4: 70.31%;
+- A1 K16: 42.19%;
+- P0 frozen W6e projection K4: 73.44%;
+- P1 W9 semantic projection K4: **87.50%**;
+- P1 K16: **48.44%**;
+- S1 W9 projection through production final K4: **56.25%**;
+- S1 K16: **20.31%**;
+- R0 frozen reference K4: **98.44%**.
+
+The P1 -> S1 loss is -31.25 pp at K4 and -28.13 pp at K16.
+
+### BG
+Classification:
+**`SCORING_INTERFACE_LIMIT`**
+
+- A0 K4: 37.50%;
+- A1 K4: 48.44%;
+- A1 K16: 20.31%;
+- P0 K4: 60.94%;
+- P1 K4: **71.88%**;
+- P1 K16: **48.44%**;
+- S1 final K4: **46.88%**;
+- S1 K16: **29.69%**;
+- R0 K4: **96.88%**.
+
+The P1 -> S1 loss is -25.00 pp at K4 and -18.75 pp at K16.
+
+### BH
+Classification:
+**`REPRESENTATION_CEILING_UNRESOLVED`**
+
+- A0 K4: 46.88%;
+- A1 K4: 60.94%;
+- A1 K16: 34.38%;
+- P0 K4: 76.56%;
+- P1 K4: 75.00%;
+- P1 K16: 50.00%;
+- S1 final K4: 67.19%;
+- S1 K16: 26.56%;
+- R0 K4: 98.44%.
+
+There is still a large K16 P1 -> S1 drop (-23.44 pp), but K4 drops only -7.81 pp, so the frozen scoring-interface classifier does not activate.
+
+### BI
+Classification:
+**`REPRESENTATION_CEILING_UNRESOLVED`**
+
+- A0 K4: 70.31%;
+- A1 K4: 76.56%;
+- A1 K16: 42.19%;
+- P0 K4: 78.13%;
+- P1 K4: 82.81%;
+- P1 K16: 70.31%;
+- S1 final K4: 71.88%;
+- S1 K16: 51.56%;
+- R0 K4: 96.88%.
+
+The P1 -> S1 loss is -10.94 pp at K4 and -18.75 pp at K16. Again, this is meaningful but does not satisfy the exact frozen K4 damage gate.
+
+## 14. Pooled representation ladder
+
+Natural-definition pooled top1:
+
+| Operator | K4 | K8 | K16 |
+| --- | ---: | ---: | ---: |
+| A0 raw A13 mean | 53.13% | 35.94% | 23.44% |
+| A1 raw A13 symmetric MaxSim | 64.06% | 46.48% | 34.77% |
+| P0 W6e projected symmetric MaxSim | 72.27% | 60.16% | 48.44% |
+| P1 W9 semantic projected symmetric MaxSim | **79.30%** | **67.58%** | **54.30%** |
+| S0 frozen W6e production final | 46.88% | 34.38% | 22.27% |
+| S1 W9 projection through production final | 60.55% | 44.92% | 32.03% |
+| R0 frozen MiniLM reference | **97.66%** | **94.92%** | **90.63%** |
+
+The pooled P1 -> S1 production-interface drop is:
+- K4: **-18.75 pp**;
+- K8: **-22.66 pp**;
+- K16: **-22.27 pp**.
+
+The frozen reference remains >90% even at K16, so the authority itself has strong recoverable semantic structure.
+
+## 15. What W10 establishes and what it does not
+
+### Strong evidence
+
+1. **The W10 task is not intrinsically ambiguous.**
+   R0 reaches 97.66% K4 and 90.63% K16 pooled.
+
+2. **A pure raw-A13 ceiling is not stably supported.**
+   Raw A13 performance varies substantially by domain, and in BI A1 reaches 76.56% K4.
+
+3. **The frozen W6e projection is not generally destroying raw A13 semantics.**
+   P0 is stronger than A1 pooled:
+   - K4 72.27% vs 64.06%;
+   - K16 48.44% vs 34.77%.
+
+4. **Projection geometry is materially recoverable under W9 semantic supervision.**
+   P1 is the strongest HIRA-side semantic operator:
+   - K4 79.30%;
+   - K16 54.30%.
+
+5. **The production path can lose a large amount of that semantic signal.**
+   P1 -> S1 loses ~19-23 pp pooled.
+   BF/BG satisfy the frozen `SCORING_INTERFACE_LIMIT` rule.
+
+### What W10 does NOT establish
+
+W10 does not establish a stable `SCORING_INTERFACE_LIMIT`, because only BF/BG meet the exact rule and preregistration requires >=3/4.
+
+It also does not establish:
+- that A13 must be replaced;
+- that W9 projection is production-ready;
+- that candidate-relative IDF is the culprit;
+- that sibling common-mode subtraction is the culprit;
+- that salient-min coverage is the culprit;
+- that HIRACore relation is the culprit.
+
+Those production transformations remain confounded inside S0/S1.
+
+Therefore the official result remains:
+
+**`REPRESENTATION_CEILING_UNRESOLVED`**
+
+Do not lower 3/4 to 2/4 after seeing the result.
+
+## 16. Permanent exposure boundary after W10
+
+BF/BG/BH/BI are now exposed.
+
+Never reuse them for:
+- training;
+- DEV selection;
+- projection/scorer selection;
+- ablation selection;
+- threshold tuning;
+- weighting tuning;
+- relation tuning;
+- candidate-set tuning;
+- seed selection;
+- calibration;
+- mechanism choice.
+
+The R0 reference outputs on BF/BG/BH/BI are also exposed diagnostics and cannot be used as supervision.
+
+All W6-W9 forbidden evidence remains forbidden.
+
+## 17. Authorized next research direction
+
+Because W10 is unresolved, **do not open a rescue/training lane**.
+
+The next phase should be a second fresh diagnostic focused on the production interface, because W10 exposed a large but not yet stable P1 -> S1 degradation.
+
+A fresh W11 should decompose, on wholly new domains and with the exact frozen W9 P1 projection:
+
+1. candidate-independent symmetric semantic pair score;
+2. one-direction option->state MaxSim;
+3. addition of question/context tokens;
+4. candidate-relative IDF weighting;
+5. sibling common-mode subtraction;
+6. weighted-mean + salient-min coverage aggregation;
+7. full competitive coarse;
+8. frozen HIRACore relation/final output.
+
+The purpose is to localize **which transformation first turns a correct strong semantic ranking into the wrong production ranking**.
+
+Important historical constraints:
+- W6f already showed that removing candidate-relative salience wholesale is much worse;
+- W6f also showed relation reranking is net helpful in that authority;
+- therefore W11 must use paired stage transitions, not crude “remove everything” ablations;
+- no training;
+- no BF/BG/BH/BI reuse;
+- create a complete W11 handoff before fresh exposure.
+
+Only if W11 finds one stable interface stage may a later W12 mechanism authority target that stage.
+
+## 18. Continuation state
+
+W10 empirical work is complete.
+
+Before continuing:
+1. merge PR #108 after this closure-only commit has green unit/CI;
+2. close issue #107;
+3. create W11 from resulting main;
+4. preregister fresh domains/operators/stage-localization rules;
+5. create `research/R8-W11-HANDOFF.md` before exposure;
+6. keep every W10 threshold and classification frozen.
+
+A future AI should read this file first, then W9 and W8 handoffs.
