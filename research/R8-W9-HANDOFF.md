@@ -1,6 +1,6 @@
 # R8-W9 handoff — contrastive semantic-alignment bridge
 
-Status: **PRE-DATA. No W9 AY–BE A13 cache, training output, DEV selection or CONFIRM result exists yet.**
+Status: **CLOSED EMPIRICAL MECHANISM AUTHORITY. Frozen verdict: `SEMANTIC_ALIGNMENT_FAIL`. No external/public phase is authorized.**
 
 Issue: #105
 
@@ -488,3 +488,284 @@ Before any W9 A13 cache/training exposure, issue #105 froze one clarification:
 - exact trainable count is 32,768.
 
 Reason: direct semantic alignment uses fixed temperature 0.07 and does not consume the production logit scale, so leaving that scalar trainable would create a nominal trainable parameter with no gradient.
+
+
+---
+
+## 19. Authoritative W9 closure
+
+Exact empirical head:
+`26203f8f5e3f751de331a0f2aafbb5d447efc4fb`
+
+Authority run:
+`36122220588`
+
+All jobs PASS:
+
+`unit -> exact W6e provenance + fresh AY-BB/BC cache -> five candidates -> independent DEV-BC freeze -> untouched BD/BE CONFIRM`.
+
+Pre-authority full-stack validation:
+- implementation head `ee88189a8a7a7778bcc392424869c313e7ac29eb`;
+- W9 unit `36121751275`: PASS;
+- repository CI `36121751144`: PASS.
+
+### Artifacts
+
+- W9 fresh train/dev cache:
+  - artifact `10858333406`;
+  - digest `sha256:942548dfcac9807b523378f494fc2e51d1fffffe6f10c87ca141dd4d2a7e750f`.
+- frozen DEV checkpoint bundle:
+  - artifact `10858424139`;
+  - digest `sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712`.
+- authoritative BD/BE CONFIRM:
+  - artifact `10858394726`;
+  - digest `sha256:9e757c8425ab7b1fd3118e8f1f0c6cdcaf2b58827c2baa12d58c8a662cdad198`.
+
+Candidate artifacts:
+- projection semantic control:
+  - `10858368835`;
+  - `sha256:61ef65219a4e4fea354afe4391e51f4029d0942adce3ab9640b49a1702e577c1`.
+- shared bridge control:
+  - `10858408768`;
+  - `sha256:f5e62537136dc1f42694ba26cd4203652e306a474f77910a4395a43314da03c4`.
+- asymmetric primary:
+  - `10858358763`;
+  - `sha256:81213752dd12c2e1deac844b437b2c40574c7254e6c388d259736b9a983824b6`.
+- asymmetric replica:
+  - `10858118926`;
+  - `sha256:d8550cfc53857cb63cafa97ccebc8e97ba89712044dcfb2b61ef322e9d4f02a6`.
+
+### Integrity
+
+Untouched CONFIRM:
+- BD: 64 bases / 384 paired views;
+- BE: 64 bases / 384 paired views;
+- state encodes/base = 1.0 on both;
+- probability mass max error < 2.5e-7;
+- BD/BE materialized only after every candidate DEV checkpoint was frozen;
+- no W7/W7b CONFIRM reuse;
+- no W8 diagnostic reuse;
+- no Banking77 reuse;
+- no typed final/test rows;
+- campaign cells 0.
+
+Frozen outcome:
+
+**`SEMANTIC_ALIGNMENT_FAIL`**
+
+`external_public_phase_authorized = false`.
+
+Do not reinterpret this result as PARTIAL.
+
+## 20. DEV-frozen checkpoints
+
+Frozen W6e:
+- epoch 0;
+- scorer SHA `6d5a7f2d3ed63ecd756181b1cb54e4704f68e5f74983a897f0a68fb4d1d63d2e`.
+
+Projection semantic control:
+- 32,768 trainable;
+- selected DEV epoch 5;
+- scorer SHA `8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102`.
+
+Shared bridge control:
+- 4,096 trainable;
+- selected DEV epoch 2;
+- scorer SHA `a0a06549dffab62296b5993f56ac6a3d44a0e7aa9065dd3e260ad2d22807b288`.
+
+Asymmetric bridge primary:
+- 8,192 trainable;
+- selected DEV epoch 2;
+- scorer SHA `a1149a2a26d8ce7ed65b50ad71ff293e907b60195e26b8ab36da8cbcbf44d4c6`.
+
+Asymmetric bridge replica:
+- 8,192 trainable;
+- selected DEV epoch 2;
+- scorer SHA `50a1d702b30d36546fde04782ccf285a7f716b4485350695f8e94c33a1f5ab09`.
+
+Primary/replica seeds remain independent.
+
+## 21. Untouched CONFIRM-BD
+
+Frozen W6e:
+- natural-definition K4 final: **46.875%**;
+- natural-definition K4 coarse: 48.438%;
+- natural-definition K16 final: **17.188%**;
+- terse-label K4 final: 29.688%;
+- alignment 16-way top1: **21.875%**.
+
+Projection semantic control:
+- definition K4 final: **51.563%**;
+- K4 coarse: 48.438%;
+- K16 final: **34.375%**;
+- label K4: 40.625%;
+- alignment top1: **51.563%**.
+
+Shared bridge:
+- definition K4 final: **53.125%**;
+- K16 final: **25.000%**;
+- alignment top1: **25.000%**.
+
+Asymmetric primary:
+- definition K4 final: **50.000%**;
+- K4 coarse: 48.438%;
+- definition K16 final: **20.313%**;
+- label K4: 29.688%;
+- alignment top1: **21.875%**.
+
+Asymmetric replica:
+- definition K4 final: **51.563%**;
+- K16 final: **20.313%**;
+- alignment top1: **26.563%**.
+
+## 22. Untouched CONFIRM-BE
+
+Frozen W6e:
+- definition K4 final: **43.750%**;
+- K4 coarse: 43.750%;
+- definition K16 final: **17.188%**;
+- label K4: 39.063%;
+- alignment top1: **32.813%**.
+
+Projection semantic control:
+- definition K4 final: **62.500%**;
+- K4 coarse: 56.250%;
+- definition K16 final: **34.375%**;
+- label K4: 40.625%;
+- alignment top1: **53.125%**.
+
+Shared bridge:
+- definition K4 final: **40.625%**;
+- definition K16 final: **14.063%**;
+- alignment top1: **42.188%**.
+
+Asymmetric primary:
+- definition K4 final: **56.250%**;
+- K4 coarse: 54.688%;
+- definition K16 final: **21.875%**;
+- label K4: 39.063%;
+- alignment top1: **40.625%**.
+
+Asymmetric replica:
+- definition K4 final: **54.688%**;
+- definition K16 final: **20.313%**;
+- alignment top1: **42.188%**.
+
+## 23. Why the frozen verdict is FAIL
+
+The asymmetric-primary absolute gates fail on both BD and BE:
+- K4 never reaches 75%;
+- K16 never reaches 55%;
+- alignment top1 never reaches 70%;
+- terse-label K4 never reaches 45%;
+- required gains over frozen do not hold.
+
+Partial gates also fail:
+- BD primary K4 gain is only +3.125 pp, below +10 pp;
+- BD primary K16 gain is only +3.125 pp, below +8 pp;
+- BD replica K4 gain is +4.688 pp, below +7 pp.
+- BE K4 improves, but partial requires both domains.
+
+Architecture-causal superiority is absent:
+- asymmetric primary is worse than projection-semantic control on K4, K16 and alignment on both BD/BE;
+- it does not establish the preregistered superiority over the shared control either.
+
+No projection/shared full rescue exists:
+- projection is the strongest semantic-alignment candidate overall, but still misses the frozen absolute rescue gates;
+- shared bridge does not rescue.
+
+Therefore:
+**`SEMANTIC_ALIGNMENT_FAIL`**.
+
+## 24. Key scientific result
+
+W9 falsifies the specific hypothesis that a tiny identity-initialized rank-16 residual bridge, including separate state/schema maps, is enough to solve HIRA's stable general semantic transfer limit.
+
+The strongest positive signal is instead the ordinary full projection semantic control.
+
+Projection retuning improves alignment and K16 materially:
+- BD alignment: 21.88% -> 51.56%;
+- BD K16: 17.19% -> 34.38%;
+- BE alignment: 32.81% -> 53.13%;
+- BE K16: 17.19% -> 34.38%;
+- BE K4: 43.75% -> 62.50%.
+
+But it is not a rescue:
+- BD K4 improves only to 51.56%;
+- both K16 results remain 34.38%;
+- alignment top1 remains ~52%;
+- no external phase is authorized.
+
+The bridge paths are notably weaker than projection retuning. This suggests the failure is not simply that state and schema need two small post-projection residual maps. A larger fraction of the shared projection geometry itself appears to need reorganization under semantic supervision.
+
+This is evidence, not yet proof that encoder capacity is the bottleneck.
+
+## 25. What W9 rules out / weakens
+
+W9 weakens:
+- a 4,096-param shared low-rank post-projection bridge;
+- an 8,192-param asymmetric post-projection bridge;
+- the claim that state/schema asymmetry is the primary causal missing mechanism;
+- the claim that direct contrastive alignment alone, in these small bridge subspaces, is sufficient.
+
+W9 does **not** establish:
+- that A13 itself must be replaced;
+- that 32,768 projection retuning is enough for production;
+- that semantic alignment objective is useless;
+- that external transfer would remain absent after a genuinely successful internal rescue.
+
+## 26. Permanent exposed evidence after W9
+
+AY/AZ/BA/BB TRAIN and BC DEV have been used.
+
+BD/BE CONFIRM are now exposed.
+
+Never use BD/BE for:
+- training;
+- DEV selection;
+- bridge rank selection;
+- choosing shared vs asymmetric;
+- objective/temperature tuning;
+- projection architecture search;
+- seed selection;
+- threshold/gate changes;
+- calibration.
+
+All prior forbidden evidence remains forbidden.
+
+## 27. Authorized next research boundary
+
+Because W9 is FAIL:
+- **do not open external/public validation**;
+- do not reuse BD/BE;
+- do not simply increase bridge rank after seeing this result;
+- do not call projection semantic control a rescue.
+
+The next phase should be diagnostic before another rescue.
+
+The most important fresh question is now:
+
+**Is the transferable-semantic ceiling caused primarily by the frozen A13 representation itself, or by the learned 256->128 projection/competitive scoring interface layered on top of A13?**
+
+A fresh diagnostic should compare, on wholly new domains and without training on the diagnostic rows:
+1. frozen raw A13 semantic geometry;
+2. frozen W6e projection geometry;
+3. W9 projection-semantic geometry;
+4. possibly a preregistered external frozen sentence-embedding reference as a diagnostic ceiling, not a HIRA production candidate.
+
+It should use low-K first and paired state↔definition identities.
+
+Do not train a new bridge until this representation-ceiling question is localized.
+
+## 28. Continuation instructions
+
+Before another AI proceeds:
+1. merge PR #106 only after this closure-doc commit and CI are clean;
+2. close issue #105;
+3. create the next diagnostic lane from resulting main;
+4. create a complete new handoff before fresh exposure;
+5. preserve W9 run/artifact/checkpoint hashes above;
+6. never reuse BD/BE;
+7. keep external validation blocked because W9 did not reach a full rescue verdict.
+
+A future AI should read this file first, then W8, W7c, W7b, W7 and W6j handoffs.
