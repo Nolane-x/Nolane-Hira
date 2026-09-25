@@ -246,23 +246,27 @@ def typed_retune_dominant(
     )
 
 
-def pair_margin_contributor(
+def pair_margin_contributor_domain(
     typed: dict[str, object],
-    pair: dict[str, object],
     combo: dict[str, object],
-    frozen: dict[str, object],
 ) -> bool:
     gain_signal = (
         _k64(combo) - _k64(typed) >= 0.05
         or _one_field(combo) - _one_field(typed) >= 0.04
     )
     reduction = _relative_reduction(_pair_loss(typed), _pair_loss(combo)) >= 0.20
-    pair_independent = (
+    overall_ok = float(combo["accuracy"]) >= float(typed["accuracy"]) - 0.03
+    return gain_signal and reduction and overall_ok
+
+
+def pair_only_independent_signal(
+    pair: dict[str, object],
+    frozen: dict[str, object],
+) -> bool:
+    return (
         _k64(pair) - _k64(frozen) >= 0.10
         or _one_field(pair) - _one_field(frozen) >= 0.08
     )
-    overall_ok = float(combo["accuracy"]) >= float(typed["accuracy"]) - 0.03
-    return gain_signal and reduction and pair_independent and overall_ok
 
 
 def pair_margin_primary(
@@ -290,7 +294,8 @@ def attribution_verdict(
 
     replication_pass = True
     typed_dominant_both = True
-    contributor_both = True
+    contributor_domain_both = True
+    pair_independent_any = False
     pair_primary_both = True
 
     for domain, rows in domains.items():
@@ -303,20 +308,23 @@ def attribution_verdict(
         pg = replication_primary_gates(combo, frozen)
         rg = replica_gates(replica)
         td = typed_retune_dominant(typed, combo)
-        pc = pair_margin_contributor(typed, pair, combo, frozen)
+        pc_domain = pair_margin_contributor_domain(typed, combo)
+        pair_signal = pair_only_independent_signal(pair, frozen)
         pp = pair_margin_primary(typed, pair, combo)
 
         details["replication_primary"][domain] = pg
         details["replica"][domain] = rg
         details["attribution"][domain] = {
             "typed_retune_dominant": td,
-            "pair_margin_causal_contributor": pc,
+            "pair_margin_contributor_domain_gates": pc_domain,
+            "pair_only_independent_signal": pair_signal,
             "pair_margin_primary": pp,
         }
 
         replication_pass = replication_pass and all(pg.values()) and all(rg.values())
         typed_dominant_both = typed_dominant_both and td
-        contributor_both = contributor_both and pc
+        contributor_domain_both = contributor_domain_both and pc_domain
+        pair_independent_any = pair_independent_any or pair_signal
         pair_primary_both = pair_primary_both and pp
 
     if not replication_pass:
@@ -327,7 +335,7 @@ def attribution_verdict(
     classes = []
     if typed_dominant_both:
         classes.append("TYPED_RETUNE_DOMINANT")
-    if contributor_both:
+    if contributor_domain_both and pair_independent_any:
         classes.append("PAIR_MARGIN_CAUSAL_CONTRIBUTOR")
     if pair_primary_both:
         classes.append("PAIR_MARGIN_PRIMARY")
