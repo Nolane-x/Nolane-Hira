@@ -22,11 +22,43 @@ MAX_LENGTH = 256
 
 
 def _prior_text_atoms() -> set[str]:
+    from nmd.conjunctive_authority import all_w7_values
+    from nmd.field_semantic_rescue_authority import all_w6h_values
+    from nmd.freeform_attribution_authority import all_w7b_values
+    from nmd.high_cardinality_decomposition_authority import all_w6j_values
+    from nmd.high_k_localization_authority import all_w6f_values
+    from nmd.representation_bridge_authority import all_w6i_values
+    from nmd.second_order_localization_authority import all_w6g_values
+    from nmd.semantic_balanced_binding import all_w5h_vocab
+    from nmd.semantic_contrastive_salience import all_w5g_vocab
+    from nmd.semantic_cross_candidate_binding import all_w5i_vocab
+    from nmd.semantic_late_interaction import all_w5f_vocab
     from nmd.semantic_transfer_authority import all_w8_text_atoms
     from nmd.semantic_alignment_authority import all_w9_text_atoms
+    from nmd.typed_competitive_authority import all_w6b_values
+    from nmd.typed_domain_generalization_authority import all_w6d_values
+    from nmd.typed_joint_replication_authority import all_w6e_values
+    from nmd.typed_reliability_authority import all_w6c_values
 
-    prior = set(all_w8_text_atoms())
-    prior |= set(all_w9_text_atoms(include_confirm=True))
+    prior = (
+        set(all_w5f_vocab())
+        | set(all_w5g_vocab())
+        | set(all_w5h_vocab())
+        | set(all_w5i_vocab())
+        | set(all_w6b_values())
+        | set(all_w6c_values())
+        | set(all_w6d_values())
+        | set(all_w6e_values())
+        | set(all_w6f_values())
+        | set(all_w6g_values())
+        | set(all_w6h_values())
+        | set(all_w6i_values())
+        | set(all_w6j_values())
+        | set(all_w7_values())
+        | set(all_w7b_values())
+        | set(all_w8_text_atoms())
+        | set(all_w9_text_atoms(include_confirm=True))
+    )
     return prior
 
 
@@ -42,7 +74,7 @@ def main() -> None:
     values = all_w10_text_atoms()
     overlap = sorted(values & _prior_text_atoms())
     if overlap:
-        raise RuntimeError(f"W10 exact text atoms overlap W8/W9: {overlap}")
+        raise RuntimeError(f"W10 exact text atoms overlap prior authorities: {overlap}")
 
     rows = generate_w10_diagnostics()
     if len(rows) != 1536:
