@@ -63,7 +63,10 @@ def _transition(
     }
 
 
-def _summary(\n    records: list[dict[str, object]],\n    views: tuple[str, ...] = ("definition", "label"),\n) -> dict[str, object]:
+def _summary(
+    records: list[dict[str, object]],
+    views: tuple[str, ...] = ("definition", "label"),
+) -> dict[str, object]:
     per_domain: dict[str, object] = {}
     for domain in DOMAINS:
         per_domain[domain] = {}
