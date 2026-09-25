@@ -1,6 +1,6 @@
 # R8-W8 handoff — semantic/schema transfer decomposition audit
 
-Status: **PRE-DIAGNOSTIC. No W8 AU/AV/AW/AX empirical cache or localization result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Authoritative outcome: `STABLE_SEMANTIC_TRANSFER_LOCALIZATION`; stable target: `GENERAL_SEMANTIC_TRANSFER_LIMIT`.**
 
 Issue: #103
 
@@ -412,3 +412,186 @@ At every meaningful session update append:
 - forbidden next moves.
 
 A future AI should be able to continue without chat memory.
+
+
+---
+
+## 15. Authoritative W8 closure
+
+Exact empirical head:
+`8f30d2b2f1d7b81f7e48ed43c9a89b1e46ead8c6`
+
+Authority run:
+`36113828435`
+
+All jobs PASS:
+
+`unit -> fresh AU/AV/AW/AX cache + exact frozen W7b provenance -> fixed-checkpoint semantic-transfer evaluator`.
+
+Artifacts:
+- frozen W7b checkpoints `10854865013`, digest `sha256:a307474a92c62ee6adc629f65a41e072994130dcb73b87f38e9522c7377d9504`;
+- semantic-transfer cache `10854766296`, digest `sha256:370892853e5889b7055ddc2e2198f99183956c121244760f7bd2f5c92c9a0dcd`;
+- semantic-transfer audit `10854675985`, digest `sha256:de128f2111e71abea5682a65e62e9ba053d5d05e5fcc72869efe4ba44935baa7`.
+
+Integrity:
+- 256 fresh base states;
+- 3,072 paired representation/cardinality views;
+- one state encode/base;
+- no training;
+- no Banking77 reuse;
+- no prior exposed authority rows;
+- no typed final/test;
+- campaign cells 0;
+- probability mass max error `1.7171259969472885e-07`.
+
+### Frozen outcome
+
+**`STABLE_SEMANTIC_TRANSFER_LOCALIZATION`**
+
+Stable classification:
+
+**`GENERAL_SEMANTIC_TRANSFER_LIMIT`**
+
+`mechanism_lane_authorized = true`.
+
+Cross-checkpoint stability holds because:
+- frozen W6e control and all three W7b retuned checkpoints classify as `GENERAL_SEMANTIC_TRANSFER_LIMIT` on AU/AW/AX;
+- AV is unresolved for all four rather than an opposing stable mechanism;
+- therefore the same class agrees across 3/4 fresh domains with no stable opposite class.
+
+### Pooled K4/K16 anatomy
+
+#### Frozen W6e control
+- V0 terse-label K4: 37.89%;
+- V1 natural-definition K4: 50.78%;
+- V2 structured-criterion K4: 40.63%;
+- V3 lexical-bridge K4: 39.06%;
+- best natural K4: 50.78% (V1);
+- best natural K16: 22.66%;
+- K16 coarse-wrong share among final errors: 97.47%.
+
+#### Typed-only retune
+- V0 K4: 36.33%;
+- V1 K4: 51.95%;
+- V2 K4: 45.31%;
+- V3 K4: 48.83%;
+- best natural K4: 51.95%;
+- best natural K16: 25.39%;
+- K16 coarse-wrong share: 97.38%.
+
+#### Typed+pair primary
+- V0 K4: 38.67%;
+- V1 K4: 55.86%;
+- V2 K4: 50.00%;
+- V3 K4: 49.22%;
+- best natural K4: 55.86% (V1);
+- best natural K16: 28.91%;
+- K16 coarse-wrong share: 96.15%.
+
+#### Typed+pair replica
+- V0 K4: 39.06%;
+- V1 K4: 54.69%;
+- V2 K4: 51.17%;
+- V3 K4: 54.30%;
+- best natural K4: 54.69% (V1);
+- best natural K16: 26.56%;
+- K16 coarse-wrong share: 97.87%.
+
+### Domain stability anatomy
+
+All four checkpoints:
+- AU -> `GENERAL_SEMANTIC_TRANSFER_LIMIT`;
+- AV -> `SEMANTIC_TRANSFER_UNRESOLVED`;
+- AW -> `GENERAL_SEMANTIC_TRANSFER_LIMIT`;
+- AX -> `GENERAL_SEMANTIC_TRANSFER_LIMIT`.
+
+This is unusually stable across checkpoints. W7b retuning changes absolute accuracy somewhat but does not change the failure class.
+
+### What W8 falsifies
+
+The current evidence does **not** support these as the primary stable explanation:
+
+1. **terse-label interface only**
+   - V1 natural definitions help, but pooled best natural K4 remains only ~51-56%;
+   - the gain is not enough to cross the preregistered schema-label rescue conditions.
+
+2. **synthetic structured-format dependence**
+   - V2 does not produce the required +20 pp recovery over V1;
+   - on pooled metrics V2 is generally similar to or worse than V1.
+
+3. **lexical bridge as the main missing piece**
+   - V3 does not produce the required +20 pp recovery over V1;
+   - it often remains around the same low-K accuracy range.
+
+4. **cardinality-only amplification after adequate semantic transfer**
+   - low-K semantic transfer is already below the required adequacy threshold;
+   - K16 degradation is real, but it happens on top of an already weak K4 semantic interface.
+
+### Scientific meaning
+
+The stable bottleneck has moved one level deeper than the W6/W7 high-cardinality story.
+
+The frozen semantic system does **not** first become correct at low cardinality and then fail only because of candidate count. On fresh AU/AW/AX semantics, even K4 accuracy stays below 60% across every tested representation view and every frozen checkpoint.
+
+Natural definitions improve over terse labels, but not enough. Structured criterion formatting does not rescue. A lexical bridge does not rescue. Retuned scorers that were very strong on W7b synthetic authorities do not materially change this class.
+
+The most defensible interpretation is therefore:
+
+**the current A13 + shared projection/late-interaction semantic geometry does not transfer robustly to unseen semantic categories even before high cardinality becomes the dominant difficulty.**
+
+This is a representation/semantic-generalization problem, not merely a ranking-budget problem.
+
+### Permanent forbidden evidence after W8
+
+AU/AV/AW/AX are now exposed.
+
+Never use them for:
+- training;
+- DEV selection;
+- schema wording search;
+- prompt search;
+- threshold tuning;
+- checkpoint selection;
+- calibration;
+- mechanism selection;
+- seed selection.
+
+Keep all earlier forbidden evidence frozen as listed above.
+
+### Authorized next direction
+
+W8 authorizes one fresh mechanism lane because the target is stable.
+
+That lane should target **general semantic transfer**, not:
+- another K64-specific ranking trick;
+- IDF/salience adjustment;
+- relation reranking;
+- explicit AND aggregation;
+- calibration-only repair;
+- schema text formatting tricks.
+
+A sensible W9 must directly test whether a small semantic-transfer mechanism can improve unseen low-K semantics while keeping:
+- A13 frozen unless a separately preregistered architecture question explicitly changes that;
+- HIRACore frozen in the primary causal comparison;
+- state-once execution;
+- small parameter budget;
+- wholly fresh domains;
+- at least two untouched CONFIRM domains;
+- an equal-data existing free-form control;
+- no reuse of AU/AV/AW/AX.
+
+Because W7c showed catastrophic real-world transfer failure, W9 should also require at least one external/public frozen evaluation only **after** internal fresh mechanism rescue succeeds. Do not use public data for mechanism selection.
+
+## 16. Current continuation state
+
+W8 empirical work is complete.
+
+Before opening W9:
+1. merge PR #104 only after this closure document and CI are clean;
+2. close issue #103;
+3. branch W9 from the resulting main commit;
+4. create `research/R8-W9-HANDOFF.md` immediately;
+5. preregister W9 mechanism, fresh train/DEV/CONFIRM domains, parameter budget, controls, gates and external-validation boundary before any empirical exposure;
+6. never reuse AU/AV/AW/AX.
+
+A future AI should read this file first, then W7c, W7b, W7 and W6j handoffs.
