@@ -1,0 +1,44 @@
+name: r8-w7c-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w7c-banking77-transfer
+    paths:
+      - "src/nmd/banking77_transfer.py"
+      - "scripts/r8_w7c_banking77_transfer.py"
+      - "tests/test_banking77_transfer.py"
+      - ".github/workflows/r8-w7c-unit.yml"
+  pull_request:
+    paths:
+      - "src/nmd/banking77_transfer.py"
+      - "scripts/r8_w7c_banking77_transfer.py"
+      - "tests/test_banking77_transfer.py"
+      - ".github/workflows/r8-w7c-unit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w7c-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile
+        run: |
+          python -m py_compile src/nmd/banking77_transfer.py scripts/r8_w7c_banking77_transfer.py
+      - name: Run contracts
+        run: |
+          pytest -q tests/test_banking77_transfer.py tests/test_competitive_coarse_runtime.py
