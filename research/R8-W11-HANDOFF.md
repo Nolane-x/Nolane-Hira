@@ -1,6 +1,6 @@
 # R8-W11 handoff — production semantic-interface decomposition audit
 
-Status: **PRE-DIAGNOSTIC. No W11 BJ/BK/BL/BM A13/reference cache or empirical stage localization exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `INTERFACE_DECOMPOSITION_UNRESOLVED`. No rescue mechanism is authorized.**
 
 Issue: #109
 
@@ -501,3 +501,284 @@ Pre-data validation:
 No fresh empirical result exists at this point.
 No W11 stage classification exists at this point.
 The next commit may add only the gated authority orchestration; scientific thresholds/stage order are frozen.
+
+
+---
+
+## 17. Authoritative W11 closure
+
+Exact authority head:
+`12ca94f4304a5bc7a2bff6981bcd5e38b41e1f26`
+
+Authority run:
+`36130752815` — **PASS**.
+
+All gated stages passed:
+`unit -> exact W9 provenance -> fresh BJ/BK/BL/BM state-once cache -> pinned MiniLM reference + Q0-Q7 evaluation`.
+
+Artifacts:
+- fresh interface cache:
+  - `10860944743`;
+  - `sha256:49446233f16312f901c64cde216ee21209abfb25dcc6d0dc842d30a066e58f8c`.
+- exact frozen W9 checkpoint bundle:
+  - `10861888246`;
+  - `sha256:afbadf77f41a2cbb4e3795b0b6fd938735f4a6d9a332b264dca12436f0b1e114`.
+- authoritative interface audit:
+  - `10861914056`;
+  - `sha256:6610f0b36cd8d661ce8b8e20427e516227a7ddbb175146036753c78453af33a6`.
+
+Integrity:
+- 256 fresh base states;
+- 1,536 paired views;
+- state encodes/base = 1.0;
+- probability mass max error = `1.7891579773277044e-07`;
+- MiniLM pinned weight SHA exactly
+  `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db`;
+- Q5/Q6 top1 identity = 100% at K4/K8/K16;
+- Q5/Q6 complete rank-order identity = 100% at K4/K8/K16;
+- no training;
+- no W8/W9/W10 diagnostic reuse;
+- no Banking77 reuse;
+- no typed final/test rows;
+- campaign cells 0.
+
+### Frozen outcome
+
+**`INTERFACE_DECOMPOSITION_UNRESOLVED`**
+
+No stable stage reaches the preregistered >=3/4 domain rule.
+
+Classification counts:
+- `COMMON_MODE_SUBTRACTION_LOSS`: 1 domain;
+- `SALIENT_MIN_COVERAGE_LOSS`: 1 domain;
+- `QUESTION_CONTEXT_LOSS`: 1 domain;
+- one domain unresolved.
+
+Therefore:
+- no stage-specific W12 rescue is authorized;
+- no distributed-interface rescue is authorized;
+- thresholds/stage precedence remain unchanged.
+
+### Domain anatomy
+
+#### BJ — university housing administration
+
+Classification:
+**`COMMON_MODE_SUBTRACTION_LOSS`**
+
+Adequacy:
+- R0 K4 98.44%;
+- Q0 K4 85.94%;
+- Q0 K16 64.06%.
+
+Production final:
+- Q7 K4 71.88%;
+- Q7 K16 50.00%.
+
+Frozen damaging stage:
+- Q3 -> Q4 common-mode subtraction.
+
+Gate transition rates:
+- correct -> wrong: 22.66%;
+- wrong -> correct: 12.50%.
+
+Other notable transitions:
+- Q0 -> Q1 directionality c->w 10.16%, w->c 1.56%, but it does not satisfy the independent frozen K4/K16 loss requirements;
+- Q4 -> Q5 salient-min c->w 7.81%, w->c 7.81%.
+
+#### BK — agricultural equipment leasing
+
+Classification:
+**`SALIENT_MIN_COVERAGE_LOSS`**
+
+Adequacy:
+- R0 K4 98.44%;
+- Q0 K4 84.38%;
+- Q0 K16 62.50%.
+
+Production final:
+- Q7 K4 56.25%;
+- Q7 K16 42.19%.
+
+Frozen damaging stage:
+- Q4 -> Q5 salient-min coverage.
+
+Gate transition:
+- correct -> wrong 19.53%;
+- wrong -> correct 0.78%.
+
+Common-mode is highly disruptive at the individual-decision level here:
+- Q3 -> Q4 c->w 25.00%;
+- w->c 23.44%;
+but its large two-way churn prevents the frozen one-direction damage classification.
+
+#### BL — professional certification administration
+
+Classification:
+**`QUESTION_CONTEXT_LOSS`**
+
+Adequacy:
+- R0 K4 89.06%;
+- Q0 K4 89.06%;
+- Q0 K16 64.06%.
+
+Production final:
+- Q7 K4 81.25%;
+- Q7 K16 62.50%.
+
+Frozen damaging stage:
+- Q1 -> Q2 question-context addition.
+
+Gate transition:
+- correct -> wrong 15.63%;
+- wrong -> correct 2.34%.
+
+The later common-mode step is net rescuing on many decisions:
+- Q3 -> Q4 c->w 10.94%;
+- w->c 22.66%.
+
+#### BM — airline baggage support
+
+Classification:
+**`INTERFACE_DECOMPOSITION_UNRESOLVED`**
+
+Adequacy:
+- R0 K4 98.44%;
+- Q0 K4 79.69%;
+- Q0 K16 60.94%.
+
+Production final:
+- Q7 K4 75.00%;
+- Q7 K16 37.50%.
+
+No single adjacent transformation meets every frozen damage gate.
+
+Notable churn:
+- Q3 -> Q4 c->w 17.19%, w->c 9.38%;
+- Q4 -> Q5 c->w 11.72%, w->c 3.13%.
+
+The total K16 degradation is real, but the preregistered distributed-loss rule is not satisfied together with the absence of a qualifying adjacent stage strongly enough to create a stable cross-domain target.
+
+### Pooled stage trajectory — natural definitions
+
+Frozen MiniLM task ceiling R0:
+- K4 **96.09%**;
+- K8 **92.97%**;
+- K16 **87.89%**.
+
+W9 semantic projection starting geometry Q0:
+- K4 **84.77%**;
+- K8 **75.39%**;
+- K16 **62.89%**.
+
+Q1 — drop reverse state->schema coverage:
+- K4 81.25%;
+- K8 71.48%;
+- K16 58.20%.
+
+Q2 — add production question context:
+- K4 76.17%;
+- K8 66.02%;
+- K16 53.91%.
+
+Q3 — add candidate-relative IDF:
+- K4 79.69%;
+- K8 69.14%;
+- K16 57.42%.
+
+Q4 — add common-mode subtraction:
+- K4 78.13%;
+- K8 66.41%;
+- K16 55.08%.
+
+Q5 — add salient-min coverage:
+- K4 **69.92%**;
+- K8 **57.42%**;
+- K16 **47.27%**.
+
+Q6 — actual production CompetitiveCoarseScorer:
+- identical ranking to Q5 at all K.
+
+Q7 — frozen HIRACore final:
+- K4 **71.09%**;
+- K8 **57.03%**;
+- K16 **48.05%**.
+
+Thus pooled Q0 -> Q7:
+- K4: -13.67 pp;
+- K16: -14.84 pp.
+
+Relation/HIRACore is slightly net positive pooled:
+- Q6 K4 69.92% -> Q7 71.09%;
+- Q6 K16 47.27% -> Q7 48.05%.
+
+Candidate-relative IDF is also net positive pooled:
+- Q2 K4 76.17% -> Q3 79.69%;
+- Q2 K16 53.91% -> Q3 57.42%.
+
+The largest pooled single-step drop is Q4 -> Q5 salient-min:
+- K4 -8.20 pp;
+- K16 -7.81 pp;
+but the frozen adjacent damage threshold requires >=10 pp K4 and >=8 pp K16 within a domain, and that mechanism is not stable across >=3 domains.
+
+### Scientific interpretation
+
+W11 does **not** support one universal production-stage culprit.
+
+Instead it exposes strong domain-dependent interaction:
+- question context can be harmful in one semantic family;
+- common-mode subtraction can be harmful in another and net rescuing in another;
+- salient-min can be sharply harmful in one domain and moderately harmful elsewhere;
+- IDF is pooled beneficial;
+- HIRACore relation is pooled slightly beneficial;
+- the exact production scorer decomposition is validated by Q5/Q6 100% rank identity.
+
+This explains why W10 saw a large pooled P1 -> S1 interface loss but could not get a 3/4-domain stable `SCORING_INTERFACE_LIMIT` classification. The loss is not generated by one stable micro-stage under the current interface.
+
+The correct conclusion is heterogeneity/interaction, **not** permission to delete question context, common-mode subtraction or salient-min globally.
+
+Historical W6f remains compatible:
+- crude salience removal was harmful;
+- relation reranking was net helpful there.
+W11 likewise sees IDF/relation pooled benefits while showing context-dependent damage from later competitive transforms.
+
+### Permanent forbidden evidence after W11
+
+BJ/BK/BL/BM are now exposed.
+
+Never use them for:
+- training;
+- mechanism selection;
+- IDF/salience tuning;
+- question wording search;
+- threshold tuning;
+- min-coverage tuning;
+- relation selection;
+- seed selection;
+- choosing a preferred W11 stage.
+
+All earlier exposed/forbidden evidence remains forbidden.
+
+### Authorized next research boundary
+
+Because W11 is unresolved:
+
+**Do not train a stage-specific rescue.**
+
+The next phase must be a **prior-art + architecture reassessment** of why a fixed competitive scoring interface produces domain-dependent rank transformations.
+
+A valid next diagnostic may investigate a higher-level invariant, for example:
+- whether competition should be conditioned on semantic uncertainty/evidence rather than always applied;
+- whether question/context tokens should be gated by candidate-independent semantic relevance;
+- whether coverage penalties need normalization against semantic confidence;
+- whether the production path should preserve a candidate-independent semantic anchor and use competition only as a bounded residual.
+
+But none of these is authorized as a mechanism yet.
+
+Before training anything:
+1. review relevant retrieval/reranking, late-interaction, robust set scoring and mixture/gating prior art;
+2. derive one architecture-level invariant that explains BJ/BK/BL/BM heterogeneity without tuning on them;
+3. preregister a wholly fresh diagnostic for that invariant;
+4. create a new handoff before fresh exposure.
+
+A future AI should read W11 first, then W10, W9 and W8.
