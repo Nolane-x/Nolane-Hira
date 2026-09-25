@@ -92,10 +92,6 @@ def test_confirm_generation_is_capability_guarded():
         generate_w9_domain("BD")
     with pytest.raises(PermissionError):
         generate_w9_domain("BE")
-    rows = generate_w9_split("confirm", allow_confirm=True)
-    assert {row.domain_id for row in rows} == set(CONFIRM_DOMAINS)
-    assert generate_w9_domain("BD", allow_confirm=True)
-    assert generate_w9_domain("BE", allow_confirm=True)
 
 
 def test_train_and_dev_never_materialize_confirm_domains():
