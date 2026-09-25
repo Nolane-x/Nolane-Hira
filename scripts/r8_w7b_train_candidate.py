@@ -71,7 +71,7 @@ def main() -> None:
     if len(train_cache["cases"]) != 384:
         raise RuntimeError("W7b TRAIN must contain 384 cases")
     if len(dev_cache["cases"]) != 192:
-        raise RuntimeError("W7b DEV-AK must contain 192 cases")
+        raise RuntimeError("W7b DEV-AR must contain 192 cases")
 
     torch.manual_seed(0)
     hira = HIRACore(d_model=256, dropout=0.05)
