@@ -266,3 +266,19 @@ def generate_all_w12() -> list[AnchorResidualView]:
     for domain_id in DOMAIN_SEEDS:
         rows.extend(generate_w12_domain(domain_id))
     return rows
+
+
+def generate_w12_diagnostics() -> list[AnchorResidualView]:
+    return generate_all_w12()
+
+
+def all_w12_text_atoms() -> set[str]:
+    values: set[str] = set()
+    for domain in DOMAINS.values():
+        values.add(domain.question)
+    for intents in INTENTS.values():
+        for intent in intents:
+            values.add(intent.terse_label)
+            values.add(intent.natural_definition)
+            values.update(intent.state_texts)
+    return values
