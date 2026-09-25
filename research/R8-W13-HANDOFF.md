@@ -731,3 +731,292 @@ It must not:
 - claim external/general superiority.
 
 A future AI should read W13 first, then W12/W11/W10/W9.
+
+
+---
+
+## 19. Authoritative W13 closure
+
+Exact empirical head:
+`a47f368d57de811f1b8f38beff39db973b9ef89b`
+
+Authority run:
+`36141078081`
+
+All jobs PASS:
+- unit;
+- exact W9 upstream provenance;
+- fresh BR/BS/BT/BU state-once cache;
+- frozen multiview evaluator/reference/classifier.
+
+Artifacts:
+- frozen W9 checkpoints `10867295064`, digest `sha256:9ee1c020e5d6bc87cfa4ce3c21e127e7a5a2c3778363d8e7995731de144fe07b`;
+- W13 cache `10867091010`, digest `sha256:a8d248375c4d1e915e15e1fc2a310179490be0d8c728a29b1fa1deef91ae7018`;
+- W13 audit `10866893030`, digest `sha256:2e516d35c55408756ac3126d0e0501d1dcdd50286c2e6a066357597466d690ac`.
+
+Integrity:
+- 256 fresh bases;
+- 2,304 paired schema/cardinality views;
+- state encodes/base = 1.0;
+- no training;
+- probability mass max error = `1.4487886801362038e-07`;
+- no W8-W12 rows;
+- no Banking77 reuse;
+- no typed final/test rows;
+- campaign cells = 0;
+- pinned MiniLM reference verified exactly.
+
+### Frozen outcome
+
+**`SEMANTIC_CONSISTENCY_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Classification counts:
+- `MULTIVIEW_ANCHOR_DOMINANCE`: 1;
+- `CONSISTENCY_BASELINE_INADEQUATE`: 3.
+
+The >=3/4 stable-target rule is not met.
+
+No W14 rescue mechanism is authorized from W13.
+
+## 20. Pooled semantic anatomy
+
+Frozen multiview ensemble E:
+- K4 **85.156%**;
+- K8 **76.172%**;
+- K16 **63.281%**.
+
+Production final F:
+- K4 **57.422%**;
+- K8 **40.625%**;
+- K16 **28.516%**.
+
+Thus E -> F pooled loss:
+- K4 **-27.734 pp**;
+- K8 **-35.547 pp**;
+- K16 **-34.766 pp**.
+
+Frozen MiniLM reference:
+- K4 **92.969%**;
+- K8 **79.297%**;
+- K16 **64.844%**.
+
+Notably, at K16 the candidate-independent HIRA multiview ensemble E is already close to the pinned external semantic reference:
+- E 63.281%;
+- R0 64.844%.
+
+This does not authorize replacing production with E, but it is strong evidence that semantic geometry itself can be much better than the current production final path.
+
+### Frozen diagnostic guards
+
+`G_strict_ensemble`:
+- K4 69.531%;
+- K8 56.250%;
+- K16 40.625%.
+
+Count-matched scalar-margin control `G_margin_countmatched`:
+- K4 66.797%;
+- K8 48.047%;
+- K16 35.938%.
+
+Descriptive `G_majority_ensemble`:
+- K4 **85.156%**;
+- K8 **72.656%**;
+- K16 **56.250%**.
+
+STRICT guard beats the equal-coverage margin control pooled:
+- K4 +2.734 pp;
+- K8 +8.203 pp;
+- K16 +4.688 pp.
+
+This is useful descriptive evidence that cross-paraphrase agreement carries information beyond the old scalar-margin family. However the frozen primary classifier cannot use a pooled-only advantage.
+
+## 21. Per-domain frozen classifications
+
+### BR — municipal parking permit administration
+
+Classification:
+**`CONSISTENCY_BASELINE_INADEQUATE`**
+
+The semantic task itself is adequate:
+- R0 K4 90.625%;
+- E K4 78.125%;
+- E K16 62.500%.
+
+But frozen STRICT coverage gate fails at K16:
+- STRICT K4 46.875%;
+- STRICT K16 **23.438% < 25%**.
+
+Do not lower the 25% gate after exposure.
+
+Descriptive reliability is nevertheless strong:
+- STRICT E K4 100%;
+- STRICT E K16 100%;
+- NON_STRICT E K4 58.824%;
+- NON_STRICT E K16 51.020%;
+- STRICT F K4 70.0%;
+- STRICT F K16 33.333%.
+
+STRICT guard:
+- 76.563% K4;
+- 40.625% K16.
+
+Count-matched margin guard:
+- 65.625% K4;
+- 31.250% K16.
+
+### BS — continuing-education enrollment services
+
+Classification:
+**`CONSISTENCY_BASELINE_INADEQUATE`**
+
+Adequate semantic performance:
+- R0 K4 95.313%;
+- E K4 90.625%;
+- E K16 64.063%.
+
+STRICT coverage:
+- K4 48.438%;
+- K16 **21.875% < 25%**.
+
+STRICT E:
+- K4 93.548%;
+- K16 92.857%.
+
+NON_STRICT E:
+- K4 87.879%;
+- K16 56.0%.
+
+Despite very high STRICT correctness, the preregistered coverage condition makes this domain non-evaluable for the primary consistency classifier.
+
+### BT — household insurance claim administration
+
+Classification:
+**`CONSISTENCY_BASELINE_INADEQUATE`**
+
+- R0 K4 93.750%;
+- E K4 82.813%;
+- E K16 57.813%.
+
+STRICT coverage:
+- K4 50.0%;
+- K16 **20.313% < 25%**.
+
+STRICT E:
+- K4 100%;
+- K16 100%.
+
+NON_STRICT E:
+- K4 65.625%;
+- K16 47.059%.
+
+Again the descriptive signal is exceptionally strong, but coverage is below the frozen threshold.
+
+### BU — grocery delivery subscription support
+
+Classification:
+**`MULTIVIEW_ANCHOR_DOMINANCE`**
+
+All adequacy gates pass:
+- R0 K4 92.188%;
+- E K4 89.063%;
+- E K16 68.750%;
+- STRICT coverage K4 57.813%;
+- STRICT coverage K16 26.563%;
+- NON_STRICT coverage K4 42.188%;
+- NON_STRICT coverage K16 73.438%.
+
+STRICT E:
+- K4 100%;
+- K16 100%.
+
+Production F on STRICT:
+- K4 75.676%;
+- K16 41.176%.
+
+This domain satisfies broad multiview-anchor dominance rather than the confidence-gated residual rule.
+
+## 22. Scientific interpretation
+
+W13 does not establish a stable production routing law, because the frozen evaluability gate fails on BR/BS/BT.
+
+But it produces the strongest reliability evidence seen so far:
+
+1. **Three independent semantic paraphrases agreeing on top1 is highly predictive of correctness.**
+   - STRICT E is 93.5-100% at K4 and 92.9-100% at K16 on the reported fresh domains.
+2. **The signal is materially stronger than scalar margin at equal coverage.**
+   - pooled STRICT guard beats count-matched margin at K4/K8/K16.
+3. **The candidate-independent multiview ensemble is dramatically stronger than production.**
+   - E 85.16/76.17/63.28 versus F 57.42/40.63/28.52.
+4. **The problem is coverage, not obvious reliability quality.**
+   - on three domains only ~20-23% of K16 cases are STRICT, just below the preregistered 25% minimum.
+
+This distinction is critical.
+
+Do **not** reinterpret W13 as `PARAPHRASE_CONSISTENCY_RELIABLE`.
+The authority was designed to demand both:
+- strong conditional accuracy;
+- enough support/coverage to establish the rule.
+
+It only clearly demonstrates the first.
+
+### What W13 falsifies
+
+- Scalar margin is not the only useful reliability family; consistency contains additional signal.
+- A simple STRICT-only router is still insufficient as a stable architecture rule because coverage is not robust enough under the frozen threshold.
+- Production is not required to achieve strong low-K semantic performance: candidate-independent multiview semantics substantially outperform it.
+
+### What W13 does not prove
+
+- that three paraphrases should be required in production;
+- that majority agreement is production-safe;
+- that the 25% coverage threshold should be relaxed;
+- that E should replace HIRA production;
+- that multiview consistency generalizes outside these internal fresh domains.
+
+## 23. Permanent exposed evidence
+
+BR/BS/BT/BU are now permanently exposed.
+
+Never use them to:
+- tune number/content of paraphrases;
+- lower STRICT coverage thresholds;
+- choose STRICT vs MAJORITY routing;
+- tune ensemble weights;
+- tune production mixing;
+- train a reliability gate;
+- select seeds/checkpoints;
+- design post-hoc classification rules.
+
+All earlier exposed evidence remains forbidden.
+
+## 24. Authorized next research boundary
+
+Because W13 is unresolved/inadequate:
+
+**No rescue training is authorized.**
+
+However, W13 provides a sharper diagnostic target than W12.
+
+The next phase may test, on wholly fresh domains, a **continuous or graded multiview semantic-consistency representation** that does not require exact 3/3 top1 agreement as its only reliable region.
+
+A valid next diagnostic should preregister before exposure:
+- continuous pairwise rank agreement;
+- top-k set overlap;
+- vote strength;
+- score-vector agreement;
+- semantic ensemble confidence;
+- exact comparison to count-matched scalar margin;
+- fixed coverage bins or continuous monotonicity tests;
+- no learned gate;
+- no threshold selected from W13.
+
+The core question should be:
+
+> Can semantic consistency provide a stable reliability ordering across most cases, not merely a very accurate but low-coverage STRICT subset?
+
+If yes on fresh data, only then may a later phase test a learned/bounded gate.
+
+A future AI should read W13 first, then W12/W11/W10/W9.
