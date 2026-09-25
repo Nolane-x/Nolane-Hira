@@ -217,8 +217,9 @@ Inference/evaluation still uses the full production competitive scorer + frozen 
 - 0 trainable.
 
 1. `projection-semantic-control`
-- ordinary competitive projection + log scale trainable;
-- 32,769 params;
+- ordinary competitive 256->128 projection trainable;
+- production log_scale frozen because the W9 alignment loss uses fixed temperature 0.07;
+- 32,768 trainable params;
 - same direct semantic-alignment loss/data.
 
 2. `shared-bridge-semantic-control`
@@ -477,3 +478,13 @@ Do not claim:
 - a threshold may be changed because a result is close.
 
 A future AI must be able to continue from this file without chat memory.
+
+
+### Pre-data amendment — projection control parameter exactness
+
+Before any W9 A13 cache/training exposure, issue #105 froze one clarification:
+- `projection-semantic-control` trains only the 256->128 projection;
+- production `log_scale` is frozen;
+- exact trainable count is 32,768.
+
+Reason: direct semantic alignment uses fixed temperature 0.07 and does not consume the production logit scale, so leaving that scalar trainable would create a nominal trainable parameter with no gradient.
