@@ -21,9 +21,9 @@ from nmd.freeform_attribution_authority import (
     generate_w7b_dev,
     generate_w7b_train,
 )
-from nmd.conjunctive_cache import (
-    compile_w7_cache,
-    save_w7_cache,
+from nmd.freeform_attribution_cache import (
+    compile_w7b_cache,
+    save_w7b_cache,
 )
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
@@ -129,22 +129,22 @@ def main() -> None:
     train_cases = generate_w7b_train()
     dev_cases = generate_w7b_dev()
 
-    train_cache = compile_w7_cache(
+    train_cache = compile_w7b_cache(
         model,
         train_cases,
         expected_split="train",
     )
-    dev_cache = compile_w7_cache(
+    dev_cache = compile_w7b_cache(
         model,
         dev_cases,
         expected_split="dev-ar",
     )
 
-    train_path = save_w7_cache(
+    train_path = save_w7b_cache(
         train_cache,
         args.out / "train.pt",
     )
-    dev_path = save_w7_cache(
+    dev_path = save_w7b_cache(
         dev_cache,
         args.out / "dev-ar.pt",
     )
@@ -180,30 +180,16 @@ def main() -> None:
         "dev_domain_counts": {
             "AR": sum(case.domain_id == "AR" for case in dev_cases),
         },
-        "train_factor_identity_sha256": train_cache["metadata"][
-            "factor_identity_sha256"
-        ],
-        "dev_factor_identity_sha256": dev_cache["metadata"][
-            "factor_identity_sha256"
-        ],
         "train_semantic_signature_sha256": train_cache["metadata"][
             "semantic_signature_sha256"
         ],
         "dev_semantic_signature_sha256": dev_cache["metadata"][
             "semantic_signature_sha256"
         ],
-        "train_factor_encoder_batches": train_cache["metadata"][
-            "factor_encoder_batches"
-        ],
-        "dev_factor_encoder_batches": dev_cache["metadata"][
-            "factor_encoder_batches"
-        ],
-        "train_factor_text_count": train_cache["metadata"][
-            "factor_text_count"
-        ],
-        "dev_factor_text_count": dev_cache["metadata"][
-            "factor_text_count"
-        ],
+        "train_factor_encoder_batches": 0,
+        "dev_factor_encoder_batches": 0,
+        "train_factor_text_count": 0,
+        "dev_factor_text_count": 0,
         "state_encodes_per_case_train": train_cache["metadata"][
             "state_encode_calls_per_case"
         ],
