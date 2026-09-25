@@ -1,0 +1,92 @@
+name: r8-w9-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w9-semantic-alignment
+    paths:
+      - "src/nmd/semantic_alignment_bridge.py"
+      - "src/nmd/semantic_alignment_authority.py"
+      - "src/nmd/semantic_alignment_cache.py"
+      - "src/nmd/semantic_alignment_eval.py"
+      - "src/nmd/semantic_alignment_training.py"
+      - "src/nmd/semantic_alignment_verdict.py"
+      - "scripts/r8_w9_build_cache.py"
+      - "scripts/r8_w9_train_candidate.py"
+      - "scripts/r8_w9_freeze_candidates.py"
+      - "scripts/r8_w9_confirm.py"
+      - "tests/test_semantic_alignment_bridge.py"
+      - "tests/test_semantic_alignment_authority.py"
+      - "tests/test_semantic_alignment_cache.py"
+      - "tests/test_semantic_alignment_training.py"
+      - "tests/test_semantic_alignment_verdict.py"
+      - ".github/workflows/r8-w9-unit.yml"
+      - ".github/workflows/r8-w9-semantic-alignment-authority.yml"
+  pull_request:
+    paths:
+      - "src/nmd/semantic_alignment_bridge.py"
+      - "src/nmd/semantic_alignment_authority.py"
+      - "src/nmd/semantic_alignment_cache.py"
+      - "src/nmd/semantic_alignment_eval.py"
+      - "src/nmd/semantic_alignment_training.py"
+      - "src/nmd/semantic_alignment_verdict.py"
+      - "scripts/r8_w9_build_cache.py"
+      - "scripts/r8_w9_train_candidate.py"
+      - "scripts/r8_w9_freeze_candidates.py"
+      - "scripts/r8_w9_confirm.py"
+      - "tests/test_semantic_alignment_bridge.py"
+      - "tests/test_semantic_alignment_authority.py"
+      - "tests/test_semantic_alignment_cache.py"
+      - "tests/test_semantic_alignment_training.py"
+      - "tests/test_semantic_alignment_verdict.py"
+      - ".github/workflows/r8-w9-unit.yml"
+      - ".github/workflows/r8-w9-semantic-alignment-authority.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w9-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W9 stack
+        run: |
+          python -m py_compile             src/nmd/semantic_alignment_bridge.py             src/nmd/semantic_alignment_authority.py             src/nmd/semantic_alignment_cache.py             src/nmd/semantic_alignment_eval.py             src/nmd/semantic_alignment_training.py             src/nmd/semantic_alignment_verdict.py             scripts/r8_w9_build_cache.py             scripts/r8_w9_train_candidate.py             scripts/r8_w9_freeze_candidates.py             scripts/r8_w9_confirm.py
+      - name: Run W9 contracts
+        run: |
+          pytest -q             tests/test_semantic_alignment_bridge.py             tests/test_semantic_alignment_authority.py             tests/test_semantic_alignment_cache.py             tests/test_semantic_alignment_training.py             tests/test_semantic_alignment_verdict.py             tests/test_competitive_coarse_runtime.py
+      - name: Guard sealed confirm capability
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              Path("tests/test_semantic_alignment_bridge.py"),
+              Path("tests/test_semantic_alignment_authority.py"),
+              Path("tests/test_semantic_alignment_cache.py"),
+              Path("tests/test_semantic_alignment_training.py"),
+              Path("tests/test_semantic_alignment_verdict.py"),
+              Path("scripts/r8_w9_build_cache.py"),
+              Path("scripts/r8_w9_train_candidate.py"),
+              Path("scripts/r8_w9_freeze_candidates.py"),
+          ]
+          for path in files:
+              text = path.read_text(encoding="utf-8")
+              assert 'allow_confirm=True' not in text, path
+          confirm = Path("scripts/r8_w9_confirm.py").read_text(encoding="utf-8")
+          assert 'generate_w9_domain("BD", allow_confirm=True)' in confirm
+          assert 'generate_w9_domain("BE", allow_confirm=True)' in confirm
+          print("w9_confirm_capability_guard_pass")
+          PY
