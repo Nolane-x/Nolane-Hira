@@ -12,6 +12,7 @@ from nmd.anchor_residual import (
 )
 from nmd.anchor_residual_authority import BASES_PER_DOMAIN, generate_w12_domain
 from nmd.anchor_residual_cache import compile_w12_cache
+from nmd.anchor_residual_eval import _summary
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
 from nmd.semantic import TrainableSemanticEncoder
@@ -150,3 +151,26 @@ def test_w12_cache_preserves_state_once_for_one_base():
     assert cache["metadata"]["view_count"] == 6
     assert cache["metadata"]["state_encode_calls"] == 1
     assert cache["metadata"]["state_encode_calls_per_base"] == 1.0
+
+
+def test_w12_definition_only_guard_summary_is_valid():
+    rows = []
+    for domain in ("BN", "BO", "BP", "BQ"):
+        for k in (4, 8, 16):
+            rows.append({
+                "base_id": f"{domain.lower()}-{k}",
+                "case_id": f"{domain.lower()}-{k}-definition",
+                "domain_id": domain,
+                "view_id": "definition",
+                "k": k,
+                "stage": "guard",
+                "correct": True,
+                "rank": 1,
+                "mrr": 1.0,
+                "top5": True,
+                "margin": 1.0,
+                "order": [0],
+            })
+    summary = _summary(rows, views=("definition",))
+    assert summary["per_domain"]["BN"]["definition"]["4"]["top1"] == 1.0
+    assert "label" not in summary["per_domain"]["BN"]
