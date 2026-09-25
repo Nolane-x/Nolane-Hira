@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from nmd.anchor_preserving_residual_authority import all_w15_text_atoms
 from nmd.anchor_preserving_residual_training import (
     CANDIDATES,
     EPOCHS,
@@ -67,6 +68,13 @@ def test_w15_confirm_script_requires_frozen_candidate_boundary():
     assert 'confirm_cf_exposed") is not False' in source
     assert "primary_replica_seed_independence" in source
     assert "w15_verdict" in source
+
+
+def test_w15_exact_text_atoms_are_fresh_against_all_prior_authorities():
+    from scripts.r8_w15_build_cache import _prior_text_atoms
+
+    overlap = sorted(all_w15_text_atoms() & _prior_text_atoms())
+    assert overlap == []
 
 
 def test_w15_train_dev_builder_never_imports_confirm_capability():
