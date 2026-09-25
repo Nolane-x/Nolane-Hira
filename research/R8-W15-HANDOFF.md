@@ -1,6 +1,6 @@
 # R8-W15 handoff — anchor-preserving bounded residual production redesign
 
-Status: **PRE-DATA MECHANISM AUTHORITY. No BZ/CA/CB/CC/CD/CE/CF A13 cache, training result, DEV result or CONFIRM result exists yet.**
+Status: **CLOSED MECHANISM AUTHORITY. Frozen verdict: `ANCHOR_PRESERVING_FAIL`. W16 high-K replication is NOT authorized.**
 
 Issue: #117
 
@@ -973,3 +973,303 @@ Authority must consume exact W9 freeze artifact:
 Required authority chain remains exactly:
 
 `unit -> W9 provenance + BZ-CC/CD cache -> five independently evaluated/trained candidates -> DEV-CD freeze -> CE/CF one-time materialization -> frozen verdict`.
+
+
+---
+
+## 25. Authoritative W15 closure
+
+Exact empirical authority head:
+`1bee96afc789641b56edf1b8061951042d233de1`
+
+Authority run:
+`36150235281`
+
+All jobs PASS:
+- unit;
+- exact W9 upstream provenance;
+- BZ/CA/CB/CC TRAIN + CD DEV cache;
+- five candidate paths;
+- independent DEV-CD freeze;
+- one-time CE/CF materialization;
+- frozen confirm evaluator/verdict.
+
+### Artifacts
+
+Fresh train/dev cache:
+- artifact `10871053622`;
+- digest `sha256:d94fa3f793a17b48c1ff74a1ddabd0bc6fe8259b3e26ba02ef96c99d24b280da`.
+
+Frozen W9 projection bundle:
+- artifact `10871846020`;
+- digest `sha256:741506e9e74bd55e7c49eb9acaea78058a75f539fcfaddfdb02113fe5d27afca`.
+
+Candidate artifacts:
+- bounded primary `10871154296`, digest `sha256:c408df45e4866bf9c6c67e9ade3eac9e5945a548286f830cd657f7c617c8461d`;
+- bounded replica `10870954548`, digest `sha256:af0230baee848d7cc04dd1456872b7436d8064e7eb0e27919e314b51c38ab87b`;
+- unbounded control `10871398035`, digest `sha256:41c1902cfa72491dfcdea8c260fb3a245cf540598ee462dad5a85d2af6c113fd`;
+- anchor control `10871298670`, digest `sha256:6e90e0b4048a1528d03318a04bfb2f529579819485b41438415ce725092a6fff`;
+- production control `10871397758`, digest `sha256:0fe4a6d7e803ac80d0af6b9f3097145330142b3aedfdd4c22187a2bec8cd9c2f`.
+
+DEV freeze:
+- artifact `10871513303`;
+- digest `sha256:95add697633bbd8fd95715f25f92c96f7e4cbb8d7d587b06b45135e2ed86223a`.
+
+Authoritative dual-CONFIRM:
+- artifact `10872390453`;
+- digest `sha256:f5baa513c6d9c972321b95d9e255ac9177256e349e2c87b03d2eb52b08b56324`.
+
+CONFIRM cache SHAs:
+- CE `7d3a1633542e9782bde51b47887773adf416658e3a901d7478c754a48fbf226a`;
+- CF `8f0f8190dd23f7af545a4535792d2431bb7d27d1e62cafcc5d288e1f966f1e81`.
+
+Integrity:
+- CE 96 cases / 480 typed decisions;
+- CF 96 / 480;
+- state encodes/case = 1.0 on both;
+- probability mass error <= 4.44e-16;
+- exact six-param trainable budget for every trainable residual path;
+- equal optimizer case steps = 3,072;
+- bounded primary/replica independent seeds;
+- no W12/W13/W14 rows;
+- no Banking77 rows;
+- no typed final/test rows;
+- campaign cells zero.
+
+## 26. Frozen verdict
+
+**`ANCHOR_PRESERVING_FAIL`**
+
+No full rescue, no no-bounding-causal rescue, no anchor-only production redesign, and no partial rescue passed the preregistered dual-domain gates.
+
+Therefore:
+- W16 K32/K64 replication is **not authorized**;
+- public/external validation remains closed;
+- CE/CF are permanently exposed and forbidden for tuning.
+
+## 27. Untouched CONFIRM-CE
+
+### Production frozen control
+- overall 40.21%;
+- choice 32.29%;
+- noul 57.29%;
+- score 39.58%;
+- non-diagnosis typed 44.01%;
+- diagnosis K4 37.50%;
+- K8 28.13%;
+- K16 9.375%.
+
+### Multiview anchor E
+- overall 45.00%;
+- choice 42.71%;
+- noul 59.38%;
+- score 40.10%;
+- non-diagnosis 48.70%;
+- diagnosis K4 46.875%;
+- K8 34.375%;
+- K16 9.375%.
+
+### Unbounded residual
+- overall **49.375%**;
+- non-diagnosis **53.125%**;
+- K4 50.0%;
+- K8 40.625%;
+- K16 **12.50%**;
+- K16 anchor retention 100%;
+- K16 anchor-wrong rescue 3.45%.
+
+### Bounded primary
+- overall 46.46%;
+- non-diagnosis 50.78%;
+- K4 46.875%;
+- K8 31.25%;
+- K16 9.375%;
+- K4 retention 100%;
+- K8 retention 90.91%;
+- K16 retention 100%;
+- K16 anchor-wrong rescue 0%.
+
+### Bounded replica
+- overall 46.67%;
+- K4 46.875%;
+- K8 34.375%;
+- K16 9.375%;
+- K16 retention 100%;
+- rescue 0%.
+
+No primary competence or residual-value rescue is established.
+
+## 28. Untouched CONFIRM-CF
+
+### Production frozen control
+- overall 41.46%;
+- choice 36.98%;
+- noul 43.75%;
+- score 44.79%;
+- non-diagnosis 41.67%;
+- K4 50.0%;
+- K8 43.75%;
+- K16 28.125%.
+
+### Multiview anchor E
+- overall 48.33%;
+- choice 43.23%;
+- noul 61.46%;
+- score 46.875%;
+- non-diagnosis 53.39%;
+- K4 40.625%;
+- K8 31.25%;
+- K16 12.50%.
+
+This domain is important because current production actually exceeds the anchor on diagnosis at every K.
+
+### Unbounded residual
+- overall **50.21%**;
+- non-diagnosis **55.21%**;
+- K4 43.75%;
+- K8 34.375%;
+- K16 12.50%;
+- K16 anchor retention 75%;
+- rescue 3.57%.
+
+### Bounded primary
+- overall 48.54%;
+- non-diagnosis 54.17%;
+- K4 37.50%;
+- K8 31.25%;
+- K16 9.375%;
+- K4 retention 92.31%;
+- K8 retention 100%;
+- K16 retention 75%;
+- K16 rescue 0%;
+- K16 damage 25%.
+
+### Bounded replica
+- overall 48.75%;
+- K4 37.50%;
+- K8 34.375%;
+- K16 9.375%;
+- K16 retention 75%;
+- rescue 0%.
+
+Again no competence/rescue gate passes.
+
+## 29. Why W15 failed
+
+The failure is not attributable only to the bounded residual mechanism.
+
+The more important observation is that the W14 multiview-anchor strength did **not** transfer into the W15 typed authority.
+
+W14 fresh domains:
+- E pooled K4 94.92%;
+- K8 90.23%;
+- K16 84.77%.
+
+W15 untouched diagnosis anchor:
+- CE: K4 46.88%, K8 34.38%, K16 9.38%;
+- CF: K4 40.63%, K8 31.25%, K16 12.50%.
+
+This is a dramatic regime shift.
+
+Therefore W15 falsifies the assumption that W14's three-view multiview semantic anchor can be treated as a universally strong production base without another transfer qualification.
+
+Possible categories for future diagnosis include:
+- W15 typed-schema wording/intent construction is semantically harder than W14's diagnostic schema;
+- multiview anchor quality is task-family dependent;
+- W14 naturalistic diagnostic domains and W15 typed multi-primitive authority differ in semantic granularity/compositional structure;
+- the W9 projection remains brittle to a fresh semantic regime even when three definitions are averaged.
+
+These are hypotheses only. CE/CF cannot be used to choose among them.
+
+## 30. Bounded vs unbounded result
+
+The explicit bound is **not** shown causal.
+
+On CE:
+- unbounded overall 49.38% vs bounded 46.46%;
+- unbounded K16 12.50% vs bounded 9.38%.
+
+On CF:
+- unbounded overall 50.21% vs bounded 48.54%;
+- both remain far below competence gates.
+
+The unbounded path gives small typed improvements but remains nowhere near rescue and does not justify removing the bound post hoc.
+
+The six-scalar bounded design generally preserves anchor winners better than current production, but it almost never rescues anchor-wrong K16 cases. This is the central mechanism failure:
+- CE bounded primary K16 rescue = 0%;
+- CF bounded primary K16 rescue = 0%.
+
+Thus preserving a weak anchor is insufficient.
+
+## 31. Scientific interpretation
+
+W14's stable result remains valid for the W14 authority.
+
+W15 adds a new boundary:
+
+> **multiview candidate-independent semantics can be extremely strong on one fresh naturalistic semantic regime yet fail catastrophically on a separately constructed fresh typed regime.**
+
+Therefore the next question is not high-K.
+
+It is:
+
+> **What makes a semantic schema/authority regime anchor-compatible, and why does the frozen W9 multiview geometry collapse across some typed schema families?**
+
+The correct next phase is diagnostic only.
+
+Do not:
+- open W16 K32/K64;
+- tune residual caps on CE/CF;
+- increase residual strength;
+- train a larger mixer;
+- retune definitions on CE/CF;
+- replace bounded with unbounded based on W15;
+- claim W14 was invalid;
+- claim anchor-primary production is solved.
+
+A fresh W16 should instead decompose the W14->W15 anchor-transfer gap on wholly fresh domains with matched task construction.
+
+## 32. Permanent exposed evidence after W15
+
+TRAIN/DEV historical:
+- BZ/CA/CB/CC;
+- CD.
+
+Untouched CONFIRM now exposed:
+- CE;
+- CF.
+
+Never reuse CE/CF for:
+- architecture selection;
+- paraphrase/schema selection;
+- semantic granularity selection;
+- residual design;
+- threshold/cap tuning;
+- checkpoint/seed selection;
+- calibration.
+
+All prior exposed data remains forbidden.
+
+## 33. Authorized continuation
+
+W15 does **not** authorize high-K replication.
+
+A next diagnostic may compare, on wholly fresh matched domains:
+1. W14-style single-primitive semantic classification;
+2. W15-style diagnosis embedded in full typed case context;
+3. identical intent/definition semantics under both rendering interfaces;
+4. anchor geometry before/after typed schema wrapping;
+5. per-primitive anchor quality;
+6. candidate-definition lexical/semantic separability;
+7. frozen MiniLM reference only as a recoverability ceiling.
+
+The purpose is to determine whether the collapse comes from:
+- dataset semantic difficulty;
+- typed rendering/interface context;
+- schema granularity;
+- projection transfer;
+- or a mixed regime interaction.
+
+No training should begin until that transfer gap is stably localized.
+
+A future AI should read this file first, then W14/W13/W12.
