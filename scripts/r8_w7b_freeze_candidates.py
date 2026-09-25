@@ -74,7 +74,7 @@ def main() -> None:
     names = {receipt["candidate"] for receipt, _, _ in rows}
     if names != set(CANDIDATES) or len(rows) != len(CANDIDATES):
         raise RuntimeError(
-            f"expected four W7b candidates, got {sorted(names)}"
+            f"expected five W7b candidates, got {sorted(names)}"
         )
 
     train_hashes = {r["train_cache_sha256"] for r, _, _ in rows}
