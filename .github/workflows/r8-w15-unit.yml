@@ -6,7 +6,12 @@ on:
       - feat/r8-w15-anchor-preserving-residual
     paths:
       - "src/nmd/anchor_preserving_residual.py"
+      - "src/nmd/anchor_preserving_residual_authority.py"
+      - "src/nmd/anchor_preserving_residual_cache.py"
+      - "src/nmd/anchor_preserving_residual_training.py"
       - "tests/test_anchor_preserving_residual.py"
+      - "tests/test_anchor_preserving_residual_authority.py"
+      - "tests/test_anchor_preserving_residual_execution.py"
       - "research/R8-W15-HANDOFF.md"
       - "research/R8-W15-PRIOR-ART.md"
       - ".github/workflows/r8-w15-unit.yml"
@@ -40,6 +45,14 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile frozen W15 core
         run: |
-          python -m py_compile src/nmd/anchor_preserving_residual.py
+          python -m py_compile \
+            src/nmd/anchor_preserving_residual.py \
+            src/nmd/anchor_preserving_residual_authority.py \
+            src/nmd/anchor_preserving_residual_cache.py \
+            src/nmd/anchor_preserving_residual_training.py
       - name: Run W15 pre-data core contracts
-        run: pytest -q tests/test_anchor_preserving_residual.py
+        run: |
+          pytest -q \
+            tests/test_anchor_preserving_residual.py \
+            tests/test_anchor_preserving_residual_authority.py \
+            tests/test_anchor_preserving_residual_execution.py
