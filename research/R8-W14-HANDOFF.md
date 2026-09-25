@@ -424,3 +424,47 @@ Authority workflow does not exist and must remain absent until:
 2. exact-head repository CI passes;
 3. state-once cache/evaluator/reference stack is implemented and independently unit-tested;
 4. this handoff is updated with the exact pre-authority head.
+
+
+## 20. Full pre-authority execution stack frozen
+
+Completed before any BV/BW/BX/BY empirical exposure:
+
+- state-once cache:
+  `src/nmd/continuous_reliability_cache.py`;
+- frozen A0/A1/A2/E/F evaluator:
+  `src/nmd/continuous_reliability_eval.py`;
+- sealed fresh cache builder:
+  `scripts/r8_w14_build_cache.py`;
+- frozen W9 provenance + MiniLM evaluator:
+  `scripts/r8_w14_evaluate.py`;
+- cache state-once unit contract;
+- complete W14 pre-data compile/test workflow.
+
+Exact validated code head:
+`0e9cc13c52d2cdfd9dfdf8126304580b4dec09e0`.
+
+Validation:
+- W14 unit run `36143756919`: PASS;
+- repository CI run `36143756938`: PASS;
+- Python 3.10: PASS;
+- Python 3.12: PASS.
+
+Scientific contracts remain exactly those preregistered in issue #115:
+- V/S/O definitions unchanged;
+- R = equal arithmetic mean unchanged;
+- 21/22/21 tertiles unchanged;
+- scalar-margin count-matched control unchanged;
+- domain seeds/text generation unchanged;
+- classifier thresholds/precedence unchanged;
+- W9 projection/HIRACore provenance unchanged;
+- MiniLM reference unchanged.
+
+Freshness firewall now includes W13 BR/BS/BT/BU atoms.
+
+Exposure state at this freeze:
+**No BV/BW/BX/BY A13 cache exists.**
+**No W14 MiniLM score exists.**
+**No W14 empirical metric/classification exists.**
+
+Authority may be enabled only after the doc-only freeze head is green.
