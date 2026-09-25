@@ -329,3 +329,112 @@ Next:
 11. freeze result here before merge.
 
 A future AI must update this file after every meaningful session.
+
+
+## 15. Pre-data implementation update
+
+Scientific exposure remains:
+
+**NONE.**
+
+No CG/CH/CI/CJ A13 cache has been materialized.
+No W16 MiniLM score exists.
+No W16 classification exists.
+
+Implemented on `feat/r8-w16-regime-transfer-decomposition`:
+
+### Fresh matched authority
+- `src/nmd/regime_transfer_authority.py`;
+- CG/CH/CI/CJ exactly as preregistered;
+- 16 intents/domain = 4 subjects × 4 actions;
+- 4 state variants/intent;
+- nested K4/K8/K16;
+- D0/D1/D2;
+- identical candidate IDs/order/gold across all state renderings;
+- deterministic W15-style severity/confidence suffix independent of diagnosis gold.
+
+### Matched state cache
+- `src/nmd/regime_transfer_cache.py`;
+- R0 bare and R1 decorated are encoded together exactly once per base;
+- exactly two encoded state texts/base;
+- R2 performs **zero additional encoder calls**;
+- R2 reuses contextual embeddings from R1 but truncates semantic scoring to the exact R0 prefix token IDs;
+- R0 token IDs must equal the leading R1 content-token IDs exactly or cache construction fails;
+- `prefix_token_identity_rate` must equal 1.0;
+- schema D0/D1/D2 token artifacts are cached once and shared across R0/R1/R2;
+- nested candidate identity is validated.
+
+This construction separates:
+1. extra-token aggregation dilution;
+2. contextual representation contamination.
+
+### Directional evaluator
+- `src/nmd/regime_transfer_eval.py`;
+- exact W9 projection;
+- D2S definition->state MaxSim mean;
+- S2D state->definition MaxSim mean;
+- SYM = .5*(D2S+S2D);
+- D0/D1/D2 arithmetic multiview ensemble;
+- per-domain/rendering/operator/K top1/top5/MRR/margin;
+- matched R0->R1, R1->R2 and R0->R2 transitions;
+- directional margin/top1 attribution;
+- active-token accounting;
+- frozen classifier precedence and >=3/4 cross-domain outcome.
+
+### Frozen reference evaluator
+- `scripts/r8_w16_evaluate.py`;
+- exact W9 freeze provenance;
+- exact W9 semantic scorer SHA check;
+- pinned MiniLM reference revision/SHA;
+- reference only scores R0/R1 against D0 as adequacy ceiling;
+- reference cannot enter HIRA.
+
+### Fresh cache builder
+- `scripts/r8_w16_build_cache.py`;
+- exact A13 revision/SHA verification;
+- exact-text freshness firewall through W15;
+- no W14/W15 rows;
+- no CE/CF;
+- no Banking77;
+- no typed final/test;
+- campaign cells zero.
+
+### Pre-data contracts
+- `tests/test_regime_transfer.py`;
+- fresh authority shape;
+- paired D0/D1/D2 identity;
+- exact R0/R1/R2 prefix-token contract;
+- R2 zero-extra-encode contract;
+- directional D2S/S2D/SYM equation;
+- frozen `EXTRA_STATE_TOKEN_DILUTION` classifier fixture;
+- >=3/4 stability rule.
+
+### CI
+- `.github/workflows/r8-w16-unit.yml`;
+- compiles all W16 core/scripts;
+- download-free W16 unit tests;
+- no A13 materialization;
+- no CG/CH/CI/CJ authority exposure.
+
+Current implementation head:
+`f078c94fbbc82729ba622283a348466fdab0e2bc`.
+
+Validation currently in progress:
+- W16 unit run `36202258480`;
+- repository CI run `36202258442`.
+
+Do not enable authority until both exact-head gates are PASS.
+
+## 16. Remaining pre-exposure sequence
+
+1. obtain exact-head W16 unit PASS;
+2. obtain exact-head repository CI PASS on Python 3.10 and 3.12;
+3. record run IDs and exact green head here and in issue #119;
+4. add authority workflow only after the green gate;
+5. authority chain:
+   `unit -> exact W9 projection provenance + fresh CG-CJ cache -> frozen directional evaluator + MiniLM reference -> frozen classifications/outcome`;
+6. after first CG-CJ A13 materialization, no scientific mutation is allowed;
+7. freeze exact artifacts/metrics/verdict here;
+8. merge only a clean frozen result.
+
+A future AI must not treat current unit/CI execution as empirical evidence.
