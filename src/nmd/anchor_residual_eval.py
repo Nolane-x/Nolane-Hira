@@ -67,7 +67,7 @@ def _summary(records: list[dict[str, object]]) -> dict[str, object]:
     per_domain: dict[str, object] = {}
     for domain in DOMAINS:
         per_domain[domain] = {}
-        for view in ("definition", "label"):
+        for view in views:
             per_domain[domain][view] = {}
             for k in K_VALUES:
                 rows = [
@@ -79,7 +79,7 @@ def _summary(records: list[dict[str, object]]) -> dict[str, object]:
                 per_domain[domain][view][str(k)] = _cell(rows)
 
     pooled: dict[str, object] = {}
-    for view in ("definition", "label"):
+    for view in views:
         pooled[view] = {}
         for k in K_VALUES:
             rows = [x for x in records if x["view_id"] == view and int(x["k"]) == k]
