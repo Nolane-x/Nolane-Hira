@@ -1,6 +1,6 @@
 # R8-W13 handoff — paraphrase-consistency semantic reliability audit
 
-Status: **PRE-DIAGNOSTIC. No BR/BS/BT/BU A13/reference cache or W13 classification exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `SEMANTIC_CONSISTENCY_UNRESOLVED`. No rescue mechanism is authorized.**
 
 Issue: #113
 
@@ -471,3 +471,263 @@ No other gate, precedence, domain, seed, paraphrase, score operator or guard cha
 **No W13 classification exists.**
 
 Authority workflow remains intentionally absent until the exact implementation head is green under W13 unit + repository CI.
+
+
+---
+
+## 19. Authoritative W13 closure
+
+Exact empirical head:
+`a47f368d57de811f1b8f38beff39db973b9ef89b`
+
+Authority run:
+`36141078081`
+
+All jobs PASS:
+- frozen W13 unit contracts;
+- exact W9 checkpoint provenance;
+- fresh BR/BS/BT/BU state-once cache;
+- pinned MiniLM reference;
+- frozen consistency evaluator/classifier.
+
+Artifacts:
+- W9 frozen checkpoint bundle: `10867295064`,
+  digest `sha256:9ee1c020e5d6bc87cfa4ce3c21e127e7a5a2c3778363d8e7995731de144fe07b`;
+- fresh W13 cache: `10867091010`,
+  digest `sha256:a8d248375c4d1e915e15e1fc2a310179490be0d8c728a29b1fa1deef91ae7018`;
+- authoritative W13 audit: `10866893030`,
+  digest `sha256:2e516d35c55408756ac3126d0e0501d1dcdd50286c2e6a066357597466d690ac`.
+
+Integrity:
+- 256 fresh bases;
+- 2,304 D0/D1/D2 × K4/K8/K16 views;
+- state encodes/base = 1.0;
+- probability mass max error = `1.4487886801362038e-07`;
+- no training;
+- no W8-W12 authority rows;
+- no Banking77 rows;
+- no typed final/test;
+- campaign cells = 0;
+- exact pinned MiniLM revision/SHA verified.
+
+### Frozen outcome
+
+**`SEMANTIC_CONSISTENCY_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Classification counts:
+- `MULTIVIEW_ANCHOR_DOMINANCE`: 1.
+
+Per-domain:
+- BR -> `CONSISTENCY_BASELINE_INADEQUATE`;
+- BS -> `CONSISTENCY_BASELINE_INADEQUATE`;
+- BT -> `CONSISTENCY_BASELINE_INADEQUATE`;
+- BU -> `MULTIVIEW_ANCHOR_DOMINANCE`.
+
+The frozen >=3/4 cross-domain stability gate is not met.
+
+No W14 rescue/training mechanism is authorized.
+
+## 20. Pooled semantic anatomy
+
+Single paraphrase anchors:
+- A0: 80.08% K4 / 47.27% K16;
+- A1: 62.50% / 43.75%;
+- A2: 87.11% / 70.70%.
+
+Equal-weight multiview semantic ensemble E:
+- K4 **85.16%**;
+- K8 **76.17%**;
+- K16 **63.28%**.
+
+Production final F:
+- K4 **57.42%**;
+- K8 **40.63%**;
+- K16 **28.52%**.
+
+Thus pooled E -> F:
+- K4 **-27.73 pp**;
+- K8 **-35.55 pp**;
+- K16 **-34.77 pp**.
+
+Pinned MiniLM task ceiling:
+- K4 **92.97%**;
+- K16 **64.84%**.
+
+The multiview candidate-independent anchor nearly reaches the pinned reference at K16 while the production path collapses far below it.
+
+## 21. Why the preregistered STRICT consistency hypothesis does not pass
+
+STRICT top1 agreement is highly precise, but its K16 coverage is too low on three fresh domains:
+
+BR:
+- STRICT coverage K4 46.875%;
+- STRICT coverage K16 **23.438%**;
+- frozen minimum K16 coverage = 25%;
+- STRICT E K4/K16 = 100% / 100%;
+- therefore domain classification = `CONSISTENCY_BASELINE_INADEQUATE`.
+
+BS:
+- STRICT coverage K4 48.438%;
+- K16 **21.875%**;
+- STRICT E K4 93.55%;
+- STRICT E K16 92.86%;
+- classification = inadequate.
+
+BT:
+- STRICT coverage K4 50.0%;
+- K16 **20.313%**;
+- STRICT E K4/K16 = 100% / 100%;
+- classification = inadequate.
+
+BU:
+- STRICT coverage K4 57.813%;
+- K16 **26.563%**;
+- E K4 89.06%;
+- E K16 68.75%;
+- F K4 59.38%;
+- F K16 32.81%;
+- classification = `MULTIVIEW_ANCHOR_DOMINANCE`.
+
+The K16 coverage gate was frozen before data and **must not be lowered** to 20%, 21% or 23% after seeing these results.
+
+## 22. STRICT vs NON_STRICT anatomy
+
+### BR
+STRICT:
+- E K4/K16 = 100% / 100%;
+- F = 70.0% / 33.33%;
+- pooled primary E->F c->w 42.22%;
+- w->c 0%.
+
+NON_STRICT:
+- E K4/K16 = 58.82% / 51.02%;
+- F = 55.88% / 22.45%.
+
+Rank-stability correlation with E correctness:
+- Spearman = 0.5139.
+
+Vote-count correlation with E correctness:
+- 0.5630.
+
+### BS
+STRICT:
+- E K4 93.55%;
+- E K16 92.86%;
+- F K4 70.97%;
+- F K16 35.71%.
+
+NON_STRICT:
+- E K4 87.88%;
+- E K16 56.0%;
+- F K4 24.24%;
+- F K16 6.0%.
+
+Here production is catastrophically worse even when semantic views are not STRICT, which directly violates the desired “production is neutral/helpful on inconsistency” routing law.
+
+### BT
+STRICT:
+- E K4/K16 = 100% / 100%;
+- F = 81.25% / 76.92%.
+
+NON_STRICT:
+- E = 65.63% / 47.06%;
+- F = 40.63% / 35.29%.
+
+### BU
+STRICT:
+- E K4/K16 = 100% / 100%;
+- F = 75.68% / 41.18%.
+
+NON_STRICT:
+- E = 74.07% / 57.45%;
+- F = 37.04% / 29.79%.
+
+Across the authority, STRICT agreement is indeed associated with strong semantic correctness, but production is often harmful in both STRICT and NON_STRICT cases rather than providing a stable fallback specifically for inconsistency.
+
+## 23. Frozen guard/control results
+
+Pooled `G_strict_ensemble`:
+- K4 69.53%;
+- K16 40.63%.
+
+Pooled equal-coverage `G_margin_countmatched`:
+- K4 66.80%;
+- K16 35.94%.
+
+STRICT consistency therefore beats the scalar-margin control pooled, but the superiority is not stable per-domain enough to satisfy the frozen causal classification.
+
+Descriptive-only `G_majority_ensemble`:
+- K4 **85.16%**;
+- K16 **56.25%**.
+
+This is a strong hypothesis-generating result, but it was explicitly frozen as descriptive-only before exposure and cannot be promoted post hoc into the W13 primary classifier.
+
+Do not reclassify W13 using majority agreement.
+
+## 24. Scientific interpretation
+
+W13 substantially strengthens one broad conclusion:
+
+**candidate-independent multiview semantic evidence is much stronger than the current production path on these fresh natural semantic domains.**
+
+It also shows:
+- exact 3/3 paraphrase top1 consensus has very high precision;
+- rank stability and vote count correlate positively with semantic correctness in several domains;
+- the equal-weight multiview ensemble E itself is materially stronger than any single weak paraphrase view;
+- production often destroys correct rankings even outside the STRICT subset.
+
+But W13 falsifies the exact preregistered claim that **STRICT 3/3 agreement has enough coverage and conditional residual structure to serve as a stable production router**.
+
+The most interesting new clue is the descriptive majority-vote result:
+- requiring only 2/3 agreement appears to preserve much more semantic coverage;
+- the majority guard remains far stronger than F;
+- but W13 cannot use it for scientific promotion because it was not the primary frozen classification.
+
+A future diagnostic may use this clue only on wholly fresh data.
+
+## 25. Permanent forbidden evidence after W13
+
+BR/BS/BT/BU are now exposed permanently.
+
+Never use them for:
+- training;
+- paraphrase generation/search;
+- vote-threshold selection;
+- ensemble-weight selection;
+- routing/gating;
+- margin threshold selection;
+- production mixing weights;
+- architecture selection;
+- calibration;
+- seed choice.
+
+All earlier exposed evidence remains forbidden.
+
+## 26. Authorized continuation boundary
+
+Because W13 is unresolved:
+
+**No rescue training is authorized.**
+
+A legitimate next phase may run a wholly fresh diagnostic testing whether **2-of-3 semantic agreement / multiview ensemble dominance** is a stable reliability invariant.
+
+Such a diagnostic must:
+1. use new domains and new paraphrase wording;
+2. preregister majority-consensus coverage and precision gates before exposure;
+3. compare majority consistency directly against equal-coverage scalar margin;
+4. distinguish “reliability signal” from “multiview anchor is simply globally better”;
+5. retain a pinned external adequacy reference;
+6. keep A13/W9 projection/HIRACore frozen;
+7. remain no-training until a stable target is found.
+
+It must not:
+- lower W13 STRICT coverage gates;
+- reuse BR/BS/BT/BU;
+- promote `G_majority_ensemble` from W13 itself;
+- train a router from W13;
+- claim external/general superiority.
+
+A future AI should read W13 first, then W12/W11/W10/W9.
