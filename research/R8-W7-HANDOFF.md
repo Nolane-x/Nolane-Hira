@@ -1,6 +1,6 @@
 # R8-W7 handoff — explicit conjunctive coarse-evidence architecture
 
-Status: **PRE-DATA ARCHITECTURAL IMPLEMENTATION ACTIVE. No W7 empirical cache, training result, DEV selection or CONFIRM result exists yet.**
+Status: **PRE-AUTHORITY EXECUTION STACK COMPLETE. No W7 empirical cache, training result, DEV selection or CONFIRM result exists yet.**
 
 Issue: #97
 
@@ -814,3 +814,108 @@ At the end of every meaningful W7 work session, update this file with:
 - forbidden next moves.
 
 A new AI should be able to continue without relying on chat memory.
+
+
+---
+
+## 22. Current pre-authority execution checkpoint
+
+This section supersedes the stale implementation checklist in section 19/20.
+
+Exact fully validated implementation head before this handoff update:
+
+`c0457e2ad75b0b59716ec2590f73cd6c3dfff6f2`
+
+Pre-authority unit run:
+
+`36097752382` — **PASS**
+
+That run compiled and tested the complete pre-authority W7 stack.
+
+Implemented since the earlier handoff state:
+
+- `src/nmd/conjunctive_cache.py`
+  - reuses exact W6b typed/state cache path;
+  - state compile remains exactly one/case;
+  - explicit factor phrases are schema-side encoder work and separately counted;
+  - diagnosis caches store [K,4,T,256] factor tokens/masks;
+  - factor target masks are derived only from candidate/gold schema-factor identity;
+  - one-field negative identities are frozen from semantic signatures;
+  - factor-identity and semantic-signature hashes are recorded.
+- `scripts/r8_w7_build_cache.py`
+  - builds only AG/AH/AI/AJ TRAIN + DEV-AK;
+  - checks A13 model/revision/weight SHA;
+  - checks value freshness through W6j;
+  - keeps AL/AM sealed.
+- `src/nmd/conjunctive_training.py`
+  - freezes HIRACore for every W7 candidate;
+  - free-form control trainable params = 32,769;
+  - conjunctive primary/replica trainable params = 32,772;
+  - exact frozen typed objective;
+  - pair-margin auxiliary weight .25 / margin .20 for all trainable candidates;
+  - balanced factor BCE weight .50 only for conjunctive candidates;
+  - exact K2 coarse/final pair evaluation;
+  - K64 pair-loss accounting;
+  - DEV-AK lexicographic selection;
+  - absolute, causal, replica and final verdict gates.
+- `scripts/r8_w7_train_candidate.py`
+  - binds exact W6e joint-primary HIRA/scorer SHAs;
+  - equal TRAIN cases/steps;
+  - independent optimization seeds;
+  - saves per-candidate checkpoint/receipt.
+- `scripts/r8_w7_freeze_candidates.py`
+  - requires all four candidates;
+  - verifies exact shared cache provenance;
+  - verifies equal optimizer budget;
+  - verifies primary/replica seed independence;
+  - copies immutable DEV-frozen checkpoints;
+  - refuses any prior AL/AM exposure.
+- `scripts/r8_w7_confirm.py`
+  - the only path allowed to call `generate_w7_confirm(..., allow_confirm=True)`;
+  - materializes AL then AM only after a valid all-candidate freeze;
+  - evaluates all four frozen candidates;
+  - computes only the preregistered `CONJUNCTIVE_COARSE_RESCUE/PARTIAL/FAIL` verdict.
+- unit contracts now cover:
+  - fresh authority counts/balance/sealing;
+  - K64 exact distance anatomy 1/12/20/15/16 for distances 0/1/2/3/4;
+  - free-form/factor identity;
+  - factor target masks;
+  - deterministic factor/signature hashes;
+  - exact parameter budgets and HIRA freeze;
+  - verdict non-conflation;
+  - confirm capability guard;
+  - production competitive scorer regressions.
+
+Pre-data ambiguity was also frozen on issue #97 before exposure:
+- causal one-field K2 gain = **coarse K2**;
+- causal K64 pair-loss reduction = **coarse K2 pair-loss count**;
+- DEV pair-loss tie-break = **final K2 pair-loss count**;
+- both coarse and final pair metrics are always reported.
+
+No W7 A13 cache has been generated yet.
+No W7 candidate has been trained yet.
+DEV-AK has not been evaluated for selection yet.
+CONFIRM-AL/AM remain sealed.
+
+### Immediate continuation
+
+1. Revalidate this handoff-only head with the W7 unit gate.
+2. Only after that exact pre-data head is green, add the gated W7 authority workflow as a workflow-only commit.
+3. Authority chain must be:
+   `unit -> exact W6e provenance + fresh AG-AK cache -> 4 candidates -> DEV freeze -> AL/AM confirm`.
+4. Exact upstream W6e artifact:
+   - run `35993402202`;
+   - artifact `10805567861`;
+   - artifact digest `sha256:fe0f176514b1cee0964212978b839b351ba6f35260ce0a035a1346680fc855bd`;
+   - HIRA SHA `d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588`;
+   - scorer SHA `6d5a7f2d3ed63ecd756181b1cb54e4704f68e5f74983a897f0a68fb4d1d63d2e`.
+5. Once the first eligible W7 TRAIN/DEV cache is exposed, do not change:
+   - domains/seeds;
+   - loss weights;
+   - factor operator;
+   - candidate budgets;
+   - DEV selection order;
+   - gates/verdicts.
+6. Once AL/AM are exposed, never reuse them for tuning or another W7 mechanism.
+
+A future AI should read this file first. It now contains enough project history, frozen evidence, implementation state, exact provenance and next actions to continue without chat memory.
