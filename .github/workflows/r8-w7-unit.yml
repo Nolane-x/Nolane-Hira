@@ -6,13 +6,21 @@ on:
       - feat/r8-w7-conjunctive-coarse
     paths:
       - "src/nmd/conjunctive_coarse.py"
+      - "src/nmd/conjunctive_authority.py"
+      - "src/nmd/conjunctive_cache.py"
       - "tests/test_conjunctive_coarse.py"
+      - "tests/test_conjunctive_authority.py"
+      - "tests/test_conjunctive_cache.py"
       - "research/R8-W7-HANDOFF.md"
       - ".github/workflows/r8-w7-unit.yml"
   pull_request:
     paths:
       - "src/nmd/conjunctive_coarse.py"
+      - "src/nmd/conjunctive_authority.py"
+      - "src/nmd/conjunctive_cache.py"
       - "tests/test_conjunctive_coarse.py"
+      - "tests/test_conjunctive_authority.py"
+      - "tests/test_conjunctive_cache.py"
       - "research/R8-W7-HANDOFF.md"
       - ".github/workflows/r8-w7-unit.yml"
 
@@ -36,9 +44,15 @@ jobs:
         run: |
           python -m py_compile \
             src/nmd/conjunctive_coarse.py \
-            tests/test_conjunctive_coarse.py
+            src/nmd/conjunctive_authority.py \
+            src/nmd/conjunctive_cache.py \
+            tests/test_conjunctive_coarse.py \
+            tests/test_conjunctive_authority.py \
+            tests/test_conjunctive_cache.py
       - name: Run W7 scorer and production contracts
         run: |
           pytest -q \
             tests/test_conjunctive_coarse.py \
+            tests/test_conjunctive_authority.py \
+            tests/test_conjunctive_cache.py \
             tests/test_competitive_coarse_runtime.py
