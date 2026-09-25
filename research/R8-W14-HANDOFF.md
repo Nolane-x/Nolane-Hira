@@ -368,3 +368,59 @@ Every meaningful session must update:
 - forbidden next moves.
 
 A future AI must be able to continue without chat memory.
+
+
+## 19. Pre-data implementation update
+
+Implemented before any BV/BW/BX/BY empirical exposure:
+
+- `src/nmd/continuous_reliability.py`
+  - frozen V/S/O/R equations;
+  - deterministic full-coverage 21/22/21 tertiles;
+  - count-matched scalar-margin control;
+  - frozen domain classifications;
+  - frozen cross-domain outcomes.
+
+- `src/nmd/continuous_reliability_authority.py`
+  - fresh BV/BW/BX/BY generator;
+  - 16 intents/domain;
+  - 4 state variants/intent;
+  - three independent D0/D1/D2 natural definitions;
+  - paired nested K4/K8/K16 identity;
+  - deterministic candidate membership/order.
+
+- `tests/test_continuous_reliability.py`
+  - generator shape/identity;
+  - V/S/O/R contracts;
+  - deterministic tertiles/margin control;
+  - classifier semantics;
+  - cross-domain stability semantics.
+
+- `.github/workflows/r8-w14-unit.yml`
+  - branch-scoped compile/test gate;
+  - no cache construction;
+  - no MiniLM;
+  - no empirical authority.
+
+- `research/R8-W14-PRIOR-ART.md`
+  - frozen pre-exposure prior-art boundary;
+  - explicitly disclaims novelty for paraphrase consistency, self-consistency, rank stability and uncertainty aggregation.
+
+Current branch head at this update:
+`657fc87be8ebb7780e49fa48adad5417dff73a5f`.
+
+Current validation:
+- earlier handoff-only CI run `36142990256`: PASS;
+- exact-head W14 unit `36143367092`: queued at this update;
+- exact-head repository CI `36143366824`: queued at this update.
+
+Exposure state:
+**No BV/BW/BX/BY A13 cache exists.**
+**No W14 MiniLM score exists.**
+**No W14 empirical metric/classification exists.**
+
+Authority workflow does not exist and must remain absent until:
+1. exact-head W14 unit passes;
+2. exact-head repository CI passes;
+3. state-once cache/evaluator/reference stack is implemented and independently unit-tested;
+4. this handoff is updated with the exact pre-authority head.
