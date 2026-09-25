@@ -53,14 +53,14 @@ def _symmetric_maxsim(
     sim = torch.einsum("sd,ktd->kst", s, o)
     valid = option_mask.bool()
 
-    # option/schema -> state coverage
-    schema_best = sim.max(dim=-1).values
+    # option/schema -> state coverage: max over state tokens for each option token
+    schema_best = sim.max(dim=1).values
     schema_best = schema_best.masked_fill(~valid, 0.0)
     schema_mean = schema_best.sum(-1) / valid.sum(-1).clamp_min(1)
 
-    # state -> option coverage, excluding padded option tokens
-    masked = sim.masked_fill(~valid[:, :, None], -1e4)
-    state_best = masked.max(dim=1).values
+    # state -> option coverage: max over valid option tokens for each state token
+    masked = sim.masked_fill(~valid[:, None, :], -1e4)
+    state_best = masked.max(dim=-1).values
     state_mean = state_best.mean(-1)
     return 0.5 * (schema_mean + state_mean)
 
