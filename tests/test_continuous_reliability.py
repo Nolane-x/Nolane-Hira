@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from nmd.hira import HIRACore
+from nmd.runtime import NolaneHira
+from nmd.semantic import TrainableSemanticEncoder
 from nmd.continuous_reliability import (
     CONTINUOUS_CONSISTENCY_RELIABLE,
     CONTINUOUS_MULTIVIEW_ANCHOR_DOMINANCE,
@@ -19,6 +22,7 @@ from nmd.continuous_reliability_authority import (
     PARAPHRASE_VIEWS,
     generate_w14_domain,
 )
+from nmd.continuous_reliability_cache import compile_w14_cache
 
 
 def test_w14_fresh_domain_shape_and_paired_identity():
@@ -148,3 +152,26 @@ def test_w14_cross_domain_stability_contract():
     result = cross_domain_outcome(per_domain)
     assert result["outcome"] == OUTCOME_STABLE
     assert result["stable_classification"] == CONTINUOUS_CONSISTENCY_RELIABLE
+
+
+def test_w14_cache_preserves_state_once_for_one_base():
+    rows = generate_w14_domain("BV")
+    base_id = rows[0].base_id
+    rows = [row for row in rows if row.base_id == base_id]
+
+    encoder = TrainableSemanticEncoder(
+        vocab_size=512,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    model = NolaneHira(
+        encoder,
+        HIRACore(d_model=256, dropout=0.0),
+    )
+    cache = compile_w14_cache(model, rows)
+    assert cache["metadata"]["base_count"] == 1
+    assert cache["metadata"]["view_count"] == 9
+    assert cache["metadata"]["state_encode_calls"] == 1
+    assert cache["metadata"]["state_encode_calls_per_base"] == 1.0
