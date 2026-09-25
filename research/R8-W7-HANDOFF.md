@@ -919,3 +919,194 @@ CONFIRM-AL/AM remain sealed.
 6. Once AL/AM are exposed, never reuse them for tuning or another W7 mechanism.
 
 A future AI should read this file first. It now contains enough project history, frozen evidence, implementation state, exact provenance and next actions to continue without chat memory.
+
+
+---
+
+## 22. Authoritative W7 closure
+
+Exact empirical head:
+`e4563996b1a905c777460f723bfbec1a41ac92ea`
+
+Authority run:
+`36098102118`
+
+All jobs PASS:
+
+`unit -> exact W6e provenance + fresh AG-AK cache -> four independent candidates -> DEV-AK freeze -> untouched AL/AM confirm`.
+
+Artifacts:
+- cache `10848700765`, digest `sha256:a8e9b3cee0886203a5129a7aea7aec79a0b923475c092569372796fcbdaa0c06`;
+- conjunctive primary `10847999931`, digest `sha256:ff126340abdeb79688157685d773061e373e0f5a94d2ef4c28d7b69f0d2878a4`;
+- conjunctive replica `10848258708`, digest `sha256:d43e0c910cb6c54e33c0de52d8ed92cff5df02336c5224418079045d3f4e41de`;
+- freeform retune control `10848074367`, digest `sha256:c1a5a030e744eb7f1cc13580f1ba2768b6463daf8ebea7b2517384bb35ccf153`;
+- freeze `10849186193`, digest `sha256:20e1fa4b25be894c080470aeaecdf6d523bcc487a28991954b1bac97c143caa4`;
+- authoritative CONFIRM `10849032756`, digest `sha256:528e19457d0fb26c43c58a05522b3a507e2c5cd1e23088625837414ea1ff4f7d`.
+
+Integrity:
+- AL/AM each 192 states / 960 typed decisions;
+- both generated only after every candidate DEV checkpoint was frozen;
+- state encodes/case = 1.0;
+- probability mass max error < 1.8e-7;
+- primary and replica optimization seeds independent;
+- no W6b-W6j exposed rows;
+- no typed final/test rows;
+- campaign cells 0.
+
+### Frozen verdict
+
+**`CONJUNCTIVE_COARSE_FAIL`**
+
+- full rescue: FAIL;
+- partial rescue: FAIL;
+- no gate, threshold, seed, loss or operator may be changed using AL/AM.
+
+### Untouched CONFIRM-AL
+
+Frozen W6e control:
+- overall 82.917%;
+- diagnosis 40.104%;
+- K32 final 35.417%;
+- K64 final 18.750%;
+- one-field K2 coarse 72.721%;
+- mean K64 K2-coarse pair losses 12.396.
+
+Equal-data freeform retune:
+- overall **95.833%**;
+- diagnosis **87.500%**;
+- choice **93.229%**;
+- K32 final **91.667%**;
+- K64 final **81.250%**;
+- K64 coarse **77.083%**;
+- one-field K2 coarse **95.334%**;
+- mean K64 K2-coarse pair losses **1.042**.
+
+Conjunctive primary:
+- overall 91.250%;
+- diagnosis 66.146%;
+- choice 83.073%;
+- K32 final 68.750%;
+- K64 final 43.750%;
+- K64 coarse 50.000%;
+- one-field K2 coarse 84.505%;
+- mean K64 K2-coarse pair losses 4.896;
+- factor balanced BCE 1.212;
+- mean conjunction residual magnitude 0.01083.
+
+Conjunctive replica:
+- overall 91.563%;
+- diagnosis 63.542%;
+- choice 81.771%;
+- K32 final 70.833%;
+- K64 final 52.083%;
+- one-field K2 coarse 81.315%;
+- mean K64 pair losses 4.313.
+
+### Untouched CONFIRM-AM
+
+Frozen W6e control:
+- overall 81.979%;
+- diagnosis 35.417%;
+- K32 final 33.333%;
+- K64 final 10.417%;
+- one-field K2 coarse 71.962%;
+- mean K64 pair losses 12.375.
+
+Equal-data freeform retune:
+- overall **91.250%**;
+- diagnosis **73.438%**;
+- choice **86.198%**;
+- K32 final **75.000%**;
+- K64 final **62.500%**;
+- K64 coarse **60.417%**;
+- one-field K2 coarse **90.820%**;
+- mean K64 K2-coarse pair losses **2.042**.
+
+Conjunctive primary:
+- overall 92.917%;
+- diagnosis 74.479%;
+- choice 87.240%;
+- K32 final 68.750%;
+- K64 final 64.583%;
+- K64 coarse 58.333%;
+- one-field K2 coarse 86.914%;
+- mean K64 K2-coarse pair losses 3.250;
+- factor balanced BCE 1.737;
+- mean conjunction residual magnitude 0.00860.
+
+Conjunctive replica:
+- overall 92.396%;
+- diagnosis 71.354%;
+- choice 85.677%;
+- K32 final 68.750%;
+- K64 final 62.500%;
+- one-field K2 coarse 84.158%;
+- mean K64 pair losses 4.417.
+
+### Why the primary causal hypothesis failed
+
+Against the equal-data freeform retune, conjunctive-primary did **not** produce the preregistered causal gains.
+
+AL:
+- K64: 43.75% vs 81.25% -> **-37.50 pp**;
+- K32: 68.75% vs 91.67% -> **-22.92 pp**;
+- one-field K2 coarse: 84.51% vs 95.33% -> **-10.83 pp**;
+- K64 pair-loss count is worse: 4.896 vs 1.042.
+
+AM:
+- K64: 64.58% vs 62.50% -> **+2.08 pp**, far below the +10 pp causal gate;
+- K32: 68.75% vs 75.00% -> **-6.25 pp**;
+- one-field K2 coarse: 86.91% vs 90.82% -> **-3.91 pp**;
+- K64 pair-loss count is worse: 3.25 vs 2.042.
+
+Replica does not rescue the mechanism:
+- AL K64 52.08%, still far below freeform 81.25%;
+- AM K64 62.50%, equal to freeform rather than +5 pp;
+- one-field causal gain is negative on both.
+
+### Scientific interpretation
+
+W6j's `COARSE_CONJUNCTION_LIMIT` localization remains valid as a diagnosis of the frozen predecessor. W7 falsifies the specific proposed remedy:
+
+**an explicit schema-factor MaxSim branch + shared threshold/temperature + smooth log-AND + balanced factor supervision is not a reproducible improvement over equal-data free-form projection retuning.**
+
+The strongest positive evidence in W7 is instead the equal-data free-form retune:
+- it moves frozen K64 18.75% -> 81.25% on AL;
+- and 10.42% -> 62.50% on AM;
+- while strongly reducing K2 pair losses.
+
+Therefore the next diagnostic question is not “how do we make the AND branch bigger?”. The frozen result suggests that the existing shared projection can learn much of the missing conjunction behavior from the W7 training distribution without an explicit factor residual, while the explicit factor branch may interfere with or duplicate evidence already represented in the free-form option path.
+
+Do not infer that free-form retuning is already a general production rescue. AM K64 remains below the old W7 absolute primary threshold of 65%, and W7 was designed to test the conjunction mechanism, not to promote the control.
+
+### Forbidden next moves
+
+AL/AM are now exposed. Never use them for:
+- training;
+- DEV selection;
+- threshold/temperature/alpha tuning;
+- loss-weight tuning;
+- factor-operator search;
+- seed selection;
+- candidate selection.
+
+Do not:
+- increase factor-branch capacity using AL/AM feedback;
+- alter the W7 gates and reclassify this as PARTIAL;
+- choose the replica over the primary after CONFIRM;
+- claim explicit conjunction works because AM primary is +2.08 pp;
+- claim freeform retune is broadly production-ready from AL/AM alone.
+
+### Authorized next research direction
+
+Before any new rescue architecture, run a fresh **control-mechanism attribution** study:
+
+1. isolate why equal-data freeform retuning improved so strongly;
+2. separate projection adaptation from pair-margin supervision and ordinary typed supervision;
+3. test whether the improvement is reproducible on fresh domains;
+4. measure whether it repairs the W6j coarse-conjunction anatomy specifically;
+5. keep HIRACore and A13 frozen;
+6. use wholly fresh data; AL/AM are forbidden;
+7. maintain a new handoff before empirical exposure.
+
+A future AI should read this file, then W6j handoff, then issue #97/PR #98 before opening the next lane.
