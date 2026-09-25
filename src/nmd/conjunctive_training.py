@@ -571,11 +571,17 @@ def evaluate_w7(
             "coarse_mrr": slot["coarse_mrr"] / n,
         }
 
+    diagnosis_total = sum(slot["n"] for slot in diagnosis.values())
+    diagnosis_correct = sum(
+        slot["final_correct"] for slot in diagnosis.values()
+    )
+
     result: dict[str, object] = {
         "case_count": len(cases),
         "decision_count": decision_count,
         "accuracy": correct_total / decision_count,
         "primitive_accuracy": primitive_accuracy,
+        "diagnosis_accuracy": diagnosis_correct / diagnosis_total,
         "diagnosis_per_k": diagnosis_per_k,
         "hard_brier": hard_brier / decision_count,
         "soft_brier": soft_brier / decision_count,
@@ -725,3 +731,156 @@ def train_w7_candidate(
         raise RuntimeError("W7 candidate produced no DEV checkpoint")
     scorer.load_state_dict(best_state, strict=True)
     return history, best_state, best_metrics
+
+
+def absolute_competence_gates(
+    metrics: dict[str, object],
+) -> dict[str, bool]:
+    diagnosis = metrics["diagnosis_per_k"]
+    primitive = metrics["primitive_accuracy"]
+    return {
+        "overall_accuracy": float(metrics["accuracy"]) >= 0.80,
+        "diagnosis_choice_accuracy": (
+            float(metrics["diagnosis_accuracy"]) >= 0.75
+        ),
+        "k32_final_top1": (
+            float(diagnosis["32"]["final_top1"]) >= 0.75
+        ),
+        "k64_final_top1": (
+            float(diagnosis["64"]["final_top1"]) >= 0.65
+        ),
+        "noul_accuracy": float(primitive["noul"]) >= 0.70,
+        "score_accuracy": float(primitive["score"]) >= 0.75,
+        "probability_mass": (
+            float(metrics["probability_mass_max_error"]) <= 1e-6
+        ),
+        "state_once": (
+            float(metrics["source_state_encodes_per_case"]) == 1.0
+        ),
+    }
+
+
+def primary_causal_gates(
+    conjunctive: dict[str, object],
+    freeform: dict[str, object],
+) -> dict[str, bool]:
+    con_diag = conjunctive["diagnosis_per_k"]
+    free_diag = freeform["diagnosis_per_k"]
+    con_primitive = conjunctive["primitive_accuracy"]
+    free_primitive = freeform["primitive_accuracy"]
+    base_pair_loss = float(
+        freeform["mean_k64_pair_loss_count_coarse"]
+    )
+    con_pair_loss = float(
+        conjunctive["mean_k64_pair_loss_count_coarse"]
+    )
+    if base_pair_loss <= 0:
+        pair_reduction = 1.0 if con_pair_loss <= 0 else -math.inf
+    else:
+        pair_reduction = (base_pair_loss - con_pair_loss) / base_pair_loss
+    return {
+        "k64_final_gain": (
+            float(con_diag["64"]["final_top1"])
+            - float(free_diag["64"]["final_top1"])
+            >= 0.10
+        ),
+        "k32_final_gain": (
+            float(con_diag["32"]["final_top1"])
+            - float(free_diag["32"]["final_top1"])
+            >= 0.05
+        ),
+        "one_field_k2_coarse_gain": (
+            float(conjunctive["one_field_k2_coarse_accuracy"])
+            - float(freeform["one_field_k2_coarse_accuracy"])
+            >= 0.05
+        ),
+        "k64_pair_loss_reduction": pair_reduction >= 0.25,
+        "overall_nonregression": (
+            float(conjunctive["accuracy"])
+            >= float(freeform["accuracy"]) - 0.02
+        ),
+        "score_nonregression": (
+            float(con_primitive["score"])
+            >= float(free_primitive["score"]) - 0.02
+        ),
+        "noul_nonregression": (
+            float(con_primitive["noul"])
+            >= float(free_primitive["noul"]) - 0.02
+        ),
+    }
+
+
+def replica_robustness_gates(
+    replica: dict[str, object],
+    freeform: dict[str, object],
+) -> dict[str, bool]:
+    rep_diag = replica["diagnosis_per_k"]
+    free_diag = freeform["diagnosis_per_k"]
+    return {
+        "k64_absolute": float(rep_diag["64"]["final_top1"]) >= 0.60,
+        "k64_gain": (
+            float(rep_diag["64"]["final_top1"])
+            - float(free_diag["64"]["final_top1"])
+            >= 0.05
+        ),
+        "k32_absolute": float(rep_diag["32"]["final_top1"]) >= 0.70,
+        "overall_accuracy": float(replica["accuracy"]) >= 0.78,
+        "one_field_k2_coarse_gain": (
+            float(replica["one_field_k2_coarse_accuracy"])
+            - float(freeform["one_field_k2_coarse_accuracy"])
+            >= 0.03
+        ),
+    }
+
+
+def conjunctive_verdict(
+    confirm_al: dict[str, dict[str, object]],
+    confirm_am: dict[str, dict[str, object]],
+) -> tuple[str, dict[str, object]]:
+    domains = {"AL": confirm_al, "AM": confirm_am}
+    details: dict[str, object] = {
+        "absolute": {},
+        "primary_causal": {},
+        "replica": {},
+    }
+    full_pass = True
+    partial_pass = True
+
+    for domain, metrics in domains.items():
+        freeform = metrics["freeform-retune-control"]
+        primary = metrics["conjunctive-primary"]
+        replica = metrics["conjunctive-replica"]
+
+        absolute = absolute_competence_gates(primary)
+        causal = primary_causal_gates(primary, freeform)
+        robust = replica_robustness_gates(replica, freeform)
+        details["absolute"][domain] = absolute
+        details["primary_causal"][domain] = causal
+        details["replica"][domain] = robust
+        full_pass = (
+            full_pass
+            and all(absolute.values())
+            and all(causal.values())
+            and all(robust.values())
+        )
+
+        k64_gain = (
+            float(primary["diagnosis_per_k"]["64"]["final_top1"])
+            - float(freeform["diagnosis_per_k"]["64"]["final_top1"])
+        )
+        overall_regression = (
+            float(freeform["accuracy"]) - float(primary["accuracy"])
+        )
+        partial_pass = (
+            partial_pass
+            and k64_gain >= 0.05
+            and overall_regression <= 0.03
+        )
+
+    details["full_pass"] = full_pass
+    details["partial_pass"] = partial_pass
+    if full_pass:
+        return "CONJUNCTIVE_COARSE_RESCUE", details
+    if partial_pass:
+        return "CONJUNCTIVE_COARSE_PARTIAL", details
+    return "CONJUNCTIVE_COARSE_FAIL", details
