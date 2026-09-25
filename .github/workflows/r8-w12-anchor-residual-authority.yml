@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/r8-w12-anchor-residual-authority.yml"
 
+# infrastructure-recovery rerun: scientific protocol unchanged after exposed-cache summary fix
 permissions:
   contents: read
   actions: read
