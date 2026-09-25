@@ -916,3 +916,60 @@ Current latest implementation head at this handoff update:
 8. merge only a clean, frozen result.
 
 A future AI must not treat any current implementation test as empirical evidence.
+
+
+---
+
+## 24. Exact pre-authority freeze
+
+Scientific exposure remains:
+
+**NONE.**
+
+Exact complete-stack implementation head:
+`b46540f51963e8b0b48431fcb3d2647670565e8a`.
+
+Pre-authority validation on that exact head:
+- W15 unit run `36149189449`: PASS;
+- duplicate branch unit run `36149186160`: PASS;
+- repository CI `36149194396`: PASS;
+- CI Python 3.10: PASS;
+- CI Python 3.12: PASS.
+
+All W15 execution components are present before exposure:
+- frozen six-parameter bounded residual mechanism;
+- equal-parameter unbounded control;
+- fresh BZ/CA/CB/CC TRAIN + CD DEV generator;
+- state-once multiview typed cache;
+- exact W9 semantic projection / HIRACore provenance checks;
+- five candidate paths;
+- independent DEV-CD selection;
+- sealed CE/CF generation capability;
+- frozen verdict implementation;
+- full W5-W14 exact-text freshness firewall.
+
+No BZ/CA/CB/CC/CD A13 cache has been built.
+No candidate has trained.
+No DEV-CD checkpoint has been selected.
+No CE/CF row has been materialized.
+
+The next commit may add only the orchestration workflow. Once the first eligible BZ-CC/CD cache job begins empirical materialization:
+- equations are frozen;
+- .25 residual cap is frozen;
+- optimizer/seeds are frozen;
+- candidate set is frozen;
+- domain text/seeds are frozen;
+- DEV selector is frozen;
+- CE/CF gates and verdicts are frozen;
+- no scientific mutation is permitted.
+
+Authority must consume exact W9 freeze artifact:
+- source run `36122220588`;
+- artifact `10858424139` (`r8-w9-freeze`);
+- digest `sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712`;
+- projection semantic HIRA SHA `d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588`;
+- projection semantic scorer SHA `8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102`.
+
+Required authority chain remains exactly:
+
+`unit -> W9 provenance + BZ-CC/CD cache -> five independently evaluated/trained candidates -> DEV-CD freeze -> CE/CF one-time materialization -> frozen verdict`.
