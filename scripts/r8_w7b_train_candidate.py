@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from nmd.competitive import CompetitiveCoarseScorer
-from nmd.conjunctive_cache import load_w7_cache
+from nmd.freeform_attribution_cache import load_w7b_cache
 from nmd.freeform_attribution_training import (
     CANDIDATES,
     EPOCHS,
@@ -60,11 +60,11 @@ def main() -> None:
     if file_sha256(args.w6e_scorer) != W6E_SCORER_SHA256:
         raise RuntimeError("W7b base W6e scorer SHA mismatch")
 
-    train_cache = load_w7_cache(
+    train_cache = load_w7b_cache(
         args.train_cache,
         expected_split="train",
     )
-    dev_cache = load_w7_cache(
+    dev_cache = load_w7b_cache(
         args.dev_cache,
         expected_split="dev-ar",
     )
