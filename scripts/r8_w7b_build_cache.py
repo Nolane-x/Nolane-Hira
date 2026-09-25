@@ -156,7 +156,7 @@ def main() -> None:
     receipt = {
         "schema_version": "r8-w7b-cache-receipt-v1",
         "status": "PASS",
-        "scope": "W7b AG-AJ TRAIN + DEV-AK only; CONFIRM-AL/AM sealed",
+        "scope": "W7b AN-AQ TRAIN + DEV-AR only; CONFIRM-AS/AT sealed",
         "a13_model": A13_MODEL,
         "a13_revision": A13_REVISION,
         "a13_weight_sha256": A13_WEIGHT_SHA256,
