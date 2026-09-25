@@ -334,3 +334,58 @@ At every meaningful session update record:
 - forbidden next moves.
 
 A future AI must be able to continue without chat memory.
+
+
+## 16. Pre-data implementation update
+
+Implemented before any BN/BO/BP/BQ empirical exposure:
+- `src/nmd/anchor_residual.py`
+  - label-free normalized anchor margin;
+  - deterministic per-domain/per-K 16/32/16 quartiles;
+  - frozen domain classifiers;
+  - frozen cross-domain outcome;
+  - Spearman helper for diagnostic correlation.
+- `src/nmd/anchor_residual_authority.py`
+  - BN/BO/BP/BQ fresh domain generator;
+  - 16 latent intents/domain;
+  - 4 state variants/intent;
+  - paired natural-definition / terse-label views;
+  - nested K4/K8/K16 identity.
+- `src/nmd/anchor_residual_cache.py`
+  - state-once cached A13/schema representation;
+  - W12-specific schema identity;
+  - paired view/nested-K validation.
+- `src/nmd/anchor_residual_eval.py`
+  - A semantic anchor;
+  - C actual production CompetitiveCoarseScorer;
+  - F frozen HIRACore final;
+  - HIGH/LOW/MIDDLE transitions;
+  - G_high_anchor / G_low_anchor_control;
+  - confidence/correctness correlations.
+- `scripts/r8_w12_build_cache.py`
+  - exact frozen A13 verification;
+  - exact-text freshness firewall including W11 atoms.
+- `scripts/r8_w12_evaluate.py`
+  - exact W9 projection/HIRA provenance;
+  - pinned MiniLM adequacy reference;
+  - frozen W12 classifications/outcome.
+- `tests/test_anchor_residual.py`.
+- `.github/workflows/r8-w12-unit.yml`.
+- `research/R8-W12-PRIOR-ART.md`.
+
+Infrastructure bugs caught before authority:
+1. definition-only guard summaries originally requested absent label rows; fixed before exposure.
+2. generated cache-builder source contained one escaped newline token; fixed before exposure.
+
+No A13 W12 cache exists.
+No MiniLM W12 reference scores exist.
+No W12 classification exists.
+
+Current pre-data branch head at this update:
+`26758fce46efec42529515e49956b097fab37bf5`.
+
+Pre-data runs in progress at this update:
+- W12 unit run `36134088126` on code head `80a226be3e59ce3d3d2bf115af66be57b4fc2bb2`;
+- repository CI run `36134194851` on latest head `26758fce46efec42529515e49956b097fab37bf5`.
+
+Authority workflow remains intentionally absent until pre-data validation is green.
