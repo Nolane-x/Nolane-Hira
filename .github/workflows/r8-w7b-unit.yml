@@ -18,27 +18,11 @@ on:
       - "tests/test_freeform_attribution_execution_contracts.py"
       - "research/R8-W7B-HANDOFF.md"
       - ".github/workflows/r8-w7b-unit.yml"
-  pull_request:
-    paths:
-      - "src/nmd/freeform_attribution_authority.py"
-      - "src/nmd/freeform_attribution_training.py"
-      - "src/nmd/freeform_attribution_cache.py"
-      - "scripts/r8_w7b_build_cache.py"
-      - "scripts/r8_w7b_train_candidate.py"
-      - "scripts/r8_w7b_freeze_candidates.py"
-      - "scripts/r8_w7b_confirm.py"
-      - "tests/test_freeform_attribution_authority.py"
-      - "tests/test_freeform_attribution_training.py"
-      - "tests/test_freeform_attribution_cache.py"
-      - "tests/test_freeform_attribution_execution_contracts.py"
-      - "research/R8-W7B-HANDOFF.md"
-      - ".github/workflows/r8-w7b-unit.yml"
-
 permissions:
   contents: read
 
 concurrency:
-  group: r8-w7b-unit-${{ github.ref }}
+  group: r8-w7b-unit-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
