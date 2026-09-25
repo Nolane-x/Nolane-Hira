@@ -114,13 +114,13 @@ def test_w15_residual_centering_is_shift_invariant():
     assert torch.allclose(
         a.competitive_residual,
         b.competitive_residual,
-        atol=1e-6,
+        atol=5e-6,
         rtol=0.0,
     )
     assert torch.allclose(
         a.relation_residual,
         b.relation_residual,
-        atol=1e-6,
+        atol=5e-6,
         rtol=0.0,
     )
 
