@@ -453,3 +453,51 @@ Every meaningful session must append:
 - forbidden next moves.
 
 A future AI must be able to continue without chat memory.
+
+
+---
+
+## 16. Pre-authority implementation freeze
+
+No BJ/BK/BL/BM A13 or MiniLM reference embeddings existed before the validation below.
+
+Exact full pre-authority implementation head:
+`2a9f04b6f05105ee2f29a19e3c5c67bcc7a55d7c`.
+
+Implemented:
+- `src/nmd/interface_decomposition_authority.py` fresh BJ-BM paired generator;
+- `src/nmd/interface_decomposition_cache.py` one-state-encode/base paired cache;
+- `src/nmd/interface_decomposition.py` frozen stage classifiers/outcome;
+- `src/nmd/interface_decomposition_eval.py` exact Q0-Q7 cumulative evaluator;
+- `scripts/r8_w11_build_cache.py` sealed A13 cache builder with full prior-authority text freshness checks;
+- `scripts/r8_w11_evaluate.py` exact W9 checkpoint + pinned reference evaluator;
+- `tests/test_interface_decomposition.py`;
+- `.github/workflows/r8-w11-unit.yml`.
+
+Frozen evaluator details:
+- Q0: W9 projected symmetric state↔definition MaxSim;
+- Q1: option→state only;
+- Q2: add exact question content;
+- Q3: exact production candidate-relative IDF;
+- Q4: exact production common-mode subtraction;
+- Q5: exact production weighted mean + salient-min aggregation;
+- Q6: actual `CompetitiveCoarseScorer`;
+- Q7: frozen HIRACore pooled-relation final.
+- Q5/Q6 complete rank-order identity is fail-closed at every K.
+- transition damage gate rates use exactly the preregistered 128 natural-definition decisions/domain: K4 + K16;
+- K8 remains descriptive for transition gates and is included in first-loss/first-rescue histograms.
+
+Pinned R0:
+- `sentence-transformers/all-MiniLM-L6-v2`;
+- revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`;
+- required exact weight SHA `53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db`;
+- evaluator fails closed on mismatch.
+
+Pre-data validation:
+- W11 unit run `36130334763`: **PASS**;
+- repository CI run `36130334745`: **PASS**;
+- exact head for both: `2a9f04b6f05105ee2f29a19e3c5c67bcc7a55d7c`.
+
+No fresh empirical result exists at this point.
+No W11 stage classification exists at this point.
+The next commit may add only the gated authority orchestration; scientific thresholds/stage order are frozen.
