@@ -12,9 +12,9 @@ from nmd.freeform_attribution_authority import (
     CONFIRM_AT_SEED,
     generate_w7b_confirm,
 )
-from nmd.conjunctive_cache import (
-    compile_w7_cache,
-    save_w7_cache,
+from nmd.freeform_attribution_cache import (
+    compile_w7b_cache,
+    save_w7b_cache,
 )
 from nmd.freeform_attribution_training import (
     CANDIDATES,
@@ -134,7 +134,7 @@ def main() -> None:
 
     print("R8_W7B_CONFIRM_AS_GENERATION_BEGIN", flush=True)
     confirm_as_cases = generate_w7b_confirm("AS", allow_confirm=True)
-    confirm_as_cache = compile_w7_cache(
+    confirm_as_cache = compile_w7b_cache(
         cache_model,
         confirm_as_cases,
         expected_split="confirm-as",
@@ -143,7 +143,7 @@ def main() -> None:
 
     print("R8_W7B_CONFIRM_AT_GENERATION_BEGIN", flush=True)
     confirm_at_cases = generate_w7b_confirm("AT", allow_confirm=True)
-    confirm_at_cache = compile_w7_cache(
+    confirm_at_cache = compile_w7b_cache(
         cache_model,
         confirm_at_cases,
         expected_split="confirm-at",
@@ -156,11 +156,11 @@ def main() -> None:
     )
 
     args.out.mkdir(parents=True, exist_ok=True)
-    cache_as_path = save_w7_cache(
+    cache_as_path = save_w7b_cache(
         confirm_as_cache,
         args.out / "confirm-as-cache.pt",
     )
-    cache_at_path = save_w7_cache(
+    cache_at_path = save_w7b_cache(
         confirm_at_cache,
         args.out / "confirm-at-cache.pt",
     )
@@ -182,12 +182,6 @@ def main() -> None:
         "confirm_at_case_id_sha256": confirm_at_cache[
             "metadata"
         ]["case_id_sha256"],
-        "confirm_as_factor_identity_sha256": confirm_as_cache[
-            "metadata"
-        ]["factor_identity_sha256"],
-        "confirm_at_factor_identity_sha256": confirm_at_cache[
-            "metadata"
-        ]["factor_identity_sha256"],
         "confirm_as_cache_sha256": file_sha256(cache_as_path),
         "confirm_at_cache_sha256": file_sha256(cache_at_path),
         "state_encodes_per_case_as": confirm_as_cache[
@@ -196,12 +190,8 @@ def main() -> None:
         "state_encodes_per_case_at": confirm_at_cache[
             "metadata"
         ]["state_encode_calls_per_case"],
-        "factor_encoder_batches_as": confirm_as_cache[
-            "metadata"
-        ]["factor_encoder_batches"],
-        "factor_encoder_batches_at": confirm_at_cache[
-            "metadata"
-        ]["factor_encoder_batches"],
+        "factor_encoder_batches_as": 0,
+        "factor_encoder_batches_at": 0,
         "paths": {
             "AS": metrics_as,
             "AT": metrics_at,
