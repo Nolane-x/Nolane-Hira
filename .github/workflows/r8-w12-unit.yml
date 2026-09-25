@@ -1,0 +1,48 @@
+name: r8-w12-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w12-anchor-residual-audit
+    paths:
+      - "src/nmd/anchor_residual.py"
+      - "src/nmd/anchor_residual_authority.py"
+      - "src/nmd/anchor_residual_cache.py"
+      - "src/nmd/anchor_residual_eval.py"
+      - "scripts/r8_w12_build_cache.py"
+      - "scripts/r8_w12_evaluate.py"
+      - "tests/test_anchor_residual.py"
+      - ".github/workflows/r8-w12-unit.yml"
+      - "research/R8-W12-HANDOFF.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w12-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile frozen W12 stack
+        run: |
+          python -m py_compile \
+            src/nmd/anchor_residual.py \
+            src/nmd/anchor_residual_authority.py \
+            src/nmd/anchor_residual_cache.py \
+            src/nmd/anchor_residual_eval.py \
+            scripts/r8_w12_build_cache.py \
+            scripts/r8_w12_evaluate.py
+      - name: Run W12 contracts
+        run: pytest -q tests/test_anchor_residual.py
