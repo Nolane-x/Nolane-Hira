@@ -575,9 +575,17 @@ def _base_candidate_orders(
     return membership, rank
 
 
-def generate_w9_domain(domain_id: str) -> list[SemanticAlignmentView]:
+def generate_w9_domain(
+    domain_id: str,
+    *,
+    allow_confirm: bool = False,
+) -> list[SemanticAlignmentView]:
     if domain_id not in ALL_DOMAINS:
         raise ValueError("unknown W9 domain")
+    if domain_id in CONFIRM_DOMAINS and not allow_confirm:
+        raise PermissionError(
+            "W9 CONFIRM domain generation requires allow_confirm=True"
+        )
     domain = DOMAIN_SPECS[domain_id]
     intents = INTENTS[domain_id]
     by_id = {row.intent_id: row for row in intents}
@@ -659,7 +667,10 @@ def generate_w9_split(
     return [
         row
         for domain_id in domains
-        for row in generate_w9_domain(domain_id)
+        for row in generate_w9_domain(
+            domain_id,
+            allow_confirm=(split == "confirm" and allow_confirm),
+        )
     ]
 
 
