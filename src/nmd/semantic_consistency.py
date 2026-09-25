@@ -95,12 +95,16 @@ def classify_domain(metrics: dict[str, object]) -> dict[str, object]:
 
     strict_cov4 = float(strict4["coverage"])
     strict_cov16 = float(strict16["coverage"])
+    non_cov4 = float(non4["coverage"])
+    non_cov16 = float(non16["coverage"])
     adequate = (
         r0_k4 >= .75
         and e4 >= .70
         and e16 >= .45
         and strict_cov4 >= .25
         and strict_cov16 >= .25
+        and non_cov4 >= .10
+        and non_cov16 >= .10
     )
     if not adequate:
         return {
@@ -111,6 +115,8 @@ def classify_domain(metrics: dict[str, object]) -> dict[str, object]:
             "ensemble_k16_top1": e16,
             "strict_coverage_k4": strict_cov4,
             "strict_coverage_k16": strict_cov16,
+            "non_strict_coverage_k4": non_cov4,
+            "non_strict_coverage_k16": non_cov16,
         }
 
     reliable = (
@@ -195,6 +201,8 @@ def classify_domain(metrics: dict[str, object]) -> dict[str, object]:
         "final_k16_top1": f16,
         "strict_coverage_k4": strict_cov4,
         "strict_coverage_k16": strict_cov16,
+        "non_strict_coverage_k4": non_cov4,
+        "non_strict_coverage_k16": non_cov16,
     }
 
 
