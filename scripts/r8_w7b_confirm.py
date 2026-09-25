@@ -132,35 +132,35 @@ def main() -> None:
     )
     cache_model.eval()
 
-    print("R8_W7_CONFIRM_AS_GENERATION_BEGIN", flush=True)
+    print("R8_W7B_CONFIRM_AS_GENERATION_BEGIN", flush=True)
     confirm_as_cases = generate_w7b_confirm("AS", allow_confirm=True)
     confirm_as_cache = compile_w7_cache(
         cache_model,
         confirm_as_cases,
         expected_split="confirm-as",
     )
-    metrics_al = _evaluate_paths(frozen, confirm_as_cache)
+    metrics_as = _evaluate_paths(frozen, confirm_as_cache)
 
-    print("R8_W7_CONFIRM_AT_GENERATION_BEGIN", flush=True)
+    print("R8_W7B_CONFIRM_AT_GENERATION_BEGIN", flush=True)
     confirm_at_cases = generate_w7b_confirm("AT", allow_confirm=True)
     confirm_at_cache = compile_w7_cache(
         cache_model,
         confirm_at_cases,
         expected_split="confirm-at",
     )
-    metrics_am = _evaluate_paths(frozen, confirm_at_cache)
+    metrics_at = _evaluate_paths(frozen, confirm_at_cache)
 
     verdict, verdict_details = attribution_verdict(
-        metrics_al,
-        metrics_am,
+        metrics_as,
+        metrics_at,
     )
 
     args.out.mkdir(parents=True, exist_ok=True)
-    cache_al_path = save_w7_cache(
+    cache_as_path = save_w7_cache(
         confirm_as_cache,
         args.out / "confirm-as-cache.pt",
     )
-    cache_am_path = save_w7_cache(
+    cache_at_path = save_w7_cache(
         confirm_at_cache,
         args.out / "confirm-at-cache.pt",
     )
@@ -188,23 +188,23 @@ def main() -> None:
         "confirm_at_factor_identity_sha256": confirm_at_cache[
             "metadata"
         ]["factor_identity_sha256"],
-        "confirm_as_cache_sha256": file_sha256(cache_al_path),
-        "confirm_at_cache_sha256": file_sha256(cache_am_path),
-        "state_encodes_per_case_al": confirm_as_cache[
+        "confirm_as_cache_sha256": file_sha256(cache_as_path),
+        "confirm_at_cache_sha256": file_sha256(cache_at_path),
+        "state_encodes_per_case_as": confirm_as_cache[
             "metadata"
         ]["state_encode_calls_per_case"],
-        "state_encodes_per_case_am": confirm_at_cache[
+        "state_encodes_per_case_at": confirm_at_cache[
             "metadata"
         ]["state_encode_calls_per_case"],
-        "factor_encoder_batches_al": confirm_as_cache[
+        "factor_encoder_batches_as": confirm_as_cache[
             "metadata"
         ]["factor_encoder_batches"],
-        "factor_encoder_batches_am": confirm_at_cache[
+        "factor_encoder_batches_at": confirm_at_cache[
             "metadata"
         ]["factor_encoder_batches"],
         "paths": {
-            "AS": metrics_al,
-            "AT": metrics_am,
+            "AS": metrics_as,
+            "AT": metrics_at,
         },
         "verdict_details": verdict_details,
         "verdict": verdict,
