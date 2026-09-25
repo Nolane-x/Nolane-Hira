@@ -1,6 +1,6 @@
 # R8-W7c handoff — frozen external Banking77 transfer audit
 
-Status: **PRE-EXPOSURE IMPLEMENTATION ACTIVE. No W7c Banking77 rows 400–799 have been evaluated yet.**
+Status: **CLOSED EXTERNAL TRANSFER AUTHORITY. Frozen verdict: `PUBLIC_HIGH_K_TRANSFER_ABSENT`. Banking77 rows 400–799 are exposed and forbidden for tuning.**
 
 Issue: #101
 
@@ -253,3 +253,250 @@ At every meaningful session update record:
 - forbidden next moves.
 
 A future AI must be able to continue without chat memory.
+
+
+---
+
+## 13. Authoritative W7c closure
+
+Exact authority head:
+`6e90c6eee154de92e7727acd5daec47370dc62e7`
+
+Authority run:
+`36111726339`
+
+All jobs PASS:
+
+`unit -> exact W7b freeze provenance -> frozen external Banking77 rows 400:800 evaluation`.
+
+Pre-exposure validation:
+- exact implementation unit run `36111320621`, attempt 2: PASS;
+- exact implementation repository CI `36111320689`: PASS;
+- authority unit: PASS;
+- authority upstream provenance: PASS.
+
+The explicit exposure marker was reached only after those gates:
+
+`R8_W7C_BANKING77_ROWS_400_799_EXPOSURE_BEGIN`.
+
+### Artifacts
+
+Authoritative result:
+- artifact `10852844687`;
+- name `r8-w7c-banking77-transfer`;
+- digest `sha256:f16f88806df51d84e92f181f482925e0e3520356117c258485adf9d0e01b3b69`.
+
+Repackaged exact W7b freeze used by W7c:
+- artifact `10852739904`;
+- digest `sha256:7d6eb076d80be5d20da1b89035ca34791f3c424d60169d688b0d228e2e816cdb`.
+
+Original W7b freeze provenance remained:
+- source run `36107487032`;
+- artifact `10852555298`;
+- digest `sha256:e586cdb2ddea0185ff6663690868fec586a98b7eb617804eb4ea92ed8f45a6f4`.
+
+### External protocol integrity
+
+Dataset:
+- `mteb/banking77`;
+- revision `18072d2685ea682290f7b8924d94c62acc19c0b2`;
+- split `test`;
+- zero-based rows 400–799;
+- 400 examples;
+- 77 labels;
+- no reuse of W4a first-400 rows.
+
+For every checkpoint:
+- full K=77;
+- one state encode/case;
+- adaptive budget false;
+- no pruning;
+- no Banking77 task training;
+- no retrieval;
+- no calibration fit;
+- no W7c checkpoint selection;
+- no Laya scorecard cell populated;
+- no Jev scorecard cell populated;
+- probability mass max error <2.5e-7;
+- tail mass 0.
+
+W7b's frozen verdict was not overridden.
+
+## 14. Frozen external result
+
+Authoritative verdict:
+
+**`PUBLIC_HIGH_K_TRANSFER_ABSENT`**
+
+### Frozen W6e control
+
+- accuracy: **0.25% = 1/400**;
+- macro F1: 0.000634;
+- hard Brier: 1.35245;
+- NLL: 6.96353;
+- raw ECE: 0.56180;
+- mean confidence: 0.56430;
+- AURC: 0.99954;
+- CI CPU p50: 11.41 ms/case;
+- CI CPU p95: 13.19 ms/case.
+
+### Typed-only retune
+
+- accuracy: **0.25% = 1/400**;
+- macro F1: 0.000634;
+- hard Brier: 1.68647;
+- NLL: 8.77279;
+- raw ECE: 0.82354;
+- mean confidence: 0.82493;
+- AURC: 0.99998;
+- gain vs frozen: **0.00 pp**.
+
+### Pair-only retune
+
+- accuracy: **0.00% = 0/400**;
+- macro F1: 0;
+- hard Brier: 1.56488;
+- NLL: 7.44498;
+- raw ECE: 0.75071;
+- mean confidence: 0.75071;
+- AURC: 1.0;
+- gain vs frozen: **-0.25 pp**.
+
+### Typed+pair primary
+
+- accuracy: **0.00% = 0/400**;
+- macro F1: 0;
+- hard Brier: 1.90431;
+- NLL: 11.07716;
+- raw ECE: 0.95018;
+- mean confidence: **0.95018**;
+- AURC: 1.0;
+- gain vs frozen: **-0.25 pp**.
+
+### Typed+pair replica
+
+- accuracy: **0.00% = 0/400**;
+- macro F1: 0;
+- hard Brier: 1.84128;
+- NLL: 11.23850;
+- raw ECE: 0.90736;
+- mean confidence: **0.90736**;
+- AURC: 1.0;
+- gain vs frozen: **-0.25 pp**.
+
+### Frozen classifier anatomy
+
+- frozen accuracy 0.0025;
+- primary accuracy 0.0;
+- replica accuracy 0.0;
+- typed-only gain 0.0;
+- pair-only gain -0.0025;
+- primary gain -0.0025;
+- replica gain -0.0025.
+
+All runtime-integrity gates pass.
+
+Therefore neither SIGNAL nor WEAK transfer criteria are remotely close.
+
+## 15. Scientific meaning
+
+W7c is a decisive negative external-transfer result.
+
+The strong W7/W7b synthetic high-K numbers do **not** transfer to held-out Banking77 intent classification.
+
+The failure is more severe than merely missing a high-cardinality threshold:
+- primary and replica are both 0/400;
+- typed-only is only 1/400;
+- pair-only is 0/400;
+- the more aggressively retuned checkpoints become extremely confident while remaining essentially always wrong.
+
+This directly falsifies the working idea that the W7b free-form retune recipe can currently be treated as a general semantic high-cardinality solution.
+
+The result also changes how earlier internal results must be interpreted:
+
+- W6j's `COARSE_CONJUNCTION_LIMIT` remains valid for the synthetic authority family on which it was diagnosed.
+- W7's explicit conjunction mechanism still failed.
+- W7b's synthetic typed+pair gains were real on AS/AT but domain/protocol specific.
+- Those gains do not establish cross-domain natural-language schema transfer.
+
+### Strong new bottleneck hypothesis
+
+The next architecture research should target **schema/semantic transfer**, not K64 ranking mechanics in isolation.
+
+The current scorer can become highly competent on synthetic structured schema families, yet fail to align:
+- unconstrained natural user utterances;
+- terse external intent labels;
+- unseen real-world semantic categories.
+
+The very high confidence of wrong retuned checkpoints is especially important. This suggests adaptation may sharpen the learned synthetic decision geometry without learning a transferable semantic interface.
+
+This is an interpretation to test, not a promoted causal result.
+
+## 16. What W7c does NOT mean
+
+Do not claim:
+- HIRA is universally incapable of Banking77;
+- competitive late interaction is universally broken;
+- high cardinality alone causes the failure;
+- W7b training damaged every domain;
+- direct Laya/Jev comparison from rows 400–799.
+
+The W7c slice differs from the official first-400 Laya application cell, so it must not be used as that scorecard.
+
+W4a first-400 was already a separate clean negative result with the old W3 specialist head.
+
+## 17. Permanent forbidden evidence after W7c
+
+Banking77 test rows 400–799 are now exposed.
+
+Never use them for:
+- training;
+- DEV selection;
+- prompt/schema wording search;
+- scorer selection;
+- calibration;
+- threshold tuning;
+- architecture choice;
+- seed choice.
+
+Rows 0–399 were already exposed by W4a.
+
+Thus rows 0–799 must be treated as non-fresh for future research.
+
+## 18. Authorized next research direction
+
+Per the preregistered W7c boundary, because transfer is ABSENT:
+
+**do not broaden to easier public benchmarks merely to collect positive cells.**
+
+Return to architecture/generalization research.
+
+The next lane should diagnose a new question on wholly fresh, non-Banking77 data:
+
+**Where does semantic transfer break between raw state language and unseen schema labels/definitions?**
+
+A useful fresh diagnostic phase should separate:
+1. state-language representation failure;
+2. terse-label/schema representation failure;
+3. state↔schema alignment failure;
+4. synthetic-format dependence;
+5. cardinality-independent semantic failure.
+
+It should include low-K and high-K versions of the same unseen semantics so that semantic transfer can be separated from candidate count.
+
+Do not train another scorer before this localization is complete.
+
+## 19. Handoff state after W7c
+
+W7c empirical work is complete.
+
+Before another AI continues:
+1. freeze this closure on PR #102;
+2. merge only after closure-doc CI is clean;
+3. close issue #101;
+4. create the next diagnostic lane from resulting main;
+5. create its handoff before any fresh data exposure;
+6. preserve the W7c artifact/run/hashes above;
+7. never reuse Banking77 rows 0–799 as fresh authority.
+
+The next AI should read this file first, then W7b, W7, and W6j handoffs.
