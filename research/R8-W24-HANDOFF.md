@@ -1,6 +1,6 @@
 # R8-W24 handoff — atomic severity-factor recoverability
 
-Status: **PRE-DIAGNOSTIC. No DP/DQ/DR/DS HIRA/reference cache or W24 empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `STABLE_ATOMIC_SEVERITY_LOCALIZATION`; stable classification `HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT` on 4/4 fresh domains.**
 
 Issue: #135
 
@@ -86,7 +86,7 @@ Each logical HIRA case:
 - exactly two encoded query sequences.
 
 Exposure:
-**NONE.**
+**DP/DQ/DR/DS permanently exposed by authority run `36227184733`.**
 
 ## 4. Frozen atomic severity factors
 
@@ -377,3 +377,208 @@ Next:
 12. freeze result before merge.
 
 A future AI must update this file after every meaningful W24 session.
+
+
+---
+
+## 19. Authoritative W24 closure
+
+Exact verdict-bearing head:
+`1cdc31f6beaa7d195831f24ccf8bdde9889c2a1b`
+
+Authority run:
+`36227184733`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 provenance;
+- fresh DP/DQ/DR/DS cache;
+- frozen HIRA direct four-way and atomic-factor evaluation;
+- frozen directional DeBERTa atomic-factor authority;
+- frozen W23 DeBERTa/RoBERTa direct-severity + confidence controls;
+- frozen classifier/outcome verification.
+
+Artifacts:
+- frozen W9 bundle: `10900309386`;
+  digest `sha256:93d26c79f593297fc4453fbe36fcb80c6bc67f4df4dae23069ad60c5f63c7f8c`;
+- fresh W24 cache: `10900374149`;
+  digest `sha256:185f0e96866c9975e51980e357cd5f8a2981b5c82b1cfcbb6bca54eb67ee12fc`;
+- authoritative W24 audit: `10902370888`;
+  digest `sha256:40ac9d35e4824f8b06c476128b076dbeeb987650b35f013e3eb1030ba9227505`.
+
+Integrity:
+- 384 fresh cases;
+- 96/domain;
+- balanced S×C cells;
+- exact frozen mapping S0->000, S1->100, S2->110, S3->111;
+- one logical state compile/case;
+- one batched A13 invocation/case;
+- exactly two isolated HIRA query sequences/case;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- exact frozen A13/W9/reference hashes;
+- no W23-W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 20. Frozen verdict
+
+Overall:
+
+**`STABLE_ATOMIC_SEVERITY_LOCALIZATION`**
+
+Stable classification:
+
+**`HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT`**
+
+Per-domain:
+- DP -> `HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT`;
+- DQ -> `HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT`;
+- DR -> `HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT`;
+- DS -> `HIRA_ATOMIC_SEVERITY_GEOMETRY_LIMIT`.
+
+Reference-environment-stable domains:
+**4 / 4**.
+
+Atomic-reference-adequate domains:
+**4 / 4**.
+
+This is the first W18-W24 latent-severity phase in which the independent authority gate passes on all fresh domains and a HIRA-specific severity-geometry interpretation is therefore authorized.
+
+## 21. Independent atomic-factor authority
+
+Pooled directional DeBERTa atomic reference:
+
+- F0 top1 **96.875%**;
+  balanced accuracy **97.917%**;
+- F1 top1 **100.000%**;
+  balanced accuracy **100.000%**;
+- F2 top1 **100.000%**;
+  balanced accuracy **100.000%**;
+- full factor-vector accuracy **96.875%**;
+- deterministic composed severity **96.875%**;
+- composed severity MAE **0.03125**;
+- invalid-vector rate **0%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+Therefore the atomic severity authority itself is independently recoverable under the frozen primary reference.
+
+## 22. Reference environment positive controls
+
+Frozen W23-style DeBERTa control, pooled:
+- direct severity **90.625%**;
+- confidence **100.000%**;
+- joint **90.625%**.
+
+Frozen W23-style RoBERTa control, pooled:
+- direct severity **87.500%**;
+- confidence **100.000%**;
+- joint **87.500%**.
+
+Confidence positive-control agreement is **100%** on every domain.
+
+The fresh W24 environment is therefore stable by the preregistered control.
+
+## 23. Frozen HIRA result
+
+Pooled direct four-way severity:
+- top1 **26.563%**;
+- MRR **57.161%**;
+- MAE **0.96875**.
+
+Pooled HIRA atomic factors:
+- F0 top1 **33.594%**;
+  balanced accuracy **55.729%**;
+- F1 top1 **60.938%**;
+  balanced accuracy **60.938%**;
+- F2 top1 **25.000%**;
+  balanced accuracy **50.000%**;
+- full factor-vector accuracy **0%**;
+- deterministic composed severity **0%**;
+- composed severity MAE **3.0**;
+- invalid factor-vector rate **100%**;
+- factor probability-mass max error <= `1.1920928955078125e-07`.
+
+Factorization gain:
+**-26.563 percentage points**.
+
+Direct->composed transitions:
+- wrong -> right: **0 / 384**;
+- right -> wrong: **102 / 384**.
+
+Fresh HIRA confidence positive-control:
+- top1 **60.417%**.
+
+Every fresh domain fails HIRA atomic adequacy.
+
+## 24. Scientific interpretation
+
+The strongest defensible conclusion is:
+
+> W24 independently establishes that the fresh severity task is recoverable when decomposed into preregistered atomic factors, while the frozen A13/W9 HIRA semantic geometry fails to recover those same factors. Because the reference environment is stable on 4/4 domains and the atomic authority reaches 96.875% composed severity, the repeated severity failure can now be localized to the frozen HIRA latent severity representation/scoring geometry rather than to authority ambiguity alone.
+
+This is stronger than W18-W23 because authority inadequacy no longer blocks the HIRA interpretation.
+
+The failure pattern is structural:
+- F2 is at **25%** top1 with **50%** balanced accuracy;
+- F0 is also weak;
+- the predicted factor vector is invalid on **100%** of cases;
+- deterministic composition collapses to **0%**, not merely a small regression from direct severity.
+
+W24 does **not** prove:
+- A13 alone is the sole bottleneck;
+- W9 projection alone is the sole bottleneck;
+- token MaxSim alone is the sole bottleneck;
+- retraining will necessarily solve the issue;
+- deterministic typed composition is production-ready.
+
+It localizes the failure to the frozen HIRA severity semantic path as a whole.
+
+## 25. Authorization after W24
+
+W24 authorizes a narrower next research program:
+
+**Diagnose which frozen HIRA severity-geometry component causes atomic-factor collapse.**
+
+A valid next phase may use new TRAIN/DEV data because the geometry limit is now independently established, but must still reserve wholly fresh dual-CONFIRM domains before any production claim.
+
+The next phase should isolate, in a controlled ablation:
+1. A13 representation ceiling;
+2. W9 256->128 projection damage;
+3. symmetric token-MaxSim scorer/interface;
+4. candidate definition/prototype aggregation;
+5. factor calibration only after representation/scoring capacity is shown.
+
+A strong next design should compare on fresh TRAIN/DEV:
+- raw A13 semantic features;
+- frozen W9 projection;
+- lightweight newly trained projection;
+- pooled/cross-token alternatives;
+- matched direct vs atomic controls.
+
+Promotion requires:
+- TRAIN improvement;
+- DEV replication;
+- two sealed fresh CONFIRM authorities;
+- no reuse of DP/DQ/DR/DS for model selection;
+- explicit calibration/OOD before production;
+- still no K32/K64 automatically.
+
+## 26. Permanent exposure after W24
+
+DP/DQ/DR/DS are permanently exposed.
+
+Never reuse them for:
+- projection/scorer training;
+- architecture selection;
+- factor wording/prototype selection;
+- calibration;
+- threshold/gate tuning;
+- checkpoint/seed selection;
+- production promotion.
+
+All prior exposed authorities remain forbidden.
+
+A future AI must read this closure before opening the next phase.
