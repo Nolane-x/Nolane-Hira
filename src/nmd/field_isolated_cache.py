@@ -118,6 +118,8 @@ def compile_w17_cache(
                     include_token_artifacts=True,
                 )
                 required = (
+                    schema.question_token_embeddings,
+                    schema.question_content_token_mask,
                     schema.option_token_embeddings,
                     schema.option_token_ids,
                     schema.option_content_token_mask,
@@ -295,11 +297,16 @@ def validate_w17_cache(cache: dict) -> None:
             raise ValueError("W17 full/triplicate token identity changed")
         if float(trip["max_copy_embedding_diff"]) > 1e-5:
             raise ValueError("W17 identical triplicate copies diverged")
+        if float(trip["max_single_embedding_diff"]) > 1e-5:
+            raise ValueError("W17 full-single/triplicate embedding control diverged")
         if len(case.get("decisions", [])) != 5:
             raise ValueError("W17 requires five typed decisions")
         for decision in case["decisions"]:
             if set(decision["views"]) != {"D0", "D1", "D2"}:
                 raise ValueError("W17 requires D0/D1/D2")
+            for view in decision["views"].values():
+                if view.get("question_tokens") is None or view.get("question_content_mask") is None:
+                    raise ValueError("W17 production control requires question token artifacts")
             ids = [
                 tuple(decision["views"][view]["option_ids"])
                 for view in ("D0", "D1", "D2")
