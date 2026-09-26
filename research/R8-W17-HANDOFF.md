@@ -359,3 +359,64 @@ Next:
 11. freeze exact result here before merge.
 
 A future AI must update this file after every meaningful session.
+
+
+---
+
+## 15. Pre-authority implementation freeze
+
+Complete scientific/execution stack head:
+`161628fb355439ab2fe93584f52e4e9919e04158`
+
+Exact validation:
+- W17 unit run `36206223777`: **PASS**;
+- repository CI run `36206223796`: **PASS** on Python 3.10 and Python 3.12.
+
+Scientific exposure at this freeze:
+**NONE.**
+
+No CK/CL/CM/CN/CO A13 cache has been materialized.
+No CP/CQ row has been materialized.
+No W17 empirical metric or verdict exists.
+
+Implemented and frozen:
+- fresh structured typed authority CK-CQ;
+- full/triplicate/field-isolated representation cache;
+- exact primitive->field mapping;
+- exact W9 multiview semantic evaluator;
+- exact production D0+HIRACore descriptive control;
+- typed accuracy/Brier/ECE/score/K metrics;
+- triplicate equivalence control;
+- zero-parameter pre-confirm freeze;
+- sealed CP/CQ confirm evaluator;
+- pinned MiniLM relevant-field reference;
+- frozen rescue/partial/fail/control-invalid verdict implementation;
+- exact-text freshness firewall through W16;
+- download-free execution tests.
+
+Pre-data failures repaired before exposure:
+1. typed target probabilities were tuples and are now materialized as immutable float tensors in cache, matching established typed-cache contracts;
+2. verdict fixture was aligned with the preregistered primitive-field provenance integrity gate.
+
+Neither repair changed:
+- field schema;
+- candidate paths;
+- fresh data;
+- gates;
+- thresholds;
+- model weights;
+- parameter budget.
+
+Only authority orchestration may now be added.
+
+Authority chain is frozen as:
+
+`unit -> exact W9 provenance + CK-CN/CO cache -> zero-parameter preconfirm freeze -> one-time CP/CQ materialization -> frozen evaluator/reference/verdict`
+
+Once the CK-CN/CO cache job begins:
+- all equations are frozen;
+- all field mappings are frozen;
+- all fresh wording/seeds are frozen;
+- all competence/gain/reference thresholds are frozen;
+- no scientific mutation is allowed.
+
