@@ -236,8 +236,22 @@ def _probe_rows(
                 factor_id: torch.stack((-logits3[index], logits3[index]))
                 for index, factor_id in enumerate(FACTOR_IDS)
             }
-            rows.append(_prediction_row(case, factor_logits))
+            row = _prediction_row(case, factor_logits)
+            target = torch.tensor(case["factor_vector"], dtype=torch.float32)
+            row["probe_bce"] = float(
+                F.binary_cross_entropy_with_logits(logits3.float(), target).detach()
+            )
+            rows.append(row)
     return rows
+
+
+def _summarize_probe(rows: Sequence[Mapping[str, object]]) -> dict[str, object]:
+    value = _summarize_factor_predictions(rows)
+    value["bce"] = (
+        sum(float(row["probe_bce"]) for row in rows) / len(rows)
+        if rows else 0.0
+    )
+    return value
 
 
 def evaluate_probe(
@@ -252,10 +266,10 @@ def evaluate_probe(
         by_domain[str(row["domain_id"])].append(row)
     return {
         "per_domain": {
-            domain: _summarize_factor_predictions(rows)
+            domain: _summarize_probe(rows)
             for domain, rows in sorted(by_domain.items())
         },
-        "pooled": _summarize_factor_predictions(raw),
+        "pooled": _summarize_probe(raw),
         "predictions": {str(row["case_id"]): row for row in raw},
     }
 
