@@ -148,7 +148,7 @@ Exact frozen W9 projection, then same semantic operator as A0.
 Diagnostic only.
 
 Input:
-masked-mean raw A13 256-d severity representation.
+content-token masked mean of raw A13 256-d severity tokens, then L2 normalize.
 
 Three scalar logistic heads:
 - 771 trainable params total.
@@ -158,7 +158,7 @@ Three scalar logistic heads:
 Diagnostic only.
 
 Input:
-masked-mean exact W9-projected 128-d severity representation.
+apply the exact W9 projection tokenwise, L2 normalize each projected token, masked-mean the projected tokens, then L2 normalize the pooled 128-d vector.
 
 Three scalar logistic heads:
 - 387 trainable params total.
@@ -170,6 +170,8 @@ one shared 256->128 bias-free projection,
 32,768 params.
 
 A13 frozen.
+Initialize the trainable projection from the exact frozen W9 projection.
+Primary/replica differ only through independently seeded minibatch ordering.
 Semantic operator identical to P0.
 
 Objective:
@@ -424,3 +426,14 @@ Next:
 14. freeze W25 verdict and merge.
 
 A future AI must update this file after every meaningful W25 session.
+
+
+### Pre-exposure amendment — initialization and probe geometry
+
+Frozen before any DT-DZ encoder/reference exposure:
+- T0/T1 initialize from the exact W9 projection weights, not random weights;
+- T0/T1 use independently seeded TRAIN minibatch order to test reproducibility;
+- Q0 uses L2-normalized raw A13 masked-mean severity embeddings;
+- Q1 uses tokenwise L2-normalized frozen-W9 projections, then mean pooling and final L2 normalization.
+
+This amendment removes an initialization confound and makes Q0/Q1 feature geometry exact.
