@@ -1,0 +1,380 @@
+name: r8-w28-hira-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w28-compositional-projection-replication
+    paths:
+      - "research/R8-W28-ENABLE-HIRA-AUTHORITY"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w28-hira-authority-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile frozen W28 stack
+        run: |
+          python -m py_compile \
+            src/nmd/compositional_projection_authority.py \
+            src/nmd/compositional_projection_reference.py \
+            src/nmd/compositional_projection_cache.py \
+            src/nmd/compositional_projection_eval.py \
+            scripts/r8_w28_qualify_reference.py \
+            scripts/r8_w28_build_cache.py \
+            scripts/r8_w28_train_candidate.py \
+            scripts/r8_w28_evaluate_confirm.py
+      - name: Run frozen W28 contracts
+        run: pytest -q tests/test_compositional_projection.py
+
+  qualification:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W28 qualification artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10904409537 --jq .digest)" = "sha256:c4b9735062cdc2c051b7e84b2b1f7f401cae49dc70eda527a0e660a4bff270a8"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10904409537 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-reference-qualification
+          path: inputs/qualification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36237568223
+      - name: Verify frozen qualification receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("inputs/qualification/qualification.json"))
+          assert x["schema_version"]=="r8-w28-reference-qualification-v1"
+          assert x["status"]=="PASS"
+          assert x["qualification_status"]=="PASS"
+          assert x["outcome"]=="W28_REFERENCE_QUALIFIED"
+          assert x["qualification_per_domain"]=={"EN":True,"EO":True}
+          assert x["a13_materialized"] is False
+          assert x["hira_materialized"] is False
+          assert x["t0_t1_executed"] is False
+          print("w28_qualification_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-qualified-reference
+          path: inputs/qualification
+          if-no-files-found: error
+          retention-days: 14
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W9 freeze artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .digest)" = "sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: inputs/w9
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36122220588
+      - name: Verify W9 projection provenance
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path("inputs/w9")
+          x=json.loads((root/"freeze.json").read_text())
+          assert x["schema_version"]=="r8-w9-freeze-v1"
+          assert x["status"]=="PASS"
+          rows={r["candidate"]:r for r in x["candidates"]}
+          row=rows["projection-semantic-control"]
+          assert row["scorer_sha256"]=="8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          cp=root/row["checkpoint_dir"]
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          assert sha(cp/"hira.pt")=="d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588"
+          assert sha(cp/"scorer.pt")=="8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          print("w28_w9_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-frozen-w9
+          path: inputs/w9
+          if-no-files-found: error
+          retention-days: 14
+
+  train_dev_cache:
+    needs: [unit, qualification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-qualified-reference
+          path: inputs/qualification
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen cache stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark W28 EP-ET TRAIN-DEV exposure
+        run: echo R8_W28_EP_ET_HIRA_TRAIN_DEV_EXPOSURE_BEGIN
+      - name: Build fresh TRAIN and DEV caches
+        run: |
+          python scripts/r8_w28_build_cache.py --partition train --qualification inputs/qualification/qualification.json --out artifacts/train
+          python scripts/r8_w28_build_cache.py --partition dev --qualification inputs/qualification/qualification.json --out artifacts/dev
+      - name: Verify TRAIN and DEV receipts
+        run: |
+          python - <<'PY'
+          import json
+          train=json.load(open("artifacts/train/receipt.json"))
+          dev=json.load(open("artifacts/dev/receipt.json"))
+          for x in (train,dev):
+              assert x["schema_version"]=="r8-w28-cache-receipt-v1"
+              assert x["status"]=="PASS"
+              assert x["qualification_outcome"]=="W28_REFERENCE_QUALIFIED"
+              assert x["a13_weight_sha256"]=="5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"
+              assert x["reference_outputs_used_as_training_targets"] is False
+              assert x["qualification_rows_used_for_hira_selection"] is False
+              assert x["confirm_materialized_after_both_candidate_freezes"] is False
+          assert train["domains"]==["EP","EQ","ER","ES"] and train["case_count"]==384
+          assert dev["domains"]==["ET"] and dev["case_count"]==96
+          print("w28_train_dev_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-train-dev-cache
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 30
+
+  candidates:
+    needs: [upstream, train_dev_cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: [T0, T1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-frozen-w9
+          path: inputs/w9
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-train-dev-cache
+          path: inputs/cache
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[research,dev]"
+      - name: Train and DEV-freeze ${{ matrix.candidate }}
+        run: |
+          python scripts/r8_w28_train_candidate.py \
+            --train-cache inputs/cache/train/w28-train.pt \
+            --dev-cache inputs/cache/dev/w28-dev.pt \
+            --w9-freeze inputs/w9/freeze.json \
+            --w9-checkpoints inputs/w9 \
+            --candidate ${{ matrix.candidate }} \
+            --out artifacts/${{ matrix.candidate }}
+      - name: Verify frozen candidate
+        run: |
+          CANDIDATE="${{ matrix.candidate }}" python - <<'PY'
+          import json,os
+          c=os.environ["CANDIDATE"]
+          x=json.load(open(f"artifacts/{c}/receipt.json"))
+          assert x["schema_version"]=="r8-w28-candidate-receipt-v1"
+          assert x["status"]=="PASS" and x["candidate"]==c
+          assert x["selection_partition"]=="ET"
+          assert x["epochs"]==8
+          assert x["batch_size"]==32
+          assert x["optimizer_steps"]==96
+          assert x["trainable_parameter_count"]==32768
+          assert x["projection_temperature"]==0.07
+          assert x["initialization"]=="exact-frozen-w9-projection"
+          assert x["confirm_exposed"] is False
+          assert x["reference_outputs_used_as_training_targets"] is False
+          print("w28_candidate_frozen",c,x["selected_dev_epoch"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-candidate-${{ matrix.candidate }}
+          path: artifacts/${{ matrix.candidate }}
+          if-no-files-found: error
+          retention-days: 90
+
+  confirm_cache:
+    needs: [qualification, candidates]
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-qualified-reference
+          path: inputs/qualification
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T1
+          path: inputs/T1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen cache stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark sealed W28 EU-EV CONFIRM exposure
+        run: echo R8_W28_EU_EV_SEALED_CONFIRM_EXPOSURE_BEGIN
+      - name: Materialize sealed CONFIRM only after both freezes
+        run: |
+          python scripts/r8_w28_build_cache.py \
+            --partition confirm \
+            --qualification inputs/qualification/qualification.json \
+            --freeze-receipt inputs/T0/receipt.json \
+            --freeze-receipt inputs/T1/receipt.json \
+            --out artifacts/confirm
+      - name: Verify sealed CONFIRM receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/confirm/receipt.json"))
+          assert x["schema_version"]=="r8-w28-cache-receipt-v1"
+          assert x["status"]=="PASS"
+          assert x["partition"]=="confirm"
+          assert x["domains"]==["EU","EV"]
+          assert x["case_count"]==192
+          assert x["confirm_materialized_after_both_candidate_freezes"] is True
+          assert set(x["candidate_freeze_receipts"])=={"T0","T1"}
+          assert x["reference_outputs_used_as_training_targets"] is False
+          print("w28_confirm_sealing_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-sealed-confirm-cache
+          path: artifacts/confirm
+          if-no-files-found: error
+          retention-days: 90
+
+  evaluate:
+    needs: [qualification, upstream, candidates, confirm_cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-qualified-reference
+          path: inputs/qualification
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-frozen-w9
+          path: inputs/w9
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-sealed-confirm-cache
+          path: inputs/confirm
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T1
+          path: inputs/T1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen evaluation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]" sentencepiece
+      - name: Evaluate sealed W28 CONFIRM
+        run: |
+          python scripts/r8_w28_evaluate_confirm.py \
+            --confirm-cache inputs/confirm/w28-confirm.pt \
+            --w9-freeze inputs/w9/freeze.json \
+            --w9-checkpoints inputs/w9 \
+            --t0-dir inputs/T0 \
+            --t1-dir inputs/T1 \
+            --qualification inputs/qualification/qualification.json \
+            --out artifacts/w28-audit
+      - name: Verify frozen W28 audit
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w28-audit/audit.json"))
+          assert x["schema_version"]=="r8-w28-compositional-projection-audit-v1"
+          assert x["status"]=="PASS"
+          assert x["outcome"] in {
+              "W28_CONFIRM_REFERENCE_INADEQUATE",
+              "REPLICATED_COMPOSITIONAL_PROJECTION_RESCUE",
+              "COMPOSITIONAL_PROJECTION_RESCUE_NONREPLICATING",
+          }
+          assert set(x["per_domain"])=={"EU","EV"}
+          assert set(x["evaluations"])=={"P0","T0","T1"}
+          assert x["qualification_outcome"]=="W28_REFERENCE_QUALIFIED"
+          assert x["primary_f2_authority"]=="U_AND_C"
+          assert x["direct_f2_role"]=="diagnostic_only"
+          assert x["confirm_materialized_after_both_candidate_freezes"] is True
+          assert x["a13_frozen_all_paths"] is True
+          assert x["reference_outputs_used_as_training_targets"] is False
+          assert x["qualification_rows_used_for_hira_selection"] is False
+          print("W28_FINAL_SUMMARY="+json.dumps({
+              "outcome":x["outcome"],
+              "EU":x["per_domain"]["EU"],
+              "EV":x["per_domain"]["EV"],
+              "pooled":{k:x["evaluations"][k]["pooled"]["composed_severity_top1"] for k in ("P0","T0","T1")},
+          },sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w28-authoritative-audit
+          path: artifacts/w28-audit
+          if-no-files-found: error
+          retention-days: 90
