@@ -1,0 +1,24 @@
+W28 HIRA authority enabled only after all frozen pre-authority gates passed.
+
+Scientific implementation head:
+99f4b84ed45b7f0190b077d8f652a42f090045d3
+
+W28 unit:
+36240063709 — PASS.
+
+Repository CI:
+36240066131 — PASS on Python 3.10 and 3.12.
+
+Frozen reference qualification:
+36237568223 — W28_REFERENCE_QUALIFIED.
+Artifact 10904409537.
+Digest sha256:c4b9735062cdc2c051b7e84b2b1f7f401cae49dc70eda527a0e660a4bff270a8.
+
+Creating this marker authorizes:
+1. EP-ES TRAIN + ET DEV A13 materialization;
+2. exact frozen W25 T0/T1 projection recipe;
+3. EU/EV materialization only after both DEV-freeze receipts;
+4. final compositional reference + rescue audit.
+
+No post-exposure change to wording, gates, optimizer, seeds, reference models,
+composition rule, or classifier is permitted.
