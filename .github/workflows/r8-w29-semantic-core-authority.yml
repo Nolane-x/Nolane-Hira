@@ -132,7 +132,7 @@ jobs:
           assert x["case_count"]==384
           assert x["domains"]==["EW","EX","EY","EZ"]
           assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
-          assert x["a13_weight_sha256"]=="5b0593e0bb4620631320d2b4d5604cc39ca6895895114379cacb4fab128d9db" or x["a13_weight_sha256"]=="5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"
+          assert x["a13_weight_sha256"]=="5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880"
           assert x["projection_training_performed"] is False
           assert x["projection_selection_performed"] is False
           assert x["relation_refinement_used"] is False
