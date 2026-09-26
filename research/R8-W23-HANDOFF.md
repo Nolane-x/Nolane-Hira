@@ -1,6 +1,6 @@
 # R8-W23 handoff — cross-encoder latent authority localization
 
-Status: **PRE-DIAGNOSTIC. No DL/DM/DN/DO HIRA/reference cache or W23 empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `AUTHORITY_REFERENCE_UNRESOLVED`; DL/DM/DN/DO are all `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`.**
 
 Issue: #133
 
@@ -125,7 +125,7 @@ Fresh prototype banks:
 - no exact W18-W22 text reuse.
 
 Exposure:
-**NONE.**
+**DL/DM/DN/DO permanently exposed by authority run `36223939271`.**
 
 No DL/DM/DN/DO A13 cache exists.
 No W23 cross-encoder score exists.
@@ -357,3 +357,236 @@ Next:
 11. freeze result before merge.
 
 A future AI must update this file after every meaningful W23 session.
+
+
+---
+
+## 16. Authoritative W23 closure
+
+Exact verdict-bearing head:
+`d7004ac62df3133d8bdafff18f35e91247738844`
+
+Authority run:
+`36223939271`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 upstream provenance;
+- fresh DL/DM/DN/DO HIRA cache;
+- frozen DeBERTa-v3 and RoBERTa NLI bidirectional entailment evaluation;
+- frozen four-model W22 bi-encoder control;
+- frozen consensus/agreement/classifier;
+- frozen audit verification.
+
+Artifacts:
+- frozen W9 bundle: `10899903099`;
+  digest `sha256:737ab1957e34bf3ec6b6f9ab4f0be7cf6006f8d16f4a352ede75dee2828f2a57`;
+- fresh W23 cache: `10900560385`;
+  digest `sha256:f0e7d8dbceaf8c0e805080e2b97b1c06fffff44fb672419428cb26f6d709a444`;
+- authoritative W23 audit: `10900272920`;
+  digest `sha256:c6013dcbb3e3e0784d8c04e3258608d02caec7b8686f3a976a7ffd6cca40074f`.
+
+Integrity:
+- 384 fresh cases;
+- 96/domain;
+- exactly 3 prototypes/class;
+- zero query/prototype exact overlap;
+- zero prior-authority exact overlap;
+- one HIRA state compile/query;
+- one HIRA A13 invocation/query;
+- exactly two HIRA query sequences/query;
+- both cross-encoders pinned before exposure;
+- all four bi-encoder controls pinned before exposure;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- no W22-W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 17. Frozen verdict
+
+Overall:
+
+**`AUTHORITY_REFERENCE_UNRESOLVED`**
+
+Stable HIRA classification:
+`null`.
+
+Cross-encoder-authority-adequate domains:
+**0 / 4**.
+
+Per-domain:
+- DL -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DM -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DN -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DO -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`.
+
+Classification counts:
+- `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`: 4/4.
+
+No HIRA latent-geometry diagnosis is authorized.
+No prototype-grounded production integration is authorized.
+No deterministic typed-kernel integration is authorized.
+No K32/K64 opening is authorized.
+
+## 18. Pooled HIRA result
+
+Abstract categorical:
+- severity **38.281%**;
+- confidence **50.000%**;
+- joint **19.271%**.
+
+Prototype-grounded:
+- severity **40.625%**;
+- confidence **75.000%**;
+- joint **30.990%**.
+
+The prototype interface again improves confidence and joint extraction descriptively, but severity remains weak and the reference authority is not adequate.
+
+## 19. Cross-encoder reference result
+
+### CE0 — DeBERTa-v3 NLI
+
+Pooled prototype:
+- severity **64.063%**;
+- confidence **100.000%**;
+- joint **64.063%**.
+
+### CE1 — RoBERTa NLI
+
+Pooled prototype:
+- severity **58.594%**;
+- confidence **95.833%**;
+- joint **55.208%**.
+
+The cross-encoder family therefore resolves the confidence field dramatically better than the W22 bi-encoder panel, but still fails the frozen severity and joint gates.
+
+Per-domain CE0/CE1 agreement and consensus:
+
+DL:
+- severity agreement **65.625%**;
+- confidence agreement **95.833%**;
+- consensus severity **43.750%**;
+- consensus confidence **95.833%**;
+- consensus joint **41.667%**.
+
+DM:
+- severity agreement **68.750%**;
+- confidence agreement **95.833%**;
+- consensus severity **50.000%**;
+- consensus confidence **95.833%**;
+- consensus joint **47.917%**.
+
+DN:
+- severity agreement **75.000%**;
+- confidence agreement **95.833%**;
+- consensus severity **59.375%**;
+- consensus confidence **95.833%**;
+- consensus joint **56.250%**.
+
+DO:
+- severity agreement **65.625%**;
+- confidence agreement **95.833%**;
+- consensus severity **46.875%**;
+- consensus confidence **95.833%**;
+- consensus joint **43.750%**.
+
+Undefined consensus is almost entirely a severity phenomenon:
+- DL severity disagreements: 33/96;
+- DM: 30/96;
+- DN: 24/96;
+- DO: 33/96;
+- confidence disagreements: only 4/96 in every domain.
+
+## 20. W22-style bi-encoder control on W23 fresh data
+
+Pooled prototype:
+
+MiniLM:
+- severity **47.656%**;
+- confidence **54.167%**;
+- joint **25.781%**.
+
+MPNet:
+- severity **53.906%**;
+- confidence **95.833%**;
+- joint **52.344%**.
+
+E5-small-v2:
+- severity **50.781%**;
+- confidence **90.625%**;
+- joint **46.875%**.
+
+BGE-small-en-v1.5:
+- severity **63.281%**;
+- confidence **87.500%**;
+- joint **55.990%**.
+
+No bi-encoder passes the full frozen individual adequacy gate per W23 domain, again because severity/joint remain insufficient.
+
+## 21. Scientific interpretation
+
+The strongest defensible W23 conclusion is:
+
+> A stronger sentence-pair NLI reference family dramatically resolves confidence semantics but still does not independently recover the fresh severity authority. Therefore the repeated W18-W23 unresolved status cannot be attributed merely to MiniLM, to the bi-encoder family, or to candidate-order/cumulative-decoding artifacts. The dominant unresolved factor is now localized to the semantic construction and identifiability of the severity latent variable itself.
+
+This is a sharper localization than W22.
+
+Evidence:
+- confidence reaches 100% on DeBERTa and 95.83% on RoBERTa;
+- CE0/CE1 confidence agreement is 95.83% on every domain;
+- severity remains only 64.06% / 58.59% pooled;
+- CE0/CE1 severity agreement is only 65.63–75.00%;
+- even the strongest W23 bi-encoder severity result (BGE 63.28%) is similar to the cross-encoder ceiling;
+- HIRA confidence also benefits from prototypes while HIRA severity remains poor.
+
+W23 does **not** establish:
+- HIRA latent geometry adequacy or inadequacy;
+- production readiness;
+- that ordinal severity is intrinsically impossible;
+- that the frozen severity labels are human-ambiguous;
+- that a stronger generative/LLM judge would necessarily fail.
+
+## 22. Permanent exposure after W23
+
+DL/DM/DN/DO are permanently exposed.
+
+Never reuse them for:
+- severity definition redesign;
+- prototype redesign;
+- reference selection;
+- entailment direction/scoring tuning;
+- gate tuning;
+- HIRA/A13/W9 tuning;
+- calibration;
+- production promotion.
+
+All earlier forbidden evidence remains forbidden.
+
+## 23. Authorized continuation
+
+W23 materially changes the next scientific question.
+
+Do **not** open another phase whose only change is a stronger reference model.
+
+The next phase must directly diagnose the **severity latent authority**.
+
+A defensible next question is:
+
+> Can severity be made independently identifiable when it is represented by atomic observable consequence dimensions first, and only then deterministically composed into an ordinal severity value?
+
+A next phase should use wholly fresh domains and preregister:
+1. atomic consequence dimensions that are semantically concrete and independently recoverable;
+2. deterministic severity composition from those dimensions;
+3. a direct severity-class control;
+4. the frozen cross-encoder reference methodology;
+5. zero HIRA training for the primary diagnostic;
+6. reference adequacy gates on each atomic dimension before any HIRA interpretation;
+7. exact conditional analysis: severity correctness given all required atomic dimensions correct;
+8. no post-exposure dimension/gate/composition edits;
+9. no reuse of DL/DM/DN/DO;
+10. no typed-kernel production integration unless fresh-domain authority becomes independently adequate.
+
+A future AI must read this frozen W23 closure before opening the next diagnostic.
