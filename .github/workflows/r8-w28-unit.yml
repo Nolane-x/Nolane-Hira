@@ -11,6 +11,7 @@ on:
       - "research/R8-W28-HANDOFF.md"
       - ".github/workflows/r8-w28-unit.yml"
       - ".github/workflows/r8-w28-reference-qualification.yml"
+      - ".github/workflows/r8-w28-hira-authority.yml"
 
 permissions:
   contents: read
@@ -37,7 +38,12 @@ jobs:
           python -m py_compile \
             src/nmd/compositional_projection_authority.py \
             src/nmd/compositional_projection_reference.py \
-            scripts/r8_w28_qualify_reference.py
+            src/nmd/compositional_projection_cache.py \
+            src/nmd/compositional_projection_eval.py \
+            scripts/r8_w28_qualify_reference.py \
+            scripts/r8_w28_build_cache.py \
+            scripts/r8_w28_train_candidate.py \
+            scripts/r8_w28_evaluate_confirm.py
       - name: Run W28 contracts
         run: pytest -q tests/test_compositional_projection.py
       - name: Preflight exact-text freshness without exposure
