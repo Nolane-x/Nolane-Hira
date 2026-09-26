@@ -1,6 +1,6 @@
 # R8-W21 handoff — prototype-grounded latent semantic recoverability
 
-Status: **PRE-DIAGNOSTIC. No DD/DE/DF/DG A13/reference cache or W21 empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `PROTOTYPE_LATENT_UNRESOLVED`; DD/DE/DF/DG are all `W21_REFERENCE_INADEQUATE`.**
 
 Issue: #129
 
@@ -316,3 +316,167 @@ Next:
 11. freeze result before merge.
 
 A future AI must update this file after every meaningful W21 session.
+
+
+---
+
+## 15. Authoritative W21 closure
+
+Exact verdict-bearing head:
+`50b228efa3c7af9694ca50daa939aa7e794ff633`
+
+Authority run:
+`36218324517`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 upstream provenance;
+- fresh DD/DE/DF/DG query + prototype cache;
+- frozen HIRA abstract/prototype evaluation;
+- pinned MiniLM matched prototype reference;
+- leave-one-prototype-out diagnostics;
+- frozen per-domain classifier/outcome.
+
+Artifacts:
+- frozen W9 bundle: `10898191900`;
+  digest `sha256:871672d18551425e097eae3889e9e0a93906a6b6d3941cd010f73342def29a14`;
+- fresh W21 cache: `10897854816`;
+  digest `sha256:d0095d71ebe0777a2a343509c270d0e9c16f40d06ad99e04c513e2f8d59ca522`;
+- authoritative W21 audit: `10897989700`;
+  digest `sha256:ec521d615afd0a61c3c61ef02cc245a91f9a70509031527ebb92bbd4b9b4ef14`.
+
+Integrity:
+- 384 query cases;
+- 96/domain;
+- exactly 3 prototypes/class;
+- one logical state compile/query;
+- one batched A13 query invocation/query;
+- exactly two isolated query sequences/query;
+- query/prototype exact-sentence overlap = 0;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- probability-mass max error <= `1.1920928955078125e-07` for HIRA;
+- no W20/W19/W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 16. Frozen verdict
+
+Overall:
+
+**`PROTOTYPE_LATENT_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Per-domain:
+- DD -> `W21_REFERENCE_INADEQUATE`;
+- DE -> `W21_REFERENCE_INADEQUATE`;
+- DF -> `W21_REFERENCE_INADEQUATE`;
+- DG -> `W21_REFERENCE_INADEQUATE`.
+
+Classification counts:
+- `W21_REFERENCE_INADEQUATE`: 4/4.
+
+No prototype-grounded production integration and no deterministic typed-kernel integration is authorized by W21.
+
+## 17. Pooled HIRA result
+
+Abstract categorical baseline:
+- severity **39.063%**;
+- confidence **52.083%**;
+- joint S+C **20.052%**;
+- severity MAE **0.7266**.
+
+Prototype-grounded:
+- severity **48.438%**;
+- confidence **73.958%**;
+- joint S+C **35.938%**;
+- severity MAE **0.7031**;
+- severity leave-one-out agreement **60.156%**;
+- confidence leave-one-out agreement **63.542%**.
+
+Descriptive gain over abstract:
+- severity **+9.375 pp**;
+- confidence **+21.875 pp**;
+- joint **+15.885 pp**;
+- severity MAE improvement only **0.0234**, far below the frozen 0.15 gate.
+
+Thus concrete prototypes help some HIRA behavior, especially confidence/joint, but do not satisfy frozen adequacy/stability gates.
+
+## 18. Pinned MiniLM reference result
+
+Abstract:
+- severity **51.563%**;
+- confidence **69.792%**;
+- joint **37.500%**.
+
+Prototype-grounded:
+- severity **53.906%**;
+- confidence **71.875%**;
+- joint **38.542%**;
+- severity leave-one-out agreement **28.125%**;
+- confidence leave-one-out agreement **34.375%**.
+
+Frozen reference gates required:
+- prototype severity >=90%;
+- prototype confidence >=90%;
+- prototype joint >=82%.
+
+The reference misses all three adequacy gates by very large margins on pooled evidence, and every fresh domain is independently reference-inadequate.
+
+## 19. Scientific interpretation
+
+The strongest defensible conclusion is:
+
+> Concrete prototype grounding improves HIRA over fresh abstract prose on several metrics, but the effect is not independently reference-adequate. The pinned MiniLM reference also fails badly on the same prototype authority, and prototype subset stability is weak. Therefore W21 does not establish either a prototype-grounding interface rescue or a HIRA latent-extraction limit.
+
+Descriptively:
+- HIRA confidence benefits strongly from concrete prototypes;
+- HIRA severity improves modestly;
+- joint extraction improves materially;
+- prototype membership is not stable enough under leave-one-out perturbation;
+- MiniLM's repeated inadequacy across W18-W21 now prevents the current single-reference gate from distinguishing HIRA-specific failure from authority/reference mismatch.
+
+These observations are hypothesis-generating only.
+
+## 20. Permanent exposure after W21
+
+DD/DE/DF/DG are permanently exposed.
+
+Never reuse them for:
+- prototype selection;
+- prototype wording redesign;
+- reference model selection;
+- gate tuning;
+- A13/W9 tuning;
+- calibration;
+- production promotion.
+
+All older forbidden evidence remains forbidden.
+
+## 21. Authorized continuation
+
+Because W21 is reference-inadequate/unresolved:
+- do **not** promote prototype grounding;
+- do **not** integrate deterministic typed composition;
+- do **not** lower W21 reference gates;
+- do **not** rewrite DD/DE/DF/DG prototypes and rerun;
+- do **not** open K32/K64 from this result.
+
+After four consecutive reference-inadequate latent-interface phases (W18-W21), the next diagnostic should stop changing only the HIRA-side interface.
+
+A defensible next question is:
+
+> Is the repeated unresolved status caused by a weak single-reference ceiling, by intrinsically ambiguous fresh latent authorities, or by HIRA itself?
+
+A next phase should use wholly fresh domains and a preregistered independent reference panel, while keeping HIRA frozen and zero-training. It should distinguish:
+1. authority/reference adequacy;
+2. cross-reference agreement;
+3. HIRA-vs-reference gap.
+
+No reference model may be selected after exposure.
+
+A future AI should read this frozen W21 closure before opening the next diagnostic.
