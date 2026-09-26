@@ -107,6 +107,7 @@ Only 2,048 bridge parameters train.
 - epochs: 12
 - logical batch: 32
 - grad clip: 1.0
+- softmax training temperature: 0.07
 - epoch selection: DEV only
 
 Loss:
