@@ -97,6 +97,9 @@ class SchemaCompiler:
         question_content_token_mask = None
         option_token_ids = None
         option_content_token_mask = None
+        option_view_token_embeddings = None
+        option_view_token_mask = None
+        option_view_mask = None
         if include_token_artifacts:
             token_batch = self.encoder.encode_texts(
                 [question_text, *[option.criterion_text for option in opts]]
@@ -119,6 +122,75 @@ class SchemaCompiler:
                     option_token_mask & ~special[1:]
                 )
 
+            # Positive multi-view artifacts are additive and backward-compatible:
+            # criterion_text remains the legacy single-view artifact above, while
+            # criterion/aliases/exemplars are compiled independently here.
+            view_texts: list[str] = []
+            view_counts: list[int] = []
+            for option in opts:
+                views = [
+                    text
+                    for text in (
+                        option.criterion_text,
+                        *option.aliases,
+                        *option.exemplars,
+                    )
+                    if text and text.strip()
+                ]
+                if not views:
+                    raise ValueError(
+                        f"option {option.option_id!r} has no positive semantic view"
+                    )
+                view_counts.append(len(views))
+                view_texts.extend(views)
+
+            view_batch = self.encoder.encode_texts(view_texts)
+            view_tokens = view_batch.token_embeddings
+            view_attention = view_batch.attention_mask.bool()
+            if view_batch.special_token_mask is None:
+                view_content = view_attention
+            else:
+                view_content = (
+                    view_attention & ~view_batch.special_token_mask.bool()
+                )
+
+            max_views = max(view_counts)
+            token_width = view_tokens.shape[1]
+            d_model = view_tokens.shape[2]
+            option_view_token_embeddings = view_tokens.new_zeros(
+                len(opts),
+                max_views,
+                token_width,
+                d_model,
+            )
+            option_view_token_mask = torch.zeros(
+                len(opts),
+                max_views,
+                token_width,
+                dtype=torch.bool,
+                device=view_tokens.device,
+            )
+            option_view_mask = torch.zeros(
+                len(opts),
+                max_views,
+                dtype=torch.bool,
+                device=view_tokens.device,
+            )
+
+            offset = 0
+            for option_index, count in enumerate(view_counts):
+                option_view_token_embeddings[
+                    option_index, :count
+                ] = view_tokens[offset : offset + count]
+                option_view_token_mask[
+                    option_index, :count
+                ] = view_content[offset : offset + count]
+                option_view_mask[option_index, :count] = True
+                offset += count
+
+            if offset != len(view_texts):
+                raise RuntimeError("multi-view schema packing mismatch")
+
         compiled = CompiledSchema(
             schema_hash=key,
             encoder_hash=self.encoder.encoder_hash,
@@ -134,6 +206,9 @@ class SchemaCompiler:
             question_content_token_mask=question_content_token_mask,
             option_token_ids=option_token_ids,
             option_content_token_mask=option_content_token_mask,
+            option_view_token_embeddings=option_view_token_embeddings,
+            option_view_token_mask=option_view_token_mask,
+            option_view_mask=option_view_mask,
         )
         if use_cache:
             self._cache[cache_key] = compiled
