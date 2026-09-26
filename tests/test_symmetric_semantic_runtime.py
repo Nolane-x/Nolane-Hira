@@ -4,10 +4,15 @@ from nmd.contracts import LogicalOption
 from nmd.hira import HIRACore
 from nmd.runtime import NolaneHira
 from nmd.semantic import TrainableSemanticEncoder
+from nmd.semantic_core import (
+    build_hira_v0_semantic_core,
+    load_rescued_projection_checkpoint,
+)
 from nmd.symmetric_semantic import (
     SymmetricSemanticScorer,
     count_symmetric_parameters,
 )
+from nmd.typed_competitive_cache import file_sha256
 
 
 def _model() -> NolaneHira:
@@ -225,4 +230,44 @@ def test_symmetric_runtime_option_identity_is_order_invariant():
         out_a.probabilities.flip(0),
         atol=1e-6,
         rtol=1e-6,
+    )
+
+
+def test_semantic_core_loader_verifies_checkpoint_and_freezes_projection(tmp_path):
+    checkpoint_path = tmp_path / "candidate.pt"
+    weight = torch.randn(128, 256)
+    torch.save(
+        {
+            "schema_version": "r8-w28-candidate-checkpoint-v1",
+            "candidate": "T0",
+            "kind": "projection",
+            "projection_weight": weight,
+        },
+        checkpoint_path,
+    )
+    digest = file_sha256(checkpoint_path)
+    loaded = load_rescued_projection_checkpoint(
+        checkpoint_path,
+        expected_sha256=digest,
+    )
+    assert torch.equal(loaded, weight.float())
+
+    encoder = TrainableSemanticEncoder(
+        vocab_size=512,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    model = build_hira_v0_semantic_core(
+        encoder,
+        checkpoint_path,
+        expected_sha256=digest,
+        hira=HIRACore(d_model=256, dropout=0.0),
+    )
+    assert model.symmetric_semantic_scorer is not None
+    assert model.symmetric_semantic_scorer.trainable_parameter_count == 0
+    assert torch.equal(
+        model.symmetric_semantic_scorer.projection.weight.detach().cpu(),
+        weight.float(),
     )
