@@ -317,6 +317,13 @@ def _domain_gate(
             "FULL_TRIPLICATE": 3,
             "FIELD_ISOLATED": 3,
         }
+        and accounting["primitive_fields"] == {
+            "diagnosis": ["intent"],
+            "response": ["severity"],
+            "needs_review": ["severity", "confidence"],
+            "risk": ["severity"],
+            "urgency": ["severity", "confidence"],
+        }
         and float(control["triplicate_prediction_identity_rate"]) == 1.0
         and float(control["triplicate_max_semantic_logit_diff"]) <= 1e-5
         and max(
