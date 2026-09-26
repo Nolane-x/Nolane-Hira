@@ -40,6 +40,7 @@ def include_file(path: Path, root: Path, out_dir: Path) -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path("."))
+    parser.add_argument("--t0-dir", type=Path, required=True)
     parser.add_argument("--train-dir", type=Path, required=True)
     parser.add_argument("--confirm-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
@@ -65,6 +66,7 @@ def main() -> None:
                 zf.write(path, Path("repo") / path.relative_to(root))
 
         for source_dir, prefix in (
+            (args.t0_dir.resolve(), Path("base") / "W28-T0"),
             (args.train_dir.resolve(), Path("authority") / "train"),
             (args.confirm_dir.resolve(), Path("authority") / "confirm"),
         ):
@@ -79,14 +81,15 @@ def main() -> None:
         f"{file_sha256(archive)}  {archive.name}",
         f"{file_sha256(handoff_out)}  {handoff_out.name}",
     ]
-    for directory, label in (
-        (args.train_dir.resolve(), "train"),
-        (args.confirm_dir.resolve(), "confirm"),
+    for directory, prefix in (
+        (args.t0_dir.resolve(), "base/W28-T0"),
+        (args.train_dir.resolve(), "authority/train"),
+        (args.confirm_dir.resolve(), "authority/confirm"),
     ):
         for path in sorted(directory.rglob("*")):
             if path.is_file():
                 lines.append(
-                    f"{file_sha256(path)}  authority/{label}/{path.relative_to(directory).as_posix()}"
+                    f"{file_sha256(path)}  {prefix}/{path.relative_to(directory).as_posix()}"
                 )
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
