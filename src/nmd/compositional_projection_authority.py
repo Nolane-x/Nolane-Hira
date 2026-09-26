@@ -112,7 +112,7 @@ FACTOR_DEFINITIONS = {
         (
             "Choose the capability-retained side when the important service function remains practically usable for the central task.",
             "This side means major functionality is still available despite any disruption.",
-            "Use this side when users can still depend on the core capability.",
+            "Use this side when the principal service function remains dependable for practical completion.",
         ),
         (
             "Choose the capability-lost side when an important function is unavailable enough to prevent the central task from being completed normally.",
@@ -157,20 +157,20 @@ REFERENCE_HYPOTHESES = {
         "Normal workflow is materially disrupted and requires a workaround, alternate path, or meaningful adaptation.",
     ),
     "F1": (
-        "The important service capability remains practically available for the central task.",
+        "The principal service function is still usable enough to complete the central activity.",
         "An important service capability is unavailable enough to block the central task.",
     ),
     "U": (
-        "A short response delay remains acceptable before intervention begins.",
-        "Intervention must begin immediately and cannot tolerate a meaningful delay.",
+        "Intervention may begin after a brief interval without violating the timing requirement.",
+        "Action has to start at once because the situation permits no meaningful waiting period.",
     ),
     "C": (
-        "A brief delay does not create an immediate serious consequence.",
-        "A brief delay creates a serious near-term consequence.",
+        "Waiting for a short interval does not produce a serious near-term consequence.",
+        "Waiting for a short interval produces a serious near-term consequence.",
     ),
     "F2": (
-        "The situation is not an immediate critical no-delay event.",
-        "The situation is an immediate critical no-delay event.",
+        "The case does not meet the combined condition of zero-delay timing and immediate critical consequence.",
+        "The case meets the combined condition of zero-delay timing and immediate critical consequence.",
     ),
 }
 
