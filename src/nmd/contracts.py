@@ -45,3 +45,6 @@ class CompiledSchema:
     question_content_token_mask: torch.Tensor | None = None
     option_token_ids: torch.Tensor | None = None
     option_content_token_mask: torch.Tensor | None = None
+    option_view_token_embeddings: torch.Tensor | None = None
+    option_view_token_mask: torch.Tensor | None = None
+    option_view_mask: torch.Tensor | None = None
