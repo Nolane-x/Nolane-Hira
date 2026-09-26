@@ -1,6 +1,6 @@
 # R8-W28 handoff — compositional-authority projection-rescue replication
 
-Status: **PRE-EXPOSURE PREREGISTRATION. No EN-EV reference/A13/HIRA materialization exists.**
+Status: **REFERENCE QUALIFIED. EN/EO are permanently exposed reference-only; primary F0/F1/U/C + composed-F2 authority passed 2/2. EP-EV remain unexposed.**
 
 Issue: #145
 
@@ -452,7 +452,7 @@ Completed:
 - W28 partitions/seeds/reference/rescue gates frozen in this handoff.
 
 Exposure:
-**NONE.**
+**EN/EO permanently exposed reference-only by run `36237568223`. EP-EV remain unexposed.**
 
 Next:
 1. implement W28 fresh authority generator;
@@ -468,3 +468,99 @@ Next:
 11. proceed to HIRA only if qualification passes.
 
 A future AI must update this file after every meaningful W28 session.
+
+
+---
+
+## 18. Frozen W28 reference qualification
+
+Pre-exposure scientific head:
+`a5f19a204bf98795821730e614af6d8fa13f4c6f`
+
+Pre-exposure gates:
+- W28 unit `36237376033`: PASS;
+- repository CI `36237378103`: PASS on Python 3.10 and 3.12.
+
+Qualification trigger head:
+`44e7e52029937a07cb9d45390f1ffb53a78119a6`
+
+Reference-only qualification run:
+`36237568223`
+
+Artifact:
+- ID `10904409537`;
+- digest `sha256:c4b9735062cdc2c051b7e84b2b1f7f401cae49dc70eda527a0e660a4bff270a8`.
+
+Frozen qualification outcome:
+
+**`W28_REFERENCE_QUALIFIED`**
+
+Per-domain:
+- EN: PASS;
+- EO: PASS.
+
+No A13/HIRA/T0/T1 was materialized or executed during qualification.
+
+## 19. Qualification metrics
+
+Panel consensus on both EN and EO:
+
+- F0 top1 **100%**, balanced accuracy **100%**;
+- F1 top1 **100%**, balanced accuracy **100%**;
+- U top1 **100%**, balanced accuracy **100%**;
+- C top1 **100%**, balanced accuracy **100%**;
+- deterministic composed F2 = U AND C:
+  - top1 **100%**;
+  - balanced accuracy **100%**;
+  - positive recall **100%**;
+  - negative recall **100%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+Cross-model agreement:
+
+EN:
+- F0 **100%**;
+- F1 **96.875%**;
+- U **100%**;
+- C **100%**.
+
+EO:
+- F0 **100%**;
+- F1 **94.792%**;
+- U **100%**;
+- C **100%**.
+
+All frozen qualification gates pass.
+
+## 20. Direct-F2 diagnostic
+
+Direct F2 remains weak despite perfect atomic authority.
+
+EN direct F2 panel:
+- top1 **71.875%**;
+- balanced accuracy **52.083%**;
+- positive recall **12.500%**;
+- negative recall **91.667%**;
+- CE agreement **73.958%**.
+
+EO direct F2 panel:
+- top1 **72.917%**;
+- balanced accuracy **52.778%**;
+- positive recall **12.500%**;
+- negative recall **93.056%**;
+- CE agreement **68.750%**.
+
+This independently replicates W27's packaging diagnosis and further justifies using compositional U/C as the primary F2 authority.
+
+## 21. Authorization after qualification
+
+Because EN/EO qualification passed:
+
+- EP-ES TRAIN and ET DEV may now materialize;
+- exact W25 T0/T1 recipe may execute;
+- T0/T1 must freeze independently on ET;
+- EU/EV remain sealed until both freeze receipts exist;
+- reference outputs remain forbidden as HIRA training targets;
+- every rescue/CONFIRM gate remains exactly as preregistered above.
+
+No HIRA result exists yet.
