@@ -1,0 +1,85 @@
+name: r8-w26-reference-qualification
+
+on:
+  push:
+    branches:
+      - feat/r8-w26-qualified-projection-replication
+    paths:
+      - "research/R8-W26-ENABLE-QUALIFICATION"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w26-reference-qualification-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen reference stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark first W26 EA-EB reference exposure
+        run: echo R8_W26_EA_EB_REFERENCE_QUALIFICATION_EXPOSURE_BEGIN
+      - name: Run reference-only qualification
+        run: |
+          python scripts/r8_w26_qualify_reference.py --out artifacts/w26-qualification
+      - name: Verify qualification artifact integrity
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w26-qualification/qualification.json"))
+          assert x["schema_version"] == "r8-w26-reference-qualification-v1"
+          assert x["status"] == "PASS"
+          assert x["qualification_status"] in {"PASS","FAIL"}
+          assert x["outcome"] in {
+              "REFERENCE_QUALIFIED",
+              "W26_REFERENCE_QUALIFICATION_FAIL",
+          }
+          assert x["case_count"] == 192
+          assert x["domains"] == ["EA","EB"]
+          assert x["a13_materialized"] is False
+          assert x["hira_materialized"] is False
+          assert x["hira_train_dev_confirm_materialized"] is False
+          assert x["reference_outputs_used_as_hira_training_targets"] is False
+          assert x["qualification_rows_used_for_hira_selection"] is False
+          assert x["prior_exact_text_overlap"] == []
+          assert x["query_schema_exact_sentence_overlap"] == []
+          assert x["actual_reference_weight_sha256"]["deberta_nli"] == "d8148c6d49e0a7925134294c56326c71fe0ab1dc390e37355e00c7efbb488afa"
+          assert x["actual_reference_weight_sha256"]["roberta_nli"] == "efc90996d2ed80123c26c9091c91385ffddc6d2fd0b2bacf3187fbd6c5b87953"
+          assert x["w25_rows_used"] is False
+          assert x["w24_rows_used"] is False
+          assert x["w23_rows_used"] is False
+          assert x["w22_rows_used"] is False
+          assert x["w21_rows_used"] is False
+          assert x["w20_rows_used"] is False
+          assert x["w19_rows_used"] is False
+          assert x["w18_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          summary={
+              "qualification_status":x["qualification_status"],
+              "outcome":x["outcome"],
+              "qualification_per_domain":x["qualification_per_domain"],
+          }
+          print("W26_QUALIFICATION_SUMMARY="+json.dumps(summary,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w26-reference-qualification
+          path: artifacts/w26-qualification
+          if-no-files-found: error
+          retention-days: 90
