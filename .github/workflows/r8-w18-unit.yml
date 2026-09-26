@@ -1,0 +1,59 @@
+name: r8-w18-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w18-latent-typed-composition
+    paths:
+      - "src/nmd/latent_composition_authority.py"
+      - "src/nmd/latent_composition_cache.py"
+      - "src/nmd/latent_composition_eval.py"
+      - "scripts/r8_w18_build_cache.py"
+      - "scripts/r8_w18_evaluate.py"
+      - "tests/test_latent_composition.py"
+      - "research/R8-W18-HANDOFF.md"
+      - "research/R8-W18-PRIOR-ART.md"
+      - ".github/workflows/r8-w18-unit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w18-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W18 stack
+        run: |
+          python -m py_compile \
+            src/nmd/latent_composition_authority.py \
+            src/nmd/latent_composition_cache.py \
+            src/nmd/latent_composition_eval.py \
+            scripts/r8_w18_build_cache.py \
+            scripts/r8_w18_evaluate.py
+      - name: Run W18 contracts
+        run: pytest -q tests/test_latent_composition.py
+      - name: Preflight freshness without materialization
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from nmd.latent_composition_authority import all_w18_text_atoms
+          spec=importlib.util.spec_from_file_location("w18build","scripts/r8_w18_build_cache.py")
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          overlap=all_w18_text_atoms() & mod.prior_text_atoms()
+          assert not overlap, sorted(overlap)
+          print("w18_preflight_fresh")
+          PY

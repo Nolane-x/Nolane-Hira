@@ -1,0 +1,216 @@
+name: r8-w18-latent-composition-authority
+
+on:
+  push:
+    branches:
+      - feat/r8-w18-latent-typed-composition
+    paths:
+      - ".github/workflows/r8-w18-latent-composition-authority.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w18-authority-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile frozen W18 stack
+        run: |
+          python -m py_compile \
+            src/nmd/latent_composition_authority.py \
+            src/nmd/latent_composition_cache.py \
+            src/nmd/latent_composition_eval.py \
+            scripts/r8_w18_build_cache.py \
+            scripts/r8_w18_evaluate.py
+      - name: Run frozen W18 contracts
+        run: pytest -q tests/test_latent_composition.py
+      - name: Verify freshness preflight
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from nmd.latent_composition_authority import all_w18_text_atoms
+          spec=importlib.util.spec_from_file_location("w18build","scripts/r8_w18_build_cache.py")
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          assert not (all_w18_text_atoms() & mod.prior_text_atoms())
+          print("w18_authority_preflight_pass")
+          PY
+
+  upstream:
+    needs: unit
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact W9 freeze artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .digest)" = "sha256:6f0eee6ae58d489f0486372f0311e0f420065a0d9499185af7904377ae6a4712"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10858424139 --jq .expired)" = "false"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w9-freeze
+          path: inputs/w9
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36122220588
+      - name: Verify W9 projection-semantic provenance
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("inputs/w9")
+          x=json.loads((root/"freeze.json").read_text())
+          assert x["schema_version"] == "r8-w9-freeze-v1"
+          assert x["status"] == "PASS"
+          rows={r["candidate"]:r for r in x["candidates"]}
+          row=rows["projection-semantic-control"]
+          assert row["scorer_sha256"] == "8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          checkpoint=root/row["checkpoint_dir"]
+          def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+          assert sha(checkpoint/"hira.pt") == "d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588"
+          assert sha(checkpoint/"scorer.pt") == "8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          print("w18_upstream_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w18-frozen-w9-checkpoints
+          path: inputs/w9
+          if-no-files-found: error
+          retention-days: 14
+
+  cache:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen cache stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research]"
+      - name: Mark first eligible W18 exposure
+        run: echo R8_W18_CR_CU_A13_EXPOSURE_BEGIN
+      - name: Build fresh CR-CS-CT-CU isolated-field cache
+        run: |
+          python scripts/r8_w18_build_cache.py --out artifacts/w18-cache
+          cat artifacts/w18-cache/receipt.json
+      - name: Verify fresh cache receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w18-cache/receipt.json"))
+          assert x["schema_version"] == "r8-w18-cache-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["case_count"] == 384
+          assert x["decision_count"] == 1920
+          assert x["domains"] == ["CR","CS","CT","CU"]
+          assert x["prior_exact_text_overlap"] == []
+          assert x["training_performed"] is False
+          assert x["selection_performed"] is False
+          assert x["trainable_parameter_count"] == 0
+          assert x["logical_state_compiles_per_case"] == 1
+          assert x["a13_invocations_per_case"] == 1
+          assert x["encoded_sequences_per_case"] == 3
+          assert x["w17_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print("w18_cache_verified")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w18-fresh-cache
+          path: artifacts/w18-cache
+          if-no-files-found: error
+          retention-days: 30
+
+  evaluate:
+    needs: [upstream, cache]
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w18-frozen-w9-checkpoints
+          path: inputs/w9
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w18-fresh-cache
+          path: inputs/cache
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen evaluation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]"
+      - name: Evaluate atomic extraction and deterministic composition
+        run: |
+          python scripts/r8_w18_evaluate.py \
+            --cache inputs/cache/w18.pt \
+            --w9-freeze inputs/w9/freeze.json \
+            --w9-checkpoints inputs/w9 \
+            --out artifacts/w18-audit
+          cat artifacts/w18-audit/audit.json
+      - name: Verify frozen W18 audit
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w18-audit/audit.json"))
+          assert x["schema_version"] == "r8-w18-audit-v1"
+          assert x["status"] == "PASS"
+          assert x["training_performed"] is False
+          assert x["selection_performed"] is False
+          assert x["trainable_parameter_count"] == 0
+          assert x["reference_model"] == "sentence-transformers/all-MiniLM-L6-v2"
+          assert x["reference_revision"] == "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+          assert x["reference_weight_sha256"] == "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
+          assert x["reference_is_hira_candidate"] is False
+          assert x["w9_hira_sha256"] == "d1d3359b01f0ef863de226bf51144c295eebafdeae6245fdd6d68d1db22b2588"
+          assert x["w9_scorer_sha256"] == "8078acd153be4cadf109713faa1efede0c58c31397f41db7f5aff3a12ab74102"
+          assert set(x["per_domain"]) == {"CR","CS","CT","CU"}
+          assert all(v == 1.0 for v in x["oracle_accuracy_per_domain"].values())
+          assert x["outcome"] in {
+              "STABLE_TYPED_COMPOSITION_LOCALIZATION",
+              "MIXED_TYPED_COMPOSITION_LOCALIZATION",
+              "TYPED_COMPOSITION_UNRESOLVED",
+          }
+          assert x["w17_rows_used"] is False
+          assert x["banking77_rows_used"] is False
+          assert x["typed_decisions_final_or_test_used"] is False
+          assert x["campaign_cells_populated"] == 0
+          print(x["outcome"], x["stable_classification"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w18-authoritative-audit
+          path: artifacts/w18-audit
+          if-no-files-found: error
+          retention-days: 90
