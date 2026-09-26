@@ -232,14 +232,18 @@ def generate_all_w19() -> tuple[LatentOrdinalAuthorityCase, ...]:
     rows = []
     for domain_id in DOMAINS_ORDER:
         context = DOMAIN_CONTEXT[domain_id]
+        rng = random.Random(DOMAIN_SEEDS[domain_id])
         for severity in range(4):
             for confidence in range(3):
+                confidence_variants = list(range(6))
+                rng.shuffle(confidence_variants)
                 for variant in range(6):
+                    confidence_variant = confidence_variants[variant]
                     severity_text = (
                         f"In this {context}, {SEVERITY_FIELD_PHRASES[severity][variant]}"
                     )
                     confidence_text = (
-                        f"For this {context}, {CONFIDENCE_FIELD_PHRASES[confidence][variant]}"
+                        f"For this {context}, {CONFIDENCE_FIELD_PHRASES[confidence][confidence_variant]}"
                     )
                     rows.append(
                         LatentOrdinalAuthorityCase(
