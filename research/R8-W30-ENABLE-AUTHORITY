@@ -1,0 +1,31 @@
+R8-W30 AUTHORITY ENABLED
+
+This marker authorizes the first preregistered W30 empirical execution.
+
+Frozen before exposure:
+- base main: bc8827d3a86a7ade940e6d66ea72287aa6d624f9
+- issue: #149
+- PR: #150
+- W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- bridge rank: 8
+- bridge trainable parameters: 2048
+- seed: 3011
+- epochs: 12
+- batch size: 32
+- AdamW lr: 3e-4
+- weight decay: 0.01
+- grad clip: 1.0
+- training temperature: 0.07
+- TRAIN domains: FA, FB, FC, FD
+- DEV domain: FE
+- SEALED CONFIRM domains: FF, FG
+
+Evidence firewall:
+- W29 EW/EX/EY/EZ forbidden for fitting/selection
+- W28 and older exposed rows forbidden for fitting/selection
+- Banking77 final/test forbidden
+- typed final/test forbidden
+- Laya/JEV result cells forbidden
+- CONFIRM is forbidden for training or selection
+
+This marker must not be edited after the first authority run begins.
