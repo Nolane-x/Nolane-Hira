@@ -1,0 +1,14 @@
+W28 reference qualification enabled only after exact-head pre-exposure gates passed.
+
+Pre-exposure head:
+a5f19a204bf98795821730e614af6d8fa13f4c6f
+
+W28 unit:
+36237376033 — PASS.
+
+Repository CI:
+36237378103 — PASS on Python 3.10 and 3.12.
+
+Creating this marker authorizes the first preregistered EN/EO reference-only
+exposure under the frozen W28 protocol. No post-exposure wording, reference,
+composition rule, partition, seed, or gate change is permitted.
