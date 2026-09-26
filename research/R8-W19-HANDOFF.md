@@ -1,6 +1,6 @@
 # R8-W19 handoff — latent ordinal-axis recoverability decomposition
 
-Status: **PRE-DIAGNOSTIC. No CV/CW/CX/CY A13/reference cache or W19 result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `LATENT_AXIS_UNRESOLVED`; CV/CW/CX/CY are all `W19_REFERENCE_INADEQUATE`.**
 
 Issue: #125
 
@@ -352,3 +352,190 @@ Next:
 11. merge only clean closure.
 
 A future AI must update this file after every meaningful W19 session.
+
+
+---
+
+## 15. Authoritative W19 closure
+
+Exact verdict-bearing head:
+`28d5a004348e62e5ee6d8e87bef9a698286a18f2`
+
+Authority run:
+`36214486773`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 upstream provenance;
+- fresh CV/CW/CX/CY cache;
+- pinned MiniLM matched multiview reference;
+- frozen HIRA flat/ordinal evaluation;
+- frozen per-domain classifier/outcome.
+
+Artifacts:
+- frozen W9 bundle: `10897515042`;
+  digest `sha256:70674e6475e496416620c2cd5913bf484bebb8d1b0fd42fc53dbd5a7672c01df`;
+- fresh W19 cache: `10896868113`;
+  digest `sha256:a60f5aa62282cd08bf6db2f8b889949a07a18eff9b88a1257f12e09c1cf29806`;
+- authoritative W19 audit: `10896788580`;
+  digest `sha256:84c1b420c2055a4994ddabedbc13d58b9abc3cc624b6624e786340d1fe2f1c19`.
+
+Integrity:
+- 288 cases;
+- 72/domain;
+- severity balance 18/class/domain;
+- confidence balance 24/class/domain;
+- one logical state compile/case;
+- one batched A13 state invocation/case;
+- exactly two encoded isolated sequences/case;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- probability-mass max error <= `2.220446049250313e-16`;
+- no W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 16. Frozen verdict
+
+Overall:
+
+**`LATENT_AXIS_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Per-domain:
+- CV -> `W19_REFERENCE_INADEQUATE`;
+- CW -> `W19_REFERENCE_INADEQUATE`;
+- CX -> `W19_REFERENCE_INADEQUATE`;
+- CY -> `W19_REFERENCE_INADEQUATE`.
+
+Classification counts:
+- `W19_REFERENCE_INADEQUATE`: 4/4.
+
+No production W20 typed-kernel integration is authorized by W19.
+
+## 17. Pooled HIRA result
+
+Flat categorical:
+- severity top1 **50.000%**;
+- severity MAE **0.7396**;
+- confidence top1 **48.611%**;
+- confidence MAE **0.7500**;
+- joint severity+confidence **24.306%**.
+
+Cumulative ordinal:
+- severity hard **23.958%**;
+- severity soft top1 **33.333%**;
+- severity MAE **1.2188**;
+- severity monotonicity **81.250%**;
+- confidence hard **40.278%**;
+- confidence soft top1 **41.667%**;
+- confidence MAE **0.8333**;
+- confidence monotonicity **98.611%**;
+- joint severity+confidence **9.722%**.
+
+Threshold anatomy:
+- severity T1 **79.167%**;
+- severity T2 **52.083%**;
+- severity T3 **38.542%**;
+- confidence T1 **75.000%**;
+- confidence T2 **41.667%**.
+
+Transitions from flat -> ordinal:
+- severity wrong->right **12.500%**;
+- severity right->wrong **38.542%**;
+- confidence wrong->right **6.944%**;
+- confidence right->wrong **15.278%**.
+
+Thus the frozen ordinal candidate is not a HIRA rescue on this authority.
+
+## 18. Pinned MiniLM reference result
+
+Flat:
+- severity **39.583%**;
+- confidence **79.167%**;
+- joint **31.944%**.
+
+Ordinal:
+- severity hard **31.250%**;
+- severity soft top1 **25.000%**;
+- severity monotonicity **76.042%**;
+- confidence hard **50.000%**;
+- confidence soft top1 **33.333%**;
+- confidence monotonicity **91.667%**;
+- joint **16.667%**.
+
+Reference threshold anatomy:
+- severity T1 **78.125%**;
+- severity T2 **50.000%**;
+- severity T3 **66.667%**;
+- confidence T1 **90.278%**;
+- confidence T2 **51.389%**.
+
+Frozen reference gates required:
+- ordinal severity >=90%;
+- ordinal confidence >=90%;
+- severity monotonicity >=95%;
+- confidence monotonicity >=97%.
+
+The reference misses every adequacy gate by a large margin. Therefore W19 cannot causally classify flat-vs-ordinal interface choice for HIRA.
+
+## 19. Scientific interpretation
+
+The strongest defensible W19 conclusion is:
+
+> Cumulative threshold decomposition does not rescue the fresh latent fields under the frozen W19 interface. The failure is not HIRA-specific: the pinned MiniLM reference also fails ordinal decoding and monotonicity badly, especially at the upper severity/certainty boundaries. Therefore the experiment does not establish an ordinal-interface limitation or a latent-axis extraction limitation in HIRA.
+
+A descriptive pattern is still useful:
+- lower thresholds are materially easier than upper thresholds;
+- confidence T1 is much easier than confidence T2;
+- severity T1 is much easier than severity T2/T3;
+- HIRA confidence threshold predictions are nearly monotone despite low decoded accuracy;
+- flat extraction is stronger than the frozen ordinal candidate on HIRA;
+- both HIRA and reference show that the current cumulative boundary semantics are not independently adequate.
+
+These observations are hypothesis-generating only.
+
+## 20. Permanent exposure after W19
+
+CV/CW/CX/CY are permanently exposed.
+
+Never reuse them for:
+- threshold wording selection;
+- flat/ordinal schema redesign;
+- gate tuning;
+- A13/W9 tuning;
+- reference selection;
+- calibration;
+- production promotion.
+
+All older forbidden evidence remains forbidden.
+
+## 21. Authorized continuation
+
+Because W19 is reference-inadequate/unresolved:
+- do **not** integrate ordinal latent extraction into production;
+- do **not** integrate the deterministic typed kernel on the basis of W19;
+- do **not** lower the frozen reference gates;
+- do **not** rewrite CV/CW/CX/CY thresholds and rerun;
+- do **not** open K32/K64 from this result.
+
+A next phase must remain diagnostic on wholly fresh domains and first establish an independently adequate latent-boundary interface.
+
+A defensible next question is narrower than W19:
+
+> Can ordered latent values be recovered through direct pairwise boundary comparisons whose positive/negative alternatives are locally contrastive and independently reference-adequate, without using cumulative-threshold count decoding?
+
+Any such phase must:
+1. preregister fresh domains and wording before exposure;
+2. retain flat W19-style control on fresh data;
+3. retain zero training for the primary diagnostic;
+4. include a pinned independent reference adequacy gate;
+5. separate boundary-identifiability from global ordinal decoding;
+6. keep CV/CW/CX/CY permanently forbidden;
+7. authorize production integration only after stable fresh-domain localization.
+
+A future AI should read this frozen W19 closure before opening the next diagnostic.
