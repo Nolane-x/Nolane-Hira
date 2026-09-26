@@ -94,43 +94,48 @@ def _reference(cache: dict):
     for case in cache["cases"]:
         texts.update(str(case["fields"][name]) for name in ("severity", "confidence"))
         schemas = case["schemas"]
-        texts.update(str(x) for x in schemas["flat_severity"]["D0"]["option_texts"])
-        texts.update(str(x) for x in schemas["flat_confidence"]["D0"]["option_texts"])
-        for views in schemas["severity_thresholds"]:
-            texts.update(str(x) for x in views["D0"]["option_texts"])
-        for views in schemas["confidence_thresholds"]:
-            texts.update(str(x) for x in views["D0"]["option_texts"])
+        for view_id in ("D0", "D1", "D2"):
+            texts.update(str(x) for x in schemas["flat_severity"][view_id]["option_texts"])
+            texts.update(str(x) for x in schemas["flat_confidence"][view_id]["option_texts"])
+            for views in schemas["severity_thresholds"]:
+                texts.update(str(x) for x in views[view_id]["option_texts"])
+            for views in schemas["confidence_thresholds"]:
+                texts.update(str(x) for x in views[view_id]["option_texts"])
     emb = _embeddings(model, tokenizer, sorted(texts))
 
-    def scores(state_text: str, option_texts) -> list[float]:
+    def scores(state_text: str, option_texts) -> torch.Tensor:
         state = emb[str(state_text)]
         options = torch.stack([emb[str(text)] for text in option_texts], dim=0)
-        return [float(x) for x in torch.einsum("d,kd->k", state, options)]
+        return torch.einsum("d,kd->k", state, options)
+
+    def multiview_scores(state_text: str, views) -> list[float]:
+        logits = torch.stack(
+            [
+                scores(state_text, views[view_id]["option_texts"])
+                for view_id in ("D0", "D1", "D2")
+            ],
+            dim=0,
+        ).mean(dim=0)
+        return [float(x) for x in logits]
 
     lookup = {}
     for case in cache["cases"]:
         schemas = case["schemas"]
         lookup[str(case["case_id"])] = {
-            "flat_severity": scores(
+            "flat_severity": multiview_scores(
                 str(case["fields"]["severity"]),
-                schemas["flat_severity"]["D0"]["option_texts"],
+                schemas["flat_severity"],
             ),
-            "flat_confidence": scores(
+            "flat_confidence": multiview_scores(
                 str(case["fields"]["confidence"]),
-                schemas["flat_confidence"]["D0"]["option_texts"],
+                schemas["flat_confidence"],
             ),
             "severity_thresholds": [
-                scores(
-                    str(case["fields"]["severity"]),
-                    views["D0"]["option_texts"],
-                )
+                multiview_scores(str(case["fields"]["severity"]), views)
                 for views in schemas["severity_thresholds"]
             ],
             "confidence_thresholds": [
-                scores(
-                    str(case["fields"]["confidence"]),
-                    views["D0"]["option_texts"],
-                )
+                multiview_scores(str(case["fields"]["confidence"]), views)
                 for views in schemas["confidence_thresholds"]
             ],
         }
