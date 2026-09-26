@@ -1,0 +1,18 @@
+R8-W26 reference qualification enabled after exact implementation gate.
+
+Frozen implementation head:
+14cac0a2b45abffabcd5017f12e0d39b7b63ded2
+
+Pre-exposure unit:
+36232911330
+PASS
+
+Repository CI:
+36232913793
+PASS
+
+This marker changes no authority wording, reference model, gate, HIRA candidate,
+optimizer recipe, or data partition. It only triggers the preregistered
+reference-only EA/EB qualification workflow.
+
+EC-EI materialization remains forbidden unless EA and EB qualification pass.
