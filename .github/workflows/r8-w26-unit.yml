@@ -9,7 +9,7 @@ on:
       - "scripts/r8_w26_*.py"
       - "tests/test_projection_replication.py"
       - "research/R8-W26-HANDOFF.md"
-      - ".github/workflows/r8-w26-unit.yml"
+      - ".github/workflows/r8-w26-*.yml"
 
 permissions:
   contents: read
