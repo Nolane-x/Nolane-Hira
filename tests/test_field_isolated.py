@@ -140,6 +140,13 @@ def _metrics_fixture(*, identity: float = 1.0, iso_k16: float = 0.72):
             "FULL_TRIPLICATE": 3,
             "FIELD_ISOLATED": 3,
         },
+        "primitive_fields": {
+            "diagnosis": ["intent"],
+            "response": ["severity"],
+            "needs_review": ["severity", "confidence"],
+            "risk": ["severity"],
+            "urgency": ["severity", "confidence"],
+        },
     }
     neutral = {"probability_mass_max_error": 0.0}
     return {
