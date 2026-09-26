@@ -100,7 +100,6 @@ jobs:
           retention-days: 14
 
   train_dev_cache:
-    if: ${{ false }}
     needs: unit
     runs-on: ubuntu-latest
     timeout-minutes: 240
@@ -377,6 +376,8 @@ jobs:
           assert set(x["per_domain"]) == {"DY","DZ"}
           assert all(v["integrity"] for v in x["per_domain"].values())
           assert set(x["evaluations"]) == {"A0","P0","Q0","Q1","T0","T1"}
+          assert "bce" in x["evaluations"]["Q0"]["pooled"]
+          assert "bce" in x["evaluations"]["Q1"]["pooled"]
           assert x["actual_reference_weight_sha256"] == "d8148c6d49e0a7925134294c56326c71fe0ab1dc390e37355e00c7efbb488afa"
           assert x["confirm_materialized_after_all_candidate_freezes"] is True
           assert x["a13_frozen_all_paths"] is True
