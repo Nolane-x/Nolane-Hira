@@ -1,6 +1,6 @@
 # R8-W20 handoff — local pairwise latent-boundary recoverability
 
-Status: **PRE-DIAGNOSTIC. No CZ/DA/DB/DC A13/reference cache or W20 empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `LATENT_BOUNDARY_UNRESOLVED`; CZ/DA/DB/DC are all `W20_REFERENCE_INADEQUATE`.**
 
 Issue: #127
 
@@ -401,7 +401,7 @@ Never use for W20 tuning:
 - typed final/test;
 - public campaign cells.
 
-## 18. Current execution state
+## 18. Pre-exposure execution state (historical)
 
 Completed:
 - W19 closure merged to main;
@@ -431,3 +431,200 @@ Next:
 12. freeze results here before merge.
 
 A future AI must update this file after every meaningful W20 session.
+
+
+---
+
+## 19. Authoritative W20 closure
+
+Exact verdict-bearing head:
+`85d9496c31bbdbe7a93268a50c21c54bf06c9001`
+
+Authority run:
+`36217155264`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 upstream provenance;
+- fresh CZ/DA/DB/DC two-field cache;
+- frozen HIRA flat/pairwise evaluation;
+- pinned MiniLM matched pairwise reference;
+- option-order swap controls;
+- frozen per-domain classifier/outcome.
+
+Artifacts:
+- frozen W9 bundle: `10897728271`;
+  digest `sha256:1518bc9a5e8fdf59a61e262865187da5dba18e0cf1f32633b048e016636b83c7`;
+- fresh W20 cache: `10897043527`;
+  digest `sha256:676c92fd104626670231f3f27d030926fd71d7c5952d7197c180d5f5cc3bea26`;
+- authoritative W20 audit: `10897398301`;
+  digest `sha256:23f7907f63dd127f6b03c827c1a7d37f2c50dd3f6a56b249477293f8fc35d245`.
+
+Integrity:
+- 384 cases;
+- 96/domain;
+- severity balance 24/class/domain;
+- confidence balance 32/class/domain;
+- one logical state compile/case;
+- one batched A13 invocation/case;
+- exactly two isolated sequences/case;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- pairwise probability-mass max error <= `1.1920928955078125e-07`;
+- HIRA option-order swap identity = 1.0 on every pooled boundary;
+- reference option-order swap identity = 1.0 on every pooled boundary;
+- no W19 rows;
+- no W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 20. Frozen verdict
+
+Overall:
+
+**`LATENT_BOUNDARY_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Per-domain:
+- CZ -> `W20_REFERENCE_INADEQUATE`;
+- DA -> `W20_REFERENCE_INADEQUATE`;
+- DB -> `W20_REFERENCE_INADEQUATE`;
+- DC -> `W20_REFERENCE_INADEQUATE`.
+
+Classification counts:
+- `W20_REFERENCE_INADEQUATE`: 4/4.
+
+No production latent-interface or deterministic typed-kernel integration is authorized by W20.
+
+## 21. Pooled HIRA result
+
+Matched flat local slices:
+
+Severity:
+- S0/S1 **59.375%**;
+- S1/S2 **81.250%**;
+- S2/S3 **75.000%**;
+- mean **71.875%**.
+
+Confidence:
+- C0/C1 **64.063%**;
+- C1/C2 **92.188%**;
+- mean **78.125%**.
+
+Local pairwise interface:
+
+Severity:
+- S0/S1 **71.875%**;
+- S1/S2 **62.500%**;
+- S2/S3 **50.000%**;
+- mean **61.458%**.
+
+Confidence:
+- C0/C1 **81.250%**;
+- C1/C2 **68.750%**;
+- mean **75.000%**.
+
+Thus pairwise-vs-flat-local mean change is:
+- severity **-10.417 pp**;
+- confidence **-3.125 pp**.
+
+Boundary-specific changes are heterogeneous:
+- S0/S1: **+12.500 pp**;
+- S1/S2: **-18.750 pp**;
+- S2/S3: **-25.000 pp**;
+- C0/C1: **+17.188 pp**;
+- C1/C2: **-23.438 pp**.
+
+Secondary global pairwise reconstruction:
+- severity top1 **28.125%**;
+- confidence top1 **69.792%**;
+- joint severity+confidence **19.531%**.
+
+The global reconstruction is descriptive only and cannot rescue failed local/reference gates.
+
+## 22. Pinned MiniLM reference result
+
+Local pairwise boundaries:
+
+Severity:
+- S0/S1 **57.813%**;
+- S1/S2 **65.625%**;
+- S2/S3 **57.813%**;
+- mean **60.417%**.
+
+Confidence:
+- C0/C1 **81.250%**;
+- C1/C2 **59.375%**;
+- mean **70.313%**.
+
+Matched reference flat-local means:
+- severity **65.104%**;
+- confidence **71.875%**.
+
+Frozen reference gate required **every individual local boundary >=90%** plus swap identity >=.99.
+
+Swap integrity passes perfectly, but semantic boundary adequacy fails by a large margin on every severity boundary and on both confidence boundaries.
+
+Therefore W20 cannot causally classify the HIRA pairwise interface.
+
+## 23. Scientific interpretation
+
+The strongest defensible conclusion is:
+
+> Direct adjacent-class comparison does not solve the latent-boundary problem under the frozen W20 semantics. The failure is not HIRA-specific: the pinned independent MiniLM reference also fails the same local-boundary adequacy authority. Perfect option-order invariance rules out candidate ordering as the explanation. The experiment therefore does not establish either a HIRA latent-boundary extraction limit or a local-pairwise interface rescue.
+
+Descriptively:
+- local pairwise framing helps the lowest severity/certainty boundary in HIRA;
+- the same framing materially damages the upper HIRA boundaries;
+- abstract upper-boundary semantics remain difficult for the reference as well;
+- cumulative ordinal decoding was not the sole cause of W19 failure;
+- candidate-position artifacts are not responsible;
+- direct abstract class/boundary prose is now the repeated common weakness across W18-W20.
+
+These observations are hypothesis-generating only.
+
+## 24. Permanent exposure after W20
+
+CZ/DA/DB/DC are permanently exposed.
+
+Never reuse them for:
+- pair wording selection;
+- exemplar/prototype selection;
+- gate tuning;
+- A13/W9 tuning;
+- reference selection;
+- calibration;
+- production promotion.
+
+All older forbidden evidence remains forbidden.
+
+## 25. Authorized continuation
+
+Because W20 is reference-inadequate/unresolved:
+- do **not** integrate pairwise latent extraction into production;
+- do **not** integrate the deterministic typed kernel on the basis of W20;
+- do **not** lower the frozen reference gates;
+- do **not** rewrite CZ/DA/DB/DC pair definitions and rerun;
+- do **not** open K32/K64 from this result.
+
+A next phase should stop asking whether another abstract wording/decode rule alone fixes the same authority.
+
+A narrower defensible next question is:
+
+> Can latent classes/boundaries become independently recoverable when semantic meaning is grounded by multiple concrete, lexically disjoint prototype exemplars rather than abstract class prose?
+
+Any such continuation must:
+1. use wholly fresh domains;
+2. preregister query/prototype lexical families before exposure;
+3. retain zero training in the primary diagnostic;
+4. separate prototype retrieval adequacy from downstream typed composition;
+5. retain a pinned independent reference adequacy gate;
+6. keep W20 CZ/DA/DB/DC permanently forbidden;
+7. forbid prototype/query exact-text overlap and label-token leakage;
+8. keep deterministic composition diagnostic until latent extraction is independently established.
+
+A future AI should read this frozen W20 closure before opening the next diagnostic.
