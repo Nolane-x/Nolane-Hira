@@ -1,6 +1,6 @@
 # R8-W16 handoff — matched semantic-regime transfer decomposition
 
-Status: **PRE-DIAGNOSTIC. No CG/CH/CI/CJ A13/reference cache or W16 classification exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `STABLE_REGIME_TRANSFER_LOCALIZATION`; stable target: `CONTEXTUAL_STATE_CONTAMINATION`.**
 
 Issue: #119
 
@@ -438,3 +438,302 @@ Do not enable authority until both exact-head gates are PASS.
 8. merge only a clean frozen result.
 
 A future AI must not treat current unit/CI execution as empirical evidence.
+
+
+---
+
+## 17. Authoritative W16 closure
+
+Exact empirical authority head:
+`af83c92e7f25c70f044abf38f9a64ff5503746d2`
+
+Authority run:
+`36202648911`
+
+All jobs PASS:
+- unit;
+- exact W9 upstream provenance;
+- fresh CG/CH/CI/CJ A13 cache;
+- frozen D2S/S2D/SYM evaluator;
+- pinned MiniLM reference;
+- frozen classifier/outcome.
+
+### Artifacts
+
+Frozen W9 checkpoint bundle:
+- artifact `10892338589`;
+- digest `sha256:1b9ee5ab5ee442e00e5cec664dc24c08cea74aa67bbbdb2dc667180d8007c8db`.
+
+Fresh W16 cache:
+- artifact `10892383907`;
+- digest `sha256:92056e45db26463cfc113496e6befd929beb1bd22723a18cea8cb1eeb3fc8bfd`;
+- internal cache SHA `3607bc02528f87159ad3f63ab9796f6e2830a2c7a0c6c987af3034b3b11194af`.
+
+Authoritative W16 audit:
+- artifact `10893240677`;
+- digest `sha256:3306a48b5c9081ab400a88d89ea74134ef9f162c1197470789255dccb07d174b`.
+
+### Integrity
+
+- 256 fresh bases;
+- 2,304 schema views;
+- 256 state-encoder batches;
+- exactly 512 encoded state texts = R0 + R1 only;
+- exactly 2 encoded state texts/base;
+- R2 additional encoder calls = 0;
+- prefix-token identity rate = 1.0;
+- exact-text overlap with W5-W15 = [];
+- no training;
+- no W14 rows;
+- no W15 rows;
+- no W15 CE/CF rows;
+- no Banking77 rows;
+- no typed final/test rows;
+- campaign cells = 0.
+
+Cache identity:
+- base ID SHA `ccbc4114be7a9444cb42108649df2c795ee1ed533f701b836b8d26300396c2a0`;
+- case ID SHA `30c5a150f3c1b1fb52d277c4c4278b5644e6b9655bf2f636954fe8f626d6991c`;
+- text-atom SHA `0b2b595e0d64c5f74201acf1bcf77df5e71c3e60ffda58d110d4ce3ccd9b94bc`.
+
+## 18. Frozen outcome
+
+**`STABLE_REGIME_TRANSFER_LOCALIZATION`**
+
+Stable classification:
+
+**`CONTEXTUAL_STATE_CONTAMINATION`**
+
+Classification count:
+- `CONTEXTUAL_STATE_CONTAMINATION`: **4/4** domains.
+
+This exceeds the preregistered >=3/4 stability boundary without reinterpretation.
+
+## 19. Pooled matched result
+
+### R0 — bare intent state
+
+SYM multiview:
+- K4 **90.625%**;
+- K8 **86.328%**;
+- K16 **77.734%**.
+
+D2S:
+- 87.891 / 82.031 / 71.094%.
+
+S2D:
+- 90.625 / 85.547 / 76.563%.
+
+This confirms that the fresh W16 base semantic regime itself is strong under the exact frozen W9 projection.
+
+### R1 — same state + W15-style reliability suffix
+
+SYM:
+- K4 **41.797%**;
+- K8 **25.391%**;
+- K16 **17.578%**.
+
+Thus R0 -> R1 loses:
+- **48.828 pp** K4;
+- **60.938 pp** K8;
+- **60.156 pp** K16.
+
+D2S also collapses:
+- 46.094 / 28.125 / 18.750%.
+
+S2D collapses:
+- 38.672 / 23.438 / 16.797%.
+
+Therefore the primary W16 hypothesis that the damage would be isolated mainly to S2D aggregation is falsified.
+
+### R2 — decorated sequence, exact R0 prefix scored only
+
+SYM:
+- K4 **47.266%**;
+- K8 **28.125%**;
+- K16 **18.750%**.
+
+Recovery over R1:
+- +5.469 pp K4;
+- +2.734 pp K8;
+- +1.172 pp K16.
+
+But R2 remains below R0 by:
+- 43.359 pp K4;
+- 58.203 pp K8;
+- 58.984 pp K16.
+
+Because:
+- R2 uses no suffix tokens in scoring;
+- R2 token IDs are exactly the R0 prefix token IDs;
+- R2 performs no additional encoder call;
+- R2 still uses the contextual embeddings produced when the suffix was present;
+
+the loss is localized upstream of token aggregation.
+
+## 20. Fresh-domain classifications
+
+### CG
+
+`CONTEXTUAL_STATE_CONTAMINATION`
+
+SYM:
+- R0 K4/K16: 92.188 / 85.938%;
+- R1: 43.750 / 14.063%;
+- R2: 51.563 / 14.063%.
+
+D2S R1 regression:
+- K4 40.625 pp;
+- K16 65.625 pp.
+
+S2D R1 regression:
+- K4 50.000 pp;
+- K16 67.188 pp.
+
+### CH
+
+`CONTEXTUAL_STATE_CONTAMINATION`
+
+SYM:
+- R0: 90.625 / 71.875%;
+- R1: 35.938 / 18.750%;
+- R2: 35.938 / 21.875%.
+
+### CI
+
+`CONTEXTUAL_STATE_CONTAMINATION`
+
+SYM:
+- R0: 90.625 / 81.250%;
+- R1: 37.500 / 21.875%;
+- R2: 48.438 / 23.438%.
+
+### CJ
+
+`CONTEXTUAL_STATE_CONTAMINATION`
+
+SYM:
+- R0: 89.063 / 71.875%;
+- R1: 50.000 / 15.625%;
+- R2: 53.125 / 15.625%.
+
+The same class holds independently on every domain.
+
+## 21. Reference adequacy and model specificity
+
+Pinned MiniLM reference pooled:
+
+R0:
+- K4 92.969%;
+- K8 85.156%;
+- K16 81.641%.
+
+R1:
+- K4 93.359%;
+- K8 82.422%;
+- K16 69.922%.
+
+The suffix causes only:
+- +0.391 pp at K4;
+- -2.734 pp at K8;
+- -11.719 pp at K16
+
+for the reference, versus catastrophic W9/A13 semantic-anchor drops of roughly 49-61 pp.
+
+Therefore:
+- the fresh tasks remain semantically recoverable;
+- the effect is not merely that decorated queries become intrinsically impossible;
+- the dominant failure is specific to the current A13/W9 token representation geometry.
+
+MiniLM remains diagnostic only and is not a HIRA candidate.
+
+## 22. What W16 proves and falsifies
+
+### Supported
+
+The stable evidence supports:
+
+> Adding orthogonal typed metadata to the same A13 sequence causes severe contextual contamination of the intent-bearing token representations used by the W9 semantic projection.
+
+The contamination happens before the final symmetric token aggregation.
+
+This explains a major part of the W14 -> W15 regime gap:
+- W14-like bare states preserve strong semantic geometry;
+- W15-like decorated states can destroy it even when diagnosis semantics, candidates and definitions are unchanged.
+
+### Falsified as the primary explanation
+
+**Pure extra-token/S2D mean dilution is not sufficient.**
+
+If dilution alone were dominant, R2 would recover close to R0 after suffix tokens were excluded from scoring.
+
+It does not.
+
+D2S also collapses heavily, which is only possible because the prefix state token embeddings themselves have changed under full-sequence contextualization.
+
+### Not yet proven
+
+W16 does not prove:
+- a production fix;
+- that every typed state will suffer the same contamination;
+- that A13 must be replaced;
+- that a particular representation-separation mechanism will work;
+- high-K rescue;
+- external superiority.
+
+## 23. Permanent exposed evidence
+
+CG/CH/CI/CJ are permanently exposed.
+
+Never use them for:
+- representation architecture selection;
+- field-boundary tuning;
+- attention-mask design;
+- segmentation policy selection;
+- projection tuning;
+- threshold selection;
+- checkpoint/seed selection;
+- calibration.
+
+All earlier forbidden evidence remains forbidden.
+
+## 24. Authorized continuation
+
+W16 authorizes a **fresh representation-separation mechanism authority**.
+
+The next phase must address contamination **before semantic scoring**, not merely remove suffix tokens afterward.
+
+A valid W17 should test one frozen/pre-registered representation separation strategy on wholly fresh TRAIN/DEV/dual-CONFIRM typed domains.
+
+Required conceptual controls:
+1. current full-state contextual encoding;
+2. candidate-independent multiview anchor on that full state;
+3. representation-separated state encoding for primitive-relevant fields;
+4. an equal-information control proving gains are from representation separation rather than deleting necessary state information.
+
+The most direct lane is a structured field-isolated state compiler:
+- one logical state compilation per case;
+- primitive-relevant fields encoded in isolated sequences within a single batched encoder invocation;
+- diagnosis receives intent-field semantic memory;
+- risk/response/urgency/review retain the reliability fields they require;
+- A13/projection remain frozen for the primary causal comparison.
+
+W17 must explicitly measure compute/state-once accounting because isolation must not silently become unconstrained multiple state passes.
+
+Before any W17 empirical exposure:
+- freeze exact state field schema;
+- freeze how many encoder sequences/batches are allowed;
+- freeze controls;
+- freeze trainable parameter budget;
+- freeze fresh domains/seeds;
+- freeze DEV selection and dual-CONFIRM gates.
+
+Do not:
+- tune on CG/CH/CI/CJ;
+- reopen CE/CF;
+- merely mask final-layer tokens;
+- open K32/K64 yet;
+- replace A13 without a separate architecture question;
+- claim W15 is now solved.
+
+A future AI should read this W16 closure first, then W15/W14.
