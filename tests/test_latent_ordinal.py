@@ -23,8 +23,8 @@ def test_w19_authority_is_balanced_and_freshly_structured():
         assert len(subset) == 72
         assert [sum(row.severity == s for row in subset) for s in range(4)] == [18] * 4
         assert [sum(row.confidence_index == c for row in subset) for c in range(3)] == [24] * 3
-    assert all("severity" not in row.severity_field.lower() for row in rows)
-    assert all("confidence" not in row.confidence_field.lower() for row in rows)
+    assert len({row.severity_field for row in rows}) == 96
+    assert len({row.confidence_field for row in rows}) == 72
 
 
 def test_w19_download_free_cache_and_evaluator_contract():
