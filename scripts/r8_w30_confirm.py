@@ -14,7 +14,7 @@ from nmd.hira_v0_authority import all_w29_text_atoms
 from nmd.hira_v0_eval import reference_domain_pass_w29
 from nmd.semantic import HFAutoSemanticEncoder
 from nmd.semantic_core import W28_T0_CHECKPOINT_SHA256
-from nmd.semantic_transfer_authority import (
+from nmd.w30_transfer_authority import (
     FACTOR_IDS,
     PARTITION_DOMAINS,
     PRIMITIVES,
@@ -25,13 +25,13 @@ from nmd.semantic_transfer_authority import (
     factor_options,
     generate_w30_partition,
 )
-from nmd.semantic_transfer_cache import compile_w30_cache
+from nmd.w30_transfer_cache import compile_w30_cache
 from nmd.semantic_transfer_core import (
     W30_BRIDGE_PARAMETER_COUNT,
     build_hira_v0_transfer_core,
     load_transfer_bridge_checkpoint,
 )
-from nmd.semantic_transfer_eval import evaluate_w30_cache
+from nmd.w30_transfer_eval import evaluate_w30_cache
 from nmd.typed_competitive_cache import file_sha256
 
 A13_MODEL = "microsoft/xtremedistil-l6-h256-uncased"
