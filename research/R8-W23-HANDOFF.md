@@ -590,3 +590,214 @@ A next phase should use wholly fresh domains and preregister:
 10. no typed-kernel production integration unless fresh-domain authority becomes independently adequate.
 
 A future AI must read this frozen W23 closure before opening the next diagnostic.
+
+
+---
+
+## 16. Authoritative W23 closure
+
+Exact verdict-bearing head:
+`d7004ac62df3133d8bdafff18f35e91247738844`
+
+Authority run:
+`36223939271`
+
+Authority completed successfully:
+- frozen unit/contracts/freshness PASS;
+- exact W9 provenance PASS;
+- fresh DL/DM/DN/DO cache PASS;
+- two pinned NLI cross-encoders evaluated;
+- frozen W22 four-bi-encoder control evaluated;
+- frozen consensus/classifier PASS.
+
+Artifacts:
+- fresh W23 cache: `10900560385`;
+  digest `sha256:f0e7d8dbceaf8c0e805080e2b97b1c06fffff44fb672419428cb26f6d709a444`;
+- authoritative W23 audit: `10900272920`;
+  digest `sha256:c6013dcbb3e3e0784d8c04e3258608d02caec7b8686f3a976a7ffd6cca40074f`;
+- frozen W9 inputs: `10899903099`;
+  digest `sha256:737ab1957e34bf3ec6b6f9ab4f0be7cf6006f8d16f4a352ede75dee2828f2a57`.
+
+Integrity:
+- 384 fresh cases;
+- 96/domain;
+- exactly 3 prototypes/class;
+- one HIRA state compile/query;
+- one batched HIRA A13 query invocation/query;
+- exactly two isolated HIRA sequences/query;
+- cross-encoder revisions/hashes frozen before exposure;
+- W22 bi-encoder control frozen before exposure;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- no W22-W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 17. Frozen verdict
+
+Overall:
+
+**`AUTHORITY_REFERENCE_UNRESOLVED`**
+
+Stable HIRA classification:
+`null`.
+
+Cross-encoder-authority-adequate domains:
+**0 / 4**.
+
+Bi-encoder-family-limit domains:
+**0 / 4** because that diagnostic is only authorized on cross-encoder-authority-adequate domains.
+
+Per-domain:
+- DL -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DM -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DN -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`;
+- DO -> `W23_CROSS_ENCODER_REFERENCE_INADEQUATE`.
+
+No HIRA latent-geometry diagnosis is authorized.
+
+## 18. Pooled HIRA result
+
+Fresh abstract categorical control:
+- severity **38.281%**;
+- confidence **50.000%**;
+- joint severity+confidence **19.271%**.
+
+Prototype-grounded:
+- severity **40.625%**;
+- confidence **75.000%**;
+- joint severity+confidence **30.990%**.
+
+Relative to abstract control:
+- severity **+2.344 pp**;
+- confidence **+25.000 pp**;
+- joint **+11.719 pp**.
+
+Confidence again benefits substantially from prototype grounding.
+Severity remains weak.
+
+## 19. Cross-encoder result
+
+### DeBERTa-v3 NLI
+
+Pooled prototype:
+- severity **64.063%**;
+- confidence **100.000%**;
+- joint **64.063%**.
+
+Per-domain severity:
+- DL **59.375%**;
+- DM **62.500%**;
+- DN **71.875%**;
+- DO **62.500%**.
+
+Per-domain confidence:
+- DL/DM/DN/DO **100.000%**.
+
+### RoBERTa NLI
+
+Pooled prototype:
+- severity **58.594%**;
+- confidence **95.833%**;
+- joint **55.208%**.
+
+Per-domain severity:
+- DL **56.250%**;
+- DM **59.375%**;
+- DN **62.500%**;
+- DO **56.250%**.
+
+Per-domain confidence:
+- DL/DM/DN/DO **95.833%**.
+
+Neither cross-encoder passes the frozen individual gate on any domain because severity remains below 80%.
+
+## 20. Cross-encoder consensus
+
+DL:
+- severity agreement **65.625%**;
+- confidence agreement **95.833%**;
+- consensus severity **43.750%**;
+- consensus confidence **95.833%**;
+- consensus joint **41.667%**.
+
+DM:
+- severity agreement **68.750%**;
+- confidence agreement **95.833%**;
+- consensus severity **50.000%**;
+- consensus confidence **95.833%**;
+- consensus joint **47.917%**.
+
+DN:
+- severity agreement **75.000%**;
+- confidence agreement **95.833%**;
+- consensus severity **59.375%**;
+- consensus confidence **95.833%**;
+- consensus joint **56.250%**.
+
+DO:
+- severity agreement **65.625%**;
+- confidence agreement **95.833%**;
+- consensus severity **46.875%**;
+- consensus confidence **95.833%**;
+- consensus joint **43.750%**.
+
+The cross-encoder authority therefore fails all four fresh domains.
+
+## 21. Scientific interpretation
+
+The strongest defensible conclusion is:
+
+> W23 shows that the repeated authority failure is not specific to bi-encoder similarity. Two independently pinned NLI cross-encoders recover confidence nearly perfectly, yet both fail the preregistered severity criterion and disagree materially on severity. The unresolved variable is therefore now sharply localized to the current severity authority/interface, not to confidence and not merely to the legacy reference family.
+
+This does **not** prove:
+- HIRA severity geometry is intrinsically inadequate;
+- the severity classes are human-ambiguous;
+- any particular new wording would fix the authority;
+- deterministic typed composition should enter production.
+
+What W23 does establish:
+- confidence semantic authority is substantially recoverable by stronger sentence-pair models;
+- severity remains the dominant source of authority failure;
+- replacing bi-encoders with NLI cross-encoders alone is insufficient;
+- another blind reference-model swap is not justified.
+
+## 22. Permanent exposure after W23
+
+DL/DM/DN/DO are permanently exposed.
+
+Never use them for:
+- severity wording redesign;
+- class-boundary redesign;
+- prototype selection;
+- reference-model selection;
+- gate tuning;
+- HIRA/A13/W9 tuning;
+- calibration;
+- production promotion.
+
+All prior exposed authorities remain forbidden.
+
+## 23. Authorized continuation
+
+The next phase must isolate **severity authority recoverability** from HIRA geometry.
+
+A defensible W24 should:
+1. use wholly fresh domains;
+2. keep confidence as a positive-control field, not the primary research target;
+3. replace coarse four-way severity authority with independently preregistered **atomic severity factors** that compose deterministically into S0-S3;
+4. require the independent reference to recover those atomic factors before interpreting HIRA;
+5. preserve direct four-way severity classification as a matched control;
+6. keep HIRA fully frozen and zero-training;
+7. use at least one strong sentence-pair/cross-encoder reference plus the frozen W23 reference methodology as control;
+8. forbid any post-exposure factor definition, composition rule, model, wording or gate change;
+9. interpret HIRA only if factor authority is independently adequate;
+10. still forbid production typed-kernel integration and K32/K64 until stable fresh localization exists.
+
+The central W24 question should be:
+
+> Is severity unrecoverable because the four-way class is semantically entangled, while a small set of atomic severity factors is independently recoverable and deterministically composable?
+
+A future AI must read this frozen W23 closure before opening W24.
