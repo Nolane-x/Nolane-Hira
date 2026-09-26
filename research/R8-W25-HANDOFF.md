@@ -1,6 +1,6 @@
 # R8-W25 handoff — atomic severity projection-capacity localization
 
-Status: **PRE-DIAGNOSTIC. No DT-DZ A13/reference materialization exists.**
+Status: **CLOSED DIAGNOSTIC. Frozen verdict: `W25_REFERENCE_INADEQUATE`. DT-DZ are exposed; T0/T1 show strong replicated projection-rescue signal but cannot be promoted because the sealed DY/DZ reference gate failed on both domains.**
 
 Issue: #138
 
@@ -95,9 +95,9 @@ Primary W25 lane is severity-only.
 One logical state compile and one A13 severity encode/case.
 
 Exposure:
-**NONE.**
+**DT-DW TRAIN, DX DEV, DY/DZ CONFIRM permanently exposed by authority run `36231631652`.**
 
-DY/DZ must not materialize until all trainable candidates are DEV-frozen.
+DY/DZ were materialized only after Q0/Q1/T0/T1 DEV-freeze receipts existed; the sealing contract passed in the authoritative workflow.
 
 ## 3. Frozen severity semantics
 
@@ -455,3 +455,213 @@ Frozen before any DT-DZ encoder/reference exposure:
 - T0/T1 per-case objective is the equal sum of F0/F1/F2 binary cross-entropies at fixed temperature 0.07.
 
 This amendment closes the last optimizer-step ambiguity before exposure.
+
+
+---
+
+## 14. Authoritative W25 closure
+
+Exact empirical head:
+`386c1e8e898ee7e1f837de6bc79e0133c500b68c`
+
+Authority run:
+`36231631652`
+
+All frozen authority stages PASS:
+- unit/contracts/freshness;
+- exact W9 provenance;
+- DT-DW TRAIN + DX DEV cache;
+- independent DEV freeze of Q0/Q1/T0/T1;
+- machine-enforced sealed DY/DZ materialization only after all four freeze receipts;
+- sealed DY/DZ candidate evaluation;
+- pinned directional DeBERTa reference;
+- frozen classifier/audit verification.
+
+Repository CI on exact empirical head:
+`36231635135` — PASS.
+
+## 15. Frozen verdict
+
+Official outcome:
+
+**`W25_REFERENCE_INADEQUATE`**
+
+Reference-adequate CONFIRM domains:
+**0 / 2**.
+
+The frozen precedence rule therefore blocks every HIRA-side rescue/localization claim, even though T0/T1 satisfy their own rescue gates on both DY and DZ.
+
+Do not relabel W25 as `TRAINABLE_PROJECTION_RESCUE`.
+
+## 16. Sealed reference result
+
+Pinned directional DeBERTa, pooled DY+DZ:
+- F0 top1 **87.500%**, balanced accuracy **91.667%**;
+- F1 top1 **97.917%**, balanced accuracy **97.917%**;
+- F2 top1 **85.938%**, balanced accuracy **89.931%**;
+- full factor-vector **75.000%**;
+- deterministic composed severity **75.000%**;
+- invalid vector rate **7.813%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+DY:
+- F0 **86.458%**;
+- F1 **97.917%**;
+- F2 **86.458%**;
+- vector/composed **75.000%**;
+- invalid **7.292%**.
+
+DZ:
+- F0 **88.542%**;
+- F1 **97.917%**;
+- F2 **85.417%**;
+- vector/composed **75.000%**;
+- invalid **8.333%**.
+
+Frozen reference gates required every factor >=92%, every BA >=90%, vector/composed >=85%, invalid <=5%.
+Therefore both DY and DZ are reference-inadequate.
+
+## 17. Frozen A0/P0/Q0/Q1 result
+
+Pooled DY+DZ:
+
+A0 raw A13 symmetric semantic MaxSim:
+- composed severity **0.000%**;
+- factor vector **0.000%**;
+- invalid vector **100.000%**.
+
+P0 frozen W9 projection:
+- composed severity **1.042%**;
+- factor vector **1.042%**;
+- invalid vector **98.958%**.
+
+Q0 raw A13 mean-pooled linear probe:
+- composed severity **38.021%**;
+- vector **38.021%**;
+- invalid **0%**.
+
+Q1 W9-projected mean-pooled linear probe:
+- composed severity **42.708%**;
+- vector **42.708%**;
+- invalid **0%**.
+
+Q0 and Q1 both fail the frozen probe-adequacy gate.
+
+Selected DEV epochs/checkpoints:
+- Q0 epoch **15**, checkpoint SHA `d376f7b66953c7f3074c8f8aec58eb54e44703f9f66017f10d9e5f3cd9bf8736`;
+- Q1 epoch **10**, checkpoint SHA `a98b2b2a8bb55409404c0113cebf0f12cf5f577be14fa2585ac5e4e4bb1eb842`.
+
+## 18. Strong T0/T1 hypothesis-generating signal
+
+T0 primary, pooled DY+DZ:
+- F0 **95.313%**;
+- F1 **90.625%**;
+- F2 **89.583%**;
+- factor vector **78.646%**;
+- composed severity **78.646%**;
+- invalid **1.563%**.
+
+T0 by CONFIRM:
+- DY composed **78.125%**;
+- DZ composed **79.167%**.
+
+T1 replica, pooled:
+- F0 **96.354%**;
+- F1 **91.667%**;
+- F2 **90.104%**;
+- factor vector **80.208%**;
+- composed severity **80.208%**;
+- invalid **1.563%**.
+
+T1 by CONFIRM:
+- DY composed **79.167%**;
+- DZ composed **81.250%**.
+
+Frozen P0 composed severity is only **1.042%** on each CONFIRM domain.
+
+Thus T0/T1 each satisfy their preregistered rescue gates on both DY and DZ, with large gains over P0 and independent seed replication.
+
+However this remains **hypothesis-generating only** because the reference gate has precedence and failed.
+
+Selected DEV epochs/checkpoints:
+- T0 epoch **7**, checkpoint SHA `97d45d584877e18e6faa3deb07431c9f22707703fb65a1e27b973397f933a4cb`;
+- T1 epoch **8**, checkpoint SHA `e087db48832f4c29b79351918a41674b38c3cac8741c8494935e26b73f8f2ee3`.
+
+## 19. Authority artifacts
+
+- frozen W9 bundle: `10902815814`;
+  digest `sha256:b1c8bf792a18e68a7d0a7ec491d6f5df7e8c940a127cc4c58f5e89b9c8bb7d7c`;
+- TRAIN/DEV cache: `10901974166`;
+  digest `sha256:044649f90ce2bed1b6a7852ce844f53c1ee0ac916a68615a0914b865d6403ba5`;
+- Q0: `10902647462`;
+  digest `sha256:b32b668c616e65c8252d1c1da7437d330e3da2212b2bcafb0da69a4296de0800`;
+- Q1: `10903015700`;
+  digest `sha256:dc77a50a56bd5c9274811baaba778e55eac840bcdac9c60030050c591a774174`;
+- T0: `10903005712`;
+  digest `sha256:d31fc7916736404f74251917afa4521142608ba184e8bd75b39cd2dd9a507cd4`;
+- T1: `10903255169`;
+  digest `sha256:56e86278c483b49a0ea1ece2536cf14b08239771c179d92411d2906f89c57d97`;
+- sealed DY/DZ cache: `10902642700`;
+  digest `sha256:3a88705183cca3b6ee7b3f33397a4560240c33a1e1ba0e44aaaf989df824e9d2`;
+- authoritative audit: `10901974661`;
+  digest `sha256:2de65da980b1af703498dda8cbbce12c5523428a2bbe601cb14634eab5af40e1`.
+
+## 20. Scientific interpretation
+
+W25 cannot formally localize the production bottleneck because its sealed independent reference unexpectedly fails on the new authority.
+
+The strongest permitted interpretation is:
+
+> A 32,768-parameter projection retune initialized from W9 produces a large, reproducible atomic-severity improvement on DEV and both sealed CONFIRM domains, while raw/frozen semantic paths and tiny pooled linear probes remain weak. This is a strong projection-rescue signal, but the fresh DY/DZ authority is not independently adequate under the preregistered reference, so the signal cannot be promoted to a causal HIRA rescue claim.
+
+W25 weakens:
+- the idea that the frozen W9 projection is already adequate for atomic severity;
+- the idea that a simple mean-pooled linear probe is sufficient;
+- the idea that the atomic collapse seen in W24 necessarily requires changing A13.
+
+W25 does **not** establish:
+- that projection retuning is production-ready;
+- that A13 is adequate in general;
+- that semantic MaxSim is adequate after projection rescue;
+- that T0/T1 should enter HIRA v0;
+- that the reference gates may be relaxed post-exposure.
+
+## 21. Permanent exposure after W25
+
+DT/DU/DV/DW TRAIN, DX DEV, DY/DZ CONFIRM are permanently exposed.
+
+Never reuse DY/DZ for:
+- training;
+- DEV selection;
+- epoch/seed selection;
+- reference wording/model/gate changes;
+- projection objective/lr/batch/epoch tuning;
+- architecture selection;
+- calibration;
+- promotion.
+
+Never reuse DT-DX as fresh CONFIRM evidence.
+
+All prior forbidden evidence remains forbidden.
+
+## 22. Authorized continuation
+
+Because the official verdict is reference inadequate:
+- no production integration;
+- no typed-integration/reliability promotion;
+- no K32/K64 opening;
+- T0/T1 remain diagnostic checkpoints only.
+
+A next phase should **validate the projection-rescue hypothesis under a new, independently adequate atomic authority**, not tune T0/T1 on exposed W25 evidence.
+
+A defensible next phase should:
+1. keep the W25 T0/T1 training recipe frozen as a hypothesis;
+2. use entirely new TRAIN/DEV and sealed dual-CONFIRM data;
+3. preregister a stronger independent authority before exposure, preferably multiple independent sentence-pair references or a reference protocol already demonstrated adequate on a matched fresh pilot that is not used for HIRA selection;
+4. require reference adequacy before reading rescue status;
+5. retain frozen P0 control;
+6. require primary + replica rescue on both CONFIRM domains;
+7. keep all W25 rows forbidden;
+8. only after a full fresh rescue may a later phase integrate the projection into a HIRA v0 semantic core.
+
+A future AI must read this frozen W25 closure before opening the next phase.
