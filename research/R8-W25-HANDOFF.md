@@ -437,3 +437,18 @@ Frozen before any DT-DZ encoder/reference exposure:
 - Q1 uses tokenwise L2-normalized frozen-W9 projections, then mean pooling and final L2 normalization.
 
 This amendment removes an initialization confound and makes Q0/Q1 feature geometry exact.
+
+
+### Pre-exposure amendment — optimizer minibatch exactness
+
+Frozen before any DT-DZ encoder/reference exposure:
+- Q0/Q1/T0/T1 training minibatch size = **32 logical severity cases**;
+- TRAIN has 384 cases, therefore exactly 12 optimizer steps/epoch;
+- Q0/Q1 run 20 epochs -> exactly 240 optimizer steps;
+- T0/T1 run 8 epochs -> exactly 96 optimizer steps;
+- each epoch uses a deterministic candidate-seeded permutation;
+- no gradient accumulation;
+- loss is averaged across cases in the minibatch;
+- T0/T1 per-case objective is the equal sum of F0/F1/F2 binary cross-entropies at fixed temperature 0.07.
+
+This amendment closes the last optimizer-step ambiguity before exposure.
