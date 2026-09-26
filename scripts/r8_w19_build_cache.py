@@ -7,7 +7,7 @@ from pathlib import Path
 
 from nmd.hira import HIRACore
 from nmd.latent_composition_authority import all_w18_text_atoms
-from nmd.latent_ordinal_authority import all_w19_text_atoms, generate_all_w19
+from nmd.latent_ordinal_authority import DOMAIN_SEEDS, all_w19_text_atoms, generate_all_w19
 from nmd.latent_ordinal_cache import compile_w19_cache, save_w19_cache
 from nmd.runtime import NolaneHira
 from nmd.semantic import HFAutoSemanticEncoder
@@ -109,6 +109,7 @@ def main() -> None:
         "a13_weight_sha256": A13_WEIGHT_SHA256,
         "case_count": 288,
         "domains": ["CV", "CW", "CX", "CY"],
+        "domain_seeds": DOMAIN_SEEDS,
         "cache_sha256": file_sha256(path),
         "text_atom_sha256": sha256("\n".join(sorted(values)).encode()).hexdigest(),
         "prior_exact_text_overlap": [],
