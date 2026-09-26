@@ -1,6 +1,6 @@
 # R8-W26 handoff — qualified atomic-authority projection-rescue replication
 
-Status: **PRE-DIAGNOSTIC. No EA-EI encoder/reference materialization exists.**
+Status: **CLOSED QUALIFICATION DIAGNOSTIC. Frozen outcome: `W26_REFERENCE_QUALIFICATION_FAIL`. EA/EB are exposed reference-only; EC-EI were never materialized and no W26 HIRA training occurred.**
 
 Issue: #140
 
@@ -482,7 +482,7 @@ Completed:
 - this handoff created before any W26 materialization.
 
 Exposure:
-**NONE.**
+**EA/EB permanently exposed as reference-qualification-only by run `36233111423`. EC-EI remain unexposed and were never materialized.**
 
 Next:
 1. implement fresh EA-EI authority generator;
@@ -501,3 +501,194 @@ Next:
 14. proceed only if qualification PASS.
 
 A future AI must update this file after every meaningful W26 session.
+
+
+---
+
+## 20. Authoritative W26 closure
+
+Exact qualification head:
+`3ed091ea992c26cc35293da1005a6aef5a6c2bf0`
+
+Pre-exposure exact implementation head:
+`14cac0a2b45abffabcd5017f12e0d39b7b63ded2`
+
+Pre-exposure gates:
+- W26 unit `36232911330`: PASS;
+- repository CI `36232913793`: PASS.
+
+Reference-only qualification run:
+`36233111423`
+
+Qualification workflow:
+**PASS as an execution/integrity artifact**.
+
+Frozen scientific qualification status:
+**FAIL**.
+
+Frozen outcome:
+
+**`W26_REFERENCE_QUALIFICATION_FAIL`**
+
+Per-domain:
+- EA: FAIL;
+- EB: FAIL.
+
+Because this failure has first precedence, W26 stopped before any HIRA TRAIN/DEV/CONFIRM materialization.
+
+No EC/ED/EE/EF A13 cache exists.
+No EG DEV cache exists.
+No T0/T1 W26 checkpoint exists.
+No EH/EI CONFIRM cache exists.
+No W26 HIRA-side result exists.
+
+## 21. Reference qualification metrics
+
+### Panel consensus — EA
+
+- F0 top1 **96.875%**, balanced accuracy **97.917%**;
+- F1 top1 **89.583%**, balanced accuracy **89.583%**;
+- F2 top1 **72.917%**, balanced accuracy **79.167%**;
+- factor vector **61.458%**;
+- composed severity **61.458%**;
+- invalid factor vector **17.708%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+CE0/CE1 prediction agreement:
+- F0 **91.667%**;
+- F1 **79.167%**;
+- F2 **85.417%**.
+
+### Panel consensus — EB
+
+- F0 top1 **94.792%**, balanced accuracy **96.528%**;
+- F1 top1 **93.750%**, balanced accuracy **93.750%**;
+- F2 top1 **71.875%**, balanced accuracy **78.472%**;
+- factor vector **61.458%**;
+- composed severity **61.458%**;
+- invalid factor vector **18.750%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+CE0/CE1 prediction agreement:
+- F0 **91.667%**;
+- F1 **87.500%**;
+- F2 **85.417%**.
+
+Frozen panel qualification gates required every factor top1 >=94%, every balanced accuracy >=92%, vector/composed >=90%, invalid <=3%, plus the individual-model and agreement floors.
+
+EA and EB therefore both fail decisively.
+
+## 22. Individual reference anatomy
+
+### DeBERTa
+
+EA:
+- F0 **95.833%**;
+- F1 **97.917%**;
+- F2 **81.250%**;
+- vector/composed **77.083%**;
+- invalid **6.250%**.
+
+EB:
+- F0 **94.792%**;
+- F1 **97.917%**;
+- F2 **80.208%**;
+- vector/composed **75.000%**;
+- invalid **6.250%**.
+
+### RoBERTa
+
+EA:
+- F0 **93.750%**;
+- F1 **79.167%**;
+- F2 **70.833%**;
+- vector/composed **47.917%**;
+- invalid **32.292%**.
+
+EB:
+- F0 **92.708%**;
+- F1 **89.583%**;
+- F2 **67.708%**;
+- vector/composed **51.042%**;
+- invalid **26.042%**.
+
+The repeated weak point is again F2 immediate-criticality, with additional RoBERTa weakness on F1.
+
+## 23. Artifact
+
+Reference qualification artifact:
+- ID `10902749309`;
+- digest `sha256:46da7de1e60dfc436e55bb1a7e824fa914bb413a089e735da0d70253830d5c50`.
+
+Pinned weight verification:
+- DeBERTa SHA `d8148c6d49e0a7925134294c56326c71fe0ab1dc390e37355e00c7efbb488afa`;
+- RoBERTa SHA `efc90996d2ed80123c26c9091c91385ffddc6d2fd0b2bacf3187fbd6c5b87953`.
+
+Integrity:
+- 192 qualification cases;
+- 96/domain;
+- balanced 24 cases/severity/domain;
+- A13 materialized: false;
+- HIRA materialized: false;
+- EC-EI materialized: false;
+- reference outputs used as HIRA targets: false;
+- qualification rows used for HIRA selection: false;
+- no W25 rows;
+- no W24-W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 24. Scientific interpretation
+
+W26 does not test or refute the W25 projection-rescue hypothesis, because the preregistered independent authority gate fails **before** HIRA execution.
+
+The strongest defensible conclusion is:
+
+> A two-cross-encoder panel made the authority check stricter and caught a persistent semantic weakness—especially immediate criticality F2—before any HIRA training or confirmation data were consumed. Therefore the W25 projection-rescue signal remains an unconfirmed hypothesis, not a replicated rescue and not a failed rescue.
+
+This is an important methodological success:
+- W25 discovered reference failure only after expensive HIRA execution;
+- W26 detects reference inadequacy first;
+- EC-EI remain completely clean for future use only if a new preregistered phase explicitly chooses them before exposure. They are **not** automatically inherited as W27 data.
+
+W26 does NOT establish:
+- projection rescue replicates;
+- projection rescue fails to replicate;
+- A13 is or is not sufficient;
+- T0/T1 should enter HIRA v0;
+- F2 wording/gates should be changed using EA/EB.
+
+## 25. Permanent exposure after W26
+
+EA/EB are permanently exposed and forbidden for:
+- reference wording redesign;
+- model/panel selection;
+- reference gate tuning;
+- calibration;
+- HIRA training/selection;
+- promotion.
+
+EC-EI were never materialized and remain unexposed, but any future phase must preregister their use independently rather than silently carrying them forward.
+
+All earlier exposed evidence remains forbidden.
+
+## 26. Authorized continuation
+
+Because the qualification gate fails, no HIRA-v0 semantic-core integration is authorized.
+
+The next research question should be narrower than another rescue attempt:
+
+> Can we build a fresh atomic authority whose F2 immediate-criticality semantics are independently stable across multiple reference mechanisms before spending any HIRA data?
+
+A defensible next phase should:
+1. use a fresh reference-only pilot/qualification authority;
+2. diagnose F2 boundary semantics without HIRA;
+3. use independently frozen reference families and/or explicit human-verifiable deterministic evidence features;
+4. freeze authority construction and acceptance criteria before exposure;
+5. require qualification before selecting any HIRA TRAIN/DEV/CONFIRM partition;
+6. preserve the W25 T0/T1 recipe unchanged as a dormant hypothesis;
+7. never use EA/EB to tune the next authority;
+8. only after a fresh authority qualifies should projection-rescue replication resume.
+
+A future AI must read this closure before opening the next phase.
