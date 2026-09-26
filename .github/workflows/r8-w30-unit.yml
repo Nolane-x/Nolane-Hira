@@ -1,0 +1,43 @@
+name: r8-w30-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w30-semantic-transfer-bridge
+    paths:
+      - "src/nmd/semantic_transfer_bridge.py"
+      - "src/nmd/runtime.py"
+      - "src/nmd/semantic_transfer_core.py"
+      - "tests/test_semantic_transfer_bridge.py"
+      - "research/R8-W30-HANDOFF.md"
+      - ".github/workflows/r8-w30-unit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w30-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W30 bridge stack
+        run: |
+          python -m py_compile             src/nmd/semantic_transfer_bridge.py             src/nmd/runtime.py
+      - name: Run W30 bridge contracts
+        run: |
+          pytest -q             tests/test_semantic_transfer_bridge.py             tests/test_symmetric_semantic_runtime.py
+      - name: Run runtime backward compatibility
+        run: |
+          pytest -q             tests/test_runtime.py             tests/test_competitive_coarse_runtime.py
