@@ -8,7 +8,13 @@ on:
       - "src/nmd/semantic_transfer_bridge.py"
       - "src/nmd/runtime.py"
       - "src/nmd/semantic_transfer_core.py"
+      - "src/nmd/semantic_transfer_authority.py"
+      - "src/nmd/semantic_transfer_cache.py"
+      - "src/nmd/semantic_transfer_eval.py"
+      - "scripts/r8_w30_train.py"
+      - "scripts/r8_w30_confirm.py"
       - "tests/test_semantic_transfer_bridge.py"
+      - "tests/test_semantic_transfer_authority.py"
       - "research/R8-W30-HANDOFF.md"
       - ".github/workflows/r8-w30-unit.yml"
 
