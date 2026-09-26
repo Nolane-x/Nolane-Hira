@@ -1,6 +1,6 @@
 # R8-W17 handoff — field-isolated state representation authority
 
-Status: **PRE-DATA MECHANISM AUTHORITY. No CK/CL/CM/CN/CO/CP/CQ A13 cache or W17 result exists yet.**
+Status: **CLOSED AUTHORITY. Frozen verdict: `FIELD_ISOLATED_TYPED_FAIL`.**
 
 Issue: #121
 
@@ -420,3 +420,288 @@ Once the CK-CN/CO cache job begins:
 - all competence/gain/reference thresholds are frozen;
 - no scientific mutation is allowed.
 
+
+
+---
+
+## 16. Authoritative W17 closure
+
+Exact verdict-bearing authority head:
+`3c570b8b9faa16c6677b2a4a09d3ac33bbc37674`
+
+Authority run:
+`36206591909`
+
+All authority jobs PASS:
+- unit;
+- exact W9 upstream provenance;
+- CK/CL/CM/CN TRAIN + CO DEV cache;
+- zero-parameter pre-confirm freeze;
+- one-time CP/CQ materialization;
+- frozen evaluator/reference/verdict.
+
+Frozen verdict:
+
+**`FIELD_ISOLATED_TYPED_FAIL`**
+
+No rescue, no partial rescue and no control invalidation passed the preregistered dual-domain gates.
+
+### Authority artifacts
+
+Exact W9 bundle copied into authority:
+- artifact `10893654922`;
+- digest `sha256:e1c891604105e195d8cac458c3e6299e4a97e404a35769488b342bf844dd6218`.
+
+Fresh CK-CN / CO cache:
+- artifact `10893774823`;
+- digest `sha256:b6998ef6f501babaeb6d16b6efc6286da7184c606ca61bbdec777e2a454669b6`.
+
+Pre-confirm zero-parameter freeze:
+- artifact `10894306590`;
+- digest `sha256:f700c4464cc739a47ef8f328c02341d3b0ce44471bf789aefd859501303f8502`.
+
+Authoritative dual-CONFIRM:
+- artifact `10893922676`;
+- digest `sha256:48f6eba75c2baabe2bbe0652b7578b39bf5f408f4a2abb8326b1660c278e3b77`.
+
+CONFIRM cache SHAs:
+- CP `1ad2054f50be8cbf3cb4ba6806e161dc6a0645ab03ba6fbf1bff5f453376ff22`;
+- CQ `b935e02058935429a8df44b0eaf130b55aa36138319692cd1c64f48a51b8cb49`.
+
+Integrity:
+- CP 96 cases / 480 typed decisions;
+- CQ 96 / 480;
+- trainable params = 0;
+- training = false;
+- DEV selection = false;
+- triplicate prediction identity = 1.0 on both;
+- triplicate max semantic-logit diff = 0 on both;
+- probability mass error <=1.39e-7 across every path;
+- exact primitive→field provenance preserved;
+- no W15/W16 authority rows;
+- no Banking77 rows;
+- no typed final/test;
+- campaign cells = 0.
+
+## 17. Untouched CONFIRM-CP
+
+### FULL_SINGLE
+
+- overall: **41.25%**;
+- non-diagnosis: **43.49%**;
+- choice: 46.35%;
+- noul: 48.96%;
+- score: 32.29%;
+- diagnosis overall: 32.29%;
+- response: 60.42%;
+- needs_review: 48.96%;
+- risk: 41.67%;
+- urgency: 22.92%;
+- diagnosis K4: **53.125%**;
+- K8: **34.375%**;
+- K16: **9.375%**.
+
+### FIELD_ISOLATED
+
+- overall: **52.083%**;
+- non-diagnosis: **46.615%**;
+- choice: 60.938%;
+- noul: 52.083%;
+- score: 43.229%;
+- diagnosis overall: 73.958%;
+- response: 47.917%;
+- needs_review: 52.083%;
+- risk: 68.750%;
+- urgency: 17.708%;
+- diagnosis K4: **90.625%**;
+- K8: **75.000%**;
+- K16: **56.250%**.
+
+Causal changes vs FULL_SINGLE:
+- overall: **+10.83 pp**;
+- non-diagnosis: **+3.13 pp**;
+- K4: **+37.50 pp**;
+- K8: **+40.63 pp**;
+- K16: **+46.88 pp**.
+
+Thus field isolation dramatically repairs diagnosis semantics, but it does not meet the preregistered whole-typed competence/gain thresholds.
+
+### PRODUCTION_D0_FULL
+
+- overall: 40.00%;
+- non-diagnosis: 43.23%;
+- diagnosis K4/K8/K16: 43.75 / 25.00 / 12.50%.
+
+### Pinned MiniLM relevant-field reference
+
+Diagnosis:
+- K4: **90.625%**;
+- K8: **81.250%**;
+- K16: **65.625%**.
+
+The frozen K16 reference adequacy requirement was >=70%, so CP reference adequacy fails.
+
+## 18. Untouched CONFIRM-CQ
+
+### FULL_SINGLE
+
+- overall: **39.792%**;
+- non-diagnosis: **42.448%**;
+- choice: 42.708%;
+- noul: 55.208%;
+- score: 29.167%;
+- diagnosis overall: 29.167%;
+- response: 56.250%;
+- needs_review: 55.208%;
+- risk: 37.500%;
+- urgency: 20.833%;
+- diagnosis K4: **43.750%**;
+- K8: **28.125%**;
+- K16: **15.625%**.
+
+### FIELD_ISOLATED
+
+- overall: **50.625%**;
+- non-diagnosis: **47.135%**;
+- choice: 53.646%;
+- noul: 55.208%;
+- score: 45.313%;
+- diagnosis overall: 64.583%;
+- response: 42.708%;
+- needs_review: 55.208%;
+- risk: 71.875%;
+- urgency: 18.750%;
+- diagnosis K4: **90.625%**;
+- K8: **50.000%**;
+- K16: **53.125%**.
+
+Causal changes vs FULL_SINGLE:
+- overall: **+10.83 pp**;
+- non-diagnosis: **+4.69 pp**;
+- K4: **+46.88 pp**;
+- K8: **+21.88 pp**;
+- K16: **+37.50 pp**.
+
+Again the diagnosis effect is large and causal, but the whole typed system remains below the frozen competence and partial gates.
+
+### PRODUCTION_D0_FULL
+
+- overall: 34.167%;
+- non-diagnosis: 34.635%;
+- diagnosis K4/K8/K16: 50.00 / 28.125 / 18.750%.
+
+### Pinned MiniLM relevant-field reference
+
+Diagnosis:
+- K4: **90.625%**;
+- K8: **87.500%**;
+- K16: **62.500%**.
+
+CQ also fails the frozen >=70% K16 reference adequacy gate.
+
+## 19. Frozen gate anatomy
+
+Both CP and CQ:
+- integrity: **PASS**;
+- reference adequacy: **FAIL**;
+- FIELD_ISOLATED competence: **FAIL**;
+- full causal-gain gate: **FAIL**;
+- partial gate: **FAIL**.
+
+Why partial fails:
+- CP K16 isolated 56.25% clears the partial absolute K16 >=55%, but overall gain is only +10.83 pp vs required +12 pp and non-diagnosis gain is only +3.13 pp vs +8 pp;
+- CQ K16 isolated 53.125% misses the >=55% absolute K16 threshold, while overall/non-diagnosis gains also miss.
+
+No gate is relaxed.
+
+## 20. Scientific interpretation
+
+W17 does **not** prove a complete field-isolated typed architecture.
+
+It does establish a narrower and important causal fact:
+
+> **representation separation before A13 contextualization restores a very large fraction of diagnosis semantic competence that full flattened typed-state contextualization destroys.**
+
+This directly supports W16's `CONTEXTUAL_STATE_CONTAMINATION` localization.
+
+However the same zero-parameter field-isolated semantic matcher is not sufficient for all typed primitives.
+
+Primitive anatomy is heterogeneous:
+- diagnosis improves massively;
+- risk improves strongly;
+- response often regresses;
+- needs_review changes little;
+- urgency remains extremely weak.
+
+This makes sense as an architecture question, not a reason to tune W17:
+- diagnosis and risk are direct one-field semantic matches;
+- response uses a semantic mapping from severity wording to an operational action;
+- needs_review is a logical OR over severity/confidence;
+- urgency is a compositional function of severity and confidence.
+
+The frozen semantic matcher simply concatenates relevant field token sets for multi-field primitives. It has no explicit typed composition operator that computes OR/ordinal combination.
+
+Therefore W17 suggests two separable capabilities:
+1. **field-isolated semantic representation** — strongly supported for direct field-semantic decisions;
+2. **typed compositional reasoning over isolated fields** — still weak and unresolved.
+
+A second boundary is equally important:
+- even pinned MiniLM reference falls below the preregistered K16 adequacy threshold on CP/CQ;
+- therefore these fresh confirmation domains are genuinely harder at high cardinality than the W14/W16 semantic regimes.
+
+Do not interpret W17 as evidence that isolated A13 alone should reach the original competence gates on these domains.
+
+## 21. Permanent exposed evidence after W17
+
+Historical/descriptive:
+- CK;
+- CL;
+- CM;
+- CN;
+- CO.
+
+Untouched CONFIRM now exposed:
+- CP;
+- CQ.
+
+Never reuse CK-CQ for:
+- field schema selection;
+- primitive mapping selection;
+- semantic definition rewriting;
+- composition-operator selection;
+- architecture fitting;
+- threshold/gate tuning;
+- checkpoint/seed selection;
+- calibration.
+
+All previous exposed evidence remains forbidden.
+
+## 22. Authorized continuation after W17 FAIL
+
+W17 does **not** authorize direct production integration and does not authorize K32/K64.
+
+The next phase must be diagnostic-first.
+
+The strongest next scientific question is:
+
+> **Can direct field-semantic competence be separated from typed composition failure, and which typed primitives require an explicit deterministic composition operator rather than another semantic similarity pass?**
+
+A valid W18 diagnostic should use wholly fresh domains and:
+- preserve the W17 field-isolated A13 representation;
+- evaluate direct primitives separately from compositional primitives;
+- compare semantic-only behavior with gold-free deterministic typed composition from field-level distributions;
+- test whether severity/confidence field classification itself is adequate before composing;
+- distinguish response semantic-definition mismatch from representation failure;
+- retain a full-state control and pinned recoverability reference;
+- perform no production promotion.
+
+Do not:
+- tune W17 mappings on CK-CQ;
+- rewrite CP/CQ definitions;
+- lower the W17 competence/reference thresholds;
+- call the large diagnosis gains a W17 rescue;
+- integrate FIELD_ISOLATED into production yet;
+- open K32/K64;
+- use W17 exposed rows in a W18 fresh authority.
+
+A future AI should read this file first, then W16 and W15.
