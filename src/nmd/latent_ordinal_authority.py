@@ -164,6 +164,19 @@ SEVERITY_THRESHOLD_DEFINITIONS = (
     ),
 )
 
+FLAT_SEVERITY_QUESTION = "Which impact band matches the isolated disruption evidence?"
+FLAT_CONFIDENCE_QUESTION = "Which certainty band matches the isolated evidence support?"
+SEVERITY_THRESHOLD_QUESTIONS = (
+    "Does the isolated disruption evidence satisfy the first cumulative impact boundary?",
+    "Does the isolated disruption evidence satisfy the second cumulative impact boundary?",
+    "Does the isolated disruption evidence satisfy the third cumulative impact boundary?",
+)
+CONFIDENCE_THRESHOLD_QUESTIONS = (
+    "Does the isolated evidence support satisfy the first cumulative certainty boundary?",
+    "Does the isolated evidence support satisfy the second cumulative certainty boundary?",
+)
+
+
 CONFIDENCE_THRESHOLD_DEFINITIONS = (
     (
         (
@@ -284,6 +297,14 @@ def all_w19_text_atoms() -> set[str]:
         for threshold in threshold_group:
             for option in threshold:
                 values.update(option)
+    values.update(
+        (
+            FLAT_SEVERITY_QUESTION,
+            FLAT_CONFIDENCE_QUESTION,
+            *SEVERITY_THRESHOLD_QUESTIONS,
+            *CONFIDENCE_THRESHOLD_QUESTIONS,
+        )
+    )
     return values
 
 
