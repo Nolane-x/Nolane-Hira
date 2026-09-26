@@ -127,9 +127,7 @@ Fresh prototype banks:
 Exposure:
 **DL/DM/DN/DO permanently exposed by authority run `36223939271`.**
 
-No DL/DM/DN/DO A13 cache exists.
-No W23 cross-encoder score exists.
-No W23 classification exists.
+Authoritative empirical cache, cross-encoder scores, bi-encoder controls and final W23 classification now exist and are frozen in the closure sections below.
 
 ## 4. Primary cross-encoder panel frozen before exposure
 
@@ -330,31 +328,23 @@ Never tune with:
 
 Completed:
 - W22 frozen and merged;
-- W22 issue closed;
 - W23 issue #133 preregistered before exposure;
-- W23 branch created from exact post-W22 main;
-- fresh domains/seeds frozen;
-- CE0/CE1 model revisions/hashes frozen;
-- bidirectional entailment scoring frozen;
-- W22 bi-encoder control frozen;
-- reference/HIRA gates frozen;
-- this handoff created before exposure.
+- W23 implementation completed;
+- exact-head unit + repo CI passed before exposure;
+- fresh DL/DM/DN/DO cache materialized;
+- CE0/CE1 cross-encoder evaluation completed;
+- W22 bi-encoder control evaluation completed;
+- authoritative audit completed and verified;
+- final W23 verdict frozen below.
 
 Exposure:
-**NONE.**
+**DL/DM/DN/DO permanently exposed.**
 
 Next:
-1. implement fresh W23 query/prototype authority;
-2. implement freshness contracts;
-3. implement HIRA two-field/prototype cache;
-4. implement HIRA scorer;
-5. implement two cross-encoder evaluators;
-6. implement W22 bi-encoder control evaluator;
-7. implement consensus/agreement/classifier;
-8. add tests + pre-data workflow;
-9. exact-head unit + repo CI;
-10. only then enable empirical authority;
-11. freeze result before merge.
+1. merge this frozen W23 closure;
+2. close issue #133;
+3. open W24 only from post-W23 `main`;
+4. preserve every W23 exposed row as forbidden evidence.
 
 A future AI must update this file after every meaningful W23 session.
 
