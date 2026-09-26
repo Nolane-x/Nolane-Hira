@@ -10,13 +10,17 @@ from .contracts import LogicalOption
 from .latent_ordinal_authority import (
     CONFIDENCE_THRESHOLD_DEFINITIONS,
     CONFIDENCE_THRESHOLD_OPTIONS,
+    CONFIDENCE_THRESHOLD_QUESTIONS,
     FLAT_CONFIDENCE_DEFINITIONS,
     FLAT_CONFIDENCE_OPTIONS,
+    FLAT_CONFIDENCE_QUESTION,
     FLAT_SEVERITY_DEFINITIONS,
     FLAT_SEVERITY_OPTIONS,
+    FLAT_SEVERITY_QUESTION,
     LatentOrdinalAuthorityCase,
     SEVERITY_THRESHOLD_DEFINITIONS,
     SEVERITY_THRESHOLD_OPTIONS,
+    SEVERITY_THRESHOLD_QUESTIONS,
     VIEW_IDS,
 )
 from .runtime import NolaneHira
@@ -95,38 +99,42 @@ def compile_w19_cache(
 
         flat_severity = _compile_views(
             model,
-            question_text="Which impact band matches the isolated disruption evidence?",
+            question_text=FLAT_SEVERITY_QUESTION,
             options=FLAT_SEVERITY_OPTIONS,
             definitions=FLAT_SEVERITY_DEFINITIONS,
         )
         flat_confidence = _compile_views(
             model,
-            question_text="Which certainty band matches the isolated evidence support?",
+            question_text=FLAT_CONFIDENCE_QUESTION,
             options=FLAT_CONFIDENCE_OPTIONS,
             definitions=FLAT_CONFIDENCE_DEFINITIONS,
         )
 
         severity_thresholds = []
-        for index, (options, definitions) in enumerate(
-            zip(SEVERITY_THRESHOLD_OPTIONS, SEVERITY_THRESHOLD_DEFINITIONS), start=1
+        for options, definitions, question_text in zip(
+            SEVERITY_THRESHOLD_OPTIONS,
+            SEVERITY_THRESHOLD_DEFINITIONS,
+            SEVERITY_THRESHOLD_QUESTIONS,
         ):
             severity_thresholds.append(
                 _compile_views(
                     model,
-                    question_text=f"Does the isolated disruption evidence satisfy cumulative impact threshold {index}?",
+                    question_text=question_text,
                     options=options,
                     definitions=definitions,
                 )
             )
 
         confidence_thresholds = []
-        for index, (options, definitions) in enumerate(
-            zip(CONFIDENCE_THRESHOLD_OPTIONS, CONFIDENCE_THRESHOLD_DEFINITIONS), start=1
+        for options, definitions, question_text in zip(
+            CONFIDENCE_THRESHOLD_OPTIONS,
+            CONFIDENCE_THRESHOLD_DEFINITIONS,
+            CONFIDENCE_THRESHOLD_QUESTIONS,
         ):
             confidence_thresholds.append(
                 _compile_views(
                     model,
-                    question_text=f"Does the isolated evidence support satisfy cumulative certainty threshold {index}?",
+                    question_text=question_text,
                     options=options,
                     definitions=definitions,
                 )
