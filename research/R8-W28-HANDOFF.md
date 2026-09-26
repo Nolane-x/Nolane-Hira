@@ -1,6 +1,6 @@
 # R8-W28 handoff — compositional-authority projection-rescue replication
 
-Status: **REFERENCE QUALIFIED. EN/EO are permanently exposed reference-only; primary F0/F1/U/C + composed-F2 authority passed 2/2. EP-EV remain unexposed.**
+Status: **CLOSED. Frozen outcome: `REPLICATED_COMPOSITIONAL_PROJECTION_RESCUE`. EN-EV are permanently exposed; T0/T1 both reach 100% on sealed EU/EV under fully adequate compositional reference authority.**
 
 Issue: #145
 
@@ -452,22 +452,16 @@ Completed:
 - W28 partitions/seeds/reference/rescue gates frozen in this handoff.
 
 Exposure:
-**EN/EO permanently exposed reference-only by run `36237568223`. EP-EV remain unexposed.**
+**EN/EO permanently exposed reference-only by run `36237568223`; EP-ET TRAIN/DEV and EU/EV sealed CONFIRM permanently exposed by authority run `36240250948`.**
 
 Next:
-1. implement W28 fresh authority generator;
-2. implement F0/F1/U/C reference qualification;
-3. implement machine stop before HIRA on qualification failure;
-4. port exact W25 cache/trainer for P0/T0/T1;
-5. implement ET DEV freeze;
-6. implement sealed EU/EV materialization;
-7. implement final CONFIRM evaluator/classifier;
-8. add unit/contracts + pre-exposure workflow;
-9. exact-head unit + repo CI;
-10. only then expose EN/EO reference qualification;
-11. proceed to HIRA only if qualification passes.
+1. merge this frozen W28 closure;
+2. close issue #145;
+3. begin HIRA-v0 semantic-core integration only from post-W28 `main`;
+4. treat the rescued 32,768-param projection as a candidate component, not a finished model;
+5. keep every EN-EV row permanently forbidden from future tuning/selection.
 
-A future AI must update this file after every meaningful W28 session.
+A future AI must read the frozen W28 closure before opening the HIRA-v0 integration phase.
 
 
 ---
@@ -563,4 +557,247 @@ Because EN/EO qualification passed:
 - reference outputs remain forbidden as HIRA training targets;
 - every rescue/CONFIRM gate remains exactly as preregistered above.
 
-No HIRA result exists yet.
+The full HIRA rescue authority has now completed and is frozen in the closure sections below.
+
+
+---
+
+## 22. Authoritative W28 closure
+
+Exact authoritative HIRA head:
+`53ecb6e0e8afb12dac53a8b175b50c5b62322dd1`
+
+Authoritative HIRA run:
+`36240250948`
+
+Repository CI on exact authority head:
+`36240252645` — PASS.
+
+All authority jobs PASS:
+- unit/contracts;
+- frozen qualification provenance;
+- frozen W9 provenance;
+- EP-ES TRAIN + ET DEV cache;
+- independent T0/T1 training + DEV freeze;
+- sealed EU/EV materialization only after both candidate freeze receipts;
+- EU/EV compositional reference confirmation;
+- final P0/T0/T1 audit.
+
+Frozen outcome:
+
+**`REPLICATED_COMPOSITIONAL_PROJECTION_RESCUE`**
+
+This is the first W18-W28 phase that satisfies:
+- independently qualified reference authority before HIRA;
+- fresh TRAIN/DEV;
+- independent primary + replica projection training;
+- sealed dual-CONFIRM;
+- adequate reference on both CONFIRM domains;
+- primary rescue on both domains;
+- replica rescue on both domains.
+
+## 23. Frozen candidate result
+
+### P0 — frozen W9 projection
+
+Pooled EU+EV:
+- F0 top1 **77.083%**, balanced accuracy **61.806%**;
+- F1 top1 **72.917%**, balanced accuracy **72.917%**;
+- F2 top1 **31.771%**, balanced accuracy **54.514%**;
+- factor-vector **21.875%**;
+- composed severity **21.875%**;
+- composed MAE **1.99479**;
+- invalid vector **56.771%**.
+
+Per domain:
+- EU composed severity **21.875%**;
+- EV composed severity **21.875%**.
+
+### T0 — primary rescued projection
+
+DEV ET:
+- selected epoch **8**;
+- F0/F1/F2 top1 **100%**;
+- factor-vector **100%**;
+- composed severity **100%**;
+- invalid vector **0%**.
+
+Checkpoint SHA256:
+`1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f`
+
+Sealed EU+EV pooled:
+- F0 top1 **100%**, BA **100%**;
+- F1 top1 **100%**, BA **100%**;
+- F2 top1 **100%**, BA **100%**;
+- factor-vector **100%**;
+- composed severity **100%**;
+- composed MAE **0**;
+- invalid vector **0%**.
+
+Per domain:
+- EU composed severity **100%**;
+- EV composed severity **100%**.
+
+### T1 — independent replica
+
+DEV ET:
+- selected epoch **8**;
+- F0/F1/F2 top1 **100%**;
+- factor-vector **100%**;
+- composed severity **100%**;
+- invalid vector **0%**.
+
+Checkpoint SHA256:
+`5ecf0914067c657df27e9044d33b26f5cc05b27a8cf288e2718780dcbac07d19`
+
+Sealed EU+EV pooled:
+- F0 top1 **100%**, BA **100%**;
+- F1 top1 **100%**, BA **100%**;
+- F2 top1 **100%**, BA **100%**;
+- factor-vector **100%**;
+- composed severity **100%**;
+- composed MAE **0**;
+- invalid vector **0%**.
+
+Per domain:
+- EU composed severity **100%**;
+- EV composed severity **100%**.
+
+Both T0 and T1 satisfy their frozen rescue gates on both sealed CONFIRM domains.
+
+## 24. CONFIRM reference authority
+
+Panel consensus pooled EU+EV:
+- F0 top1 **100%**, BA **100%**;
+- F1 top1 **100%**, BA **100%**;
+- U top1 **100%**, BA **100%**;
+- C top1 **100%**, BA **100%**;
+- deterministic composed F2 top1 **100%**, BA **100%**;
+- composed F2 positive recall **100%**;
+- composed F2 negative recall **100%**;
+- probability-mass max error <= `1.1920928955078125e-07`.
+
+EU and EV each independently pass the frozen CONFIRM reference gate.
+
+Direct F2 remains diagnostic-only and weak:
+
+EU:
+- direct F2 top1 **71.875%**;
+- BA **52.083%**;
+- positive recall **12.5%**;
+- negative recall **91.667%**.
+
+EV:
+- direct F2 top1 **73.958%**;
+- BA **53.472%**;
+- positive recall **12.5%**;
+- negative recall **94.444%**.
+
+This independently replicates the W27 direct-packaging diagnosis.
+
+## 25. Authority artifacts
+
+Authority-run artifacts:
+
+- frozen W9:
+  `10904898794`;
+  digest `sha256:395c1e9b54aab4b2e6e81de87289fb849c5326e86a0f49f5ac20d50eddc6d86f`;
+
+- frozen qualified-reference receipt:
+  `10905593029`;
+  digest `sha256:8e1380b72742cf0ba6652497d897aa65e2b4c27bbffdeb815da878c9804e1937`;
+
+- TRAIN/DEV cache:
+  `10905418812`;
+  digest `sha256:6c3e3c9f526c535e77f9827de822b7aaf6be0b0f6aac1f8e4c1dcb7bff67fba1`;
+
+- T0:
+  `10905153620`;
+  digest `sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258`;
+
+- T1:
+  `10905513796`;
+  digest `sha256:2fe64d1517a992914d46838aab0295ead8a05fde124b1d0c772335741de0d745`;
+
+- sealed EU/EV cache:
+  `10905219898`;
+  digest `sha256:c4c68f98ee5acb02f16b73f07aea3cdd0fee6a28fa514614ba87ff1dcce61732`;
+
+- authoritative audit:
+  `10905439885`;
+  digest `sha256:c026ff144eb6b22049f103d3b1751d37da76175588b5dca25e2f479d5ade13fa`.
+
+Original qualification artifact:
+- `10904409537`;
+- digest `sha256:c4b9735062cdc2c051b7e84b2b1f7f401cae49dc70eda527a0e660a4bff270a8`.
+
+## 26. Scientific interpretation
+
+The strongest defensible conclusion is:
+
+> The frozen W9 256->128 projection is not adequate for the fresh atomic severity geometry, but the exact W25 32,768-parameter projection-retuning mechanism reproducibly repairs the semantic geometry under independently qualified compositional authority. Two independently seeded replicas reach 100% factor-vector and composed-severity accuracy on two sealed fresh CONFIRM domains.
+
+This establishes a **mechanism rescue**, not a complete HIRA model.
+
+W28 supports:
+- A13 contains sufficient token-level information for this fresh atomic severity family;
+- the frozen W9 projection is a major bottleneck for this family;
+- a very small trainable projection can recover the needed geometry;
+- the result is reproducible across independent seeds and fresh domains;
+- direct F2 should remain a diagnostic surface while U/C composition is the primary authority.
+
+W28 does **not** establish:
+- general semantic intelligence;
+- arbitrary-domain transfer;
+- typed decision integration;
+- calibrated uncertainty;
+- OOD/null behavior;
+- high-K behavior;
+- state-once runtime correctness;
+- production latency/RAM;
+- Laya/JEV superiority;
+- HIRA v0 completion.
+
+## 27. Authorization after W28
+
+W28 authorizes the next phase to begin **HIRA-v0 semantic-core integration**.
+
+The rescued projection may now be treated as the first candidate trainable semantic-core component.
+
+The next phase should integrate, under a new fresh authority:
+1. frozen A13 encoder;
+2. rescued 256->128 semantic projection mechanism;
+3. state-once semantic compilation;
+4. typed atomic/structured decision interface;
+5. deterministic composition where independently justified;
+6. calibrated probability output;
+7. null/OOD abstention path;
+8. runtime accounting for latency/RAM and query reuse.
+
+It must not simply replay W28 severity data.
+
+A strong integration phase should preserve a sealed fresh validation boundary and verify:
+- semantic transfer;
+- typed correctness;
+- probability mass;
+- calibration;
+- OOD/null;
+- state compile once + many queries;
+- inference speed/memory.
+
+Only after that should HIRA-v0 be called a real integrated model rather than a rescued component.
+
+## 28. Permanent exposure after W28
+
+EN/EO reference qualification, EP-ES TRAIN, ET DEV and EU/EV CONFIRM are permanently exposed.
+
+Never reuse EN-EV for:
+- projection/objective/lr/epoch/seed tuning;
+- architecture selection;
+- calibration;
+- OOD threshold tuning;
+- typed integration selection;
+- checkpoint selection;
+- production promotion.
+
+All prior forbidden evidence remains forbidden.
