@@ -177,7 +177,7 @@ Per domain require all:
 Otherwise:
 `W22_REFERENCE_PANEL_INADEQUATE`.
 
-Ties in 4-reference majority are resolved only by the 3 non-legacy reference majority. No metric or HIRA output may break ties.
+Ties in 4-reference majority are resolved only by the 3 non-legacy reference majority. If MPNet/E5/BGE are themselves split 1-1-1, the panel prediction for that field/case is undefined and counts as incorrect for majority accuracy/joint metrics. No metric or HIRA output may break ties.
 
 ## 9. Legacy-reference diagnosis
 
