@@ -1,6 +1,6 @@
 # R8-W22 handoff — independent reference-panel ceiling
 
-Status: **PRE-DIAGNOSTIC. No DH/DI/DJ/DK HIRA/reference cache or W22 empirical result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `AUTHORITY_REFERENCE_UNRESOLVED`; DH/DI/DJ/DK are all `W22_REFERENCE_PANEL_INADEQUATE`.**
 
 Issue: #131
 
@@ -81,7 +81,7 @@ Each HIRA query:
 - exactly two encoded query sequences.
 
 Exposure:
-**NONE.**
+**DH/DI/DJ/DK permanently exposed by authority run `36222318646`.**
 
 ## 4. Frozen semantic interface
 
@@ -279,3 +279,211 @@ Next:
 11. freeze result before merge.
 
 A future AI must update this file after every meaningful W22 session.
+
+
+---
+
+## 15. Authoritative W22 closure
+
+Exact verdict-bearing head:
+`e27ca484c21c0fda400b44f3a25862f3a4050b0b`
+
+Authority run:
+`36222318646`
+
+All authority jobs PASS:
+- frozen unit/contracts/freshness;
+- exact W9 upstream provenance;
+- fresh DH/DI/DJ/DK HIRA cache;
+- pinned four-reference panel evaluation;
+- frozen majority/agreement calculation;
+- frozen per-domain classifier/outcome.
+
+Artifacts:
+- frozen W9 bundle: `10899795870`;
+  digest `sha256:bc7b45106f37eea382d40f246e1c65df9652f6bb69a121ac45adaa1621f2f6f7`;
+- fresh W22 cache: `10898844079`;
+  digest `sha256:708c8caa857d928d826e294f8f4f1178fbcd85cc6db14928f4b1f3f20872d19c`;
+- authoritative W22 audit: `10899433134`;
+  digest `sha256:96dd32c739f9f7317c1d43c53333e7e093151cc412d2d69cfb53aa38bf992a23`.
+
+Integrity:
+- 384 query cases;
+- 96/domain;
+- balanced severity/confidence cells;
+- exactly 3 prototypes/class;
+- one logical HIRA state compile/query;
+- one batched HIRA A13 invocation/query;
+- exactly two isolated query sequences/query;
+- four reference models frozen before exposure;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- no W21/W20/W19/W18 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 16. Frozen verdict
+
+Overall:
+
+**`AUTHORITY_REFERENCE_UNRESOLVED`**
+
+Stable HIRA classification:
+`null`.
+
+Panel-adequate domains:
+**0 / 4**.
+
+Legacy-MiniLM-limit domains:
+**0 / 4**.
+
+Per-domain:
+- DH -> `W22_REFERENCE_PANEL_INADEQUATE`;
+- DI -> `W22_REFERENCE_PANEL_INADEQUATE`;
+- DJ -> `W22_REFERENCE_PANEL_INADEQUATE`;
+- DK -> `W22_REFERENCE_PANEL_INADEQUATE`.
+
+Classification counts:
+- `W22_REFERENCE_PANEL_INADEQUATE`: 4/4.
+
+No HIRA latent-geometry diagnosis is authorized.
+No prototype-grounded production integration is authorized.
+No deterministic typed-kernel integration is authorized.
+
+## 17. Pooled HIRA result
+
+Fresh abstract categorical control:
+- severity **42.188%**;
+- confidence **51.042%**;
+- joint severity+confidence **21.615%**.
+
+Prototype-grounded:
+- severity **51.563%**;
+- confidence **63.542%**;
+- joint severity+confidence **32.031%**.
+
+Prototype grounding again improves HIRA descriptively:
+- severity **+9.375 pp**;
+- confidence **+12.500 pp**;
+- joint **+10.417 pp**.
+
+These gains remain descriptive because the independent panel is not adequate.
+
+## 18. Frozen reference-panel result
+
+Pooled prototype top-1:
+
+### MiniLM
+- severity **25.781%**;
+- confidence **52.083%**;
+- joint **13.542%**.
+
+### MPNet
+- severity **39.844%**;
+- confidence **79.167%**;
+- joint **31.510%**.
+
+### E5-small-v2
+- severity **60.156%**;
+- confidence **76.042%**;
+- joint **46.615%**.
+
+### BGE-small-en-v1.5
+- severity **52.344%**;
+- confidence **83.333%**;
+- joint **44.531%**.
+
+No reference individually passes the frozen per-domain panel member gate on any W22 domain.
+
+Panel-majority / non-legacy agreement:
+
+DH:
+- majority severity **59.375%**;
+- majority confidence **79.167%**;
+- majority joint **50.000%**;
+- non-legacy severity agreement **72.917%**;
+- non-legacy confidence agreement **83.333%**.
+
+DI:
+- majority severity **50.000%**;
+- majority confidence **79.167%**;
+- majority joint **39.583%**;
+- non-legacy severity agreement **62.500%**;
+- non-legacy confidence agreement **83.333%**.
+
+DJ:
+- majority severity **34.375%**;
+- majority confidence **75.000%**;
+- majority joint **27.083%**;
+- non-legacy severity agreement **63.542%**;
+- non-legacy confidence agreement **75.000%**.
+
+DK:
+- majority severity **37.500%**;
+- majority confidence **75.000%**;
+- majority joint **28.125%**;
+- non-legacy severity agreement **63.542%**;
+- non-legacy confidence agreement **77.778%**.
+
+The frozen panel gate therefore fails on all four domains.
+
+## 19. Scientific interpretation
+
+The strongest defensible W22 conclusion is:
+
+> Replacing the legacy single MiniLM authority with a preregistered panel of MiniLM, MPNet, E5 and BGE does not make the fresh prototype latent authority independently adequate. The repeated reference inadequacy from W18-W21 is therefore not explained by MiniLM alone. W22 still cannot distinguish a HIRA-specific latent-geometry failure from a mismatch between the current latent authority/interface and the bi-encoder reference family.
+
+Important evidence:
+- E5 is the strongest pooled severity reference but reaches only 60.16%;
+- BGE is the strongest pooled confidence reference at 83.33%;
+- no reference reaches the frozen individual gate on any domain;
+- non-legacy references disagree substantially on severity;
+- HIRA prototype scores improve over HIRA abstract scores, but cannot be promoted while the authority itself lacks independent adequacy.
+
+W22 does **not** establish:
+- that HIRA latent geometry is adequate;
+- that HIRA latent geometry is inadequate;
+- that the synthetic latent authority is intrinsically ambiguous to humans;
+- that all stronger semantic models would fail;
+- that prototype grounding should enter production.
+
+## 20. Permanent exposure after W22
+
+DH/DI/DJ/DK are permanently exposed.
+
+Never reuse them for:
+- reference model selection;
+- reference pooling/prefix selection;
+- prototype wording redesign;
+- gate tuning;
+- HIRA/A13/W9 tuning;
+- calibration;
+- production promotion.
+
+All older forbidden evidence remains forbidden.
+
+## 21. Authorized continuation
+
+W22 closes the question **"is legacy MiniLM alone the reference bottleneck?"** with a negative answer.
+
+The next phase must stop treating another bi-encoder swap as sufficient evidence.
+
+A defensible next diagnostic should ask:
+
+> Is the current latent authority recoverable by a semantically stronger reference family that directly models sentence-pair entailment/relevance, while preserving a frozen bi-encoder panel as a control?
+
+The next phase should:
+1. use wholly fresh domains;
+2. preregister all reference models/revisions/scoring rules before exposure;
+3. include at least one non-bi-encoder sentence-pair or cross-encoder authority;
+4. preserve the W22 bi-encoder panel methodology as a frozen control, not a selector;
+5. keep HIRA fully frozen and zero-training;
+6. first establish authority/reference adequacy;
+7. interpret HIRA only on reference-adequate fresh domains;
+8. keep DH/DI/DJ/DK permanently forbidden;
+9. prohibit post-exposure wording/model/gate changes;
+10. still forbid typed-kernel production integration and K32/K64 until stable fresh localization exists.
+
+A future AI must read this frozen W22 closure before opening the next diagnostic.
