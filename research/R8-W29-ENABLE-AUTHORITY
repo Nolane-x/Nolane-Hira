@@ -1,0 +1,21 @@
+W29 empirical integration authority enabled only after exact-head pre-exposure gates passed.
+
+Pre-exposure implementation head:
+38dcef1f5aa5accfcbd4b099a52c9d50cea06fcb
+
+W29 unit/backward-compat:
+36247731040 — PASS.
+
+Repository CI:
+36247741879 — PASS on Python 3.10 and 3.12.
+
+Additional triggered regressions on the same head:
+- r8-w2-typed-state-once 36247741810 — PASS;
+- r8-w6-competitive-coarse 36247741847 — PASS;
+- r8-w6c-unit 36247741837 — PASS;
+- r8-w5b-token-aware-semantic 36247741826 — PASS.
+
+Creating this marker authorizes the first and only preregistered EW/EX/EY/EZ
+HIRA-v0 semantic-core integration exposure. No post-exposure model, wording,
+reference, gate, schema-view, or runtime-path changes are permitted based on
+the empirical result.
