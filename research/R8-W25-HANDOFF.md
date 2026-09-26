@@ -404,26 +404,29 @@ Completed:
 - W25 issue #138 preregistered;
 - W25 branch created from exact post-W24 main;
 - all data partitions/candidate classes/training/gates frozen;
-- this handoff created before exposure.
+- fresh DT-DZ authority generator implemented;
+- raw A13 / frozen-W9 semantic operators implemented;
+- Q0/Q1 probes implemented;
+- T0/T1 projection retuning implemented;
+- DX DEV freeze implemented;
+- machine-enforced DY/DZ sealed materialization gate implemented;
+- directional DeBERTa CONFIRM reference implemented;
+- frozen W25 classifier implemented;
+- contract tests + pre-exposure unit workflow implemented;
+- exact implementation head `f1b3b0e681961d572e89e03ce2b420c96067984b`;
+- W25 unit run `36231134639`: PASS;
+- repository CI run `36231137196`: PASS on Python 3.10 and 3.12.
 
 Exposure:
-**NONE.**
+**NONE at the completion of the pre-exposure gate.**
 
 Next:
-1. implement fresh DT-DZ authority generator;
-2. implement raw/projected semantic operators;
-3. implement Q0/Q1 probes;
-4. implement T0/T1 projection training;
-5. implement DX DEV freeze;
-6. implement sealed DY/DZ materialization gate;
-7. implement directional DeBERTa reference;
-8. implement frozen classifier;
-9. add tests + pre-data workflow;
-10. exact-head unit + repo CI;
-11. only then run TRAIN/DEV;
-12. freeze candidates;
-13. only then expose DY/DZ;
-14. freeze W25 verdict and merge.
+1. enable the frozen W25 authority workflow;
+2. materialize DT-DW TRAIN and DX DEV;
+3. freeze Q0/Q1/T0/T1 independently on DX;
+4. only after all four freeze receipts exist, materialize sealed DY/DZ;
+5. run independent DeBERTa reference + all six W25 candidates on DY/DZ;
+6. freeze W25 verdict and merge.
 
 A future AI must update this file after every meaningful W25 session.
 
