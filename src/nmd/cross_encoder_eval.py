@@ -227,6 +227,83 @@ def reference_evaluation_from_scores(
     return {"summary": summary, "predictions": predictions}
 
 
+
+def prototype_reference_evaluation_from_scores(
+    cases: list[dict],
+    score_lookup: Mapping[str, Mapping[str, object]],
+) -> dict[str, object]:
+    raw = []
+    predictions: dict[str, dict[str, object]] = {}
+    for case in cases:
+        key = str(case["case_id"])
+        row = score_lookup.get(key)
+        if row is None:
+            raise ValueError(f"missing W23 prototype reference scores for {key}")
+        severity_gold = int(case["severity"])
+        confidence_gold = int(case["confidence_index"])
+        severity_raw = torch.tensor(row["severity_prototypes"], dtype=torch.float32)
+        confidence_raw = torch.tensor(row["confidence_prototypes"], dtype=torch.float32)
+        severity_primary = _aggregate_prototypes(severity_raw, 4)
+        confidence_primary = _aggregate_prototypes(confidence_raw, 3)
+        severity_record = _record(severity_primary, severity_gold)
+        confidence_record = _record(confidence_primary, confidence_gold)
+        s_probs = torch.softmax(severity_primary, dim=0)
+        c_probs = torch.softmax(confidence_primary, dim=0)
+        record = {
+            "case_id": key,
+            "domain_id": str(case["domain_id"]),
+            "severity_gold": severity_gold,
+            "confidence_gold": confidence_gold,
+            "prototype_severity": severity_record,
+            "prototype_confidence": confidence_record,
+            "probability_mass_error": max(
+                abs(float(s_probs.sum()) - 1.0),
+                abs(float(c_probs.sum()) - 1.0),
+            ),
+        }
+        raw.append(record)
+        predictions[key] = {
+            "domain_id": str(case["domain_id"]),
+            "severity_gold": severity_gold,
+            "confidence_gold": confidence_gold,
+            "severity_pred": int(severity_record["pred"]),
+            "confidence_pred": int(confidence_record["pred"]),
+        }
+
+    def summarize(rows):
+        n = len(rows)
+        severity = [row["prototype_severity"] for row in rows]
+        confidence = [row["prototype_confidence"] for row in rows]
+        joint = sum(
+            bool(s["correct"]) and bool(c["correct"])
+            for s, c in zip(severity, confidence)
+        ) / max(1, n)
+        return {
+            "case_count": n,
+            "prototype": {
+                "severity": _summary(severity),
+                "confidence": _summary(confidence),
+                "joint_severity_confidence_top1": joint,
+                "probability_mass_max_error": max(
+                    [float(row["probability_mass_error"]) for row in rows] or [0.0]
+                ),
+            },
+        }
+
+    by_domain = defaultdict(list)
+    for row in raw:
+        by_domain[str(row["domain_id"])].append(row)
+    return {
+        "summary": {
+            "per_domain": {
+                domain: summarize(rows)
+                for domain, rows in sorted(by_domain.items())
+            },
+            "pooled": summarize(raw),
+        },
+        "predictions": predictions,
+    }
+
 def _individual_reference_pass(summary: Mapping[str, object]) -> bool:
     proto = summary["prototype"]
     return (
@@ -426,5 +503,6 @@ __all__ = [
     "CROSS_ENCODER_ORDER",
     "classify_w23",
     "evaluate_w23",
+    "prototype_reference_evaluation_from_scores",
     "reference_evaluation_from_scores",
 ]
