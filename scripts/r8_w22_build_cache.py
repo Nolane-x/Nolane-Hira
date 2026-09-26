@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 from nmd.hira import HIRACore
-from nmd.prototype_latent_authority import all_w21_text_atoms\nfrom nmd.pairwise_latent_authority import all_w20_text_atoms
+from nmd.prototype_latent_authority import all_w21_text_atoms
+from nmd.pairwise_latent_authority import all_w20_text_atoms
 from nmd.reference_panel_authority import (
     DOMAIN_SEEDS,
     all_w22_prototype_texts,
@@ -139,7 +140,8 @@ def main() -> None:
         "logical_state_compiles_per_case": 1,
         "a13_query_invocations_per_case": 1,
         "encoded_query_sequences_per_case": 2,
-        "w21_rows_used": False,\n        "w20_rows_used": False,
+        "w21_rows_used": False,
+        "w20_rows_used": False,
         "w19_rows_used": False,
         "w18_rows_used": False,
         "banking77_rows_used": False,
