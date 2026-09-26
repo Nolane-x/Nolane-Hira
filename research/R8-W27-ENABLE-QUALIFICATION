@@ -1,0 +1,14 @@
+W27 empirical qualification enabled only after pre-exposure gates passed.
+
+Pre-exposure implementation head:
+95cf76548ec2523e13c419ed914ab54e5172d3b6
+
+W27 unit:
+36234385510 — PASS.
+
+Repository CI:
+36234388843 — PASS on Python 3.10 and 3.12.
+
+Creating this marker authorizes the first and only preregistered EJ/EK/EL/EM
+reference-only exposure under the frozen W27 protocol. No post-exposure wording,
+reference, composition-rule, or gate change is permitted.
