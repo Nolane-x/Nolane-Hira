@@ -52,7 +52,9 @@ jobs:
           spec=importlib.util.spec_from_file_location("w28qual","scripts/r8_w28_qualify_reference.py")
           mod=importlib.util.module_from_spec(spec)
           spec.loader.exec_module(mod)
-          assert not (all_w28_text_atoms() & mod.prior_text_atoms())
+          overlap=sorted(all_w28_text_atoms() & mod.prior_text_atoms())
+          print("W28_PRIOR_OVERLAP="+repr(overlap))
+          assert not overlap
           assert not (all_w28_query_texts() & all_w28_schema_texts())
           print("w28_pre_exposure_freshness_pass")
           PY
