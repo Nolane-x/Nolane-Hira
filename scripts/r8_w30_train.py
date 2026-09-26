@@ -15,17 +15,17 @@ from nmd.semantic_core import (
     build_hira_v0_semantic_core,
     load_rescued_projection_checkpoint,
 )
-from nmd.semantic_transfer_authority import (
+from nmd.w30_transfer_authority import (
     all_w30_text_atoms,
     generate_w30_partition,
 )
-from nmd.semantic_transfer_cache import compile_w30_cache
+from nmd.w30_transfer_cache import compile_w30_cache
 from nmd.semantic_transfer_core import (
     W30_BRIDGE_CHECKPOINT_SCHEMA,
     W30_BRIDGE_PARAMETER_COUNT,
     W30_BRIDGE_RANK,
 )
-from nmd.semantic_transfer_eval import (
+from nmd.w30_transfer_eval import (
     BRIDGE_BATCH_SIZE,
     BRIDGE_EPOCHS,
     BRIDGE_GRAD_CLIP,
