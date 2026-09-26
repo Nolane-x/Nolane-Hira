@@ -1,0 +1,57 @@
+name: r8-w26-unit
+
+on:
+  push:
+    branches:
+      - feat/r8-w26-qualified-projection-replication
+    paths:
+      - "src/nmd/projection_replication_*.py"
+      - "scripts/r8_w26_*.py"
+      - "tests/test_projection_replication.py"
+      - "research/R8-W26-HANDOFF.md"
+      - ".github/workflows/r8-w26-unit.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r8-w26-unit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile W26 qualification stack
+        run: |
+          python -m py_compile \
+            src/nmd/projection_replication_authority.py \
+            src/nmd/projection_replication_reference.py \
+            scripts/r8_w26_qualify_reference.py
+      - name: Run W26 contracts
+        run: pytest -q tests/test_projection_replication.py
+      - name: Verify pre-exposure freshness
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from nmd.projection_replication_authority import (
+              all_w26_query_texts,
+              all_w26_schema_texts,
+              all_w26_text_atoms,
+          )
+          spec=importlib.util.spec_from_file_location("w26qual","scripts/r8_w26_qualify_reference.py")
+          mod=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+          assert not (all_w26_text_atoms() & mod.prior_text_atoms())
+          assert not (all_w26_query_texts() & all_w26_schema_texts())
+          print("w26_pre_exposure_freshness_pass")
+          PY
