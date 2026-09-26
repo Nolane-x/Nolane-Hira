@@ -1,6 +1,6 @@
 # R8-W18 handoff — latent-field extraction vs deterministic typed composition
 
-Status: **PRE-DIAGNOSTIC. No CR/CS/CT/CU A13/reference cache or W18 result exists yet.**
+Status: **CLOSED DIAGNOSTIC. Frozen outcome: `TYPED_COMPOSITION_UNRESOLVED`; all four domains are `W18_REFERENCE_INADEQUATE`.**
 
 Issue: #123
 
@@ -459,3 +459,256 @@ Next:
 11. freeze result here before merge.
 
 A future AI must update this file after every meaningful session.
+
+
+---
+
+## 20. Authoritative W18 closure
+
+Exact verdict-bearing head:
+`37bc9befa2e13a6adf08f45ccabe547e1609d5be`
+
+Authority run:
+`36209370261`
+
+All authority jobs PASS:
+- unit;
+- exact W9 upstream provenance;
+- fresh CR/CS/CT/CU isolated-field cache;
+- frozen HIRA atomic extractor;
+- FIELD_DIRECT / HARD / SOFT / ORACLE evaluator;
+- pinned MiniLM reference;
+- frozen per-domain classifiers/outcome.
+
+### Artifacts
+
+Frozen W9 checkpoint bundle:
+- artifact `10895325285`;
+- digest `sha256:6ffecd42667a917be4660d7b709ac3d21e8e15be89e8006af798f201ad5ffa3a`.
+
+Fresh W18 cache:
+- artifact `10894844785`;
+- digest `sha256:929a248e2ecf3891080fdf7cfbf5bd891d4c299b0cbfa23483159f875051ea30`.
+
+Authoritative W18 audit:
+- artifact `10894249286`;
+- digest `sha256:b9ad1c8ebb6bad81d69cbbba1e233cc8bda0931f2cdc82095d30d66f5532d370`.
+
+Integrity:
+- 384 cases;
+- 1,920 typed decisions;
+- one logical state compile/case;
+- one batched A13 invocation/case;
+- exactly three encoded isolated sequences/case: intent, severity, confidence;
+- trainable parameters = 0;
+- training = false;
+- selection = false;
+- ORACLE hard typed accuracy = 1.0 on CR/CS/CT/CU;
+- probability mass max error <= `4.440892098500626e-16`;
+- no W17 rows;
+- no Banking77;
+- no typed final/test;
+- campaign cells = 0.
+
+## 21. Frozen verdict
+
+Overall:
+
+**`TYPED_COMPOSITION_UNRESOLVED`**
+
+Stable classification:
+`null`.
+
+Per-domain:
+- CR -> `W18_REFERENCE_INADEQUATE`;
+- CS -> `W18_REFERENCE_INADEQUATE`;
+- CT -> `W18_REFERENCE_INADEQUATE`;
+- CU -> `W18_REFERENCE_INADEQUATE`.
+
+Classification counts:
+- `W18_REFERENCE_INADEQUATE`: 4/4.
+
+The frozen protocol intentionally does **not** convert four reference-inadequate domains into a composition localization.
+
+No W19 production integration is authorized by W18.
+
+## 22. Why the reference adequacy gate failed
+
+Pinned MiniLM pooled D0 reference:
+
+Intent:
+- K4 **95.313%**;
+- K8 **74.219%**;
+- K16 **49.219%**.
+
+Severity:
+- **64.583%**.
+
+Confidence:
+- **87.760%**.
+
+Frozen reference requirements were:
+- intent K4 >=80%;
+- intent K16 >=60%;
+- severity >=90%;
+- confidence >=90%.
+
+Thus:
+- K4 intent passes strongly;
+- K16 intent misses by 10.78 pp;
+- severity misses by 25.42 pp;
+- confidence misses by 2.24 pp.
+
+Every fresh domain independently fails reference adequacy.
+
+Per-domain MiniLM:
+- CR intent K4/K16 96.88/53.13%, severity 62.50%, confidence 86.46%;
+- CS 90.63/53.13%, severity 66.67%, confidence 87.50%;
+- CT 96.88/37.50%, severity 64.58%, confidence 86.46%;
+- CU 96.88/53.13%, severity 64.58%, confidence 90.63%.
+
+Therefore the authority is not permitted to decide whether deterministic composition itself is the stable bottleneck.
+
+## 23. HIRA atomic extraction anatomy
+
+Pooled HIRA atomic extraction:
+
+Intent:
+- K4 **92.188%**;
+- K8 **73.438%**;
+- K16 **58.594%**.
+
+Severity:
+- **66.406%**.
+
+Confidence:
+- **90.885%**.
+
+Joint severity+confidence top1:
+- **60.677%**.
+
+Frozen HIRA atomic requirements:
+- intent K4 >=82%;
+- intent K16 >=50%;
+- severity >=80%;
+- confidence >=80%;
+- joint S+C >=68%.
+
+So HIRA:
+- passes intent K4;
+- passes intent K16;
+- fails severity;
+- passes confidence;
+- fails joint S+C.
+
+The atomic failure pattern is highly aligned with the reference weakness in the severity/latent schema rather than being a uniquely HIRA-only collapse.
+
+## 24. Deterministic-composition signal
+
+Although W18 cannot promote a composition conclusion, the descriptive causal signal is large.
+
+Pooled FIELD_DIRECT:
+- overall **45.313%**;
+- non-diagnosis **37.956%**;
+- diagnosis **74.740%**;
+- response **40.104%**;
+- needs_review **36.719%**;
+- risk **46.875%**;
+- urgency **28.125%**.
+
+Pooled LATENT_COMPOSED_HARD:
+- overall **69.115%**;
+- non-diagnosis **67.708%**;
+- diagnosis **74.740%**;
+- response **66.406%**;
+- needs_review **74.740%**;
+- risk **66.406%**;
+- urgency **63.281%**.
+
+Pooled LATENT_COMPOSED_SOFT:
+- overall **69.375%**;
+- non-diagnosis **68.034%**;
+- diagnosis **74.740%**;
+- response **66.406%**;
+- needs_review **75.260%**;
+- risk **66.406%**;
+- urgency **64.063%**.
+
+Soft composition:
+- hard-vs-soft top1 identity **99.271%**;
+- hard Brier improves from HARD `0.6177` to SOFT `0.4204`;
+- soft Brier improves from HARD `0.4989` to SOFT `0.2868`;
+- score MAE improves from HARD `0.4926` to SOFT `0.4643`;
+- probability mass max error <= `4.44e-16`.
+
+Composition transitions from FIELD_DIRECT -> HARD:
+- response wrong->right: 101/384 = **26.30%**; right->wrong = 0%;
+- risk wrong->right: 88/384 = **22.92%**; right->wrong = 3.39%;
+- needs_review wrong->right: 195/384 = **50.78%**; right->wrong = 12.76%;
+- urgency wrong->right: 160/384 = **41.67%**; right->wrong = 6.51%.
+
+Critically, conditioned on correct extracted latent values:
+- when severity argmax is correct, HARD response accuracy = **100%**;
+- when severity argmax is correct, HARD risk accuracy = **100%**;
+- when both severity+confidence argmax are correct, HARD needs_review accuracy = **100%**;
+- when both severity+confidence argmax are correct, HARD urgency accuracy = **100%**.
+
+This proves the deterministic equations are internally correct and that remaining composed errors propagate from latent extraction errors.
+
+However, because reference adequacy fails, this signal is descriptive and hypothesis-generating only.
+
+## 25. Scientific interpretation
+
+W18 rules out a premature conclusion that "typed composition is now solved".
+
+The strongest defensible interpretation is:
+
+> On the fresh W18 authority, deterministic typed composition behaves exactly as intended once the latent variables are correct, and it substantially outperforms direct semantic matching. But the newly introduced severity/confidence latent schemas are themselves insufficiently recoverable even for the pinned reference, so W18 cannot distinguish a genuine composition bottleneck from a latent-schema/wording difficulty artifact under its frozen gates.
+
+This creates a new, narrower question:
+
+> Can atomic severity/confidence semantics be represented in a fresh authority whose latent classes are independently recoverable, without trivial exact-label leakage?
+
+That question must be answered before symbolic composition can be promoted into production.
+
+## 26. Permanent exposed evidence after W18
+
+CR/CS/CT/CU are permanently exposed.
+
+Never reuse them for:
+- latent schema wording selection;
+- severity/confidence definition design;
+- composition-rule selection;
+- threshold/gate tuning;
+- A13/projection tuning;
+- checkpoint/seed selection;
+- calibration;
+- production promotion.
+
+All prior exposed evidence remains forbidden.
+
+## 27. Authorized continuation
+
+W18 does **not** authorize W19 production integration.
+
+A next phase must remain diagnostic and focus on **latent schema recoverability** on wholly fresh data.
+
+A valid continuation should:
+1. keep field isolation;
+2. keep zero training in the primary diagnostic;
+3. use fresh intent/severity/confidence wording;
+4. separate lexical paraphrase difficulty from class-boundary difficulty;
+5. include at least one non-HIRA pinned reference adequacy ceiling;
+6. test whether severity/confidence classes are semantically identifiable before any typed composition gate;
+7. keep composition equations frozen only as a descriptive downstream probe;
+8. use wholly fresh domains and permanently forbid them after exposure.
+
+It must not:
+- rewrite CR/CS/CT/CU latent definitions;
+- lower W18 reference gates post hoc;
+- call the 69% composed result a rescue;
+- integrate the deterministic kernel into production yet;
+- open K32/K64;
+- use MiniLM as HIRA supervision.
+
+A future AI should read W18 first, then W17/W16/W15.
