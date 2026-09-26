@@ -10,6 +10,7 @@ on:
       - "tests/test_f2_compositional_authority.py"
       - "research/R8-W27-HANDOFF.md"
       - ".github/workflows/r8-w27-unit.yml"
+      - ".github/workflows/r8-w27-f2-qualification.yml"
 
 permissions:
   contents: read
