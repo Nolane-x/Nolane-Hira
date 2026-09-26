@@ -13,6 +13,7 @@ from nmd.cross_encoder_cache import load_w23_cache
 from nmd.cross_encoder_eval import (
     classify_w23,
     evaluate_w23,
+    prototype_reference_evaluation_from_scores,
     reference_evaluation_from_scores,
 )
 from nmd.typed_competitive_cache import file_sha256
@@ -112,8 +113,8 @@ def _entailment_index(config) -> int:
 def _pair_entailment_scores(model, tokenizer, pairs: list[tuple[str, str]], entailment_index: int) -> list[float]:
     device = next(model.parameters()).device
     values: list[float] = []
-    for start in range(0, len(pairs), 32):
-        batch = pairs[start : start + 32]
+    for start in range(0, len(pairs), 64):
+        batch = pairs[start : start + 64]
         left = [a for a, _ in batch]
         right = [b for _, b in batch]
         encoded = tokenizer(
@@ -141,63 +142,36 @@ def _bidirectional_entailment_scores(model, tokenizer, query: str, options: list
 
 
 def _cross_reference_scores(cache: dict, model, tokenizer, entailment_index: int):
-    lookup = {}
+    lookup = {
+        str(case["case_id"]): {
+            "severity_prototypes": [0.0] * 12,
+            "confidence_prototypes": [0.0] * 9,
+        }
+        for case in cache["cases"]
+    }
+    requests: list[tuple[str, str, int, str, str]] = []
     for case in cache["cases"]:
+        case_id = str(case["case_id"])
         domain = str(case["domain_id"])
         pack = cache["schemas"][domain]
         severity_text = str(case["fields"]["severity"])
         confidence_text = str(case["fields"]["confidence"])
+        for index, option in enumerate(pack["severity_prototypes"]["option_texts"]):
+            requests.append((case_id, "severity_prototypes", index, severity_text, str(option)))
+        for index, option in enumerate(pack["confidence_prototypes"]["option_texts"]):
+            requests.append((case_id, "confidence_prototypes", index, confidence_text, str(option)))
 
-        severity_abstract_views = []
-        confidence_abstract_views = []
-        for view_id in ("D0", "D1", "D2"):
-            severity_abstract_views.append(
-                torch.tensor(
-                    _bidirectional_entailment_scores(
-                        model,
-                        tokenizer,
-                        severity_text,
-                        [str(x) for x in pack["abstract_severity"][view_id]["option_texts"]],
-                        entailment_index,
-                    ),
-                    dtype=torch.float32,
-                )
-            )
-            confidence_abstract_views.append(
-                torch.tensor(
-                    _bidirectional_entailment_scores(
-                        model,
-                        tokenizer,
-                        confidence_text,
-                        [str(x) for x in pack["abstract_confidence"][view_id]["option_texts"]],
-                        entailment_index,
-                    ),
-                    dtype=torch.float32,
-                )
-            )
-
-        lookup[str(case["case_id"])] = {
-            "abstract_severity": [
-                float(x) for x in torch.stack(severity_abstract_views).mean(0)
-            ],
-            "abstract_confidence": [
-                float(x) for x in torch.stack(confidence_abstract_views).mean(0)
-            ],
-            "severity_prototypes": _bidirectional_entailment_scores(
-                model,
-                tokenizer,
-                severity_text,
-                [str(x) for x in pack["severity_prototypes"]["option_texts"]],
-                entailment_index,
-            ),
-            "confidence_prototypes": _bidirectional_entailment_scores(
-                model,
-                tokenizer,
-                confidence_text,
-                [str(x) for x in pack["confidence_prototypes"]["option_texts"]],
-                entailment_index,
-            ),
-        }
+    forward_pairs = [(query, option) for _, _, _, query, option in requests]
+    reverse_pairs = [(option, query) for _, _, _, query, option in requests]
+    forward_scores = _pair_entailment_scores(
+        model, tokenizer, forward_pairs, entailment_index
+    )
+    reverse_scores = _pair_entailment_scores(
+        model, tokenizer, reverse_pairs, entailment_index
+    )
+    for request, forward, reverse in zip(requests, forward_scores, reverse_scores):
+        case_id, field, index, _, _ = request
+        lookup[case_id][field][index] = (forward + reverse) * 0.5
     return lookup
 
 
@@ -224,7 +198,7 @@ def _evaluate_cross_encoder(cache: dict, name: str, spec: dict[str, str]):
     entailment_index = _entailment_index(model.config)
 
     lookup = _cross_reference_scores(cache, model, tokenizer, entailment_index)
-    evaluation = reference_evaluation_from_scores(cache["cases"], lookup)
+    evaluation = prototype_reference_evaluation_from_scores(cache["cases"], lookup)
 
     del model
     gc.collect()
