@@ -1,6 +1,6 @@
 from nmd.compositional_projection_authority import all_w28_text_atoms
 from nmd.hira_v0_authority import all_w29_text_atoms
-from nmd.semantic_transfer_authority import (
+from nmd.w30_transfer_authority import (
     DOMAIN_STYLE,
     FACTOR_IDS,
     PARTITION_DOMAINS,
