@@ -166,7 +166,10 @@ def compile_w17_cache(
                     "primitive": decision.primitive,
                     "qtype": PRIMITIVE_TO_ID[decision.primitive],
                     "gold_index": int(decision.gold_index),
-                    "gold_probabilities": decision.gold_probabilities.detach().cpu().float(),
+                    "gold_probabilities": torch.tensor(
+                        decision.gold_probabilities,
+                        dtype=torch.float32,
+                    ),
                     "gold_score": (
                         None if decision.gold_score is None else float(decision.gold_score)
                     ),
