@@ -1,0 +1,38 @@
+R8-W32 REFERENCE QUALIFICATION ENABLED
+
+This marker authorizes the first W32 empirical exposure, limited to reference-only qualification.
+
+Frozen before exposure:
+- base main: 762289911da2b7cde860383268c5d35d6ebd2f98
+- issue: #153
+- PR: #154
+- qualification domains: RA, RB
+- 96 cases/domain
+- frozen external references only:
+  - cross-encoder/nli-deberta-v3-base
+  - cross-encoder/nli-roberta-base
+- HIRA candidate evaluation forbidden
+- A13 loading forbidden
+- RC/RD/RE/RF TRAIN forbidden
+- RG DEV forbidden
+- RH/RI SEALED CONFIRM forbidden
+
+Candidate remains frozen but unexposed:
+- state residual rank: 8
+- schema residual rank: 8
+- interaction rank: 8
+- total candidate trainable parameters: 6144
+- exact initial logits equal frozen W28 T0
+
+Evidence firewall:
+- W29 EW/EX/EY/EZ forbidden
+- W30 FA/FB/FC/FD/FE/FF/FG forbidden
+- W31 QH/QI/QJ/QK/QL/QM/QN/QO/QP forbidden
+- W28 and older exposed authority rows forbidden
+- Banking77 final/test forbidden
+- typed final/test forbidden
+- Laya/JEV benchmark cells forbidden
+
+Both RA and RB must pass the frozen reference gate before any W32 candidate TRAIN/DEV implementation is authorized.
+
+This marker must not be edited after qualification begins.
