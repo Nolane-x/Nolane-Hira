@@ -1,0 +1,87 @@
+name: hira-v0-mainline-m2-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m2-high-k
+    paths:
+      - "research/HIRA-V0-MAINLINE-M2-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m2-mechanics-integration
+          path: inputs/mechanics
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36310118240
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m2-semantic-dev
+          path: inputs/baseline
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36311890201
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m2-r1-train-dev
+          path: inputs/r1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36314952944
+
+      - name: Build complete M2 closure bundle
+        run: |
+          python scripts/hira_v0_m2_bundle.py \
+            --repo-root . \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --mechanics-dir inputs/mechanics \
+            --baseline-dir inputs/baseline \
+            --r1-dir inputs/r1 \
+            --out artifacts/m2-bundle
+
+      - name: Verify M2 bundle integrity
+        run: |
+          test -f artifacts/m2-bundle/NOLANE-HIRA-V0-MAINLINE-M2-FULL.zip
+          test -f artifacts/m2-bundle/HIRA-V0-MAINLINE-M2-HANDOFF.md
+          test -f artifacts/m2-bundle/HIRA-V0-MAINLINE-M2-CLOSURE.md
+          test -f artifacts/m2-bundle/HIRA-V0-MAINLINE-M2-INTEGRITY.sha256
+          cd artifacts/m2-bundle
+          sha256sum -c HIRA-V0-MAINLINE-M2-INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m2-closure-full-bundle
+          path: artifacts/m2-bundle
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

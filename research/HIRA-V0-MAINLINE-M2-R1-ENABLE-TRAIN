@@ -1,0 +1,62 @@
+HIRA V0 MAINLINE M2-R1 TRAIN/DEV ENABLED
+
+This marker authorizes the first and only blocking M2 semantic rescue exposure.
+
+Frozen pre-exposure code head:
+- efb9a58ddea30ad264a9a1ae22041c2e65478628
+
+Authoritative failed zero-training baseline:
+- run: 36311890201
+- artifact ID: 10928764745
+- artifact digest: sha256:18903d770c1917db94e395c49feb72c0e2fea1c01ef70e976c54ad40ed223148
+- outcome: HIRA_V0_M2_SEMANTIC_DEV_FAIL
+- HKE/HKF are exposed historical evidence and forbidden for R1 fitting/selection.
+
+Frozen base:
+- A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 base SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+
+Authorized R1 evidence:
+- TRAIN HKA K=4: 16
+- TRAIN HKB K=8: 16
+- TRAIN HKC K=16: 16
+- TRAIN HKD K=32: 16
+- fresh DEV HKH K=64: 24
+- fresh DEV HKI K=128: 24
+
+Still sealed:
+- HKG K=255: 24
+
+Frozen candidate factorial:
+- ce-primary seed 22031
+- ce-replica seed 22037
+- ce-margin-primary seed 22043
+- ce-margin-replica seed 22051
+- epochs: 8
+- lr: 2e-4
+- weight decay: 0.01
+- gradient clip: 1.0
+- temperature: 0.07
+- pair margin: 0.06
+- pair-margin weight: 0.25
+- trainable parameter count per candidate: exactly 8192
+- only W34 candidate modules may receive gradients
+
+Frozen primary DEV gates:
+- K64 top1 >= 0.70, top5 >= 0.90, MRR >= 0.75
+- K128 top1 >= 0.60, top5 >= 0.85, MRR >= 0.65
+- all mechanics gates PASS
+
+Frozen selected-family replica gates:
+- K64 top1 >= 0.65, top5 >= 0.85, MRR >= 0.70
+- K128 top1 >= 0.55, top5 >= 0.80, MRR >= 0.60
+- all mechanics gates PASS
+
+Family selection:
+- primaries only
+- lexicographic K128 top1, K64 top1, K128 top5, K64 top5, K128 MRR, K64 MRR, earlier epoch
+- corresponding replica is mandatory
+
+HKG may be exposed exactly once only if both selected-family primary and replica fresh DEV gates pass.
+If M2-R1 fresh DEV fails, HKG remains sealed and M2 closes without another rescue.

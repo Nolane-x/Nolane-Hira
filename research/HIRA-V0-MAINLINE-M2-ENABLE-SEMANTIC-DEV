@@ -1,0 +1,59 @@
+HIRA V0 MAINLINE M2 SEMANTIC DEV ENABLED
+
+This marker authorizes the first zero-training M2-B semantic exposure.
+
+Frozen pre-exposure head:
+- 14f2bef0406dfd33488cc72646950ff6556133c0
+
+Exact base/provenance:
+- main base: 2920dc025c840245b77468f0b13626ed6dc57fac
+- issue: #163
+- PR: #164
+- exact A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- exact W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- exact W34 provisional transfer checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+- M2 mechanics authority run: 36310118240
+- M2 mechanics artifact ID: 10928771833
+- M2 mechanics artifact digest: sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453
+
+Authorized exposure:
+- HKE: K=64, 16 DEV cases
+- HKF: K=128, 16 DEV cases
+- total: 32 DEV cases
+
+Frozen model behavior:
+- zero new training
+- decision-core trainable params: 0
+- full-K only
+- no candidate pruning
+- relation refinement OFF
+- adaptive budget OFF
+- one state encode per case
+- canonical + deterministic rotated schema per case
+
+DEV gates:
+HKE K=64:
+- top-1 >= 0.70
+- top-5 >= 0.90
+- MRR >= 0.75
+
+HKF K=128:
+- top-1 >= 0.60
+- top-5 >= 0.85
+- MRR >= 0.65
+
+Both K values also require:
+- full-K = 1
+- state-once = 1
+- finite outputs = 1
+- selected-option permutation invariance = 1
+- permutation max error <= 2e-6
+- probability mass max error <= 1e-6
+- relation delta max = 0
+
+Still forbidden / untouched:
+- HKA/HKB/HKC/HKD TRAIN surface K=4/8/16/32
+- HKG sealed K=255
+
+HKG may be exposed exactly once only if both frozen DEV gates pass.
+If DEV fails, HKG remains sealed and HKE/HKF become historical evidence only.

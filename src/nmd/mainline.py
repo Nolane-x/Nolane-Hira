@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Iterable, Literal
 import torch
 from torch import nn
 
-from .contracts import LogicalOption, Primitive, StateMemory
+from .contracts import CompiledSchema, LogicalOption, Primitive, StateMemory
 from .hira import HIRACore
 from .runtime import DecisionOutput, NolaneHira
 from .semantic import TextSemanticEncoder
@@ -22,6 +22,12 @@ from .w34_transfer_core import (
 
 HIRA_V0_MAINLINE_VERSION = "0.0-m0"
 HIRA_V0_MAINLINE_M1_VERSION = "0.0-m1a"
+HIRA_V0_MAINLINE_M2_VERSION = "0.0-m2a"
+HIRA_V0_MAX_K = 255
+M2_MECHANICS_AUTHORITY = (
+    "run:36310118240;artifact:10928771833;"
+    "digest:sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453"
+)
 W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256 = (
     "d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
 )
@@ -43,6 +49,8 @@ class HiraV0Manifest:
     typed_runtime: ModuleMaturity
     reliability_ood_abstention: ModuleMaturity
     high_k: ModuleMaturity
+    high_k_mechanics: ModuleMaturity
+    high_k_mechanics_authority: str | None
     multilingual: ModuleMaturity
     production_ready: bool
     transfer_core_promoted: bool
@@ -64,6 +72,8 @@ class HiraV0Manifest:
             typed_runtime="available",
             reliability_ood_abstention="pending",
             high_k="pending",
+            high_k_mechanics="pending",
+            high_k_mechanics_authority=None,
             multilingual="pending",
             production_ready=False,
             transfer_core_promoted=False,
@@ -81,6 +91,21 @@ class HiraV0Manifest:
         base = cls.m0_provisional().to_dict()
         base["version"] = HIRA_V0_MAINLINE_M1_VERSION
         base["reliability_ood_abstention"] = "provisional"
+        return cls(**base)
+
+    @classmethod
+    def m2_mechanics_provisional(cls) -> "HiraV0Manifest":
+        base = cls.m1_mechanism_provisional().to_dict()
+        base["version"] = HIRA_V0_MAINLINE_M2_VERSION
+        base["high_k"] = "provisional"
+        base["high_k_mechanics"] = "provisional"
+        return cls(**base)
+
+    @classmethod
+    def m2_mechanics_available(cls) -> "HiraV0Manifest":
+        base = cls.m2_mechanics_provisional().to_dict()
+        base["high_k_mechanics"] = "available"
+        base["high_k_mechanics_authority"] = M2_MECHANICS_AUTHORITY
         return cls(**base)
 
     def to_dict(self) -> dict[str, object]:
@@ -113,27 +138,20 @@ class HiraV0Session:
     def state_hash(self) -> str:
         return self.memory.state_hash
 
-    def decide(
-        self,
-        *,
-        primitive: Primitive,
-        question_text: str,
-        options: Iterable[LogicalOption],
-        use_schema_cache: bool = True,
-    ) -> DecisionOutput:
-        logical_options = tuple(options)
-        if len(logical_options) < 2:
+    @staticmethod
+    def _validate_option_count(count: int) -> None:
+        if count < 2:
             raise ValueError("Hira v0 mainline requires at least two logical options")
+        if count > HIRA_V0_MAX_K:
+            raise ValueError(
+                f"Hira v0 supports at most {HIRA_V0_MAX_K} logical options"
+            )
 
+    def decide_compiled(self, schema: CompiledSchema) -> DecisionOutput:
+        """Execute an already-compiled dynamic schema against this state."""
+        self._validate_option_count(len(schema.options))
         runtime = self._mainline.runtime
         before = runtime.state_encode_calls
-        schema, _ = runtime.compile_schema(
-            primitive=primitive,
-            question_text=question_text,
-            options=logical_options,
-            use_cache=use_schema_cache,
-            include_token_artifacts=True,
-        )
         out = runtime.forward_compiled(
             self.memory,
             schema,
@@ -145,21 +163,44 @@ class HiraV0Session:
         )
         if runtime.state_encode_calls != before:
             raise RuntimeError("Hira v0 session re-encoded state during a query")
-        if int(out.hira.candidate_budget.item()) != len(logical_options):
-            raise RuntimeError("Hira v0 M0 must evaluate the full schema")
+        if int(out.hira.candidate_budget.item()) != len(schema.options):
+            raise RuntimeError("Hira v0 mainline must evaluate the full schema")
         if not bool(out.hira.selected_mask.all()):
-            raise RuntimeError("Hira v0 M0 full-K selected mask changed")
+            raise RuntimeError("Hira v0 full-K selected mask changed")
         if not torch.equal(
             out.hira.relation_delta,
             torch.zeros_like(out.hira.relation_delta),
         ):
-            raise RuntimeError("Hira v0 M0 relation refinement must remain disabled")
-        if not bool(torch.isfinite(out.probabilities).all()):
-            raise RuntimeError("Hira v0 M0 produced non-finite probabilities")
+            raise RuntimeError("Hira v0 relation refinement must remain disabled")
+        if not bool(
+            torch.isfinite(out.logits).all()
+            and torch.isfinite(out.probabilities).all()
+        ):
+            raise RuntimeError("Hira v0 produced non-finite decision tensors")
         if abs(float(out.probabilities.sum()) - 1.0) > 1e-6:
-            raise RuntimeError("Hira v0 M0 probability mass changed")
+            raise RuntimeError("Hira v0 probability mass changed")
         self.query_count += 1
         return out
+
+    def decide(
+        self,
+        *,
+        primitive: Primitive,
+        question_text: str,
+        options: Iterable[LogicalOption],
+        use_schema_cache: bool = True,
+    ) -> DecisionOutput:
+        logical_options = tuple(options)
+        self._validate_option_count(len(logical_options))
+
+        schema, _ = self._mainline.runtime.compile_schema(
+            primitive=primitive,
+            question_text=question_text,
+            options=logical_options,
+            use_cache=use_schema_cache,
+            include_token_artifacts=True,
+        )
+        return self.decide_compiled(schema)
 
     def decide_reliable(
         self,
@@ -378,9 +419,47 @@ def build_hira_v0_m1_mechanism(
     )
 
 
+def build_hira_v0_m2_mechanics(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    transfer_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
+    expected_transfer_sha256: str = W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256,
+    reliability_policy: "HiraV0ReliabilityPolicy | None" = None,
+) -> HiraV0Mainline:
+    """Build the M2-A frozen mainline with explicit K<=255 mechanics."""
+    from .mainline_reliability import HiraV0ReliabilityPolicy
+
+    for parameter in encoder.parameters():
+        parameter.requires_grad_(False)
+    encoder.eval()
+
+    runtime = build_hira_v0_w34_core(
+        encoder,
+        t0_checkpoint_path,
+        transfer_checkpoint_path,
+        expected_t0_sha256=expected_t0_sha256,
+        expected_candidate_sha256=expected_transfer_sha256,
+        hira=HIRACore(d_model=256, dropout=0.0),
+        include_unbridged_baseline=False,
+    )
+    return HiraV0Mainline(
+        runtime,
+        manifest=HiraV0Manifest.m2_mechanics_available(),
+        reliability_policy=(
+            reliability_policy
+            or HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
+        ),
+    )
+
+
 __all__ = [
     "HIRA_V0_MAINLINE_VERSION",
     "HIRA_V0_MAINLINE_M1_VERSION",
+    "HIRA_V0_MAINLINE_M2_VERSION",
+    "HIRA_V0_MAX_K",
+    "M2_MECHANICS_AUTHORITY",
     "W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256",
     "HiraV0Mainline",
     "HiraV0Manifest",
@@ -388,4 +467,5 @@ __all__ = [
     "HiraV0Session",
     "build_hira_v0_mainline",
     "build_hira_v0_m1_mechanism",
+    "build_hira_v0_m2_mechanics",
 ]

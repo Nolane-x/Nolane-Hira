@@ -1,0 +1,33 @@
+HIRA V0 MAINLINE M2 EXACT MECHANICS INTEGRATION ENABLED
+
+This marker authorizes the first exact A13/W28/W34 M2-A mechanics proof.
+
+Frozen pre-integration code head:
+- ac718a908a7b1845068bc1a43793859ebe7f2e5e
+
+Pre-integration gates:
+- dedicated M2 run 36309929636: PASS
+- full repo CI run 36309931506: PASS
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Exact provenance:
+- A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- A13 weight SHA256: 5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880
+- W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 provisional transfer SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+
+Frozen mechanics ladder:
+- K = 4 / 8 / 16 / 32 / 64 / 128 / 255
+- one state encode
+- 14 total queries
+- canonical + deterministic permutation at every K
+- full-K only
+- candidate pruning forbidden
+- relation refinement OFF
+- adaptive budget OFF
+- probability mass error <= 1e-6
+- permutation probability max error <= 2e-6
+
+This integration is mechanics-only.
+It does not authorize any semantic high-K quality claim and exposes no M2-B semantic authority.
