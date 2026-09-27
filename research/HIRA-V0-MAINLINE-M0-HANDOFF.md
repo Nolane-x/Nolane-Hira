@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M0 — integrated typed decision model shell
 
-Status: **ACTIVE — MODEL CONSTRUCTION STARTED**
+Status: **CLOSED — M0 EXACT INTEGRATION READY**
 
 Issue: #159  
 Branch: `feat/hira-v0-mainline-m0`  
@@ -192,3 +192,45 @@ M4: package, CPU latency, RAM, CLI/API
 M5: matched external benchmark
 
 Transfer-core improvement may continue in parallel, but it is no longer allowed to block these phases.
+
+
+## 10. Frozen M0 integration result
+
+Exact-provenance integration run:
+
+`36302647323`
+
+Result: **PASS**
+
+Artifact:
+- `hira-v0-mainline-m0-integration`
+- ID: `10925958503`
+- digest: `sha256:872966ce40a56aa1ae39b2ea2cbb67e1e1c999e2a82f3abc425934829be7ba4a`
+
+Exact model assembly:
+- resident total: **13,213,199 parameters**
+- semantic front-end: **12,750,080**
+- relation core: **422,159**
+- transfer scorer resident: **40,960**
+- W28 projection: **32,768**
+- W34 transfer candidate: **8,192**
+- packaged trainable parameters: **0**
+
+Runtime smoke:
+- one state encode;
+- three queries;
+- choice K=2;
+- score K=3;
+- noul K=2;
+- full-K throughout;
+- relation delta 0;
+- probability mass valid;
+- no quality claim.
+
+M0 now satisfies its integration exit criterion.
+
+Canonical closure:
+`research/HIRA-V0-MAINLINE-M0-CLOSURE.md`
+
+Next phase:
+**HIRA V0 MAINLINE M1 — reliability / OOD / abstention**
