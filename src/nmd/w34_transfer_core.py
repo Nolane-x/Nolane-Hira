@@ -15,7 +15,7 @@ from .semantic_core import (
 )
 from .symmetric_semantic import SymmetricSemanticScorer
 from .typed_competitive_cache import file_sha256
-from .w34_coevidence_semantic import CoEvidenceSemanticScorer
+from .w33_coevidence_semantic import CoEvidenceSemanticScorer
 
 W34_CANDIDATE_CHECKPOINT_SCHEMA = "r8-w34-coevidence-semantic-checkpoint-v1"
 W34_CANDIDATE_RANK = 8
