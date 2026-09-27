@@ -1,0 +1,101 @@
+{
+  "schema_version": "hira-v0-mainline-m5-contract-v1",
+  "base_main": "97840f88b592ddfa10ae66e156fab781a4f18af7",
+  "issue": 169,
+  "phase": "M5 matched external benchmark",
+  "frozen_hira": {
+    "m4_merge_sha": "97840f88b592ddfa10ae66e156fab781a4f18af7",
+    "m4_package_run_id": 36357825580,
+    "m4_package_artifact_id": 10944174953,
+    "m4_package_artifact_digest": "sha256:5fa30c93aca4110bc8602f347c2992b7eb034056c01c432d26c84acbfd619f9a",
+    "m4_closure_run_id": 36358061105,
+    "m4_closure_artifact_id": 10944248235,
+    "m4_closure_artifact_digest": "sha256:753dd5073bec2440f9ede5a3e074e157ed9a31a1eddc170ee425dfe5703324ce",
+    "runtime_manifest_version": "0.0-m4a",
+    "w28_t0_sha256": "1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f",
+    "w34_sha256": "d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c",
+    "semantic_model": "microsoft/xtremedistil-l6-h256-uncased",
+    "semantic_revision": "4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+    "semantic_weight_sha256": "5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880",
+    "state_once": true,
+    "full_k": true,
+    "relation_refinement": false,
+    "adaptive_budget": false,
+    "trainable_parameters": 0,
+    "production_ready": false
+  },
+  "external_authorities": {
+    "laya": {
+      "repository": "NandhaKishorM/laya",
+      "commit": "42626c348753fbb17572a813127df2278a1ec527",
+      "protocol_manifest": "benchmarks/laya_protocol_manifest.json"
+    },
+    "jev_zero_shot": {
+      "repository": "AbdelStark/jev-benchmarks",
+      "commit": "0d610cc53e79bcbec691312b0c4adb4a0e371642",
+      "model": "jev-1.13.0",
+      "protocol": "pilot-v1-preregistered",
+      "protocol_manifest": "benchmarks/jev_protocol_manifest.json"
+    },
+    "jev_banking77_adapted": {
+      "repository": "simonmesmith/jev-banking77-experiment",
+      "commit": "5cac4ff7783a4cfc0badba4124a309dd2a2b9862",
+      "information_budget": "24 retrieved labeled examples per prediction + all category definitions",
+      "lane": "adapted-only"
+    },
+    "banking77_official": {
+      "repository": "PolyAI-LDN/task-specific-datasets",
+      "commit": "57ec275d8078af65b7731c2a98be812d844a6d6b"
+    }
+  },
+  "lane_policy": {
+    "direct": [
+      "typed-decisions-zero-shot",
+      "massive",
+      "xnli",
+      "sst5",
+      "dair_emotion",
+      "prompt_injections",
+      "banking77",
+      "laya-held-out-applications"
+    ],
+    "retention_or_finetuned": [
+      "typed-decisions-finetuned",
+      "ag_news",
+      "boolq",
+      "laya-in-training-applications"
+    ],
+    "protocol_separate": [
+      "jev-btzsc-zero-shot",
+      "jev-banking77-retrieved24",
+      "systems-t4",
+      "systems-cpu"
+    ]
+  },
+  "claim_policy": {
+    "no_cross_protocol_winner_claims": true,
+    "no_global_majority_vote_superiority": true,
+    "missing_is_not_zero": true,
+    "unsupported_is_not_loss": true,
+    "final_test_selection_forbidden": true,
+    "final_labels_forbidden_for_training": true,
+    "public_targets_not_sufficient_for_release_claim": true,
+    "confirmatory_suite_required": true,
+    "systems_and_quality_reported_separately": true
+  },
+  "score_statuses": [
+    "WIN",
+    "TIE",
+    "LOSS",
+    "MISSING",
+    "UNSUPPORTED",
+    "NOT_COMPARABLE"
+  ],
+  "required_receipts": [
+    "m5a-contract",
+    "m5b-quality",
+    "m5c-systems",
+    "m5d-confirmatory",
+    "m5-final-scorecard"
+  ]
+}
