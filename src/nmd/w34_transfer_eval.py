@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from .atomic_geometry_eval import _prediction_row, _summarize_factor_predictions
 from .symmetric_semantic import SymmetricSemanticScorer
-from .w34_coevidence_semantic import CoEvidenceSemanticScorer
+from .w33_coevidence_semantic import CoEvidenceSemanticScorer
 from .w34_transfer_authority import FACTOR_IDS
 from .w34_transfer_cache import validate_w34_cache
 
