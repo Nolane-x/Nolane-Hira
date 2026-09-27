@@ -709,3 +709,83 @@ The HKG evaluator was implemented before R1 empirical exposure. It rejects any R
 - exposed HKG early.
 
 No M2-R1 empirical rescue evidence has been exposed at this boundary.
+
+
+## 22. M2-R1 authoritative result — frozen failure
+
+Authoritative run:
+
+`36314952944`
+
+Artifact:
+- `hira-v0-mainline-m2-r1-train-dev`
+- ID: `10929884694`
+- digest: `sha256:6441bfacbabc7a184887fa3d2b6ad5b9f906373b34d18704bd21d2db5a21d202`
+- size: 323,903,843 bytes
+
+Outcome:
+
+`HIRA_V0_M2_R1_DEV_FAIL`
+
+Selected family:
+- `ce-margin`
+
+Primary:
+- `ce-margin-primary`
+
+Replica:
+- `ce-margin-replica`
+
+### Primary fresh HKH/HKI
+
+K64:
+- top-1 0.2916666666666667
+- top-5 0.5416666666666666
+- MRR 0.4203540513708857
+- mean gold rank 8.916666666666666
+
+K128:
+- top-1 0.20833333333333334
+- top-5 0.625
+- MRR 0.3916255120996501
+- mean gold rank 9.791666666666666
+
+Primary semantic gate: FAIL.
+All mechanics gates: PASS.
+
+### Replica fresh HKH/HKI
+
+K64:
+- top-1 0.2916666666666667
+- top-5 0.625
+- MRR 0.4455692415358113
+
+K128:
+- top-1 0.20833333333333334
+- top-5 0.5833333333333334
+- MRR 0.40606438088055735
+
+Replica semantic gate: FAIL.
+All mechanics gates: PASS.
+
+### Frozen decision
+
+`sealed_exposure_authorized = false`
+
+HKG K=255 remains completely unexposed.
+
+No R2 rescue exists inside M2.
+
+M2 closes with:
+- high-K mechanics: available
+- high-K semantics: provisional
+- production-ready: false
+
+Future high-K semantic improvement is a parallel semantic-core research track and does not block the mainline.
+
+Next blocking phase:
+
+# HIRA V0 MAINLINE M3 — MULTILINGUAL
+
+Canonical closure:
+`research/HIRA-V0-MAINLINE-M2-CLOSURE.md`
