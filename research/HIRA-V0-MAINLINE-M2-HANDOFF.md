@@ -789,3 +789,21 @@ Next blocking phase:
 
 Canonical closure:
 `research/HIRA-V0-MAINLINE-M2-CLOSURE.md`
+
+
+## Closure bundle
+
+Run:
+`36315632295`
+
+Artifact:
+- `hira-v0-mainline-m2-closure-full-bundle`
+- ID: `10930681783`
+- size: 1,000,779,939 bytes
+- digest: `sha256:df01cd5fe5094e93f038a57d0db8466b8ab621825c9a0626d8ac3fbdd05d9427`
+
+Bundle integrity: **PASS**
+
+The bundle contains source/research plus exact W28/W34 base evidence, M2-A mechanics evidence, zero-training semantic DEV evidence and complete M2-R1 TRAIN/DEV evidence.
+
+HKG is intentionally absent because it remains sealed and was never exposed.
