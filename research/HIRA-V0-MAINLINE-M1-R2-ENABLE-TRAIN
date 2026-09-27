@@ -1,0 +1,44 @@
+HIRA V0 MAINLINE M1-R2 TRAIN/DEV ENABLED
+
+This marker authorizes the first M1-R2 empirical exposure.
+
+Fresh R2 authority:
+- TRAIN: UJ / UK / UL / UM = 144 cases
+- DEV: UN / UO = 72 cases
+
+Frozen before exposure:
+- base main: 17ad32104ac610908230c13d4b936a1b1ac3ecac
+- issue: #161
+- PR: #162
+- exact W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- exact W34 provisional transfer SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+- frozen R1 OOD run: 36305969587
+- frozen R1 OOD artifact ID: 10927625673
+- frozen R1 OOD artifact digest: sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca
+- frozen OOD candidate: semantic-linear
+- frozen OOD capacity: 6 params
+- frozen OOD threshold: 0.52
+- OOD retraining/retuning in R2: forbidden
+
+R2 calibration:
+- candidates: control / primitive-temperature / primitive-temperature-noul-bias
+- accuracy regression > 0.01 makes a candidate ineligible before ECE ranking
+
+R2 selective-risk:
+- candidates: semantic-risk-linear / semantic-confidence-risk-linear
+- capacity: 6 / 9 params
+- target: correctness of frozen typed hard decision
+- optimizer: AdamW
+- epochs: 80
+- lr: 0.02
+- weight decay: 0.001
+- seed: 12031
+- DEV accepted accuracy >= 0.90
+- DEV coverage >= 0.25
+- DEV selective risk <= 0.10
+
+Still sealed:
+- UE selective/calibration CONFIRM
+- UI OOD CONFIRM
+
+UE/UI may only be exposed if the frozen M1-R2 DEV qualification passes.
