@@ -581,6 +581,33 @@ def evaluate_r2_final_policy(
     }
 
 
+def m1_r2_sealed_qualification(
+    calibration_gates: Mapping[str, object],
+    risk_metrics: Mapping[str, object],
+    base_sealed_gates: Mapping[str, object],
+) -> dict[str, object]:
+    """Require both standalone correctness-risk quality and final M1 policy."""
+    risk_gate = {
+        "meets_target": bool(risk_metrics["meets_target"]),
+        "accuracy": (
+            float(risk_metrics["selective_accuracy"]) >= SELECTIVE_TARGET_ACCURACY
+        ),
+        "coverage": float(risk_metrics["coverage"]) >= SELECTIVE_MIN_COVERAGE,
+        "selective_risk": float(risk_metrics["selective_risk"]) <= 0.10,
+    }
+    passed = (
+        bool(base_sealed_gates["pass"])
+        and all(risk_gate.values())
+        and all(bool(value) for value in calibration_gates.values())
+    )
+    return {
+        "pass": passed,
+        "calibration": dict(calibration_gates),
+        "standalone_risk": risk_gate,
+        "base_m1": dict(base_sealed_gates),
+    }
+
+
 def m1_r2_dev_qualification(
     calibration: Mapping[str, object],
     risk: Mapping[str, object],
@@ -636,6 +663,7 @@ __all__ = [
     "risk_scores_for_any_cache",
     "risk_scores_for_cache",
     "m1_r2_dev_qualification",
+    "m1_r2_sealed_qualification",
     "safe_calibration_tournament",
     "train_selective_risk_tournament",
 ]
