@@ -1,0 +1,94 @@
+name: hira-v0-mainline-m4-schema-benchmark
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m4-runtime
+    paths:
+      - "research/HIRA-V0-MAINLINE-M4-ENABLE-SCHEMA-BENCHMARK"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m2-mechanics-integration
+          path: inputs/M2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36310118240
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact benchmark stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" sentencepiece
+
+      - name: Run exact A13 schema benchmark
+        run: |
+          python scripts/hira_v0_m4_schema_benchmark.py \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --m2-dir inputs/M2 \
+            --out artifacts/m4-schema
+
+      - name: Verify M4 schema receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/m4-schema/receipt.json"))
+          assert x["schema_version"]=="hira-v0-mainline-m4-schema-benchmark-v1"
+          assert x["status"]=="PASS"
+          assert x["outcome"] in {
+            "HIRA_V0_M4_SCHEMA_BATCHING_READY",
+            "HIRA_V0_M4_SCHEMA_BATCHING_FAIL",
+          }
+          assert x["k_ladder"]==[4,8,16,32,64,128,255]
+          assert x["manifest"]["version"]=="0.0-m4a"
+          assert x["manifest"]["production_ready"] is False
+          assert x["semantic_quality_promoted"] is False
+          assert x["reliability_promoted"] is False
+          assert x["multilingual_promoted"] is False
+          assert x["production_ready_claimed"] is False
+          print("HIRA_V0_M4_SCHEMA_RECEIPT="+json.dumps({
+            "outcome":x["outcome"],
+            "gates":x["gates"],
+            "k255":[r for r in x["rows"] if r["k"]==255][0],
+            "rss_peak_delta_kib":x["rss_peak_delta_kib"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-schema-benchmark
+          path: artifacts/m4-schema
+          if-no-files-found: error
+          retention-days: 90
