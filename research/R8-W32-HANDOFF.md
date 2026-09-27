@@ -1,6 +1,6 @@
 # R8-W32 handoff — dual residual adapter + shared interaction metric
 
-Status: **PRE-QUALIFICATION IMPLEMENTATION / ZERO EMPIRICAL EXPOSURE**
+Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
 
 Issue: #153  
 Branch: `feat/r8-w32-interaction-semantic-adapter`  
@@ -154,9 +154,20 @@ Prior aggregate metrics may motivate architecture only.
 
 ## Current boundary
 
-No W32 empirical evidence has been exposed.
+Reference qualification is complete and frozen:
+- authority run: `36292606367`
+- outcome: `W32_REFERENCE_QUALIFIED`
+- RA: PASS
+- RB: PASS
+- 192 reference-only cases
+- no HIRA candidate evaluated
+- A13 not loaded
+- no W29/W30/W31/older authority rows used
+- qualification artifact: `r8-w32-reference-qualification`
+- artifact ID: `10922738458`
+- artifact digest: `sha256:02cafde04b10c075df848d3c0d45b9f9c139b3ae1516a82c2a428e2163131751`
 
-Implemented:
+Implemented before qualification:
 - `src/nmd/w32_interaction_semantic_adapter.py`
 - runtime mode `interaction_symmetric_semantic`
 - exact 6,144-parameter capacity and T0-identity tests
@@ -164,16 +175,17 @@ Implemented:
 - fresh `src/nmd/w32_transfer_authority.py` with RA..RI
 - exact-text freshness tests against W28/W29/W30/W31
 - `scripts/r8_w32_qualify.py`
-- marker-gated `r8-w32-reference-qualification` workflow
+- marker-gated reference qualification workflow
 - dedicated W32 unit/backward-compat gate
 
-Current pre-exposure order:
-1. W32 unit/full repository CI must be green;
-2. only then create `research/R8-W32-ENABLE-QUALIFICATION`;
-3. expose RA/RB to the frozen external reference panel only;
-4. if and only if both domains qualify, freeze the qualification artifact;
-5. then implement TRAIN/DEV cache, factor-balanced + anchor + vector-validity trainer;
-6. RH/RI stay sealed until the selected RG DEV checkpoint is frozen;
-7. closure + FULL bundle.
+Next frozen boundary:
+1. implement RC/RD/RE/RF TRAIN cache and RG DEV cache;
+2. implement factor-balanced CE + T0 anchor preservation + invalid-vector probability-mass penalty;
+3. implement 6,144-parameter checkpoint/core and DEV selector;
+4. pass dedicated + full repository CI;
+5. only then create `research/R8-W32-ENABLE-TRAIN`;
+6. freeze selected RG checkpoint and receipt;
+7. RH/RI remain sealed until that freeze is complete;
+8. sealed confirm, closure and FULL bundle.
 
-Do not create a W32 qualification marker before the current pre-exposure CI is green.
+RA/RB are now exposed and permanently forbidden from candidate loss or DEV selection.
