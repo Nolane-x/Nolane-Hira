@@ -400,3 +400,279 @@ If HKE/HKF DEV fails:
 - rescue requires a **new fresh DEV authority**, not HKE/HKF.
 
 No M2-B semantic data has been exposed at the time of this preregistration.
+
+
+## 19. M2-B zero-training semantic DEV — frozen failure
+
+Authoritative run:
+
+`36311890201`
+
+Marker commit:
+
+`a26c2a00304af2e15657ff8e05d9ff6fe4bf03f6`
+
+Artifact:
+- name: `hira-v0-mainline-m2-semantic-dev`
+- ID: `10928764745`
+- digest: `sha256:18903d770c1917db94e395c49feb72c0e2fea1c01ef70e976c54ad40ed223148`
+
+Outcome:
+
+`HIRA_V0_M2_SEMANTIC_DEV_FAIL`
+
+No training occurred.
+
+Exposure:
+- HKE K=64: 16 cases
+- HKF K=128: 16 cases
+- state encode count: 32
+- state encodes/case: 1.0
+- HKA-HKD exposed: false
+- HKG exposed: false
+
+### HKE K=64
+
+- top-1: **0.625**
+- top-5: **0.75**
+- MRR: **0.6941468253968254**
+- mean gold rank: 5.375
+- mean gold probability: 0.016648271412122995
+- mean confidence: 0.016815155744552612
+- mean case time: 1648.07 ms
+- full-K: 1.0
+- state-once: 1.0
+- finite: 1.0
+- permutation max error: 1.862645149230957e-09
+- probability-mass max error: 1.1920928955078125e-07
+- relation delta max: 0
+
+Frozen gate required:
+- top-1 >= 0.70
+- top-5 >= 0.90
+- MRR >= 0.75
+
+Semantic gate: FAIL.
+Mechanics gate: PASS.
+
+### HKF K=128
+
+- top-1: **0.3125**
+- top-5: **0.4375**
+- MRR: **0.37779609918896906**
+- mean gold rank: 28.9375
+- mean gold probability: 0.008089849870884791
+- mean confidence: 0.008322596666403115
+- mean case time: 3248.76 ms
+- full-K: 1.0
+- state-once: 1.0
+- finite: 1.0
+- permutation max error: 9.313225746154785e-10
+- probability-mass max error: 1.1920928955078125e-07
+- relation delta max: 0
+
+Frozen gate required:
+- top-1 >= 0.60
+- top-5 >= 0.85
+- MRR >= 0.65
+
+Semantic gate: FAIL.
+Mechanics gate: PASS.
+
+### Scientific interpretation
+
+M2-A mechanics remain fully validated.
+
+The failure is semantic ranking, not:
+- tensor capacity;
+- numerical stability;
+- candidate pruning;
+- state re-encoding;
+- relation refinement;
+- permutation sensitivity.
+
+At K=128 the probability surface is nearly uniform, but mean gold rank remains substantially better than random. The frozen W34 geometry therefore contains useful signal that is insufficiently separated at high cardinality.
+
+HKE/HKF are permanently exposed and forbidden for:
+- fitting;
+- epoch selection;
+- candidate-family selection;
+- margin choice;
+- seed choice;
+- architecture ranking.
+
+HKG K=255 remains sealed and MUST NOT be exposed from this failed baseline.
+
+## 20. M2-R1 — single preregistered semantic rescue
+
+M2-R1 is the only blocking rescue authorized inside M2.
+
+If M2-R1 fails fresh DEV or sealed HKG, M2 closes with:
+- high-K mechanics = available;
+- high-K semantic quality = provisional;
+- no further M2 rescue;
+- mainline proceeds to M3.
+
+### Why this mechanism
+
+Historical R8 evidence matters:
+
+- W6j localized the old high-K failure to `COARSE_CONJUNCTION_LIMIT`;
+- W7 explicit factor smooth-AND failed;
+- W7b equal-data free-form scorer retuning produced much stronger K64 behavior but failed its strict cross-domain replication verdict.
+
+Therefore M2-R1 does not repeat the failed explicit-factor branch.
+
+It tests whether the **current W34 co-evidence free-form scorer itself** can be specialized for high-K ranking with a small fixed parameter surface.
+
+### Frozen base
+
+Initialize every R1 candidate from exact W34 checkpoint:
+
+`d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c`
+
+Frozen:
+- A13;
+- W28 projection;
+- HIRACore;
+- relation refinement OFF;
+- adaptive budget OFF.
+
+Trainable:
+- only W34 co-evidence candidate modules;
+- exactly **8,192 parameters**.
+
+No semantic encoder parameter may receive gradients.
+
+### TRAIN authority
+
+Use previously untouched reserved rows only:
+
+- HKA K=4: 16
+- HKB K=8: 16
+- HKC K=16: 16
+- HKD K=32: 16
+
+Total TRAIN: 64 cases.
+
+HKE/HKF are forbidden.
+
+### Fresh rescue DEV
+
+Create new exact-text-disjoint authority:
+- HKH K=64
+- HKI K=128
+
+HKH/HKI must:
+- use new deterministic seeds;
+- use alternate semantic surface templates;
+- have no exact text overlap with HKA-HKG;
+- remain unseen until the complete rescue trainer/evaluator/gates are frozen.
+
+Recommended 24 cases per K.
+
+### Frozen candidate factorial
+
+Family A — `ce`
+- full-K cross entropy only.
+
+Family B — `ce-margin`
+- full-K cross entropy;
+- plus gold-vs-best-negative raw-logit margin.
+
+Both families have:
+- primary seed;
+- independent replica seed.
+
+Frozen seeds:
+- CE primary: 22031
+- CE replica: 22037
+- CE+margin primary: 22043
+- CE+margin replica: 22051
+
+Training:
+- epochs: 8
+- AdamW
+- lr: 2e-4
+- weight decay: 0.01
+- gradient clip: 1.0
+- logit temperature: 0.07
+- pair margin: 0.06
+- pair-margin weight: 0.25
+- deterministic shuffle
+- full-K only.
+
+No candidate family may be added after HKH/HKI exposure.
+
+### Frozen epoch selection
+
+Independently per candidate:
+
+1. K128 top-1;
+2. K64 top-1;
+3. K128 top-5;
+4. K64 top-5;
+5. K128 MRR;
+6. K64 MRR;
+7. earlier epoch.
+
+### Frozen family selection
+
+Compare only the two primary candidates using the same lexicographic key.
+
+The corresponding replica of the selected family is mandatory.
+
+### R1 primary DEV gate
+
+On fresh HKH/HKI:
+
+K64:
+- top-1 >= 0.70
+- top-5 >= 0.90
+- MRR >= 0.75
+
+K128:
+- top-1 >= 0.60
+- top-5 >= 0.85
+- MRR >= 0.65
+
+Mechanics:
+- full-K = 1
+- finite = 1
+- probability mass <= 1e-6
+- permutation error <= 2e-6
+- permutation selected-option invariance = 1
+- relation delta = 0
+- state-once = 1
+
+### R1 replica stability gate
+
+Selected-family replica:
+
+K64:
+- top-1 >= 0.65
+- top-5 >= 0.85
+- MRR >= 0.70
+
+K128:
+- top-1 >= 0.55
+- top-5 >= 0.80
+- MRR >= 0.60
+
+All mechanics gates must pass.
+
+### Sealed boundary
+
+Only if primary and replica fresh DEV gates pass:
+- freeze both checkpoints;
+- HKG may be exposed exactly once;
+- HKG uses selected-family **primary** checkpoint;
+- original K=255 sealed gates remain unchanged:
+  - top-1 >= 0.50
+  - top-5 >= 0.80
+  - MRR >= 0.58
+  - all mechanics gates PASS.
+
+No HKG threshold may be changed because of R1.
+
+If R1 DEV fails, HKG remains sealed and M2 closes without another rescue.
