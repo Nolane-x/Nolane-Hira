@@ -676,3 +676,36 @@ Only if primary and replica fresh DEV gates pass:
 No HKG threshold may be changed because of R1.
 
 If R1 DEV fails, HKG remains sealed and M2 closes without another rescue.
+
+
+## 21. M2-R1 implementation boundary — frozen before rescue exposure
+
+Implemented before any HKA-HKD / HKH-HKI rescue exposure:
+- `src/nmd/mainline_m2_r1_authority.py`
+- `src/nmd/mainline_m2_r1_training.py`
+- `scripts/hira_v0_m2_r1_train.py`
+- `scripts/hira_v0_m2_r1_confirm.py`
+- `tests/test_mainline_m2_r1_authority.py`
+- `tests/test_mainline_m2_r1_training.py`
+- marker-gated R1 TRAIN/DEV workflow
+
+Scientific selection is frozen:
+- candidate families: CE and CE+margin only;
+- primary/replica seeds fixed;
+- 8 epochs;
+- exact 8,192 trainable W34 candidate parameters;
+- HKA-HKD TRAIN only;
+- HKH/HKI fresh DEV only;
+- HKE/HKF forbidden for fitting/selection;
+- HKG sealed;
+- selected family primary checkpoint is the only checkpoint eligible for HKG;
+- original K=255 sealed semantic gate remains unchanged.
+
+The HKG evaluator was implemented before R1 empirical exposure. It rejects any R1 receipt that:
+- did not pass fresh DEV;
+- changed selected family/checkpoint identity;
+- trained outside the W34 candidate surface;
+- reused HKE/HKF;
+- exposed HKG early.
+
+No M2-R1 empirical rescue evidence has been exposed at this boundary.
