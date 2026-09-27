@@ -148,6 +148,51 @@ def _batch_loss(
     return total, primary, anchor, anchor_count
 
 
+
+
+def quality_gate_pass(summary: Mapping[str, object]) -> bool:
+    factors = summary["factors"]
+    return (
+        all(float(factors[f]["top1"]) >= 0.90 for f in FACTOR_IDS)
+        and all(float(factors[f]["balanced_accuracy"]) >= 0.88 for f in FACTOR_IDS)
+        and float(summary["factor_vector_top1"]) >= 0.82
+        and float(summary["composed_severity_top1"]) >= 0.82
+        and float(summary["invalid_factor_vector_rate"]) <= 0.05
+        and float(summary["factor_probability_mass_max_error"]) <= 1e-6
+    )
+
+
+def transfer_gate_summary(
+    baseline: Mapping[str, object],
+    dual: Mapping[str, object],
+) -> dict[str, object]:
+    b_factors = baseline["factors"]
+    d_factors = dual["factors"]
+    baseline_worst = min(float(b_factors[f]["top1"]) for f in FACTOR_IDS)
+    dual_worst = min(float(d_factors[f]["top1"]) for f in FACTOR_IDS)
+    regressions = {
+        factor: float(b_factors[factor]["top1"]) - float(d_factors[factor]["top1"])
+        for factor in FACTOR_IDS
+    }
+    severity_delta = (
+        float(dual["composed_severity_top1"])
+        - float(baseline["composed_severity_top1"])
+    )
+    worst_factor_delta = dual_worst - baseline_worst
+    max_factor_regression = max(regressions.values())
+    passed = (
+        severity_delta >= 0.15
+        and worst_factor_delta >= 0.08
+        and max_factor_regression <= 0.02
+    )
+    return {
+        "severity_delta": severity_delta,
+        "worst_factor_top1_delta": worst_factor_delta,
+        "factor_top1_regressions": regressions,
+        "max_factor_top1_regression": max_factor_regression,
+        "pass": passed,
+    }
+
 def _selection_key(summary: Mapping[str, object], epoch: int) -> tuple[float, ...]:
     factors = summary["factors"]
     worst_ba = min(float(factors[factor]["balanced_accuracy"]) for factor in FACTOR_IDS)
@@ -312,5 +357,7 @@ __all__ = [
     "build_baseline_scorer",
     "build_dual_scorer",
     "evaluate_w31_cache",
+    "quality_gate_pass",
     "train_dual_adapter",
+    "transfer_gate_summary",
 ]
