@@ -6,6 +6,8 @@ from nmd.schema import (
     DEFAULT_SCHEMA_CACHE_MAX_ENTRIES,
     SchemaCompiler,
 )
+from nmd.hira import HIRACore
+from nmd.runtime import NolaneHira
 from nmd.semantic import TrainableSemanticEncoder
 
 
@@ -158,3 +160,61 @@ def test_schema_cache_clear_resets_resident_bytes_and_eviction_counter():
         "max_bytes": 64 * 1024 * 1024,
         "evictions": 0,
     }
+
+
+def test_runtime_exposes_schema_cache_controls_without_model_mutation():
+    torch.manual_seed(42011)
+    encoder = CountingEncoder()
+    runtime = NolaneHira(
+        encoder,
+        HIRACore(d_model=32, dropout=0.0),
+        schema_cache_max_entries=3,
+        schema_cache_max_bytes=1024 * 1024,
+    )
+    runtime.eval()
+
+    assert runtime.schema_cache_info()["max_entries"] == 3
+    assert runtime.schema_cache_info()["max_bytes"] == 1024 * 1024
+
+    schema, first = runtime.compile_schema(
+        primitive="choice",
+        question_text="which runtime route?",
+        options=_options("runtime"),
+        use_cache=True,
+        include_token_artifacts=False,
+    )
+    assert first.cache_stored is True
+    before = schema.option_embeddings.detach().clone()
+
+    runtime.configure_schema_cache(
+        max_entries=1,
+        max_bytes=512 * 1024,
+        clear=True,
+    )
+    assert runtime.schema_cache_info()["entries"] == 0
+    assert runtime.schema_cache_info()["max_entries"] == 1
+
+    schema2, second = runtime.compile_schema(
+        primitive="choice",
+        question_text="which runtime route?",
+        options=_options("runtime"),
+        use_cache=True,
+        include_token_artifacts=False,
+    )
+    assert second.cache_hit is False
+    assert torch.allclose(schema2.option_embeddings, before, atol=1e-7, rtol=1e-6)
+
+
+def test_cache_reconfiguration_rejects_shrinking_below_residency_without_clear():
+    torch.manual_seed(42013)
+    encoder = CountingEncoder()
+    compiler = SchemaCompiler(encoder)
+    _compile(compiler, "resident")
+    assert compiler.cache_info()["entries"] == 1
+
+    try:
+        compiler.configure_cache(max_entries=0, max_bytes=0, clear=False)
+    except ValueError as exc:
+        assert "clear is required" in str(exc)
+    else:
+        raise AssertionError("shrinking below resident cache must fail without clear")
