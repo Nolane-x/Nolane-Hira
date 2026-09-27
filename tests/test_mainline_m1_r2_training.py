@@ -11,6 +11,7 @@ from nmd.mainline_m1_r2_training import (
     TinySelectiveRiskHead,
     evaluate_risk_head,
     m1_r2_dev_qualification,
+    m1_r2_sealed_qualification,
     safe_calibration_tournament,
     train_selective_risk_tournament,
 )
@@ -241,3 +242,36 @@ def test_r2_dev_qualification_requires_safe_calibration_and_selective_risk():
     failed = m1_r2_dev_qualification(calibration, broken)
     assert failed["pass"] is False
     assert failed["risk"]["accuracy"] is False
+
+
+def test_r2_sealed_gate_requires_standalone_risk_and_base_policy():
+    calibration = {
+        "ece_absolute": True,
+        "probability_integrity": True,
+        "accuracy_non_regression": True,
+        "ece_mechanism": True,
+    }
+    risk = {
+        "meets_target": True,
+        "selective_accuracy": 0.95,
+        "coverage": 0.30,
+        "selective_risk": 0.05,
+    }
+    base = {
+        "pass": True,
+        "calibration": calibration,
+        "ood": {"all": True},
+        "selective": {"all": True},
+        "final_ood": {"all": True},
+    }
+    passed = m1_r2_sealed_qualification(calibration, risk, base)
+    assert passed["pass"] is True
+    assert all(passed["standalone_risk"].values())
+
+    broken = dict(risk)
+    broken["meets_target"] = False
+    broken["selective_accuracy"] = 0.85
+    broken["selective_risk"] = 0.15
+    failed = m1_r2_sealed_qualification(calibration, broken, base)
+    assert failed["pass"] is False
+    assert failed["standalone_risk"]["accuracy"] is False
