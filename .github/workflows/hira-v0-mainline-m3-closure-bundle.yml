@@ -1,0 +1,78 @@
+name: hira-v0-mainline-m3-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m3-multilingual
+    paths:
+      - "research/HIRA-V0-MAINLINE-M3-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m3-paired-dev
+          path: inputs/M3A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36320497057
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m3-r1-train-dev
+          path: inputs/R1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36322772094
+
+      - name: Build complete M3 closure bundle
+        run: |
+          python scripts/hira_v0_m3_bundle.py \
+            --repo-root . \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --m3a-dir inputs/M3A \
+            --r1-dir inputs/R1 \
+            --out artifacts/m3-bundle
+
+      - name: Verify M3 bundle integrity
+        run: |
+          test -f artifacts/m3-bundle/NOLANE-HIRA-V0-MAINLINE-M3-FULL.zip
+          test -f artifacts/m3-bundle/HIRA-V0-MAINLINE-M3-HANDOFF.md
+          test -f artifacts/m3-bundle/HIRA-V0-MAINLINE-M3-CLOSURE.md
+          test -f artifacts/m3-bundle/HIRA-V0-MAINLINE-M3-INTEGRITY.sha256
+          cd artifacts/m3-bundle
+          sha256sum -c HIRA-V0-MAINLINE-M3-INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m3-closure-full-bundle
+          path: artifacts/m3-bundle
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

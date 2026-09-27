@@ -1,0 +1,181 @@
+name: hira-v0-mainline-m3-r1-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m3-multilingual
+    paths:
+      - "research/HIRA-V0-MAINLINE-M3-R1-ENABLE-TRAIN"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hira-v0-mainline-m3-r1-train-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen M3-R1 stack
+        run: |
+          python -m py_compile \
+            src/nmd/mainline.py \
+            src/nmd/mainline_m3_alignment.py \
+            src/nmd/mainline_m3_authority.py \
+            src/nmd/mainline_m3_eval.py \
+            src/nmd/mainline_m3_r1_authority.py \
+            src/nmd/mainline_m3_r1_cache.py \
+            src/nmd/mainline_m3_r1_training.py \
+            scripts/hira_v0_m3_r1_train.py \
+            scripts/hira_v0_m3_r1_confirm.py
+
+      - name: Run M3-R1 pre-exposure contracts
+        run: |
+          pytest -q \
+            tests/test_mainline_m3_alignment.py \
+            tests/test_mainline_m3_authority.py \
+            tests/test_mainline_m3_eval.py \
+            tests/test_mainline_m3_r1_authority.py \
+            tests/test_mainline_m3_r1_cache.py \
+            tests/test_mainline_m3_r1_training.py \
+            tests/test_mainline.py \
+            tests/test_mainline_high_k.py
+
+      - name: Verify failed M3-A authority
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10932028604 --jq .digest)" = "sha256:d9837f68ed0f9a7d216c42a95e3cc9977fa5f3d218aa792493ecfcf63a47d6bd"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10932028604 --jq .expired)" = "false"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/runs/36320497057 --jq .conclusion)" = "success"
+
+      - name: Verify exact W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+      - name: Verify exact W34 provisional transfer artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .digest)" = "sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .expired)" = "false"
+
+  train:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m3-paired-dev
+          path: inputs/M3A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36320497057
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen M3-R1 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" sentencepiece
+
+      - name: Mark first MVD-MVI rescue exposure
+        run: echo HIRA_V0_M3_R1_MVD_MVI_TRAIN_DEV_EXPOSURE_BEGIN
+
+      - name: Run frozen M3-R1 TRAIN DEV
+        run: |
+          python scripts/hira_v0_m3_r1_train.py \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --m3a-dir inputs/M3A \
+            --out artifacts/m3-r1-train-dev
+
+      - name: Verify M3-R1 receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/m3-r1-train-dev/receipt.json"))
+          assert x["schema_version"]=="hira-v0-mainline-m3-r1-train-dev-v1"
+          assert x["status"]=="PASS"
+          assert x["outcome"] in {
+            "HIRA_V0_M3_R1_DEV_QUALIFIED",
+            "HIRA_V0_M3_R1_DEV_FAIL",
+          }
+          assert x["train_partitions"]==["MVD","MVE","MVF","MVG"]
+          assert x["train_pair_count"]==144
+          assert x["train_language_case_count"]==288
+          assert x["dev_partitions"]==["MVH","MVI"]
+          assert x["dev_pair_count"]==72
+          assert x["dev_language_case_count"]==144
+          assert x["alignment_candidate_parameter_count"]==8192
+          assert x["only_alignment_adapter_parameters_trained"] is True
+          assert x["a13_gradient_updates"] is False
+          assert x["w28_projection_gradient_updates"] is False
+          assert x["w34_gradient_updates"] is False
+          assert x["hira_core_gradient_updates"] is False
+          assert x["reliability_gradient_updates"] is False
+          assert x["mva_mvb_rows_used_for_training"] is False
+          assert x["mva_mvb_rows_used_for_selection"] is False
+          assert x["mvc_exposed"] is False
+          assert x["mvc_rows_used"] is False
+          assert x["massive_rows_used"] is False
+          assert x["xnli_rows_used"] is False
+          assert x["m2_semantic_rows_used"] is False
+          assert x["train_cache_state_encode_count"]==288
+          assert x["dev_cache_state_encode_count"]==144
+          assert x["gradient_updates_during_base_cache"] is False
+          assert x["sealed_exposure_authorized"] is x["joint_qualification"]["pass"]
+          print("HIRA_V0_M3_R1_FINAL="+json.dumps({
+            "outcome":x["outcome"],
+            "primary":x["primary"],
+            "replica":x["replica"],
+            "joint_qualification":x["joint_qualification"],
+            "sealed_exposure_authorized":x["sealed_exposure_authorized"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m3-r1-train-dev
+          path: artifacts/m3-r1-train-dev
+          if-no-files-found: error
+          retention-days: 90
