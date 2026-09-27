@@ -112,6 +112,8 @@ def compile_m3_r1_base_cache(
             "tokenizer_hash": encoder.tokenizer_hash,
             "base_encoder_frozen": True,
             "gradient_updates_used": False,
+            "state_encode_count": 2 * len(pairs),
+            "state_encodes_per_language_case": 1.0,
         },
         "pairs": pairs,
     }
@@ -140,6 +142,10 @@ def validate_m3_r1_base_cache(
         raise ValueError("M3-R1 cache base encoder must be frozen")
     if metadata.get("gradient_updates_used") is not False:
         raise ValueError("M3-R1 base cache cannot contain trained encoder outputs")
+    if int(metadata.get("state_encode_count", -1)) != 2 * len(pairs):
+        raise ValueError("M3-R1 cache state encode count changed")
+    if float(metadata.get("state_encodes_per_language_case", -1.0)) != 1.0:
+        raise ValueError("M3-R1 cache state-once contract changed")
 
     seen = set()
     for pair in pairs:
@@ -183,7 +189,9 @@ def validate_m3_r1_base_cache(
 
 
 def _aligned_hash(base_hash: str, alignment_identity: str) -> str:
-    return sha256(f"{base_hash}:{alignment_identity}".encode()).hexdigest()
+    return sha256(
+        f"{base_hash}:m3-align-r16:{alignment_identity}".encode()
+    ).hexdigest()
 
 
 def align_state_memory(
