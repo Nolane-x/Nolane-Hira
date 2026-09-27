@@ -372,6 +372,8 @@ def train_m2_r1_candidate(
     frozen_w34: CoEvidenceSemanticScorer,
     train_cache: Mapping[str, object],
     dev_cache: Mapping[str, object],
+    *,
+    epochs: int = M2_R1_EPOCHS,
 ) -> dict[str, object]:
     validate_m2_r1_cache(train_cache, expected_split="train")
     validate_m2_r1_cache(dev_cache, expected_split="dev")
@@ -398,7 +400,10 @@ def train_m2_r1_candidate(
     history = []
     cases = train_cache["cases"]
 
-    for epoch in range(1, M2_R1_EPOCHS + 1):
+    if int(epochs) < 1:
+        raise ValueError("M2-R1 epochs must be >=1")
+
+    for epoch in range(1, int(epochs) + 1):
         scorer.train()
         order = list(range(len(cases)))
         random.Random(seed + epoch).shuffle(order)
@@ -489,6 +494,62 @@ def replica_cached_gate(evaluation: Mapping[str, object]) -> dict[str, object]:
     return _semantic_gate(evaluation, M2_R1_REPLICA_GATES)
 
 
+
+def install_m2_r1_candidate(
+    model: HiraV0Mainline,
+    state_dict: Mapping[str, Tensor],
+) -> None:
+    scorer = model.runtime.coevidence_symmetric_semantic_scorer
+    if scorer is None:
+        raise RuntimeError("M2-R1 mainline co-evidence scorer missing")
+    scorer.load_candidate_state_dict(dict(state_dict), freeze=True)
+    if scorer.trainable_parameter_count != 0:
+        raise RuntimeError("M2-R1 installed scorer must be frozen")
+    if scorer.candidate_parameter_count != W34_CANDIDATE_PARAMETER_COUNT:
+        raise RuntimeError("M2-R1 installed candidate capacity changed")
+
+
+def _runtime_mechanics_gate(metrics: Mapping[str, object]) -> dict[str, bool]:
+    return {
+        "probability_mass": float(metrics["probability_mass_max_error"]) <= 1e-6,
+        "permutation": (
+            float(metrics["permutation_max_error"]) <= 2e-6
+            and float(metrics["selected_option_invariant_rate"]) == 1.0
+        ),
+        "full_k": float(metrics["full_k_rate"]) == 1.0,
+        "state_once": float(metrics["state_once_rate"]) == 1.0,
+        "relation_off": float(metrics["relation_delta_max"]) == 0.0,
+        "finite": float(metrics["finite_rate"]) == 1.0,
+    }
+
+
+def m2_r1_runtime_gate(
+    evaluation: Mapping[str, object],
+    *,
+    replica: bool = False,
+) -> dict[str, object]:
+    thresholds = M2_R1_REPLICA_GATES if replica else M2_R1_PRIMARY_GATES
+    per_k = evaluation["per_k"]
+    result: dict[str, object] = {}
+    passed = True
+    for k, gate in thresholds.items():
+        metrics = per_k[str(k)]
+        mechanics = _runtime_mechanics_gate(metrics)
+        semantic = {
+            "top1": float(metrics["top1"]) >= float(gate["top1"]),
+            "top5": float(metrics["top5"]) >= float(gate["top5"]),
+            "mrr": float(metrics["mrr"]) >= float(gate["mrr"]),
+        }
+        k_pass = all(mechanics.values()) and all(semantic.values())
+        result[str(k)] = {
+            "pass": k_pass,
+            "mechanics": mechanics,
+            "semantic": semantic,
+            "thresholds": dict(gate),
+        }
+        passed = passed and k_pass
+    return {"pass": passed, "per_k": result}
+
 def select_m2_r1_family(
     results: Sequence[Mapping[str, object]],
 ) -> dict[str, object]:
@@ -539,6 +600,8 @@ __all__ = [
     "clone_w34_for_rescue",
     "compile_m2_r1_cache",
     "evaluate_m2_r1_cache",
+    "install_m2_r1_candidate",
+    "m2_r1_runtime_gate",
     "primary_cached_gate",
     "replica_cached_gate",
     "select_m2_r1_family",
