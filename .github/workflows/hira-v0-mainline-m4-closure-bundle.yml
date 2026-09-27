@@ -1,0 +1,98 @@
+name: hira-v0-mainline-m4-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m4-runtime
+    paths:
+      - "research/HIRA-V0-MAINLINE-M4-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4C
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - name: Verify exact M4-C package authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("inputs/M4C")
+          receipt_path = root / "hira-v0-m4-package-smoke.json"
+          runtime = root / "hira-v0-m4-runtime"
+          assert receipt_path.is_file()
+          assert runtime.is_dir()
+
+          x = json.loads(receipt_path.read_text(encoding="utf-8"))
+          assert x["schema_version"] == "hira-v0-mainline-m4-package-smoke-v1"
+          assert x["status"] == "PASS"
+          assert x["outcome"] == "HIRA_V0_M4_PACKAGE_READY"
+          assert x["production_ready_claimed"] is False
+          assert x["state_encode_calls"] == 1
+          assert x["full_k"] is True
+          assert abs(float(x["probability_sum"]) - 1.0) <= 1e-6
+          assert x["parameter_report"]["trainable_total"] == 0
+
+          manifest = json.loads(
+              (runtime / "runtime-manifest.json").read_text(encoding="utf-8")
+          )
+          assert manifest["production_ready_claimed"] is False
+          assert manifest["m4a_authority"]["artifact_id"] == 10934506746
+          assert manifest["m4b1_authority"]["artifact_id"] == 10934986918
+          assert manifest["m4b_authority"]["artifact_id"] == 10934788096
+          PY
+
+      - name: Build complete M4 closure bundle
+        run: |
+          mkdir -p artifacts/m4-bundle/runtime
+          cp -a inputs/M4C/hira-v0-m4-runtime/. artifacts/m4-bundle/runtime/
+          cp inputs/M4C/hira-v0-m4-package-smoke.json artifacts/m4-bundle/
+          cp research/HIRA-V0-MAINLINE-M4-CLOSURE.md artifacts/m4-bundle/
+          cp research/HIRA-V0-MAINLINE-M4-HANDOFF.md artifacts/m4-bundle/
+
+          (
+            cd artifacts/m4-bundle
+            find runtime -type f -print0 | sort -z | xargs -0 sha256sum > HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+            sha256sum hira-v0-m4-package-smoke.json >> HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+            sha256sum HIRA-V0-MAINLINE-M4-CLOSURE.md >> HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+            sha256sum HIRA-V0-MAINLINE-M4-HANDOFF.md >> HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+            zip -qr NOLANE-HIRA-V0-MAINLINE-M4-FULL.zip \
+              runtime \
+              hira-v0-m4-package-smoke.json \
+              HIRA-V0-MAINLINE-M4-CLOSURE.md \
+              HIRA-V0-MAINLINE-M4-HANDOFF.md
+          )
+
+      - name: Verify closure-bundle integrity
+        run: |
+          test -f artifacts/m4-bundle/NOLANE-HIRA-V0-MAINLINE-M4-FULL.zip
+          test -f artifacts/m4-bundle/HIRA-V0-MAINLINE-M4-CLOSURE.md
+          test -f artifacts/m4-bundle/HIRA-V0-MAINLINE-M4-HANDOFF.md
+          test -f artifacts/m4-bundle/HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+          (
+            cd artifacts/m4-bundle
+            sha256sum -c HIRA-V0-MAINLINE-M4-INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-closure-full-bundle
+          path: artifacts/m4-bundle
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
