@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import OrderedDict
 from dataclasses import dataclass
 from hashlib import sha256
 import json
@@ -16,6 +17,10 @@ def _canonical_hash(value) -> str:
     return sha256(payload.encode("utf-8")).hexdigest()
 
 
+DEFAULT_SCHEMA_CACHE_MAX_ENTRIES = 16
+DEFAULT_SCHEMA_CACHE_MAX_BYTES = 64 * 1024 * 1024
+
+
 @dataclass(frozen=True)
 class SchemaCompileReceipt:
     schema_hash: str
@@ -23,14 +28,82 @@ class SchemaCompileReceipt:
     cache_hit: bool
     option_count: int
     prototype_count: int
+    cache_stored: bool = False
+    cache_entry_bytes: int = 0
+    cache_entries: int = 0
+    cache_bytes: int = 0
+    cache_evictions: int = 0
+
+
+def _compiled_schema_tensor_bytes(schema: CompiledSchema) -> int:
+    total = 0
+    for value in vars(schema).values():
+        if isinstance(value, torch.Tensor):
+            total += int(value.numel() * value.element_size())
+    return total
 
 
 class SchemaCompiler:
     """Compile semantic schemas without letting option IDs carry semantic meaning."""
 
-    def __init__(self, encoder: TextSemanticEncoder):
+    def __init__(
+        self,
+        encoder: TextSemanticEncoder,
+        *,
+        max_cache_entries: int = DEFAULT_SCHEMA_CACHE_MAX_ENTRIES,
+        max_cache_bytes: int = DEFAULT_SCHEMA_CACHE_MAX_BYTES,
+    ):
+        if max_cache_entries < 0:
+            raise ValueError("max_cache_entries must be >= 0")
+        if max_cache_bytes < 0:
+            raise ValueError("max_cache_bytes must be >= 0")
         self.encoder = encoder
-        self._cache: dict[tuple[str, bool], CompiledSchema] = {}
+        self.max_cache_entries = int(max_cache_entries)
+        self.max_cache_bytes = int(max_cache_bytes)
+        self._cache: OrderedDict[
+            tuple[str, bool],
+            tuple[CompiledSchema, int],
+        ] = OrderedDict()
+        self._cache_bytes = 0
+        self._cache_evictions = 0
+
+    def cache_info(self) -> dict[str, int]:
+        return {
+            "entries": len(self._cache),
+            "bytes": self._cache_bytes,
+            "max_entries": self.max_cache_entries,
+            "max_bytes": self.max_cache_bytes,
+            "evictions": self._cache_evictions,
+        }
+
+    def _store_cache(
+        self,
+        cache_key: tuple[str, bool],
+        compiled: CompiledSchema,
+    ) -> tuple[bool, int]:
+        entry_bytes = _compiled_schema_tensor_bytes(compiled)
+        if (
+            self.max_cache_entries == 0
+            or self.max_cache_bytes == 0
+            or entry_bytes > self.max_cache_bytes
+        ):
+            return False, entry_bytes
+
+        existing = self._cache.pop(cache_key, None)
+        if existing is not None:
+            self._cache_bytes -= existing[1]
+
+        while self._cache and (
+            len(self._cache) >= self.max_cache_entries
+            or self._cache_bytes + entry_bytes > self.max_cache_bytes
+        ):
+            _old_key, (_old_schema, old_bytes) = self._cache.popitem(last=False)
+            self._cache_bytes -= old_bytes
+            self._cache_evictions += 1
+
+        self._cache[cache_key] = (compiled, entry_bytes)
+        self._cache_bytes += entry_bytes
+        return True, entry_bytes
 
     def _payload(self, primitive: Primitive, question_text: str, options: tuple[LogicalOption, ...]):
         return {
@@ -71,9 +144,19 @@ class SchemaCompiler:
         key = self.schema_hash(primitive, question_text, opts)
         cache_key = (key, bool(include_token_artifacts))
         if use_cache and cache_key in self._cache:
-            cached = self._cache[cache_key]
+            cached, entry_bytes = self._cache[cache_key]
+            self._cache.move_to_end(cache_key)
             return cached, SchemaCompileReceipt(
-                key, self.encoder.encoder_hash, True, len(opts), len(opts)
+                key,
+                self.encoder.encoder_hash,
+                True,
+                len(opts),
+                len(opts),
+                cache_stored=True,
+                cache_entry_bytes=entry_bytes,
+                cache_entries=len(self._cache),
+                cache_bytes=self._cache_bytes,
+                cache_evictions=self._cache_evictions,
             )
 
         q = self.encoder.encode_texts([question_text]).pooled_embeddings[0]
@@ -227,11 +310,24 @@ class SchemaCompiler:
             option_view_token_mask=option_view_token_mask,
             option_view_mask=option_view_mask,
         )
+        cache_stored = False
+        entry_bytes = _compiled_schema_tensor_bytes(compiled)
         if use_cache:
-            self._cache[cache_key] = compiled
+            cache_stored, entry_bytes = self._store_cache(cache_key, compiled)
         return compiled, SchemaCompileReceipt(
-            key, self.encoder.encoder_hash, False, len(opts), prototype_count
+            key,
+            self.encoder.encoder_hash,
+            False,
+            len(opts),
+            prototype_count,
+            cache_stored=cache_stored,
+            cache_entry_bytes=entry_bytes,
+            cache_entries=len(self._cache),
+            cache_bytes=self._cache_bytes,
+            cache_evictions=self._cache_evictions,
         )
 
     def clear(self):
         self._cache.clear()
+        self._cache_bytes = 0
+        self._cache_evictions = 0
