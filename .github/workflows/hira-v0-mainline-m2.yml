@@ -7,8 +7,12 @@ on:
     paths:
       - "src/nmd/mainline.py"
       - "src/nmd/mainline_high_k.py"
+      - "src/nmd/mainline_m2_eval.py"
+      - "src/nmd/mainline_m2_authority.py"
       - "tests/test_mainline.py"
       - "tests/test_mainline_high_k.py"
+      - "tests/test_mainline_m2_eval.py"
+      - "tests/test_mainline_m2_authority.py"
       - "scripts/hira_v0_m2_integration.py"
       - ".github/workflows/hira-v0-mainline-m2-integration.yml"
       - "research/HIRA-V0-MAINLINE-M2-HANDOFF.md"
@@ -42,13 +46,19 @@ jobs:
           python -m py_compile \
             src/nmd/mainline.py \
             src/nmd/mainline_high_k.py \
+            src/nmd/mainline_m2_authority.py \
+            src/nmd/mainline_m2_eval.py \
             scripts/hira_v0_m2_integration.py \
-            tests/test_mainline_high_k.py
+            tests/test_mainline_high_k.py \
+            tests/test_mainline_m2_authority.py \
+            tests/test_mainline_m2_eval.py
 
       - name: Run M2 mechanics contracts
         run: |
           pytest -q \
             tests/test_mainline_high_k.py \
+            tests/test_mainline_m2_authority.py \
+            tests/test_mainline_m2_eval.py \
             tests/test_mainline.py \
             tests/test_mainline_reliability.py
 
