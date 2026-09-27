@@ -77,18 +77,52 @@ class SchemaCompiler:
             )
 
         q = self.encoder.encode_texts([question_text]).pooled_embeddings[0]
-        logical = []
-        prototype_count = 0
+
+        # Compile every positive semantic view in one encoder batch instead of
+        # issuing one forward pass per logical option. The mathematical option
+        # aggregation contract is unchanged: normalize every prototype, average
+        # within each option, then normalize the mean.
+        view_texts: list[str] = []
+        view_counts: list[int] = []
         for option in opts:
             # IDs are intentionally absent here: they are routing keys, not semantics.
-            texts = [option.criterion_text, *option.aliases, *option.exemplars]
-            texts = [t for t in texts if t and t.strip()]
-            if not texts:
-                raise ValueError(f"option {option.option_id!r} has no semantic description")
-            proto = self.encoder.encode_texts(texts).pooled_embeddings
-            prototype_count += proto.shape[0]
+            views = [
+                text
+                for text in (
+                    option.criterion_text,
+                    *option.aliases,
+                    *option.exemplars,
+                )
+                if text and text.strip()
+            ]
+            if not views:
+                raise ValueError(
+                    f"option {option.option_id!r} has no semantic description"
+                )
+            view_counts.append(len(views))
+            view_texts.extend(views)
+
+        prototype_count = len(view_texts)
+        view_batch = (
+            self.encoder.encode_texts(view_texts)
+            if include_token_artifacts
+            else None
+        )
+        prototype_pooled = (
+            view_batch.pooled_embeddings
+            if view_batch is not None
+            else self.encoder.encode_texts(view_texts).pooled_embeddings
+        )
+
+        logical = []
+        offset = 0
+        for count in view_counts:
+            proto = prototype_pooled[offset : offset + count]
             emb = F.normalize(proto, dim=-1).mean(0)
             logical.append(F.normalize(emb, dim=-1))
+            offset += count
+        if offset != prototype_count:
+            raise RuntimeError("semantic prototype packing mismatch")
 
         option_token_embeddings = None
         option_token_mask = None
@@ -124,27 +158,10 @@ class SchemaCompiler:
 
             # Positive multi-view artifacts are additive and backward-compatible:
             # criterion_text remains the legacy single-view artifact above, while
-            # criterion/aliases/exemplars are compiled independently here.
-            view_texts: list[str] = []
-            view_counts: list[int] = []
-            for option in opts:
-                views = [
-                    text
-                    for text in (
-                        option.criterion_text,
-                        *option.aliases,
-                        *option.exemplars,
-                    )
-                    if text and text.strip()
-                ]
-                if not views:
-                    raise ValueError(
-                        f"option {option.option_id!r} has no positive semantic view"
-                    )
-                view_counts.append(len(views))
-                view_texts.extend(views)
-
-            view_batch = self.encoder.encode_texts(view_texts)
+            # criterion/aliases/exemplars reuse the already batched semantic view
+            # forward pass instead of encoding the same texts a second time.
+            if view_batch is None:
+                raise RuntimeError("token-artifact compile missing semantic view batch")
             view_tokens = view_batch.token_embeddings
             view_attention = view_batch.attention_mask.bool()
             if view_batch.special_token_mask is None:
