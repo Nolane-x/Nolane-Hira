@@ -191,3 +191,60 @@ Next after M1-A mechanism merge or freeze:
 - freeze thresholds on DEV;
 - expose sealed CONFIRM once;
 - only then promote reliability from provisional to available.
+
+
+## 12. Fresh M1 authority namespace — implemented, unexposed
+
+Implemented:
+- `src/nmd/mainline_m1_authority.py`
+- `tests/test_mainline_m1_authority.py`
+
+Partitions:
+
+Calibration/selective ID:
+- CAL TRAIN: UA / UB / UC = 108 cases
+- CAL DEV: UD = 36 cases
+- SELECTIVE CONFIRM: UE = 36 cases, sealed
+
+OOD:
+- OOD TRAIN: UF / UG = 72 cases
+- OOD DEV: UH = 36 cases
+- OOD CONFIRM: UI = 36 cases, sealed
+
+Every domain is exactly balanced across:
+- choice
+- score
+- noul
+
+Calibration ID rows also balance fresh confidence bands:
+- strong
+- mixed
+- thin
+
+OOD rows balance:
+- topic mismatch
+- foreign task
+- no relevant evidence
+
+Important:
+- OOD rows have no fabricated gold decision;
+- OOD labels are separate from typed-task labels;
+- calibration and OOD state texts are disjoint;
+- sealed partitions fail closed unless explicitly opened;
+- exact text is regression-tested against W33/W34 authority and W6c reliability lexicons.
+
+No M1 model inference, calibration fitting, OOD training, threshold selection, or sealed exposure has occurred yet.
+
+## 13. Immediate next boundary
+
+Before any M1 empirical exposure:
+
+1. M1 mechanism + authority contracts must pass dedicated CI;
+2. full repository Python 3.10/3.12 CI must pass;
+3. freeze exact M0/W34 provenance;
+4. implement frozen logit/feature cache so the decision core cannot receive gradients;
+5. only then expose CAL TRAIN/DEV and OOD TRAIN/DEV;
+6. select calibration candidate, OOD candidate and selective thresholds using DEV only;
+7. freeze all selections;
+8. expose UE and UI once;
+9. reliability may become `available` only if sealed gates pass.
