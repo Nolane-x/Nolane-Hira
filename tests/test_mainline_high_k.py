@@ -8,6 +8,7 @@ from nmd.hira import HIRACore
 from nmd.mainline import (
     HIRA_V0_MAINLINE_M2_VERSION,
     HIRA_V0_MAX_K,
+    M2_MECHANICS_AUTHORITY,
     HiraV0Mainline,
     HiraV0Manifest,
 )
@@ -56,13 +57,20 @@ def _options(k: int) -> tuple[LogicalOption, ...]:
 
 
 def test_m2_manifest_separates_mechanics_from_semantic_quality():
-    manifest = HiraV0Manifest.m2_mechanics_provisional().to_dict()
-    assert manifest["version"] == HIRA_V0_MAINLINE_M2_VERSION
-    assert manifest["reliability_ood_abstention"] == "provisional"
-    assert manifest["high_k"] == "provisional"
-    assert manifest["high_k_mechanics"] == "provisional"
-    assert manifest["production_ready"] is False
-    assert manifest["transfer_core"] == "provisional"
+    provisional = HiraV0Manifest.m2_mechanics_provisional().to_dict()
+    assert provisional["version"] == HIRA_V0_MAINLINE_M2_VERSION
+    assert provisional["reliability_ood_abstention"] == "provisional"
+    assert provisional["high_k"] == "provisional"
+    assert provisional["high_k_mechanics"] == "provisional"
+    assert provisional["high_k_mechanics_authority"] is None
+    assert provisional["production_ready"] is False
+    assert provisional["transfer_core"] == "provisional"
+
+    promoted = HiraV0Manifest.m2_mechanics_available().to_dict()
+    assert promoted["high_k"] == "provisional"
+    assert promoted["high_k_mechanics"] == "available"
+    assert promoted["high_k_mechanics_authority"] == M2_MECHANICS_AUTHORITY
+    assert promoted["production_ready"] is False
 
 
 def test_v0_mainline_explicitly_bounds_dynamic_schema_at_255():
