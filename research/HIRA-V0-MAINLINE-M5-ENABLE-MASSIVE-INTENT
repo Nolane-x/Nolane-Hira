@@ -1,0 +1,37 @@
+# HIRA V0 MAINLINE M5 — MASSIVE INTENT AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+Frozen prerequisites:
+- M5-A contract: run 36358456335 / artifact 10943744649
+- XNLI: run 36359330862 / artifact 10944709225
+- XNLI digest: sha256:dba2b9ca1cc61b5bceb62171f6da9d2fa2e8854838433317607f2c0462a1639d
+- Jev BTZSC: run 36359563201 / artifact 10945541326
+- Jev digest: sha256:b0cd43fb6b9c580dc4360eb6a03365387d2521d09651c344d191cf555b970b5a
+
+Authorize exact Laya MASSIVE intent held-out protocol:
+- source: NandhaKishorM/laya@42626c348753fbb17572a813127df2278a1ec527
+- build_benchmark blob: 8b131f2d0caa0c0b096c1654214464b02aef1461
+- dataset: mteb/amazon_massive_intent@940fd47a81eaa7f2cc7b129674d945d618ac38c2
+- languages: en,de,fr,es,pt,ru,tr,ar,hi,ta,zh-CN,ja,ko,sw
+- first 300 per language
+- seed: 13
+- dynamic choice K=20 per example
+- option construction: gold + 19 sampled distractors, then seeded shuffle
+- criterion transform: '_' -> ' ', '.' -> ': '
+- question: What is the user asking for in `utterance`?
+- zero task training
+- full-K
+- state-once
+- adaptive budget off
+- relation refinement off
+
+Matched targets:
+- laya.massive.intent.en = 0.7833333333333333
+- laya.massive.intent.other13_macro = 0.451
+
+The VI CPU51 and 51-language targets are different protocols and MUST NOT be
+populated from this 14-language authority.
+
+No post-exposure tuning or selection is authorized.
