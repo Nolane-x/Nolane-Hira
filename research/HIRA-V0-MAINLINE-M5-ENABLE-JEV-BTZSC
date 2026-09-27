@@ -1,0 +1,37 @@
+# HIRA V0 MAINLINE M5 — EXACT JEV BTZSC AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+Prerequisite authorities:
+- M5-A contract run 36358456335 / artifact 10943744649
+- M5-B1 Banking77 run 36358746320 / artifact 10944752687
+- M5-B2 English held-out run 36359178166 / artifact 10944159765
+- M5-B3 XNLI run 36359330862 / artifact 10944709225
+- M5-B3 digest sha256:dba2b9ca1cc61b5bceb62171f6da9d2fa2e8854838433317607f2c0462a1639d
+
+All prior final exposures:
+- used_for_model_selection: false
+- frozen M4 weights unchanged
+- no post-exposure prompt/schema/threshold tuning
+
+Authorize exact Jev BTZSC pilot reproduction for Hira:
+- Jev source: AbdelStark/jev-benchmarks@0d610cc53e79bcbec691312b0c4adb4a0e371642
+- data.py blob: efdf58ab89dddc7dff7687f6625747c06ec9551f
+- Jev adapter blob: 328a5536bde2b4e0809b4b1727ccbbb6bd6da3fe
+- metrics blob: eab6060c3aa54a1ab771dbf2a05dab526b5a9be8
+- BTZSC: btzsc/btzsc@fef2a2ac62b69c58670047dddf045c53d7c3cb5e
+- seed: 20260917
+- conditions: agnews, emotiondair, banking77
+- samples: 100 per condition
+- exact expected manifest SHA256:
+  ec064c52b149de458344cd4b4a44c158460f30b3bbb7fe8b2e7ec72d0abf3ba5
+- question: Which single label best describes the input text?
+- option IDs: label_000, label_001, ...
+- criterion strings: exact BTZSC hypotheses
+- zero demonstrations
+- zero weight updates
+
+The Hira runner MUST reproduce the exact manifest SHA before final inference.
+Hosted Jev latency and local Hira CPU latency remain NOT_COMPARABLE.
+No post-exposure model selection is authorized.
