@@ -23,6 +23,22 @@ OOD_WEIGHT_DECAY = 0.001
 OOD_SEED = 11029
 SELECTIVE_TARGET_ACCURACY = 0.90
 SELECTIVE_MIN_COVERAGE = 0.25
+DEV_CALIBRATION_ECE_MAX = 0.20
+DEV_CALIBRATION_ECE_IMPROVEMENT = 0.01
+DEV_CALIBRATION_MAX_ACCURACY_REGRESSION = 0.01
+DEV_OOD_AUROC_MIN = 0.80
+DEV_OOD_BALANCED_ACCURACY_MIN = 0.75
+DEV_OOD_FALSE_ACCEPT_MAX = 0.25
+
+SEALED_CALIBRATION_ECE_MAX = 0.15
+SEALED_CALIBRATION_ECE_IMPROVEMENT = 0.02
+SEALED_CALIBRATION_MAX_ACCURACY_REGRESSION = 0.01
+SEALED_OOD_AUROC_MIN = 0.85
+SEALED_OOD_BALANCED_ACCURACY_MIN = 0.80
+SEALED_OOD_RECALL_MIN = 0.80
+SEALED_OOD_FALSE_ACCEPT_MAX = 0.20
+SEALED_ID_ACCEPT_MIN = 0.70
+SEALED_OOD_FINAL_ACCEPT_MAX = 0.10
 
 CALIBRATION_CANDIDATES = (
     "control",
@@ -617,11 +633,113 @@ def select_selective_threshold(
     return selected
 
 
+
+def m1_dev_qualification(
+    calibration: Mapping[str, object],
+    selective: Mapping[str, object],
+    ood: Mapping[str, object],
+) -> dict[str, object]:
+    selected_cal = calibration["selected_dev"]
+    control_cal = calibration["control_dev"]
+    selected_ood = ood["selected_dev"]
+
+    calibration_gate = {
+        "ece_absolute": float(selected_cal["soft_ece"]) <= DEV_CALIBRATION_ECE_MAX,
+        "accuracy_non_regression": (
+            float(selected_cal["accuracy"])
+            >= float(control_cal["accuracy"]) - DEV_CALIBRATION_MAX_ACCURACY_REGRESSION
+        ),
+        "ece_mechanism": (
+            float(control_cal["soft_ece"]) <= SEALED_CALIBRATION_ECE_MAX
+            or (
+                float(control_cal["soft_ece"]) - float(selected_cal["soft_ece"])
+                >= DEV_CALIBRATION_ECE_IMPROVEMENT
+            )
+        ),
+        "probability_integrity": (
+            float(selected_cal["probability_mass_max_error"]) <= 1e-6
+        ),
+    }
+    selective_gate = {
+        "meets_target": bool(selective["meets_target"]),
+        "accuracy": (
+            float(selective["selective_accuracy"])
+            >= SELECTIVE_TARGET_ACCURACY
+        ),
+        "coverage": float(selective["coverage"]) >= SELECTIVE_MIN_COVERAGE,
+    }
+    ood_gate = {
+        "auroc": float(selected_ood["auroc"]) >= DEV_OOD_AUROC_MIN,
+        "balanced_accuracy": (
+            float(selected_ood["balanced_accuracy"])
+            >= DEV_OOD_BALANCED_ACCURACY_MIN
+        ),
+        "false_accept": (
+            float(selected_ood["ood_false_accept_rate"])
+            <= DEV_OOD_FALSE_ACCEPT_MAX
+        ),
+        "semantic_features_present": all(
+            name in tuple(ood["selected_feature_names"])
+            for name in OOD_FEATURE_NAMES[:4]
+        ),
+    }
+    passed = (
+        all(calibration_gate.values())
+        and all(selective_gate.values())
+        and all(ood_gate.values())
+    )
+    return {
+        "pass": passed,
+        "calibration": calibration_gate,
+        "selective": selective_gate,
+        "ood": ood_gate,
+    }
+
+
+def evaluate_selective_at_threshold(
+    cache: dict[str, object],
+    calibrator: TypedReliabilityCalibrator | None,
+    threshold: float,
+) -> dict[str, float]:
+    validate_m1_frozen_cache(cache)
+    if not 0.0 <= float(threshold) <= 1.0:
+        raise ValueError("M1 selective threshold must be in [0,1]")
+    rows = [case for case in cache["cases"] if not case["is_ood"]]
+    if not rows:
+        raise ValueError("M1 selective evaluation requires ID rows")
+
+    accepted = []
+    for case in rows:
+        logits = calibrated_case_logits(case, calibrator)
+        probabilities = torch.softmax(logits, dim=-1)
+        selected = int(probabilities.argmax())
+        confidence = float(probabilities[selected])
+        if confidence >= threshold:
+            accepted.append(int(selected == int(case["gold_index"])))
+
+    coverage = len(accepted) / len(rows)
+    accuracy = sum(accepted) / len(accepted) if accepted else 0.0
+    return {
+        "threshold": float(threshold),
+        "coverage": coverage,
+        "selective_accuracy": accuracy,
+        "selective_risk": 1.0 - accuracy if accepted else 1.0,
+        "accepted_count": float(len(accepted)),
+        "case_count": float(len(rows)),
+    }
+
+
 __all__ = [
     "CALIBRATION_CANDIDATES",
     "CALIBRATION_EPOCHS",
     "CALIBRATION_LR",
     "CALIBRATION_SEED",
+    "DEV_CALIBRATION_ECE_MAX",
+    "DEV_CALIBRATION_ECE_IMPROVEMENT",
+    "DEV_CALIBRATION_MAX_ACCURACY_REGRESSION",
+    "DEV_OOD_AUROC_MIN",
+    "DEV_OOD_BALANCED_ACCURACY_MIN",
+    "DEV_OOD_FALSE_ACCEPT_MAX",
     "OOD_CANDIDATES",
     "OOD_EPOCHS",
     "OOD_FEATURE_INDICES",
@@ -630,10 +748,21 @@ __all__ = [
     "OOD_WEIGHT_DECAY",
     "SELECTIVE_MIN_COVERAGE",
     "SELECTIVE_TARGET_ACCURACY",
+    "SEALED_CALIBRATION_ECE_MAX",
+    "SEALED_CALIBRATION_ECE_IMPROVEMENT",
+    "SEALED_CALIBRATION_MAX_ACCURACY_REGRESSION",
+    "SEALED_OOD_AUROC_MIN",
+    "SEALED_OOD_BALANCED_ACCURACY_MIN",
+    "SEALED_OOD_RECALL_MIN",
+    "SEALED_OOD_FALSE_ACCEPT_MAX",
+    "SEALED_ID_ACCEPT_MIN",
+    "SEALED_OOD_FINAL_ACCEPT_MAX",
     "TinyOODHead",
     "calibrated_case_logits",
     "evaluate_calibration_cache",
     "evaluate_ood_head",
+    "evaluate_selective_at_threshold",
+    "m1_dev_qualification",
     "select_selective_threshold",
     "train_calibration_tournament",
     "train_ood_tournament",
