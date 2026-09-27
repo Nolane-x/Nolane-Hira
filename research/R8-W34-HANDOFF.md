@@ -1,6 +1,6 @@
 # R8-W34 handoff — fresh qualified authority for co-evidence composition
 
-Status: **PREREGISTERED / PRE-QUALIFICATION**
+Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
 
 Issue: #157  
 Branch: `feat/r8-w34-qualified-coevidence`  
@@ -179,15 +179,50 @@ Forbidden for fitting/selection/authority repair:
 
 Only aggregate prior-wave conclusions may motivate W34.
 
+## Reference qualification — frozen
+
+Authoritative run:
+
+`36298394141`
+
+Outcome:
+
+`W34_REFERENCE_QUALIFIED`
+
+Per-domain:
+- TA: PASS
+- TB: PASS
+
+Isolation:
+- case count: 192
+- HIRA candidate evaluated: false
+- A13 loaded: false
+- W33/W32/W31/W30/W29/older authority rows used: false
+- exact-text overlap: none
+
+Frozen artifact:
+- name: `r8-w34-reference-qualification`
+- artifact ID: `10924507541`
+- digest: `sha256:13cfd1301f7fa7e03c7c2580c80409fd48c2aecb48b022f7e5fea811b71f5432`
+
+TA/TB are now permanently exposed and forbidden from candidate fitting or DEV selection.
+
 ## Current boundary
 
-No W34 empirical evidence is exposed.
+TRAIN/DEV implementation is present and qualification-gated:
+- `src/nmd/w34_transfer_cache.py`
+- `src/nmd/w34_transfer_eval.py`
+- `src/nmd/w34_transfer_core.py`
+- `scripts/r8_w34_train.py`
+- `.github/workflows/r8-w34-train-dev.yml`
+
+TC/TD/TE/TF and TG are still unexposed.
 
 Next:
-1. implement TA..TI fresh authority;
-2. lock exact-text freshness against W28..W33;
-3. build reference-only TA/TB qualification evaluator;
-4. pass dedicated/full CI;
-5. create one-way qualification marker;
-6. only if TA and TB pass, build and expose TC..TG TRAIN/DEV;
-7. freeze checkpoint before TH/TI implementation/exposure.
+1. pass dedicated W34 unit gate and full repository CI on the qualification-frozen TRAIN stack;
+2. only then create `research/R8-W34-ENABLE-TRAIN`;
+3. expose TC..TF TRAIN and TG DEV exactly once;
+4. freeze selected checkpoint and receipt;
+5. implement/preregister TH/TI sealed-confirm stack without changing the selected candidate;
+6. expose TH/TI once;
+7. closure + full evidence bundle.
