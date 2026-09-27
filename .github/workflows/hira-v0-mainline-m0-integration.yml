@@ -1,0 +1,96 @@
+name: hira-v0-mainline-m0-integration
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m0
+    paths:
+      - "research/HIRA-V0-MAINLINE-M0-INTEGRATION"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install mainline integration stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" sentencepiece
+
+      - name: Compile M0 integration path
+        run: |
+          python -m py_compile \
+            src/nmd/mainline.py \
+            scripts/hira_v0_m0_integration.py
+
+      - name: Run exact-provenance Hira v0 M0 integration
+        run: |
+          python scripts/hira_v0_m0_integration.py \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --out artifacts/mainline-m0
+
+      - name: Verify integration receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/mainline-m0/receipt.json"))
+          assert x["schema_version"]=="hira-v0-mainline-m0-integration-v1"
+          assert x["status"]=="PASS"
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["transfer_checkpoint_sha256"]=="d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
+          assert x["manifest"]["production_ready"] is False
+          assert x["manifest"]["transfer_core"]=="provisional"
+          assert x["manifest"]["transfer_core_promoted"] is False
+          assert x["parameter_report"]["projection_parameters"]==32768
+          assert x["parameter_report"]["transfer_candidate_parameters"]==8192
+          assert x["parameter_report"]["trainable_total"]==0
+          assert x["state_encode_count"]==1
+          assert x["session_query_count"]==3
+          assert x["query_candidate_budgets"]==[2,3,2]
+          assert x["relation_delta_max_abs"]==0.0
+          assert x["probability_mass_max_error"]<=1e-6
+          assert x["quality_claim_made"] is False
+          print("HIRA_V0_M0_INTEGRATION_FINAL="+json.dumps({
+            "status":x["status"],
+            "parameter_report":x["parameter_report"],
+            "manifest":x["manifest"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m0-integration
+          path: artifacts/mainline-m0
+          if-no-files-found: error
+          retention-days: 90
