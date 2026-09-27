@@ -12,6 +12,17 @@ on:
       - "scripts/hira_v0_m3_paired_confirm.py"
       - "tests/test_mainline_m3_authority.py"
       - "tests/test_mainline_m3_eval.py"
+      - "src/nmd/mainline_m3_alignment.py"
+      - "src/nmd/mainline_m3_r1_authority.py"
+      - "src/nmd/mainline_m3_r1_cache.py"
+      - "src/nmd/mainline_m3_r1_training.py"
+      - "scripts/hira_v0_m3_r1_train.py"
+      - "scripts/hira_v0_m3_r1_confirm.py"
+      - "tests/test_mainline_m3_alignment.py"
+      - "tests/test_mainline_m3_r1_authority.py"
+      - "tests/test_mainline_m3_r1_cache.py"
+      - "tests/test_mainline_m3_r1_training.py"
+      - ".github/workflows/hira-v0-mainline-m3-r1-train-dev.yml"
       - "research/HIRA-V0-MAINLINE-M3-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m3.yml"
       - ".github/workflows/hira-v0-mainline-m3-paired-dev.yml"
@@ -45,8 +56,14 @@ jobs:
             src/nmd/mainline.py \
             src/nmd/mainline_m3_authority.py \
             src/nmd/mainline_m3_eval.py \
+            src/nmd/mainline_m3_alignment.py \
+            src/nmd/mainline_m3_r1_authority.py \
+            src/nmd/mainline_m3_r1_cache.py \
+            src/nmd/mainline_m3_r1_training.py \
             scripts/hira_v0_m3_paired_dev.py \
             scripts/hira_v0_m3_paired_confirm.py \
+            scripts/hira_v0_m3_r1_train.py \
+            scripts/hira_v0_m3_r1_confirm.py \
             tests/test_mainline_m3_authority.py \
             tests/test_mainline_m3_eval.py
 
@@ -55,5 +72,9 @@ jobs:
           pytest -q \
             tests/test_mainline_m3_authority.py \
             tests/test_mainline_m3_eval.py \
+            tests/test_mainline_m3_alignment.py \
+            tests/test_mainline_m3_r1_authority.py \
+            tests/test_mainline_m3_r1_cache.py \
+            tests/test_mainline_m3_r1_training.py \
             tests/test_mainline.py \
             tests/test_mainline_high_k.py
