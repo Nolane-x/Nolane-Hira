@@ -15,6 +15,7 @@ from nmd.mainline_m1_authority import generate_m1_authority
 from nmd.mainline_m1_cache import compile_m1_frozen_cache
 from nmd.mainline_m1_training import (
     TinyOODHead,
+    m1_dev_qualification,
     select_selective_threshold,
     train_calibration_tournament,
     train_ood_tournament,
@@ -180,6 +181,11 @@ def main() -> None:
         cal_dev,
         ood_dev,
     )
+    dev_qualification = m1_dev_qualification(
+        calibration,
+        selective,
+        ood,
+    )
 
     args.out.mkdir(parents=True, exist_ok=True)
 
@@ -256,6 +262,7 @@ def main() -> None:
         "calibrator_sha256": calibrator_sha,
         "selective_policy": selective,
         "ood": _ood_summary(ood),
+        "dev_qualification": dev_qualification,
         "ood_head_sha256": ood_sha,
         "cache_sha256": {
             name: file_sha256(path)
@@ -272,6 +279,7 @@ def main() -> None:
         "selective_confirm_exposed": False,
         "ood_confirm_exposed": False,
         "sealed_rows_used": False,
+        "sealed_exposure_authorized": bool(dev_qualification["pass"]),
         "confidence_used_as_ood_authority": False,
         "quality_claim_made": False,
     }
@@ -284,6 +292,7 @@ def main() -> None:
         "calibration": receipt["calibration"],
         "selective_policy": receipt["selective_policy"],
         "ood": receipt["ood"],
+        "dev_qualification": receipt["dev_qualification"],
         "case_counts": receipt["case_counts"],
         "sealed_rows_used": False,
     }, sort_keys=True))
