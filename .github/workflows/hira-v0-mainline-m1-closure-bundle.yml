@@ -1,0 +1,85 @@
+name: hira-v0-mainline-m1-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m1-reliability
+    paths:
+      - "research/HIRA-V0-MAINLINE-M1-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-train-dev
+          path: inputs/R1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36305969587
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-r2-train-dev
+          path: inputs/R2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36307009727
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-r2-sealed-confirm
+          path: inputs/CONFIRM
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36308933278
+
+      - name: Build complete M1 closure bundle
+        run: |
+          python scripts/hira_v0_m1_bundle.py \
+            --repo-root . \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --r1-dir inputs/R1 \
+            --r2-dir inputs/R2 \
+            --confirm-dir inputs/CONFIRM \
+            --out artifacts/m1-bundle
+
+      - name: Verify M1 bundle integrity
+        run: |
+          test -f artifacts/m1-bundle/NOLANE-HIRA-V0-MAINLINE-M1-FULL.zip
+          test -f artifacts/m1-bundle/HIRA-V0-MAINLINE-M1-HANDOFF.md
+          test -f artifacts/m1-bundle/HIRA-V0-MAINLINE-M1-CLOSURE.md
+          test -f artifacts/m1-bundle/HIRA-V0-MAINLINE-M1-INTEGRITY.sha256
+          cd artifacts/m1-bundle
+          sha256sum -c HIRA-V0-MAINLINE-M1-INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-closure-full-bundle
+          path: artifacts/m1-bundle
+          if-no-files-found: error
+          retention-days: 90
