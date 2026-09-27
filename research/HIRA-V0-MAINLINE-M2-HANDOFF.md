@@ -277,3 +277,126 @@ It does **not** permit:
 - production-ready claims
 
 `high_k` remains `provisional` until M2-B fresh semantic authority.
+
+
+## 14. M2-B fresh semantic authority — preregistered, unexposed
+
+Implemented:
+- `src/nmd/mainline_m2_authority.py`
+- `src/nmd/mainline_m2_eval.py`
+- `tests/test_mainline_m2_authority.py`
+- `tests/test_mainline_m2_eval.py`
+
+Fresh authority partitions:
+
+Reserved TRAIN surface, **not exposed in the first frozen baseline**:
+- HKA: K=4, 16 cases
+- HKB: K=8, 16 cases
+- HKC: K=16, 16 cases
+- HKD: K=32, 16 cases
+
+Fresh DEV:
+- HKE: K=64, 16 cases
+- HKF: K=128, 16 cases
+
+Sealed CONFIRM:
+- HKG: K=255, 24 cases
+
+HKG fails closed unless explicitly opened after DEV qualification.
+
+The first baseline evaluates only HKE/HKF.
+
+HKA-HKD remain untouched and are reserved for a later rescue only if the frozen current-mainline DEV baseline fails.
+
+## 15. Frozen M2-B baseline model
+
+The first M2-B semantic baseline uses the exact current mainline with **zero new training**:
+
+- exact A13 revision `4226d9e4d2c08703e5cb0491b479bfc6a1607181`
+- exact W28 T0 checkpoint
+- exact W34 provisional co-evidence transfer checkpoint
+- relation refinement OFF
+- adaptive budget OFF
+- candidate pruning OFF
+- trainable decision-core params: 0
+
+No HKA-HKD row may be used in this first baseline.
+
+## 16. Frozen M2-B evaluator
+
+Every semantic case executes:
+
+1. one state encode;
+2. canonical full-K schema;
+3. deterministic rotated full-K schema;
+4. probabilities restored by option ID for permutation comparison.
+
+Reported per K:
+- top-1;
+- top-5 recall;
+- MRR;
+- mean gold rank;
+- mean gold probability;
+- mean confidence;
+- probability-mass max error;
+- permutation max error;
+- selected-option invariance rate;
+- full-K rate;
+- state-once rate;
+- relation-delta max;
+- finite-output rate;
+- mean wall-clock case time.
+
+Mechanics remain a mandatory gate even when semantic metrics pass.
+
+## 17. Frozen DEV gates
+
+### K=64 / HKE
+
+Required:
+- top-1 >= **0.70**
+- top-5 >= **0.90**
+- MRR >= **0.75**
+- full-K = 1.0
+- state-once = 1.0
+- finite = 1.0
+- selected-option permutation invariance = 1.0
+- permutation max error <= 2e-6
+- probability-mass max error <= 1e-6
+- relation delta max = 0
+
+### K=128 / HKF
+
+Required:
+- top-1 >= **0.60**
+- top-5 >= **0.85**
+- MRR >= **0.65**
+- the same mechanics gates as K=64
+
+Both K=64 and K=128 must pass.
+
+Only then may HKG be exposed.
+
+## 18. Frozen sealed K=255 gates
+
+HKG may be exposed only after a frozen DEV PASS.
+
+Required at K=255:
+- top-1 >= **0.50**
+- top-5 >= **0.80**
+- MRR >= **0.58**
+- full-K = 1.0
+- state-once = 1.0
+- finite = 1.0
+- selected-option permutation invariance = 1.0
+- permutation max error <= 2e-6
+- probability-mass max error <= 1e-6
+- relation delta max = 0
+
+If HKE/HKF DEV fails:
+- HKG remains sealed;
+- HKE/HKF become exposed evidence and may never be used for fitting/selection;
+- HKA-HKD may be used only under a new preregistered rescue;
+- rescue requires a **new fresh DEV authority**, not HKE/HKF.
+
+No M2-B semantic data has been exposed at the time of this preregistration.
