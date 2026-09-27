@@ -9,6 +9,8 @@ on:
       - "src/nmd/mainline_high_k.py"
       - "tests/test_mainline.py"
       - "tests/test_mainline_high_k.py"
+      - "scripts/hira_v0_m2_integration.py"
+      - ".github/workflows/hira-v0-mainline-m2-integration.yml"
       - "research/HIRA-V0-MAINLINE-M2-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m2.yml"
 
@@ -40,6 +42,7 @@ jobs:
           python -m py_compile \
             src/nmd/mainline.py \
             src/nmd/mainline_high_k.py \
+            scripts/hira_v0_m2_integration.py \
             tests/test_mainline_high_k.py
 
       - name: Run M2 mechanics contracts
