@@ -1,0 +1,69 @@
+HIRA V0 MAINLINE M3-R1 TRAIN/DEV ENABLED
+
+This marker authorizes the first and only blocking M3 multilingual rescue exposure.
+
+Frozen pre-exposure code head:
+- 41ac481ddeaadc2c388ebb6b222dbcee31e4c06d
+
+Authoritative failed M3-A zero-training baseline:
+- run: 36320497057
+- artifact ID: 10932028604
+- artifact digest: sha256:d9837f68ed0f9a7d216c42a95e3cc9977fa5f3d218aa792493ecfcf63a47d6bd
+- outcome: HIRA_V0_M3_PAIRED_DEV_FAIL
+- MVA/MVB are exposed historical DEV evidence and forbidden for R1 fitting/selection.
+
+Frozen base:
+- A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- A13 weight SHA256: 5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880
+- W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+
+Authorized R1 evidence:
+- TRAIN MVD/MVE/MVF/MVG: 144 paired EN/VI latent cases = 288 language cases
+- fresh DEV MVH/MVI: 72 paired EN/VI latent cases = 144 language cases
+
+Still sealed:
+- MVC: 36 paired EN/VI latent cases = 72 language cases
+
+Frozen candidate:
+- shared rank-16 residual alignment adapter
+- 256 -> 16 -> 256
+- bias-free
+- up projection exact-zero initialized
+- non-affine layer norm
+- trainable parameters: exactly 8192
+- no language-specific branch
+- no language-ID feature
+
+Frozen loss:
+- task CE
+- + 0.35 * paired alignment
+- + 0.10 * English anchor
+
+Optimization:
+- epochs: 8
+- AdamW
+- lr: 2e-4
+- weight decay: 0.01
+- gradient clip: 1.0
+- primary seed: 23031
+- replica seed: 23037
+
+Frozen DEV gates for both primary and replica:
+- EN top1 >= 0.65
+- VI top1 >= 0.65
+- VI/EN top1 ratio >= 0.90
+- VI/EN MRR ratio >= 0.90
+- paired prediction agreement >= 0.85
+- all runtime integrity gates PASS
+
+Frozen epoch selection:
+1. larger min(EN top1, VI top1)
+2. larger paired prediction agreement
+3. larger min(VI/EN top1 ratio, VI/EN MRR ratio)
+4. larger min(EN MRR, VI MRR)
+5. earlier epoch
+
+MVC may be exposed exactly once only if BOTH primary and replica pass fresh DEV.
+If either candidate fails, MVC remains sealed and M3 closes with multilingual provisional.
+No M3-R2 blocking rescue is authorized.
