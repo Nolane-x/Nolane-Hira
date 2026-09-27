@@ -1,6 +1,6 @@
 # R8-W31 handoff — qualified dual semantic adapter
 
-Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
+Status: **TRAIN/DEV FROZEN / SEALED CONFIRM PRE-EXPOSURE**
 
 Issue: #151  
 Branch: `feat/r8-w31-qualified-dual-semantic-adapter`  
@@ -170,12 +170,46 @@ Frozen TRAIN/DEV implementation details:
 - anchor coefficient = 0.35;
 - DEV selection order is worst-factor BA, worst-factor top-1, composed severity, lower invalid-vector rate, earlier epoch.
 
-Current boundary:
-1. new unit/full CI must pass;
-2. only then create `research/R8-W31-ENABLE-TRAIN`;
-3. run QJ-QM TRAIN + QN DEV;
-4. freeze selected checkpoint and receipt;
-5. only after that implement/preregister sealed QO/QP confirmation;
-6. closure and full bundle.
+Frozen TRAIN/DEV result:
+- authority run: `36290117569`
+- TRAIN: QJ/QK/QL/QM = 384 cases
+- DEV: QN = 96 cases
+- selected DEV epoch: 12
+- checkpoint SHA256: `2a14479cc45b4e92c9ac76ce1535500b11778c8aa5b194b4ff53669f7f11054f`
+- training artifact: `r8-w31-dual-adapter-training`
+- artifact ID: `10922330271`
+- artifact digest: `sha256:2e055d2050b3fc27c85bdb47aa0044947b5b33b27b76d5c4f96989286aef358c`
+- anchor rate: 0.6102430555555556
 
-QO/QP remain sealed. Do not implement empirical tuning from them or expose them before TRAIN/DEV is frozen.
+QN frozen unbridged baseline:
+- F0 top-1: 0.625
+- F1 top-1: 0.7291666666666666
+- F2 top-1: 0.7916666666666666
+- factor-vector / composed severity: 0.3958333333333333
+- invalid-vector rate: 0.3958333333333333
+
+QN selected dual adapter:
+- F0 top-1: 0.8645833333333334
+- F1 top-1: 0.875
+- F2 top-1: 0.8645833333333334
+- factor-vector / composed severity: 0.6354166666666666
+- invalid-vector rate: 0.010416666666666666
+- probability mass max error: 1.1920928955078125e-07
+
+Implemented after TRAIN/DEV freeze:
+- `scripts/r8_w31_confirm.py`
+- sealed QO/QP runtime + quality evaluator
+- per-domain quality gate
+- typed state-once/full-K/order-invariance/runtime gate
+- pooled transfer gate against frozen unbridged T0
+- `.github/workflows/r8-w31-sealed-confirm.yml`
+
+Current boundary:
+1. sealed evaluator unit/full CI must pass;
+2. only then create `research/R8-W31-ENABLE-CONFIRM`;
+3. first QO/QP exposure is one-way and cannot tune this checkpoint;
+4. freeze authoritative outcome;
+5. closure + FULL bundle;
+6. only `HIRA_V0_TRANSFER_CORE_READY` may unblock calibration/OOD/high-K.
+
+QO/QP remain sealed at this moment.
