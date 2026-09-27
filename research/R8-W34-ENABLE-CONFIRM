@@ -1,0 +1,41 @@
+R8-W34 SEALED CONFIRM ENABLED
+
+This marker authorizes the first and only preregistered W34 TH/TI sealed candidate exposure.
+
+Frozen before exposure:
+- base main: 81551ab38329959aed25a6cd2704ebb8f4a996cb
+- issue: #157
+- PR: #158
+- qualification outcome: W34_REFERENCE_QUALIFIED
+- qualification domains: TA, TB
+- qualification artifact ID: 10924507541
+- qualification artifact digest: sha256:13cfd1301f7fa7e03c7c2580c80409fd48c2aecb48b022f7e5fea811b71f5432
+- TRAIN domains: TC, TD, TE, TF
+- DEV domain: TG
+- selected DEV epoch: 20
+- selected candidate checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+- training artifact ID: 10924803779
+- training artifact digest: sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c
+- W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- candidate parameter count: 8192
+- sealed domains: TH, TI
+
+Frozen promotion gate per sealed domain:
+- F0/F1/F2 top-1 >= 0.90
+- every factor balanced accuracy >= 0.88
+- factor-vector top-1 >= 0.82
+- composed severity top-1 >= 0.82
+- invalid-vector rate <= 0.05
+- option-order invariance = 1
+- state-once = 1
+- full-K = 1
+- relation delta = 0
+- probability mass error <= 1e-6
+
+Frozen pooled transfer gate versus unbridged T0:
+- composed severity delta >= +0.15
+- worst-factor top-1 delta >= +0.08
+- no factor top-1 regression > 0.02
+
+TH/TI are forbidden from all fitting, selection, tuning, or architecture choice.
+After this marker, the scientific W34 candidate is immutable regardless of outcome.

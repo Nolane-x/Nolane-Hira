@@ -1,0 +1,158 @@
+name: r8-w34-sealed-confirm
+
+on:
+  push:
+    branches:
+      - feat/r8-w34-qualified-coevidence
+    paths:
+      - "research/R8-W34-ENABLE-CONFIRM"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w34-sealed-confirm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen W34 confirm stack
+        run: |
+          python -m py_compile \
+            src/nmd/w33_coevidence_semantic.py \
+            src/nmd/w34_transfer_authority.py \
+            src/nmd/w34_transfer_cache.py \
+            src/nmd/w34_transfer_eval.py \
+            src/nmd/w34_transfer_core.py \
+            scripts/r8_w34_confirm.py
+
+      - name: Run W34 frozen contracts
+        run: |
+          pytest -q \
+            tests/test_w34_transfer_authority.py \
+            tests/test_w34_transfer_training.py \
+            tests/test_w33_coevidence_semantic.py \
+            tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify exact frozen W34 training artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .digest)" = "sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .expired)" = "false"
+
+      - name: Verify frozen W34 qualification artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924507541 --jq .digest)" = "sha256:13cfd1301f7fa7e03c7c2580c80409fd48c2aecb48b022f7e5fea811b71f5432"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924507541 --jq .expired)" = "false"
+
+      - name: Verify exact W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+  confirm:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/candidate
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen confirm stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]" sentencepiece
+
+      - name: Mark first W34 TH TI sealed exposure
+        run: echo R8_W34_TH_TI_SEALED_CONFIRM_EXPOSURE_BEGIN
+
+      - name: Run sealed W34 authority
+        run: |
+          python scripts/r8_w34_confirm.py \
+            --t0-dir inputs/T0 \
+            --candidate-dir inputs/candidate \
+            --out artifacts/w34-confirm
+
+      - name: Verify authoritative audit
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/w34-confirm/audit.json"))
+          assert x["schema_version"]=="r8-w34-coevidence-audit-v1"
+          assert x["status"]=="PASS"
+          assert x["outcome"] in {"W34_COEVIDENCE_COMPOSITION_FAIL","HIRA_V0_TRANSFER_CORE_READY"}
+          assert x["domains"]==["TH","TI"]
+          assert x["case_count"]==192
+          assert x["qualification_outcome"]=="W34_REFERENCE_QUALIFIED"
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["candidate_checkpoint_sha256"]=="d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
+          assert x["candidate_parameter_count"]==8192
+          assert x["runtime_state_encode_count"]==192
+          assert x["confirm_cache_state_encode_count"]==192
+          assert x["candidate_truncation_used"] is False
+          assert x["relation_refinement_used"] is False
+          assert x["confirm_used_for_training_or_selection"] is False
+          assert x["qualification_rows_used_for_training"] is False
+          assert x["w33_rows_used"] is False
+          assert x["w32_rows_used"] is False
+          assert x["w31_rows_used"] is False
+          assert x["w30_rows_used"] is False
+          assert x["w29_rows_used"] is False
+          assert x["older_authority_rows_used"] is False
+          assert x["reference_outputs_used_as_model_inputs"] is False
+          assert x["exact_text_overlap"]==[]
+          print("W34_FINAL="+json.dumps({
+            "outcome":x["outcome"],
+            "quality":x["quality_per_domain"],
+            "runtime":x["runtime_per_domain"],
+            "transfer":x["transfer"],
+            "baseline":x["baseline"]["pooled"],
+            "candidate":x["candidate"]["pooled"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w34-authoritative-audit
+          path: artifacts/w34-confirm
+          if-no-files-found: error
+          retention-days: 90

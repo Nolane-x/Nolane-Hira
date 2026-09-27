@@ -1,0 +1,76 @@
+name: r8-w34-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/r8-w34-qualified-coevidence
+    paths:
+      - "research/R8-W34-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-reference-qualification
+          path: inputs/qualification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36298394141
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/train
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-authoritative-audit
+          path: inputs/confirm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36301624396
+
+      - name: Build complete W34 closure bundle
+        run: |
+          python scripts/r8_w34_bundle.py \
+            --repo-root . \
+            --t0-dir inputs/T0 \
+            --qualification-dir inputs/qualification \
+            --train-dir inputs/train \
+            --confirm-dir inputs/confirm \
+            --out artifacts/w34-bundle
+
+      - name: Verify W34 bundle integrity
+        run: |
+          test -f artifacts/w34-bundle/NOLANE-HIRA-R8-W34-FULL.zip
+          test -f artifacts/w34-bundle/R8-W34-HANDOFF.md
+          test -f artifacts/w34-bundle/R8-W34-CLOSURE.md
+          test -f artifacts/w34-bundle/R8-W34-INTEGRITY.sha256
+          cd artifacts/w34-bundle
+          sha256sum -c R8-W34-INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w34-closure-full-bundle
+          path: artifacts/w34-bundle
+          if-no-files-found: error
+          retention-days: 90
