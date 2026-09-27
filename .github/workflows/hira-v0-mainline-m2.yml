@@ -14,7 +14,9 @@ on:
       - "tests/test_mainline_m2_eval.py"
       - "tests/test_mainline_m2_authority.py"
       - "scripts/hira_v0_m2_integration.py"
+      - "scripts/hira_v0_m2_semantic_dev.py"
       - ".github/workflows/hira-v0-mainline-m2-integration.yml"
+      - ".github/workflows/hira-v0-mainline-m2-semantic-dev.yml"
       - "research/HIRA-V0-MAINLINE-M2-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m2.yml"
 
@@ -49,6 +51,7 @@ jobs:
             src/nmd/mainline_m2_authority.py \
             src/nmd/mainline_m2_eval.py \
             scripts/hira_v0_m2_integration.py \
+            scripts/hira_v0_m2_semantic_dev.py \
             tests/test_mainline_high_k.py \
             tests/test_mainline_m2_authority.py \
             tests/test_mainline_m2_eval.py
