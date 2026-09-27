@@ -729,6 +729,190 @@ def evaluate_selective_at_threshold(
     }
 
 
+
+@torch.inference_mode()
+def ood_scores_for_cache(
+    head: TinyOODHead,
+    feature_mean: Tensor,
+    feature_std: Tensor,
+    cache: dict[str, object],
+    *,
+    feature_indices: tuple[int, ...],
+) -> Tensor:
+    validate_m1_frozen_cache(cache)
+    rows = cache["cases"]
+    if not rows:
+        raise ValueError("M1 OOD score cache is empty")
+    features = torch.stack([
+        case["ood_features"][list(feature_indices)].float()
+        for case in rows
+    ])
+    normalized = (features - feature_mean) / feature_std
+    return torch.sigmoid(head(normalized))
+
+
+@torch.inference_mode()
+def evaluate_final_reliability_policy(
+    id_cache: dict[str, object],
+    ood_cache: dict[str, object],
+    calibrator: TypedReliabilityCalibrator | None,
+    ood_head: TinyOODHead,
+    feature_mean: Tensor,
+    feature_std: Tensor,
+    *,
+    feature_indices: tuple[int, ...],
+    ood_threshold: float,
+    selective_threshold: float,
+) -> dict[str, float]:
+    validate_m1_frozen_cache(id_cache)
+    validate_m1_frozen_cache(ood_cache)
+    if not 0.0 <= ood_threshold <= 1.0:
+        raise ValueError("M1 OOD threshold must be in [0,1]")
+    if not 0.0 <= selective_threshold <= 1.0:
+        raise ValueError("M1 selective threshold must be in [0,1]")
+
+    id_scores = ood_scores_for_cache(
+        ood_head,
+        feature_mean,
+        feature_std,
+        id_cache,
+        feature_indices=feature_indices,
+    )
+    ood_scores = ood_scores_for_cache(
+        ood_head,
+        feature_mean,
+        feature_std,
+        ood_cache,
+        feature_indices=feature_indices,
+    )
+
+    id_accepted: list[int] = []
+    for index, case in enumerate(id_cache["cases"]):
+        if case["is_ood"]:
+            continue
+        logits = calibrated_case_logits(case, calibrator)
+        probabilities = torch.softmax(logits, dim=-1)
+        selected = int(probabilities.argmax())
+        confidence = float(probabilities[selected])
+        accept = (
+            float(id_scores[index]) < ood_threshold
+            and confidence >= selective_threshold
+        )
+        if accept:
+            id_accepted.append(selected == int(case["gold_index"]))
+
+    ood_accept_count = 0
+    for index, case in enumerate(ood_cache["cases"]):
+        if not case["is_ood"]:
+            continue
+        logits = calibrated_case_logits(case, calibrator)
+        probabilities = torch.softmax(logits, dim=-1)
+        confidence = float(probabilities.max())
+        accept = (
+            float(ood_scores[index]) < ood_threshold
+            and confidence >= selective_threshold
+        )
+        ood_accept_count += int(accept)
+
+    id_total = sum(not case["is_ood"] for case in id_cache["cases"])
+    ood_total = sum(bool(case["is_ood"]) for case in ood_cache["cases"])
+    id_coverage = len(id_accepted) / max(1, id_total)
+    id_accuracy = (
+        sum(id_accepted) / len(id_accepted)
+        if id_accepted
+        else 0.0
+    )
+    return {
+        "id_case_count": float(id_total),
+        "id_accepted_count": float(len(id_accepted)),
+        "id_coverage": id_coverage,
+        "id_accepted_accuracy": id_accuracy,
+        "id_selective_risk": 1.0 - id_accuracy if id_accepted else 1.0,
+        "ood_case_count": float(ood_total),
+        "ood_final_accept_count": float(ood_accept_count),
+        "ood_final_accept_rate": ood_accept_count / max(1, ood_total),
+    }
+
+
+def m1_sealed_qualification(
+    selected_calibration: Mapping[str, float],
+    control_calibration: Mapping[str, float],
+    ood_metrics: Mapping[str, float],
+    final_policy: Mapping[str, float],
+) -> dict[str, object]:
+    calibration_gate = {
+        "ece_absolute": (
+            float(selected_calibration["soft_ece"])
+            <= SEALED_CALIBRATION_ECE_MAX
+        ),
+        "probability_integrity": (
+            float(selected_calibration["probability_mass_max_error"]) <= 1e-6
+        ),
+        "accuracy_non_regression": (
+            float(selected_calibration["accuracy"])
+            >= float(control_calibration["accuracy"])
+            - SEALED_CALIBRATION_MAX_ACCURACY_REGRESSION
+        ),
+        "ece_mechanism": (
+            float(control_calibration["soft_ece"]) <= SEALED_CALIBRATION_ECE_MAX
+            or (
+                float(control_calibration["soft_ece"])
+                - float(selected_calibration["soft_ece"])
+                >= SEALED_CALIBRATION_ECE_IMPROVEMENT
+            )
+        ),
+    }
+    ood_gate = {
+        "auroc": float(ood_metrics["auroc"]) >= SEALED_OOD_AUROC_MIN,
+        "balanced_accuracy": (
+            float(ood_metrics["balanced_accuracy"])
+            >= SEALED_OOD_BALANCED_ACCURACY_MIN
+        ),
+        "ood_recall": (
+            float(ood_metrics["ood_recall"]) >= SEALED_OOD_RECALL_MIN
+        ),
+        "ood_false_accept": (
+            float(ood_metrics["ood_false_accept_rate"])
+            <= SEALED_OOD_FALSE_ACCEPT_MAX
+        ),
+        "id_accept": (
+            float(ood_metrics["id_accept_rate"]) >= SEALED_ID_ACCEPT_MIN
+        ),
+    }
+    selective_gate = {
+        "coverage": (
+            float(final_policy["id_coverage"]) >= SELECTIVE_MIN_COVERAGE
+        ),
+        "accepted_accuracy": (
+            float(final_policy["id_accepted_accuracy"])
+            >= SELECTIVE_TARGET_ACCURACY
+        ),
+        "selective_risk": (
+            float(final_policy["id_selective_risk"])
+            <= 1.0 - SELECTIVE_TARGET_ACCURACY
+        ),
+    }
+    final_ood_gate = {
+        "ood_final_accept": (
+            float(final_policy["ood_final_accept_rate"])
+            <= SEALED_OOD_FINAL_ACCEPT_MAX
+        )
+    }
+    passed = (
+        all(calibration_gate.values())
+        and all(ood_gate.values())
+        and all(selective_gate.values())
+        and all(final_ood_gate.values())
+    )
+    return {
+        "pass": passed,
+        "calibration": calibration_gate,
+        "ood": ood_gate,
+        "selective": selective_gate,
+        "final_ood": final_ood_gate,
+    }
+
+
 __all__ = [
     "CALIBRATION_CANDIDATES",
     "CALIBRATION_EPOCHS",
@@ -761,8 +945,11 @@ __all__ = [
     "calibrated_case_logits",
     "evaluate_calibration_cache",
     "evaluate_ood_head",
+    "evaluate_final_reliability_policy",
     "evaluate_selective_at_threshold",
     "m1_dev_qualification",
+    "m1_sealed_qualification",
+    "ood_scores_for_cache",
     "select_selective_threshold",
     "train_calibration_tournament",
     "train_ood_tournament",
