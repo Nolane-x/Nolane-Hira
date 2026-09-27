@@ -1,0 +1,57 @@
+name: hira-v0-mainline-m2
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m2-high-k
+    paths:
+      - "src/nmd/mainline.py"
+      - "src/nmd/mainline_high_k.py"
+      - "tests/test_mainline.py"
+      - "tests/test_mainline_high_k.py"
+      - "research/HIRA-V0-MAINLINE-M2-HANDOFF.md"
+      - ".github/workflows/hira-v0-mainline-m2.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hira-v0-mainline-m2-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile M2 high-K mainline
+        run: |
+          python -m py_compile \
+            src/nmd/mainline.py \
+            src/nmd/mainline_high_k.py \
+            tests/test_mainline_high_k.py
+
+      - name: Run M2 mechanics contracts
+        run: |
+          pytest -q \
+            tests/test_mainline_high_k.py \
+            tests/test_mainline.py \
+            tests/test_mainline_reliability.py
+
+      - name: Run runtime and historical high-K regressions
+        run: |
+          pytest -q \
+            tests/test_runtime.py \
+            tests/test_high_cardinality_stress.py \
+            tests/test_symmetric_semantic_runtime.py
