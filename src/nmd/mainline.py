@@ -24,6 +24,10 @@ HIRA_V0_MAINLINE_VERSION = "0.0-m0"
 HIRA_V0_MAINLINE_M1_VERSION = "0.0-m1a"
 HIRA_V0_MAINLINE_M2_VERSION = "0.0-m2a"
 HIRA_V0_MAX_K = 255
+M2_MECHANICS_AUTHORITY = (
+    "run:36310118240;artifact:10928771833;"
+    "digest:sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453"
+)
 W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256 = (
     "d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
 )
@@ -46,6 +50,7 @@ class HiraV0Manifest:
     reliability_ood_abstention: ModuleMaturity
     high_k: ModuleMaturity
     high_k_mechanics: ModuleMaturity
+    high_k_mechanics_authority: str | None
     multilingual: ModuleMaturity
     production_ready: bool
     transfer_core_promoted: bool
@@ -68,6 +73,7 @@ class HiraV0Manifest:
             reliability_ood_abstention="pending",
             high_k="pending",
             high_k_mechanics="pending",
+            high_k_mechanics_authority=None,
             multilingual="pending",
             production_ready=False,
             transfer_core_promoted=False,
@@ -93,6 +99,13 @@ class HiraV0Manifest:
         base["version"] = HIRA_V0_MAINLINE_M2_VERSION
         base["high_k"] = "provisional"
         base["high_k_mechanics"] = "provisional"
+        return cls(**base)
+
+    @classmethod
+    def m2_mechanics_available(cls) -> "HiraV0Manifest":
+        base = cls.m2_mechanics_provisional().to_dict()
+        base["high_k_mechanics"] = "available"
+        base["high_k_mechanics_authority"] = M2_MECHANICS_AUTHORITY
         return cls(**base)
 
     def to_dict(self) -> dict[str, object]:
@@ -433,7 +446,7 @@ def build_hira_v0_m2_mechanics(
     )
     return HiraV0Mainline(
         runtime,
-        manifest=HiraV0Manifest.m2_mechanics_provisional(),
+        manifest=HiraV0Manifest.m2_mechanics_available(),
         reliability_policy=(
             reliability_policy
             or HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
@@ -446,6 +459,7 @@ __all__ = [
     "HIRA_V0_MAINLINE_M1_VERSION",
     "HIRA_V0_MAINLINE_M2_VERSION",
     "HIRA_V0_MAX_K",
+    "M2_MECHANICS_AUTHORITY",
     "W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256",
     "HiraV0Mainline",
     "HiraV0Manifest",
