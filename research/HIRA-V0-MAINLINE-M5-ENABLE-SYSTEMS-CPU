@@ -1,0 +1,41 @@
+# HIRA V0 MAINLINE M5 — CPU SYSTEMS AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+Quality authorities now frozen:
+- M5-A contract run 36358456335
+- M5-B1 Banking77 direct run 36358746320
+- M5-B2 English held-out run 36359178166
+- M5-B3 XNLI run 36359330862
+- M5-B4 exact Jev BTZSC run 36359563201
+- Jev artifact 10945541326
+- Jev digest sha256:b0cd43fb6b9c580dc4360eb6a03365387d2521d09651c344d191cf555b970b5a
+
+Authorize Hira systems measurement using the exact Laya call shape:
+- Laya source: NandhaKishorM/laya@42626c348753fbb17572a813127df2278a1ec527
+- bench_latency.py blob: e97ddbb499fcfd86ee626ceab238608cddbfb426
+- one state per system call
+- Q = 1,5,10,50 typed questions
+- alternating Choice/Noul exactly as the Laya script
+- warmup = 2
+- measured reps = 10
+- Hira schema cache warm/hot
+- state encoded once per call
+- exact frozen M4 runtime
+
+Hardware rule:
+- authority runner is CPU
+- published Laya headline targets are T4
+- all T4 target cells MUST remain NOT_COMPARABLE
+- do not claim a systems winner from cross-hardware numbers
+
+Also capture:
+- exact local load excluding snapshot download
+- process peak RSS
+- bundle/wheel bytes
+- parameter report
+- cache residency
+- p50/p95/mean/min per Q
+
+No systems result may change the already frozen quality candidate.
