@@ -132,43 +132,43 @@ def _schema_views(style: str, factor: str, value: int) -> tuple[str, str, str]:
     if factor == "F0":
         return (
             (
-                f"The {t['route']} remains usable.",
-                f"No move to the {t['alternate']} is necessary.",
-                f"The ordinary route can still carry the work.",
+                f"The {t['route']} remains usable for the requested work.",
+                f"The {t['alternate']} does not need to replace the {t['route']}.",
+                f"Execution may remain on the {t['route']}.",
             )
             if value == 0
             else (
-                f"The {t['route']} is unusable.",
-                f"A move to the {t['alternate']} is necessary.",
-                f"The ordinary route can no longer carry the work.",
+                f"The {t['route']} cannot be used for the requested work.",
+                f"The {t['alternate']} must replace the {t['route']}.",
+                f"Execution must leave the {t['route']}.",
             )
         )
     if factor == "F1":
         return (
             (
-                f"The {t['capability']} remains available.",
-                f"The {t['objective']} still has the function it requires.",
-                f"The needed function remains present.",
+                f"The {t['capability']} is present for the {t['objective']}.",
+                f"The {t['objective']} can proceed because the {t['capability']} is present.",
+                f"Required support from the {t['capability']} remains available.",
             )
             if value == 0
             else (
-                f"The {t['capability']} is unavailable.",
-                f"The {t['objective']} has lost the function it requires.",
-                f"The needed function is absent.",
+                f"The {t['capability']} is absent for the {t['objective']}.",
+                f"The {t['objective']} is blocked because the {t['capability']} is absent.",
+                f"Required support from the {t['capability']} is unavailable.",
             )
         )
     if factor == "F2":
         return (
             (
-                "The immediate-critical conjunction is not fully present.",
-                "At least one of immediate action or serious delay harm is absent.",
-                "The case does not contain both required critical-immediacy conditions.",
+                f"The {t['timing']} and {t['harm']} do not jointly create the two-part urgent condition.",
+                f"At least one required urgency component is absent for the {t['objective']}.",
+                f"The record does not jointly require immediate action and produce {t['harm']} from a {t['pause']}.",
             )
             if value == 0
             else (
-                "The immediate-critical conjunction is fully present.",
-                "Immediate action and serious delay harm are both present.",
-                "The case contains both required critical-immediacy conditions.",
+                f"The {t['timing']} and {t['harm']} jointly create the two-part urgent condition.",
+                f"Both required urgency components are present for the {t['objective']}.",
+                f"The record jointly requires immediate action and produces {t['harm']} from a {t['pause']}.",
             )
         )
     raise ValueError(f"unknown W34 factor: {factor}")
@@ -176,42 +176,42 @@ def _schema_views(style: str, factor: str, value: int) -> tuple[str, str, str]:
 
 QUESTION_TEXT = {
     "choice": {
-        "F0": "Which route-availability condition is supported?",
-        "F1": "Which required-function condition is supported?",
-        "F2": "Which combined immediacy condition is supported?",
+        "F0": "Select the W34 ordinary-path status supported by this record.",
+        "F1": "Select the W34 required-capability status supported by this record.",
+        "F2": "Select the W34 two-evidence urgency status supported by this record.",
     },
     "score": {
-        "F0": "What numeric route-availability condition is supported?",
-        "F1": "What numeric required-function condition is supported?",
-        "F2": "What numeric combined-immediacy condition is supported?",
+        "F0": "Return the W34 numeric ordinary-path status supported by this record.",
+        "F1": "Return the W34 numeric required-capability status supported by this record.",
+        "F2": "Return the W34 numeric two-evidence urgency status supported by this record.",
     },
     "noul": {
-        "F0": "Is the ordinary route unusable and an alternate route required?",
-        "F1": "Is the required function unavailable so the main result cannot complete?",
-        "F2": "Are immediate action and serious delay harm both present?",
+        "F0": "For W34, must the ordinary path be replaced by an alternate path?",
+        "F1": "For W34, is the capability required for completion absent?",
+        "F2": "For W34, are no-delay action and serious delay harm jointly true?",
     },
 }
 
 REFERENCE_HYPOTHESES = {
     "F0": (
-        "The ordinary route is usable and no alternate route is required.",
-        "The ordinary route is unusable and an alternate route is required.",
+        "Reference judgment: the normal processing path remains usable, so replacement by another path is unnecessary.",
+        "Reference judgment: the normal processing path is unusable, so replacement by another path is necessary.",
     ),
     "F1": (
-        "The required function is available and the main result can be completed.",
-        "The required function is unavailable and the main result cannot be completed.",
+        "Reference judgment: the capability required for the main result is available, so completion remains possible.",
+        "Reference judgment: the capability required for the main result is unavailable, so completion is blocked.",
     ),
     "U": (
-        "A short delay is allowed before action begins.",
-        "No short delay is allowed and action must begin immediately.",
+        "Reference judgment: the timing rule permits a brief wait before action starts.",
+        "Reference judgment: the timing rule permits no brief wait and action must start immediately.",
     ),
     "C": (
-        "A short delay will not cause serious harm.",
-        "A short delay will cause serious harm.",
+        "Reference judgment: a brief wait does not itself produce serious near-term harm.",
+        "Reference judgment: a brief wait itself produces serious near-term harm.",
     ),
     "F2": (
-        "Immediate action and serious delay harm are not both present.",
-        "Immediate action and serious delay harm are both present.",
+        "Reference judgment: immediate action and serious harm from waiting are not jointly present.",
+        "Reference judgment: immediate action and serious harm from waiting are jointly present.",
     ),
 }
 
