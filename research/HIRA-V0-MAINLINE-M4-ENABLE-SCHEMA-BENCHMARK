@@ -1,0 +1,41 @@
+HIRA V0 MAINLINE M4-A EXACT SCHEMA BENCHMARK ENABLED
+
+Frozen pre-benchmark code head:
+- 5187b0f8f93d3a668617c160a8e4766874ed6e59
+
+Base main:
+- 29eaa8b4eb687efb18155930aebfe5f14dd3c851
+
+Exact runtime provenance:
+- A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- A13 weight SHA256: 5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880
+- W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+
+Frozen historical M2 mechanics authority:
+- run: 36310118240
+- artifact ID: 10928771833
+- digest: sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453
+
+Frozen M4-A optimization:
+- positive semantic views batched once across all K options
+- cold compile encoder calls with token artifacts: <= 3
+- warm cached compile encoder calls: 0
+- option semantic aggregation unchanged
+- schema hash/cache key unchanged
+- no model/scorer parameter changes
+- no semantic/reliability/multilingual maturity promotion
+
+Frozen K ladder:
+- 4, 8, 16, 32, 64, 128, 255
+
+Frozen gates:
+- semantic tensor equivalence at every K
+- mechanics preservation at every K
+- cold encoder calls <= 3
+- warm encoder calls = 0
+- cold cache miss
+- warm cache hit
+- K255 optimized cold schema compile faster than same-runner legacy semantic compile
+
+No tuning is authorized after benchmark results are observed.

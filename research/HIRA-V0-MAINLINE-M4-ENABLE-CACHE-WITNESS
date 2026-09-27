@@ -1,0 +1,54 @@
+HIRA V0 MAINLINE M4-B2 EXACT LRU WITNESS ENABLED
+
+Frozen pre-witness code head:
+- e0631e0ca6caaa5af47b642f7357d1e545891dae
+
+Qualified M4-A authority:
+- run: 36327904288
+- artifact ID: 10934506746
+- artifact digest: sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb
+- outcome: HIRA_V0_M4_SCHEMA_BATCHING_READY
+
+Immutable M4-B1 failed stress authority:
+- run: 36328918665
+- artifact ID: 10934986918
+- artifact digest: sha256:e2624ce369a17c068cf8bb78fffb70615d86581a630dc49d31c3ae9d3cfc5ed4
+- outcome: HIRA_V0_M4_BOUNDED_CACHE_FAIL
+- only failed gate: anchor_survived_lru
+
+Cache implementation is unchanged from B1.
+
+Frozen policy:
+- true LRU
+- max entries: 16
+- max tensor bytes: 67108864
+- training mode bypasses cache
+- cache hit moves entry to MRU
+- oversized single entry is not retained
+
+Frozen B2 witness:
+1. compile and retain 10 distinct K=255 schemas;
+2. require zero evictions in that initial working set;
+3. hit index 0, which is then the current LRU, to move it to MRU;
+4. insert exactly 4 additional distinct K=255 schemas;
+5. require bounded eviction;
+6. require touched index 0 survives;
+7. require older index 1 is evicted;
+8. recompile index 1 and require semantic/probability/selected-option equivalence.
+
+Frozen gates:
+- initial 10-entry working set resident with zero evictions
+- touch is a cache hit
+- resident entries <= 16
+- resident bytes <= 67108864
+- eviction observed
+- touched LRU entry survives after being promoted to MRU
+- older resident entry is evicted
+- recompiled option embeddings max error <= 2e-5
+- recompiled decision probability max error <= 1e-6
+- recompiled selected option unchanged
+- full-K K=255
+- one state encode
+- relation delta zero
+
+No cache-policy tuning, model change, threshold change, or scientific maturity promotion is authorized after this marker.

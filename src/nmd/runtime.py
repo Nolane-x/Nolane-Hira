@@ -76,6 +76,8 @@ class NolaneHira(nn.Module):
         interaction_symmetric_semantic_scorer: InteractionSemanticScorer | None = None,
         coevidence_symmetric_semantic_scorer: CoEvidenceSemanticScorer | None = None,
         reliability_calibrator: TypedReliabilityCalibrator | None = None,
+        schema_cache_max_entries: int | None = None,
+        schema_cache_max_bytes: int | None = None,
     ):
         super().__init__()
         self.encoder = encoder
@@ -117,13 +119,37 @@ class NolaneHira(nn.Module):
             raise ValueError("co-evidence symmetric semantic scorer d_model mismatch")
         self.coevidence_symmetric_semantic_scorer = coevidence_symmetric_semantic_scorer
         self.reliability_calibrator = reliability_calibrator
-        self.schema_compiler = SchemaCompiler(encoder)
+        schema_cache_kwargs = {}
+        if schema_cache_max_entries is not None:
+            schema_cache_kwargs["max_cache_entries"] = int(schema_cache_max_entries)
+        if schema_cache_max_bytes is not None:
+            schema_cache_kwargs["max_cache_bytes"] = int(schema_cache_max_bytes)
+        self.schema_compiler = SchemaCompiler(encoder, **schema_cache_kwargs)
         self.state_encode_calls = 0
 
     def train(self, mode: bool = True):
         if mode:
             self.schema_compiler.clear()
         return super().train(mode)
+
+    def schema_cache_info(self) -> dict[str, int]:
+        return self.schema_compiler.cache_info()
+
+    def configure_schema_cache(
+        self,
+        *,
+        max_entries: int,
+        max_bytes: int,
+        clear: bool = True,
+    ) -> None:
+        self.schema_compiler.configure_cache(
+            max_entries=max_entries,
+            max_bytes=max_bytes,
+            clear=clear,
+        )
+
+    def clear_schema_cache(self) -> None:
+        self.schema_compiler.clear()
 
     def compile_state(self, text: str, *, segment_tokens: int = 32) -> StateMemory:
         self.state_encode_calls += 1

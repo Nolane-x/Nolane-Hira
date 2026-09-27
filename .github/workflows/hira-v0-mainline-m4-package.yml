@@ -1,0 +1,231 @@
+name: hira-v0-mainline-m4-package
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m4-runtime
+    paths:
+      - "research/HIRA-V0-MAINLINE-M4-ENABLE-PACKAGE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-schema-benchmark
+          path: inputs/M4A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36327904288
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-cache-stress
+          path: inputs/M4B1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36328918665
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-cache-witness
+          path: inputs/M4B2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36329648932
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Build Hira wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel --outdir dist
+
+      - name: Build deterministic M4 runtime bundle
+        run: |
+          python scripts/hira_v0_m4_package.py \
+            --repo-root . \
+            --dist-dir dist \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --m4a-dir inputs/M4A \
+            --m4b1-dir inputs/M4B1 \
+            --m4b2-dir inputs/M4B2 \
+            --m4a-artifact-id 10934506746 \
+            --m4a-artifact-digest sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb \
+            --m4b1-artifact-id 10934986918 \
+            --m4b1-artifact-digest sha256:e2624ce369a17c068cf8bb78fffb70615d86581a630dc49d31c3ae9d3cfc5ed4 \
+            --m4b2-run-id 36329648932 \
+            --m4b2-artifact-id 10934788096 \
+            --m4b2-artifact-digest sha256:15f2b3358338049fec79a5ce79049aa7e43d61c7ec8285203d8cba85314833ef \
+            --out artifacts/hira-v0-m4-runtime
+
+      - name: Verify deterministic bundle integrity
+        run: |
+          test -f artifacts/hira-v0-m4-runtime/runtime-manifest.json
+          test -f artifacts/hira-v0-m4-runtime/INTEGRITY.sha256
+          test -f artifacts/hira-v0-m4-runtime/checkpoints/w28-t0.pt
+          test -f artifacts/hira-v0-m4-runtime/checkpoints/w34-transfer.pt
+          test -f artifacts/hira-v0-m4-runtime/evidence/m4a-schema.json
+          test -f artifacts/hira-v0-m4-runtime/evidence/m4b1-stress-fail.json
+          test -f artifacts/hira-v0-m4-runtime/evidence/m4b2-cache-ready.json
+          test "$(find artifacts/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' | wc -l)" -eq 1
+          (
+            cd artifacts/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Install packaged runtime stack
+        run: |
+          WHEEL="$(find artifacts/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" pytest
+
+      - name: Run packaged manifest contracts
+        run: |
+          python -m pytest tests/test_local_runtime_bundle.py -q
+
+      - name: Exact CPU local-load and decision smoke
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          python - <<'PY'
+          import json
+          import resource
+          import time
+          from pathlib import Path
+
+          from huggingface_hub import snapshot_download
+          from nmd.contracts import LogicalOption
+          from nmd.local_runtime import (
+              A13_MODEL,
+              A13_REVISION,
+              load_hira_v0_m4_bundle,
+              read_runtime_bundle_manifest,
+          )
+
+          root = Path("artifacts/hira-v0-m4-runtime")
+          manifest = read_runtime_bundle_manifest(root)
+          assert manifest["production_ready_claimed"] is False
+          assert manifest["semantic_snapshot_packaged"] is False
+
+          snapshot = snapshot_download(
+              repo_id=A13_MODEL,
+              revision=A13_REVISION,
+          )
+
+          rss_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+          started = time.perf_counter()
+          model = load_hira_v0_m4_bundle(
+              root,
+              semantic_snapshot_dir=snapshot,
+          )
+          load_ms = (time.perf_counter() - started) * 1000.0
+          rss_after_load = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+          before = model.runtime.state_encode_calls
+          session = model.open_session(
+              "The request can wait briefly, but urgent evidence would require immediate action."
+          )
+          options = (
+              LogicalOption(
+                  "wait-ok",
+                  "a short wait is acceptable",
+                  aliases=("brief delay remains allowed",),
+                  exemplars=("the task may pause briefly",),
+                  value=0.0,
+              ),
+              LogicalOption(
+                  "act-now",
+                  "action must begin immediately",
+                  aliases=("no short delay is allowed",),
+                  exemplars=("the task must start now",),
+                  value=1.0,
+              ),
+          )
+          out = session.decide(
+              primitive="choice",
+              question_text="Which timing status applies?",
+              options=options,
+          )
+          rss_after_query = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+          assert model.runtime.state_encode_calls == before + 1
+          assert session.query_count == 1
+          assert int(out.hira.candidate_budget.item()) == 2
+          assert bool(out.hira.selected_mask.all())
+          assert abs(float(out.probabilities.sum()) - 1.0) <= 1e-6
+          assert model.parameter_report().trainable_total == 0
+          assert model.manifest.production_ready is False
+
+          receipt = {
+              "schema_version": "hira-v0-mainline-m4-package-smoke-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V0_M4_PACKAGE_READY",
+              "manifest_version": model.manifest.version,
+              "production_ready_claimed": False,
+              "semantic_snapshot_packaged": False,
+              "cpu_local_load_ms": load_ms,
+              "rss_peak_before_kib": int(rss_before),
+              "rss_peak_after_load_kib": int(rss_after_load),
+              "rss_peak_after_query_kib": int(rss_after_query),
+              "state_encode_calls": int(model.runtime.state_encode_calls - before),
+              "query_count": session.query_count,
+              "candidate_budget": int(out.hira.candidate_budget.item()),
+              "full_k": bool(out.hira.selected_mask.all()),
+              "probability_sum": float(out.probabilities.sum()),
+              "selected_option_id": out.selected_option_id,
+              "parameter_report": model.parameter_report().to_dict(),
+              "cache_info": model.schema_cache_info(),
+              "authority": {
+                  "m4a_run_id": 36327904288,
+                  "m4a_artifact_id": 10934506746,
+                  "m4b1_run_id": 36328918665,
+                  "m4b1_artifact_id": 10934986918,
+                  "m4b2_run_id": 36329648932,
+                  "m4b2_artifact_id": 10934788096,
+              },
+          }
+          out_path = Path("artifacts/hira-v0-m4-package-smoke.json")
+          out_path.write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V0_M4_PACKAGE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: |
+            artifacts/hira-v0-m4-runtime
+            artifacts/hira-v0-m4-package-smoke.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
