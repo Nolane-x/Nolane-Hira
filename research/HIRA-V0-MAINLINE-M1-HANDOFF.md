@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M1 — reliability / OOD / abstention
 
-Status: **M1-A MECHANISM IMPLEMENTED / FRESH AUTHORITY PRE-EXPOSURE**
+Status: **M1-B DEV QUALIFICATION FAIL / M1-R2 PREREGISTRATION**
 
 Issue: #161  
 Branch: `feat/hira-v0-mainline-m1-reliability`  
@@ -367,3 +367,227 @@ Otherwise:
 `HIRA_V0_M1_RELIABILITY_FAIL`
 
 Reliability remains provisional after a failure.
+
+
+## 17. First M1 TRAIN/DEV authority — frozen result
+
+Authoritative run:
+
+`36305969587`
+
+Empirical head:
+
+`bcc947e95d312e229a93b579356c7eaf6269f788`
+
+Artifact:
+- name: `hira-v0-mainline-m1-train-dev`
+- ID: `10927625673`
+- digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+
+Exposure:
+- UA/UB/UC calibration TRAIN: 108
+- UD calibration DEV: 36
+- UF/UG OOD TRAIN: 72
+- UH OOD DEV: 36
+- total state encodes: 252
+- state encodes/case: 1.0
+- decision-core trainable params: 0
+- sealed rows used: false
+- UE exposed: false
+- UI exposed: false
+
+### Calibration DEV
+
+Control:
+- hard accuracy: 0.6388888888888888
+- soft ECE: 0.1296966220769617
+- soft Brier: 0.23696935145805278
+- soft NLL: 0.9593999683856964
+
+Primitive temperature, epoch 7:
+- params: 3
+- hard accuracy: 0.6388888888888888
+- soft ECE: 0.10072291601035327
+- soft Brier: 0.2298705099096373
+- soft NLL: 0.9521524227327771
+
+Primitive temperature + noul bias, epoch 1:
+- params: 4
+- hard accuracy: 0.5833333333333334
+- soft ECE: 0.0819705815778838
+- soft Brier: 0.23640032479953435
+- soft NLL: 0.9588056471612718
+
+The original cross-candidate selection key chose the 4-param candidate because it prioritized ECE before the already-frozen hard-accuracy DEV gate.
+
+The DEV gate correctly rejected that selection:
+- calibration accuracy non-regression: FAIL
+- calibration ECE absolute: PASS
+- calibration ECE mechanism: PASS
+- probability integrity: PASS
+
+### OOD DEV
+
+Selected candidate:
+
+`semantic-linear`
+
+- parameters: 6
+- features:
+  - state-question cosine
+  - state-option max cosine
+  - state-option mean cosine
+  - state-option spread
+  - normalized log K
+- no confidence feature used
+- selected epoch: 60
+- threshold: 0.52
+- AUROC: **0.9969135522842407**
+- balanced accuracy: **0.9722222222222222**
+- OOD recall: **0.9722222222222222**
+- OOD false-accept: **0.027777777777777776**
+- ID accept: **0.9722222222222222**
+
+All frozen OOD DEV gates PASS.
+
+The 9-param semantic+confidence candidate was weaker:
+- AUROC 0.9567901492118835
+- balanced accuracy 0.9305555555555556
+- OOD false-accept 0.1388888888888889
+
+This strengthens the separation hypothesis: semantic geometry is a better OOD authority here than raw decision confidence.
+
+### Selective DEV
+
+Original max-probability threshold policy:
+- threshold: 0.51
+- coverage: 0.2777777777777778
+- accepted accuracy: 0.8
+- selective risk: 0.2
+- target >= 0.90: FAIL
+
+### Frozen DEV verdict
+
+`dev_qualification.pass = false`
+
+Failures:
+- calibration accuracy non-regression
+- selective accuracy
+- selective target
+
+Passes:
+- calibration ECE absolute
+- calibration ECE mechanism
+- calibration probability integrity
+- selective coverage
+- all OOD gates
+
+Therefore:
+
+**UE and UI remain sealed.**
+
+`HIRA-V0-MAINLINE-M1-ENABLE-CONFIRM` MUST NOT be created for this candidate.
+
+## 18. M1-R2 hypothesis — fresh selective correctness authority
+
+The R1 failure localizes the remaining reliability problem.
+
+OOD is already strong enough to freeze as a provisional M1 subcomponent.
+
+The weak link is selective correctness:
+- maximum probability is not sufficiently aligned with correctness;
+- calibration selection must respect hard-decision non-regression before optimizing ECE.
+
+M1-R2 changes only the reliability control layer.
+
+### Frozen from M1-B R1
+
+OOD candidate:
+- `semantic-linear`
+- 6 trainable parameters
+- epoch 60
+- threshold 0.52
+- exact source artifact: `10927625673`
+- source artifact digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+
+It is not retrained or retuned in R2.
+
+### Fresh calibration selection rule
+
+Use wholly fresh R2 TRAIN/DEV.
+
+First filter candidates by:
+- hard accuracy regression versus fresh control <= 0.01;
+- probability mass error <= 1e-6.
+
+Only eligible candidates participate in calibration ranking.
+
+Among eligible candidates:
+1. lower soft ECE;
+2. lower soft NLL;
+3. lower soft Brier;
+4. fewer parameters;
+5. earlier epoch.
+
+This prevents a lower-ECE calibrator from silently damaging the typed hard decision.
+
+### New selective-risk head
+
+Do not use max probability as the selective authority.
+
+Train a tiny correctness predictor on frozen decision features.
+
+Target:
+- 1 if the frozen typed hard decision is correct;
+- 0 otherwise.
+
+Candidate families:
+1. `semantic-risk-linear`
+   - semantic geometry + normalized K
+   - 6 parameters
+2. `semantic-confidence-risk-linear`
+   - semantic geometry + calibrated confidence diagnostics + normalized K
+   - 9 parameters
+
+The risk head is distinct from OOD:
+- OOD predicts distribution mismatch;
+- selective-risk predicts decision correctness conditional on being evaluated.
+
+No decision-core parameter may train.
+
+### Fresh R2 ID authority
+
+R2 must not reuse UA-UD for fitting or selection.
+
+Use wholly fresh domains:
+- R2 TRAIN: UJ / UK / UL / UM
+- R2 DEV: UN / UO
+
+Each domain remains balanced over:
+- choice
+- score
+- noul
+- strong / mixed / thin evidence bands
+
+R2 may continue using untouched UE as final selective/calibration sealed confirmation only after fresh R2 DEV passes.
+
+UI remains untouched OOD sealed confirmation for the already-frozen semantic-linear OOD head.
+
+### R2 DEV gate
+
+Calibration:
+- hard accuracy regression <= 0.01
+- soft ECE <= 0.20
+- ECE improvement >= 0.01 OR fresh control ECE <= 0.15
+- probability mass error <= 1e-6
+
+Selective risk:
+- accepted accuracy >= 0.90
+- coverage >= 0.25
+- selective risk <= 0.10
+
+Frozen OOD:
+- retain exact R1 candidate/checkpoint/normalization/threshold
+- no retuning against R2 ID DEV
+
+Only if every R2 DEV gate passes may UE/UI be exposed.
