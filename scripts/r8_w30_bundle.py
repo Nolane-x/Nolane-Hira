@@ -51,8 +51,12 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
 
     handoff_source = root / "research" / "R8-W30-HANDOFF.md"
+    closure_source = root / "research" / "R8-W30-CLOSURE.md"
     handoff_out = out / "R8-W30-HANDOFF.md"
+    closure_out = out / "R8-W30-CLOSURE.md"
     shutil.copy2(handoff_source, handoff_out)
+    if closure_source.is_file():
+        shutil.copy2(closure_source, closure_out)
 
     archive = out / "NOLANE-HIRA-R8-W30-FULL.zip"
     with zipfile.ZipFile(
@@ -75,12 +79,16 @@ def main() -> None:
                     zf.write(path, prefix / path.relative_to(source_dir))
 
         zf.write(handoff_source, Path("handoff") / handoff_source.name)
+        if closure_source.is_file():
+            zf.write(closure_source, Path("handoff") / closure_source.name)
 
     manifest = out / "R8-W30-INTEGRITY.sha256"
     lines = [
         f"{file_sha256(archive)}  {archive.name}",
         f"{file_sha256(handoff_out)}  {handoff_out.name}",
     ]
+    if closure_out.is_file():
+        lines.append(f"{file_sha256(closure_out)}  {closure_out.name}")
     for directory, prefix in (
         (args.t0_dir.resolve(), "base/W28-T0"),
         (args.train_dir.resolve(), "authority/train"),
@@ -96,6 +104,8 @@ def main() -> None:
     print(f"W30_BUNDLE={archive}")
     print(f"W30_HANDOFF={handoff_out}")
     print(f"W30_MANIFEST={manifest}")
+    if closure_out.is_file():
+        print(f"W30_CLOSURE={closure_out}")
     print(f"W30_BUNDLE_SHA256={file_sha256(archive)}")
 
 
