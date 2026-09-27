@@ -9,10 +9,12 @@ on:
       - "src/nmd/mainline_reliability.py"
       - "src/nmd/mainline_m1_authority.py"
       - "src/nmd/mainline_m1_cache.py"
+      - "src/nmd/mainline_m1_training.py"
       - "tests/test_mainline.py"
       - "tests/test_mainline_reliability.py"
       - "tests/test_mainline_m1_authority.py"
       - "tests/test_mainline_m1_cache.py"
+      - "tests/test_mainline_m1_training.py"
       - "research/HIRA-V0-MAINLINE-M1-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m1.yml"
 
@@ -46,6 +48,7 @@ jobs:
             src/nmd/mainline_reliability.py \
             src/nmd/mainline_m1_authority.py \
             src/nmd/mainline_m1_cache.py \
+            src/nmd/mainline_m1_training.py \
             tests/test_mainline_reliability.py \
             tests/test_mainline_m1_authority.py
 
@@ -55,6 +58,7 @@ jobs:
             tests/test_mainline_reliability.py \
             tests/test_mainline_m1_authority.py \
             tests/test_mainline_m1_cache.py \
+            tests/test_mainline_m1_training.py \
             tests/test_mainline.py \
             tests/test_typed_reliability_calibration.py
 
