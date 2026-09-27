@@ -591,3 +591,100 @@ Frozen OOD:
 - no retuning against R2 ID DEV
 
 Only if every R2 DEV gate passes may UE/UI be exposed.
+
+
+## 19. M1-R2 TRAIN/DEV — frozen authoritative result
+
+Authoritative run:
+
+`36307009727`
+
+Empirical head:
+
+`f3de89217725e070ed591f553bacc0df26830b40`
+
+Artifact:
+- name: `hira-v0-mainline-m1-r2-train-dev`
+- ID: `10928285228`
+- digest: `sha256:2e4bed910adc75ac2a3579765d712ea881a30e9c0888e693f0de293ff14e9178`
+
+Fresh R2 exposure:
+- TRAIN UJ/UK/UL/UM: 144 cases
+- DEV UN/UO: 72 cases
+- total state encodes: 216
+- state encodes/case: 1.0
+- decision-core trainable params: 0
+- R1 UA-UH reused for R2 fitting: false
+- UE exposed: false
+- UI exposed: false
+- sealed rows used: false
+
+### Safe calibration selection
+
+Fresh R2 control:
+- hard accuracy: 0.5277777777777778
+- soft ECE: 0.08572898246347904
+- soft Brier: 0.2331335171798451
+- soft NLL: 0.9540489067633947
+
+Selected:
+- candidate: `primitive-temperature`
+- parameters: 3
+- selected epoch: 3
+- hard accuracy: **0.5277777777777778**
+- soft ECE: **0.054004438428415194**
+- soft Brier: **0.2184828238354789**
+- soft NLL: **0.9380818158388138**
+- probability-mass max error: 1.1920928955078125e-07
+
+All calibration candidates passed the pre-ranking hard-accuracy guardrail in R2.
+The selected 3-param candidate improves calibration while preserving hard accuracy exactly.
+
+### Selective correctness risk
+
+Selected:
+- candidate: `semantic-confidence-risk-linear`
+- parameters: 9
+- selected epoch: 78
+- threshold: 0.52
+- correctness AUROC: **0.8351393342018127**
+- accepted count: 27 / 72
+- coverage: **0.375**
+- accepted accuracy: **0.9259259104728699**
+- selective risk: **0.07407408952713013**
+- meets target: true
+
+The semantic-only 6-param risk head reached 100% accepted accuracy but only 18.06% coverage, therefore failed the >=25% coverage requirement.
+
+### Frozen OOD authority
+
+Reused exactly from M1 R1:
+- candidate: `semantic-linear`
+- parameters: 6
+- threshold: 0.52
+- head SHA256: `2fda61a53fd2db05be5a703c6640a87e52588091fd22ed320cc0ab3f4cc80a3e`
+- source run: `36305969587`
+- source artifact ID: `10927625673`
+- source digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+- retrained: false
+- retuned: false
+
+### R2 DEV qualification
+
+`dev_qualification.pass = true`
+
+Calibration:
+- accuracy non-regression: PASS
+- ECE absolute: PASS
+- ECE mechanism: PASS
+- probability integrity: PASS
+
+Selective-risk:
+- accepted accuracy: PASS
+- coverage: PASS
+- selective risk: PASS
+- meets target: PASS
+
+Therefore M1-R2 is authorized to proceed to the first and only UE/UI sealed confirmation after the sealed workflow and pre-confirm CI are frozen green.
+
+Candidate selection is now immutable.
