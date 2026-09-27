@@ -18,7 +18,7 @@ from nmd.semantic_core import (
 from nmd.typed_competitive_cache import file_sha256
 from nmd.w30_transfer_authority import all_w30_text_atoms
 from nmd.w31_transfer_authority import all_w31_text_atoms
-from nmd.w33_transfer_authority import all_w33_text_atoms
+from nmd.w32_transfer_authority import all_w32_text_atoms
 from nmd.w33_transfer_authority import (
     all_w33_text_atoms,
     generate_w33_partition,
