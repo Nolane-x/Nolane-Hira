@@ -23,6 +23,10 @@ on:
       - "tests/test_mainline_m3_r1_cache.py"
       - "tests/test_mainline_m3_r1_training.py"
       - ".github/workflows/hira-v0-mainline-m3-r1-train-dev.yml"
+      - "scripts/hira_v0_m3_bundle.py"
+      - "research/HIRA-V0-MAINLINE-M3-CLOSURE.md"
+      - "research/HIRA-V0-MAINLINE-M3-CLOSURE-BUNDLE"
+      - ".github/workflows/hira-v0-mainline-m3-closure-bundle.yml"
       - "research/HIRA-V0-MAINLINE-M3-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m3.yml"
       - ".github/workflows/hira-v0-mainline-m3-paired-dev.yml"
@@ -64,6 +68,7 @@ jobs:
             scripts/hira_v0_m3_paired_confirm.py \
             scripts/hira_v0_m3_r1_train.py \
             scripts/hira_v0_m3_r1_confirm.py \
+            scripts/hira_v0_m3_bundle.py \
             tests/test_mainline_m3_authority.py \
             tests/test_mainline_m3_eval.py
 
