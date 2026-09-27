@@ -10,6 +10,8 @@ on:
       - "src/nmd/mainline_m1_authority.py"
       - "src/nmd/mainline_m1_cache.py"
       - "src/nmd/mainline_m1_training.py"
+      - "scripts/hira_v0_m1_train.py"
+      - ".github/workflows/hira-v0-mainline-m1-train-dev.yml"
       - "tests/test_mainline.py"
       - "tests/test_mainline_reliability.py"
       - "tests/test_mainline_m1_authority.py"
@@ -49,6 +51,7 @@ jobs:
             src/nmd/mainline_m1_authority.py \
             src/nmd/mainline_m1_cache.py \
             src/nmd/mainline_m1_training.py \
+            scripts/hira_v0_m1_train.py \
             tests/test_mainline_reliability.py \
             tests/test_mainline_m1_authority.py
 
