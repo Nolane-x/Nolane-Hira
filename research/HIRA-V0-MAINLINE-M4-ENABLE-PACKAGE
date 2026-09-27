@@ -1,0 +1,21 @@
+# HIRA V0 MAINLINE M4 PACKAGE AUTHORITY
+
+Trigger the exact M4-C runtime packaging workflow.
+
+Required frozen authorities:
+- W28 T0 run 36240250948
+- W34 transfer run 36299087572
+- M4-A run 36327904288 / artifact 10934506746
+- M4-B1 run 36328918665 / artifact 10934986918
+- M4-B2 run 36329648932 / artifact 10934788096
+
+The package workflow must:
+- preserve scientific maturity labels;
+- claim production_ready=false;
+- build one wheel;
+- bind exact checkpoint and evidence digests;
+- verify INTEGRITY.sha256;
+- install from the packaged wheel;
+- load the exact pinned A13 semantic revision on CPU;
+- run one state-once full-K typed decision smoke;
+- emit HIRA_V0_M4_PACKAGE_READY only when all gates pass.
