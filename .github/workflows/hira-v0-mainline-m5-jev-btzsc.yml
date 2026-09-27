@@ -1,0 +1,186 @@
+name: hira-v0-mainline-m5-jev-btzsc
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-JEV-BTZSC"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  jev-btzsc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-banking77-direct
+          path: inputs/M5B1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358746320
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-english-heldout
+          path: inputs/M5B2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359178166
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-xnli
+          path: inputs/M5B3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359330862
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and BTZSC stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "datasets>=3,<5" "numpy>=1.26" pytest
+
+      - name: Run exact Jev BTZSC protocol contracts
+        run: |
+          python -m pytest tests/test_m5_jev_btzsc.py tests/test_m5_contract.py -q
+
+      - name: Verify M4 and prior M5 authorities
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          checks = [
+              ("inputs/M5A/receipt.json", "HIRA_V0_M5_CONTRACT_READY"),
+              ("inputs/M5B1/result.json", "HIRA_V0_M5_BANKING77_DIRECT_READY"),
+              ("inputs/M5B2/result.json", "HIRA_V0_M5_ENGLISH_HELDOUT_READY"),
+              ("inputs/M5B3/result.json", "HIRA_V0_M5_XNLI_READY"),
+          ]
+          for path, expected in checks:
+              x = json.loads(Path(path).read_text())
+              assert x["status"] == "PASS"
+              assert x["outcome"] == expected
+              if "used_for_model_selection" in x:
+                  assert x["used_for_model_selection"] is False
+          PY
+
+      - name: Re-resolve pinned Jev source blobs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          commit = "0d610cc53e79bcbec691312b0c4adb4a0e371642"
+          expected = {
+              "src/jev_benchmarks/data.py": "efdf58ab89dddc7dff7687f6625747c06ec9551f",
+              "src/jev_benchmarks/adapters/jev.py": "328a5536bde2b4e0809b4b1727ccbbb6bd6da3fe",
+              "src/jev_benchmarks/metrics.py": "eab6060c3aa54a1ab771dbf2a05dab526b5a9be8",
+          }
+          token = os.environ["GITHUB_TOKEN"]
+          for path, sha in expected.items():
+              url = (
+                  "https://api.github.com/repos/AbdelStark/jev-benchmarks/"
+                  f"contents/{path}?ref={commit}"
+              )
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      "Authorization": f"Bearer {token}",
+                      "Accept": "application/vnd.github+json",
+                      "User-Agent": "nolane-hira-m5",
+                  },
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  row = json.load(response)
+              assert row["sha"] == sha, (path, row["sha"], sha)
+          PY
+
+      - name: Run Hira on exact Jev BTZSC pilot manifest
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_jev_btzsc.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract-receipt inputs/M5A/receipt.json \
+            --out artifacts/m5-jev-btzsc
+
+      - name: Verify exact Jev BTZSC authority receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-jev-btzsc")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v0-mainline-m5-jev-btzsc-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_JEV_BTZSC_READY"
+          assert r["scientific_authority"] == "M5_JEV_EXACT_BTZSC_ZERO_SHOT"
+          assert r["jev_authority"]["commit"] == "0d610cc53e79bcbec691312b0c4adb4a0e371642"
+          assert r["jev_authority"]["manifest_sha256"] == "ec064c52b149de458344cd4b4a44c158460f30b3bbb7fe8b2e7ec72d0abf3ba5"
+          assert r["dataset"]["manifest_sha256_observed"] == "ec064c52b149de458344cd4b4a44c158460f30b3bbb7fe8b2e7ec72d0abf3ba5"
+          assert r["state_encode_calls"] == 300
+          assert r["input_contract"]["task_specific_demos"] == 0
+          assert r["input_contract"]["weight_updates"] is False
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["systems_comparison"]["status"] == "NOT_COMPARABLE"
+          assert r["used_for_model_selection"] is False
+          assert r["model_weights_changed_after_exposure"] is False
+          assert r["production_ready_claimed"] is False
+          assert len((root / "manifest.jsonl").read_text().splitlines()) == 300
+          assert len((root / "per-example.jsonl").read_text().splitlines()) == 300
+          PY
+
+      - name: Freeze Jev BTZSC result integrity
+        run: |
+          (
+            cd artifacts/m5-jev-btzsc
+            sha256sum manifest.jsonl result.json per-example.jsonl scorecard-input.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-jev-btzsc
+          path: artifacts/m5-jev-btzsc
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
