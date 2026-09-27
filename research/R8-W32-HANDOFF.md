@@ -1,35 +1,35 @@
 # R8-W32 handoff — dual residual adapter + shared interaction metric
 
-Status: **TRAIN-DEV FROZEN / SEALED CONFIRM PRE-EXPOSURE**
+Status: **CLOSED — W32_INTERACTION_ADAPTER_FAIL**
 
 Issue: #153  
+PR: #154  
 Branch: `feat/r8-w32-interaction-semantic-adapter`  
 Base main: `762289911da2b7cde860383268c5d35d6ebd2f98`
 
-## Why W32 exists
+## Objective
 
-W31 closed `W31_DUAL_ADAPTER_FAIL`, but it produced a strong positive result:
-- reference qualification passed;
-- runtime integrity passed on both sealed domains;
-- pooled transfer gate passed strongly;
-- state/schema asymmetry plus anchor preservation improved held-out transfer;
-- absolute F1/F2 discrimination and composed-vector quality remained below production thresholds.
+W32 tested whether W31's successful state/schema asymmetric transfer geometry could be strengthened by a shared low-rank cross-interaction metric and a structural monotone-vector regularizer.
 
-W32 preserves the successful W31 principles but adds a shared low-rank state↔schema interaction metric.
+The frozen production candidate remained compact and state-once:
 
-## Frozen base
-
-- A13 frozen;
-- exact W28 T0 frozen;
-- W29 unbridged T0 scorer is the baseline;
-- W31 checkpoint is not reused as initialization;
-- relation refinement OFF;
+- A13 encoder frozen;
+- exact W28 T0 projection frozen;
+- state residual rank-8 adapter: 2,048 params;
+- schema residual rank-8 adapter: 2,048 params;
+- state interaction 128→8: 1,024 params;
+- schema interaction 128→8: 1,024 params;
+- total trainable candidate parameters: **6,144**;
 - no factor-specific learned head;
-- no primitive-specific learned head.
+- no primitive-specific learned head;
+- relation refinement OFF;
+- full-K typed runtime.
 
-## Candidate
+Runtime mode:
 
-Residual semantic geometry:
+`interaction_symmetric_semantic`
+
+## Candidate geometry
 
 ```
 t_s = T0(state)
@@ -37,218 +37,258 @@ t_o = T0(schema)
 
 z_s = normalize(t_s + U_s(D_s(t_s)))
 z_o = normalize(t_o + U_o(D_o(t_o)))
-```
 
-Shared interaction metric:
-
-```
 r_s = M_s(z_s)
 r_o = M_o(z_o)
-I(o,s) = <r_o, r_s> / sqrt(8)
-S(o,s) = <z_o, z_s> + I(o,s)
+
+interaction(o,s) = <r_o, r_s> / sqrt(8)
+similarity(o,s)  = <z_o, z_s> + interaction(o,s)
 ```
 
-Capacity:
-- state residual rank-8 adapter: 2,048;
-- schema residual rank-8 adapter: 2,048;
-- state interaction 128→8: 1,024;
-- schema interaction 128→8: 1,024;
-- total trainable: **6,144**.
+Identity initialization:
 
-Initialization:
-- both residual up projections zero;
-- state interaction map zero;
-- schema interaction map seeded normal/default basis;
-- interaction exactly zero initially;
-- initial logits exactly equal frozen unbridged T0.
-
-Runtime mode:
-`interaction_symmetric_semantic`
+- both residual up projections start at exact zero;
+- state interaction map starts at exact zero;
+- initial interaction contribution is exactly zero;
+- initial W32 logits exactly equal frozen unbridged T0.
 
 ## Training contract
 
+Frozen before exposure:
+
 - seed: 3217
 - epochs: 18
-- batch: 32
+- logical batch: 32
 - AdamW lr: 2e-4
 - weight decay: 0.01
 - grad clip: 1.0
-- temperature: 0.07
+- semantic temperature: 0.07
 - anchor coefficient: 0.35
-- frozen T0 anchor margin: 0.08
-- structural invalid-vector coefficient: 0.15
-- trainable candidate parameters: exactly 6,144
+- positive frozen-T0 anchor margin threshold: 0.08
+- invalid-vector probability-mass coefficient: 0.15
 
-Primary loss is factor-balanced F0/F1/F2 CE.
+Primary loss:
 
-Anchor loss preserves frozen-T0 correct decisions with signed margin >= .08.
+- factor-balanced F0/F1/F2 CE.
 
-Structural validity loss penalizes probability mass assigned to the four invalid binary vectors:
-001, 010, 011, 101.
-Allowed vectors remain 000, 100, 110, 111.
+Anchor loss:
 
-DEV selection:
+- preserves frozen-T0 correct decisions whose signed margin is >= 0.08.
+
+Structural validity loss:
+
+- valid factor vectors: 000, 100, 110, 111;
+- invalid vectors: 001, 010, 011, 101;
+- penalizes probability mass assigned to invalid vectors;
+- introduces no trainable factor head.
+
+DEV selection order:
+
 1. worst-factor balanced accuracy;
 2. worst-factor top-1;
 3. composed severity;
 4. lower invalid-vector rate;
 5. earlier epoch.
 
-## Fresh evidence
+## Fresh evidence partitions
 
-### Reference qualification
-RA, RB — 96 cases/domain.
+Reference qualification:
 
-Qualification uses only the frozen DeBERTa/RoBERTa NLI panel. No HIRA candidate and no A13 load.
+- RA
+- RB
 
-### TRAIN
-RC, RD, RE, RF.
+TRAIN:
 
-### DEV
-RG.
+- RC
+- RD
+- RE
+- RF
 
-### SEALED CONFIRM
-RH, RI.
+DEV:
 
-All partition contexts, style banks and generated texts are fresh and disjoint from W29/W30/W31 and older authority evidence.
+- RG
 
-## Promotion gate
+SEALED CONFIRM:
 
-Per sealed domain:
-- F0/F1/F2 top-1 >= .90
-- each factor BA >= .88
-- factor-vector top-1 >= .82
-- composed severity >= .82
-- invalid-vector <= .05
-- option-order invariance = 1
-- state-once = 1
-- full-K = 1
-- relation delta = 0
-- probability mass error <= 1e-6
+- RH
+- RI
 
-Pooled transfer versus frozen T0:
-- composed severity delta >= +.15
-- worst-factor top-1 delta >= +.08
-- no factor top-1 regression > .02
+Every partition uses distinct contexts/styles and exact W32 text is disjoint from W28/W29/W30/W31 authority text.
 
-## Frozen outcomes
+## Reference qualification — frozen
 
-1. `W32_REFERENCE_QUALIFICATION_FAIL`
-2. `W32_INTERACTION_ADAPTER_FAIL`
-3. `HIRA_V0_TRANSFER_CORE_READY`
+Run:
 
-No partial promotion.
+`36292606367`
 
-## Evidence firewall
+Outcome:
 
-Forbidden for W32 fitting/selection/candidate choice:
-- W29 EW/EX/EY/EZ;
-- W30 FA..FG;
-- W31 QH..QP;
-- all W28 and older authority rows;
-- Banking77 final/test;
-- typed final/test;
-- Laya/JEV result cells.
+`W32_REFERENCE_QUALIFIED`
 
-Prior aggregate metrics may motivate architecture only.
-
-## Current boundary
-
-Reference qualification is complete and frozen:
-- authority run: `36292606367`
-- outcome: `W32_REFERENCE_QUALIFIED`
 - RA: PASS
 - RB: PASS
-- 192 reference-only cases
-- no HIRA candidate evaluated
-- A13 not loaded
-- no W29/W30/W31/older authority rows used
-- qualification artifact: `r8-w32-reference-qualification`
-- artifact ID: `10922738458`
-- artifact digest: `sha256:02cafde04b10c075df848d3c0d45b9f9c139b3ae1516a82c2a428e2163131751`
+- case count: 192
+- HIRA candidate evaluated: false
+- A13 loaded: false
+- prior-wave authority rows used: false
+- exact-text overlap: none
 
-Implemented before qualification:
-- `src/nmd/w32_interaction_semantic_adapter.py`
-- runtime mode `interaction_symmetric_semantic`
-- exact 6,144-parameter capacity and T0-identity tests
-- typed/full-K/state-once/relation-delta-zero runtime tests
-- fresh `src/nmd/w32_transfer_authority.py` with RA..RI
-- exact-text freshness tests against W28/W29/W30/W31
-- `scripts/r8_w32_qualify.py`
-- marker-gated reference qualification workflow
-- dedicated W32 unit/backward-compat gate
+Artifact:
 
-Next frozen boundary:
-1. implement RC/RD/RE/RF TRAIN cache and RG DEV cache;
-2. implement factor-balanced CE + T0 anchor preservation + invalid-vector probability-mass penalty;
-3. implement 6,144-parameter checkpoint/core and DEV selector;
-4. pass dedicated + full repository CI;
-5. only then create `research/R8-W32-ENABLE-TRAIN`;
-6. freeze selected RG checkpoint and receipt;
-7. RH/RI remain sealed until that freeze is complete;
-8. sealed confirm, closure and FULL bundle.
+- `r8-w32-reference-qualification`
+- ID: `10922738458`
+- digest: `sha256:02cafde04b10c075df848d3c0d45b9f9c139b3ae1516a82c2a428e2163131751`
 
-RA/RB are now exposed and permanently forbidden from candidate loss or DEV selection.
+## TRAIN/DEV — frozen
 
-TRAIN/DEV implementation is now present but remains pre-exposure:
-- `src/nmd/w32_transfer_cache.py`
-- `src/nmd/w32_transfer_eval.py`
-- `src/nmd/w32_transfer_core.py`
-- `scripts/r8_w32_train.py`
-- `tests/test_w32_transfer_training.py`
-- marker-gated `r8-w32-train-dev` workflow
+Run:
 
-Frozen training objective:
-- factor-balanced F0/F1/F2 CE;
-- frozen-T0 positive-anchor hinge, threshold 0.08, coefficient 0.35;
-- invalid-vector probability mass over 001/010/011/101, coefficient 0.15;
-- exactly 6,144 trainable candidate parameters;
-- RC/RD/RE/RF TRAIN = 384 cases;
-- RG DEV = 96 cases;
-- RH/RI confirm usage = 0 during training/selection.
+`36293558503`
 
-TRAIN/DEV authority is now complete and frozen:
-- run: `36293558503`
-- TRAIN: RC/RD/RE/RF = 384 cases
-- DEV: RG = 96 cases
-- selected epoch: `17`
-- candidate checkpoint SHA256: `212caf6d5cdb06743979da5d7b64fff5887fc5c2b11e1be91006bc6463e63a5f`
-- training artifact: `r8-w32-interaction-training`
-- artifact ID: `10923630412`
-- artifact digest: `sha256:4b8289345f92f7fb45b5af1f4c2e6d2765ca56b4e1e52dffc62968f26b868f92`
-- confirm cases used during training/selection: 0
-- qualification rows used for candidate loss/selection: false
-- prior-wave rows used: false
+- TRAIN RC/RD/RE/RF: 384 cases
+- DEV RG: 96 cases
+- selected epoch: 17
+- checkpoint SHA256:
+  `212caf6d5cdb06743979da5d7b64fff5887fc5c2b11e1be91006bc6463e63a5f`
+- anchor rate: 0.7100694444444444
+- confirm rows used during training/selection: 0
 
-Frozen RG baseline:
+Training artifact:
+
+- `r8-w32-interaction-training`
+- ID: `10923630412`
+- digest: `sha256:4b8289345f92f7fb45b5af1f4c2e6d2765ca56b4e1e52dffc62968f26b868f92`
+
+### RG baseline
+
 - F0 top-1: 0.7916666666666666
 - F1 top-1: 0.875
 - F2 top-1: 0.7604166666666666
-- factor-vector / composed severity: 0.5104166666666666
+- vector/severity: 0.5104166666666666
 - invalid-vector rate: 0.08333333333333333
 
-Frozen RG W32 candidate:
+### RG W32
+
 - F0 top-1: 0.9166666666666666
 - F1 top-1: 0.96875
 - F2 top-1: 0.8020833333333334
-- factor-vector / composed severity: 0.6875
+- vector/severity: 0.6875
 - invalid-vector rate: 0.0
-- probability mass max error: 1.1920928955078125e-07
+- probability mass error: 1.1920928955078125e-07
 
-Pre-confirm implementation is now present:
-- `scripts/r8_w32_confirm.py`
-- frozen quality/transfer gate helpers in `src/nmd/w32_transfer_eval.py`
-- promotion-gate unit tests
-- marker-gated `r8-w32-sealed-confirm` workflow
-- dedicated unit workflow compiles the sealed-confirm stack
+## SEALED CONFIRM — frozen
 
-Current boundary:
-1. pass dedicated W32 unit and full repository CI on the sealed-confirm implementation;
-2. only then create `research/R8-W32-ENABLE-CONFIRM`;
-3. expose RH/RI exactly once;
-4. freeze audit and outcome;
-5. write closure and FULL source/evidence bundle;
-6. merge only after final CI/bundle integrity pass.
+First and only RH/RI sealed run:
 
-RH/RI remain sealed and must not be inspected or used for tuning before the confirm marker is created.
+`36294714414`
 
+Outcome:
+
+`W32_INTERACTION_ADAPTER_FAIL`
+
+- RH runtime: PASS
+- RI runtime: PASS
+- RH absolute quality: FAIL
+- RI absolute quality: FAIL
+- candidate truncation: false
+- relation refinement: false
+- state-once: preserved
+- typed primitive agreement: preserved
+- option-order invariance: preserved
+- confirm used for fitting/selection: false
+
+Audit artifact:
+
+- `r8-w32-authoritative-audit`
+- ID: `10923651937`
+- digest: `sha256:b7b9f078a36af924e2a3a409756df5a2b66a7d80e038890b792434244c50340a`
+
+### Pooled RH+RI baseline
+
+- F0 top-1: 0.796875
+- F1 top-1: 0.8697916666666666
+- F2 top-1: 0.765625
+- F0 BA: 0.8645833333333333
+- F1 BA: 0.8697916666666667
+- F2 BA: 0.5868055555555556
+- vector/severity: 0.515625
+- invalid-vector rate: 0.08333333333333333
+
+### Pooled RH+RI W32
+
+- F0 top-1: 0.9427083333333334
+- F1 top-1: 0.953125
+- F2 top-1: 0.8125
+- F0 BA: 0.9409722222222222
+- F1 BA: 0.953125
+- F2 BA: 0.7916666666666667
+- vector/severity: 0.7135416666666666
+- invalid-vector rate: 0.0
+- probability mass error: 1.1920928955078125e-07
+
+## Frozen promotion verdict
+
+Absolute production gate failed on both sealed domains.
+
+Pooled transfer observations:
+
+- composed severity delta: +0.19791666666666663
+- worst-factor top-1 delta: +0.046875
+- F0 improvement: +0.14583333333333337
+- F1 improvement: +0.08333333333333337
+- F2 improvement: +0.046875
+- no factor regressed
+
+The severity transfer requirement passed.
+
+The worst-factor improvement requirement failed:
+
+- required >= +0.08
+- observed +0.046875
+
+The remaining dominant bottleneck is F2.
+
+`HIRA_V0_TRANSFER_CORE_READY` is **not authorized**.
+
+## Scientific conclusion
+
+W32 establishes that:
+
+- compact shared interaction helps;
+- F0/F1 semantic discrimination is now strong on fresh sealed evidence;
+- structural invalid-vector loss can drive observed invalid vectors to zero;
+- runtime integrity is no longer a meaningful blocker;
+- generic interaction plus vector legality is still insufficient for F2 compositional semantics.
+
+The next wave must target the composition mechanism itself, not simply add another generic transfer bridge.
+
+## Evidence firewall after closure
+
+RH/RI are permanently exposed.
+
+They are forbidden for all future:
+
+- training;
+- DEV selection;
+- hyperparameter tuning;
+- architecture selection;
+- candidate ranking.
+
+The W32 checkpoint must never be retuned against RH/RI.
+
+Prior aggregate results may only motivate a fresh hypothesis.
+
+## Recommended next wave
+
+W33 should preserve the successful W32 base but test a shared compact compositional latent operator that can represent conjunction-like evidence interactions before final semantic scoring.
+
+Constraints remain:
+
+- fresh qualification/TRAIN/DEV/CONFIRM evidence;
+- no W32 checkpoint tuning on RH/RI;
+- no factor-specific classifier;
+- no primitive-specific learned head;
+- exact T0 identity initialization;
+- compact state-once/full-K runtime.
+
+See `research/R8-W32-CLOSURE.md` for the canonical closure.
