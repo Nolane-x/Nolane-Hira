@@ -1,6 +1,6 @@
 # R8-W32 handoff — dual residual adapter + shared interaction metric
 
-Status: **PREREGISTERED / PRE-QUALIFICATION**
+Status: **PRE-QUALIFICATION IMPLEMENTATION / ZERO EMPIRICAL EXPOSURE**
 
 Issue: #153  
 Branch: `feat/r8-w32-interaction-semantic-adapter`  
@@ -156,10 +156,24 @@ Prior aggregate metrics may motivate architecture only.
 
 No W32 empirical evidence has been exposed.
 
-Next:
-1. implement scorer/runtime + authority generator;
-2. unit/full CI;
-3. reference-only RA/RB qualification;
-4. only if both qualify, build TRAIN/DEV;
-5. freeze selected checkpoint before RH/RI implementation/exposure;
-6. closure + FULL bundle.
+Implemented:
+- `src/nmd/w32_interaction_semantic_adapter.py`
+- runtime mode `interaction_symmetric_semantic`
+- exact 6,144-parameter capacity and T0-identity tests
+- typed/full-K/state-once/relation-delta-zero runtime tests
+- fresh `src/nmd/w32_transfer_authority.py` with RA..RI
+- exact-text freshness tests against W28/W29/W30/W31
+- `scripts/r8_w32_qualify.py`
+- marker-gated `r8-w32-reference-qualification` workflow
+- dedicated W32 unit/backward-compat gate
+
+Current pre-exposure order:
+1. W32 unit/full repository CI must be green;
+2. only then create `research/R8-W32-ENABLE-QUALIFICATION`;
+3. expose RA/RB to the frozen external reference panel only;
+4. if and only if both domains qualify, freeze the qualification artifact;
+5. then implement TRAIN/DEV cache, factor-balanced + anchor + vector-validity trainer;
+6. RH/RI stay sealed until the selected RG DEV checkpoint is frozen;
+7. closure + FULL bundle.
+
+Do not create a W32 qualification marker before the current pre-exposure CI is green.
