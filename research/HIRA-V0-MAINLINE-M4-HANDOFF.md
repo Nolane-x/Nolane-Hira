@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M4 handoff — runtime / latency / RAM / packaging
 
-Status: **M4-A BATCHED SCHEMA COMPILER IMPLEMENTED / PRE-INTEGRATION**
+Status: **M4-A READY / M4-B BOUNDED CACHE IMPLEMENTED PRE-STRESS**
 
 Issue: #167  
 Branch: `feat/hira-v0-mainline-m4-runtime`  
@@ -127,3 +127,132 @@ Before exact A13 performance claims:
 6. only then proceed to M4-B bounded cache/RAM discipline.
 
 No performance improvement is claimed before the exact integration receipt freezes.
+
+
+## 8. M4-A exact A13 integration — authoritative result
+
+Run:
+
+`36327904288`
+
+Empirical marker head:
+
+`144858eff949a00aec9da086a593b89d9ade301a`
+
+Artifact:
+- `hira-v0-mainline-m4-schema-benchmark`
+- ID: `10934506746`
+- digest: `sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb`
+
+Outcome:
+
+`HIRA_V0_M4_SCHEMA_BATCHING_READY`
+
+Every frozen gate passed:
+- semantic tensor equivalence
+- mechanics preservation
+- cold encoder calls <= 3
+- warm encoder calls = 0
+- cold cache miss
+- warm cache hit
+- K255 optimized cold compile faster than same-runner legacy
+
+### K=255 exact result
+
+Legacy same-runner:
+- semantic compile: **1392.831263 ms**
+- encoder calls: **258**
+
+M4-A:
+- cold schema compile: **304.870836 ms**
+- cold encoder calls: **3**
+- warm schema compile: **0.812787 ms**
+- warm encoder calls: **0**
+- decision: **2.562596 ms**
+- same-runner cold speedup: **4.5686x**
+
+Historical M2:
+- schema compile: 1482.206577 ms
+- decision: 2.655830 ms
+
+Semantic/mechanics integrity:
+- option embedding max error: 1.3783574104309082e-07
+- question embedding error: 0
+- criterion token error: 0
+- view token error: 0
+- selected option: `m2-route-044`
+- historical selected option: `m2-route-044`
+- probability mass error: 5.960464477539063e-08
+- relation delta: 0
+- full-K: true
+- finite: true
+
+Schema tensor bytes:
+- **4,477,609 bytes**
+
+Benchmark process RSS peak delta across the K ladder:
+- **19,492 KiB**
+
+M4-A is therefore accepted as a runtime optimization.
+
+It does not promote:
+- semantic quality;
+- reliability;
+- multilingual;
+- production readiness.
+
+## 9. M4-B bounded schema cache
+
+The original schema cache was an unbounded Python dict.
+
+That is unsafe for long-running local inference because one K=255 token-artifact schema is approximately 4.48 MB in tensor residency.
+
+Implemented M4-B policy:
+
+Default bounds:
+- max entries: **16**
+- max tensor bytes: **64 MiB**
+
+Eviction:
+- true LRU
+- a cache hit moves the entry to MRU
+- insertion evicts oldest entries until both limits are satisfied
+- an individual entry larger than the byte budget remains valid for the current query but is not retained
+
+Cache receipt now reports:
+- cache stored
+- entry tensor bytes
+- resident entries
+- resident tensor bytes
+- cumulative evictions
+
+Runtime/mainline controls:
+- inspect cache info
+- clear schema cache
+- reconfigure entry/byte limits
+- M4 builder accepts deployment-specific cache limits
+
+Changing cache limits never changes:
+- schema hash
+- semantic compilation
+- selected option
+- probability calculation
+- maturity claims
+
+## 10. M4-B frozen stress boundary
+
+Before claiming RAM discipline, run a cache-stress authority that:
+- uses exact A13/W28/W34;
+- repeatedly compiles distinct dynamic schemas;
+- includes multiple K=255 schemas;
+- exceeds both the entry working set and byte working set;
+- verifies resident entries <= 16;
+- verifies resident tensor bytes <= 64 MiB;
+- verifies evictions occur;
+- verifies recently-hit entries survive LRU pressure;
+- verifies an evicted schema recompiles to semantically/mechanically equivalent output;
+- verifies state-once and full-K remain unchanged.
+
+M4-B is runtime-only.
+
+No model parameter, threshold, semantic authority, or scientific maturity may change.
