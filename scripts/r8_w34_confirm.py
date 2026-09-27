@@ -86,7 +86,7 @@ def _validate_training(directory: Path) -> tuple[Path, dict[str, object]]:
         raise RuntimeError("W34 training receipt did not pass")
     if receipt.get("qualification_outcome") != "W34_REFERENCE_QUALIFIED":
         raise RuntimeError("W34 training was not qualification-gated")
-    if receipt.get("qualification_domains") != ["RA", "RB"]:
+    if receipt.get("qualification_domains") != ["TA", "TB"]:
         raise RuntimeError("W34 qualification identity changed")
     if int(receipt.get("confirm_case_count_used", -1)) != 0:
         raise RuntimeError("W34 confirm leakage detected")
