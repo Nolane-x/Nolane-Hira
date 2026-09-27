@@ -12,6 +12,8 @@ from nmd.w32_transfer_eval import (
     VECTOR_VALIDITY_COEFFICIENT,
     _selection_key,
     invalid_vector_mass,
+    quality_gate_pass,
+    transfer_gate_summary,
 )
 
 
@@ -93,3 +95,73 @@ def test_w32_candidate_checkpoint_contract_roundtrip(tmp_path):
     assert set(loaded) == set(state)
     for key in state:
         assert torch.equal(loaded[key], state[key])
+
+
+def _gate_summary(f0, f1, f2, vector, severity, invalid, mass=1e-7):
+    return {
+        "factors": {
+            "F0": {"top1": f0[0], "balanced_accuracy": f0[1]},
+            "F1": {"top1": f1[0], "balanced_accuracy": f1[1]},
+            "F2": {"top1": f2[0], "balanced_accuracy": f2[1]},
+        },
+        "factor_vector_top1": vector,
+        "composed_severity_top1": severity,
+        "invalid_factor_vector_rate": invalid,
+        "factor_probability_mass_max_error": mass,
+    }
+
+
+def test_w32_quality_gate_is_exact_preregistered_threshold():
+    passing = _gate_summary(
+        (0.90, 0.88),
+        (0.91, 0.89),
+        (0.92, 0.90),
+        0.82,
+        0.82,
+        0.05,
+    )
+    assert quality_gate_pass(passing)
+
+    failing_f2 = _gate_summary(
+        (0.95, 0.95),
+        (0.95, 0.95),
+        (0.899, 0.95),
+        0.90,
+        0.90,
+        0.0,
+    )
+    assert not quality_gate_pass(failing_f2)
+
+
+def test_w32_transfer_gate_requires_all_three_relative_constraints():
+    baseline = _gate_summary(
+        (0.70, 0.70),
+        (0.75, 0.75),
+        (0.80, 0.80),
+        0.40,
+        0.40,
+        0.20,
+    )
+    candidate = _gate_summary(
+        (0.82, 0.82),
+        (0.85, 0.85),
+        (0.88, 0.88),
+        0.60,
+        0.60,
+        0.02,
+    )
+    result = transfer_gate_summary(baseline, candidate)
+    assert result["pass"] is True
+    assert result["severity_delta"] >= 0.15
+    assert result["worst_factor_top1_delta"] >= 0.08
+    assert result["max_factor_top1_regression"] <= 0.02
+
+    regressed = _gate_summary(
+        (0.67, 0.82),
+        (0.90, 0.90),
+        (0.90, 0.90),
+        0.70,
+        0.70,
+        0.0,
+    )
+    assert transfer_gate_summary(baseline, regressed)["pass"] is False
