@@ -1,0 +1,16 @@
+# HIRA V0 MAINLINE M4 CLOSURE BUNDLE
+
+Trigger the final M4 closure-bundle authority.
+
+Required exact package authority:
+- run: 36357825580
+- artifact: 10944174953
+- digest: sha256:5fa30c93aca4110bc8602f347c2992b7eb034056c01c432d26c84acbfd619f9a
+- outcome: HIRA_V0_M4_PACKAGE_READY
+
+The bundle must preserve:
+- runtime bundle and INTEGRITY.sha256;
+- package smoke receipt;
+- canonical M4 closure;
+- M4 -> M5 handoff;
+- production_ready=false.
