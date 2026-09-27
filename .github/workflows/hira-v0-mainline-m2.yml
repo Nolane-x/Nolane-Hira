@@ -23,6 +23,7 @@ on:
       - "tests/test_mainline_m2_r1_authority.py"
       - "tests/test_mainline_m2_r1_training.py"
       - "scripts/hira_v0_m2_r1_train.py"
+      - "scripts/hira_v0_m2_r1_confirm.py"
       - ".github/workflows/hira-v0-mainline-m2-r1-train-dev.yml"
       - "research/HIRA-V0-MAINLINE-M2-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m2.yml"
@@ -63,6 +64,7 @@ jobs:
             scripts/hira_v0_m2_semantic_dev.py \
             scripts/hira_v0_m2_semantic_confirm.py \
             scripts/hira_v0_m2_r1_train.py \
+            scripts/hira_v0_m2_r1_confirm.py \
             tests/test_mainline_high_k.py \
             tests/test_mainline_m2_authority.py \
             tests/test_mainline_m2_eval.py
