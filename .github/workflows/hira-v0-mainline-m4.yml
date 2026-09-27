@@ -8,6 +8,7 @@ on:
       - "src/nmd/schema.py"
       - "src/nmd/mainline.py"
       - "tests/test_schema_batching.py"
+      - "tests/test_schema_cache_bounds.py"
       - "tests/test_mainline_m4_runtime.py"
       - "scripts/hira_v0_m4_schema_benchmark.py"
       - ".github/workflows/hira-v0-mainline-m4-schema-benchmark.yml"
@@ -43,6 +44,7 @@ jobs:
             src/nmd/schema.py \
             src/nmd/mainline.py \
             tests/test_schema_batching.py \
+            tests/test_schema_cache_bounds.py \
             tests/test_mainline_m4_runtime.py \
             scripts/hira_v0_m4_schema_benchmark.py
 
