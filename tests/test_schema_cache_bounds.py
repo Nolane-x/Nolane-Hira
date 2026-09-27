@@ -219,3 +219,24 @@ def test_cache_reconfiguration_rejects_shrinking_below_residency_without_clear()
         assert "clear is required" in str(exc)
     else:
         raise AssertionError("shrinking below resident cache must fail without clear")
+
+
+def test_training_mode_disables_schema_cache_even_with_positive_limits():
+    torch.manual_seed(42017)
+    encoder = CountingEncoder()
+    encoder.train(True)
+    compiler = SchemaCompiler(
+        encoder,
+        max_cache_entries=4,
+        max_cache_bytes=1024 * 1024,
+    )
+
+    _schema1, first = _compile(compiler, "training")
+    calls_after_first = encoder.calls
+    _schema2, second = _compile(compiler, "training")
+
+    assert first.cache_stored is False
+    assert second.cache_hit is False
+    assert second.cache_stored is False
+    assert compiler.cache_info()["entries"] == 0
+    assert encoder.calls > calls_after_first
