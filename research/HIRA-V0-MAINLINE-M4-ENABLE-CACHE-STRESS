@@ -1,0 +1,47 @@
+HIRA V0 MAINLINE M4-B BOUNDED CACHE STRESS ENABLED
+
+Frozen pre-stress code head:
+- 5d65f57d53d4c79db088ebd8fa2726dd72ad9289
+
+Qualified M4-A authority:
+- run: 36327904288
+- artifact ID: 10934506746
+- artifact digest: sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb
+- outcome: HIRA_V0_M4_SCHEMA_BATCHING_READY
+
+Frozen runtime provenance:
+- A13 revision: 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- A13 weight SHA256: 5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880
+- W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+
+Frozen cache policy:
+- LRU
+- max entries: 16
+- max tensor bytes: 67108864
+- cache disabled in training mode
+- oversized single entry is valid for the query but not retained
+- cache hit moves entry to MRU
+- clear resets residency and eviction counters
+
+Frozen stress:
+- K=255
+- 21 unique dynamic schemas
+- anchor schema touched after 8 unique schemas
+- additional pressure designed to exceed the byte working set
+- early schema must be evicted and recompiled
+
+Frozen gates:
+- resident entries <= 16
+- resident bytes <= 67108864
+- eviction observed
+- touched anchor survives LRU pressure
+- early schema is evicted
+- early schema option embeddings equivalent after recompile
+- early decision probabilities max error <= 1e-6
+- early selected option unchanged
+- full-K
+- one state encode
+- relation delta zero
+
+No scientific maturity promotion is authorized.
