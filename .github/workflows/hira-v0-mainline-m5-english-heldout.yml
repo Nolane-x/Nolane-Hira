@@ -6,6 +6,7 @@ on:
       - feat/hira-v0-mainline-m5-matched-benchmark
     paths:
       - "research/HIRA-V0-MAINLINE-M5-ENABLE-ENGLISH-HELDOUT"
+      - "research/HIRA-V0-MAINLINE-M5-RETRY-ENGLISH-HELDOUT"
 
 permissions:
   contents: read
