@@ -436,6 +436,151 @@ def train_selective_risk_tournament(
     }
 
 
+@torch.inference_mode()
+def risk_scores_for_cache(
+    head: TinySelectiveRiskHead,
+    feature_mean: Tensor,
+    feature_std: Tensor,
+    cache: dict[str, object],
+    calibrator: TypedReliabilityCalibrator | None,
+    *,
+    feature_indices: tuple[int, ...],
+) -> Tensor:
+    validate_m1_frozen_cache(cache)
+    rows = [case for case in cache["cases"] if not case["is_ood"]]
+    if len(rows) != len(cache["cases"]):
+        # OOD rows have no correctness target, but the feature transform itself
+        # is still defined. Callers needing OOD final-policy scores should use
+        # risk_scores_for_any_cache below.
+        raise ValueError("M1-R2 correctness risk score requires ID-only cache")
+    features = torch.stack(
+        [_case_risk_features(case, calibrator)[list(feature_indices)] for case in rows]
+    )
+    normalized = (features - feature_mean) / feature_std
+    return torch.sigmoid(head(normalized))
+
+
+@torch.inference_mode()
+def risk_scores_for_any_cache(
+    head: TinySelectiveRiskHead,
+    feature_mean: Tensor,
+    feature_std: Tensor,
+    cache: dict[str, object],
+    calibrator: TypedReliabilityCalibrator | None,
+    *,
+    feature_indices: tuple[int, ...],
+) -> Tensor:
+    validate_m1_frozen_cache(cache)
+    rows = cache["cases"]
+    if not rows:
+        raise ValueError("M1-R2 risk score cache is empty")
+    features = torch.stack(
+        [_case_risk_features(case, calibrator)[list(feature_indices)] for case in rows]
+    )
+    normalized = (features - feature_mean) / feature_std
+    return torch.sigmoid(head(normalized))
+
+
+@torch.inference_mode()
+def evaluate_r2_final_policy(
+    id_cache: dict[str, object],
+    ood_cache: dict[str, object],
+    calibrator: TypedReliabilityCalibrator | None,
+    risk_head: TinySelectiveRiskHead,
+    risk_feature_mean: Tensor,
+    risk_feature_std: Tensor,
+    ood_head,
+    ood_feature_mean: Tensor,
+    ood_feature_std: Tensor,
+    *,
+    risk_feature_indices: tuple[int, ...],
+    risk_threshold: float,
+    ood_feature_indices: tuple[int, ...],
+    ood_threshold: float,
+) -> dict[str, float]:
+    from .mainline_m1_training import ood_scores_for_cache
+
+    validate_m1_frozen_cache(id_cache)
+    validate_m1_frozen_cache(ood_cache)
+    if not 0.0 <= float(risk_threshold) <= 1.0:
+        raise ValueError("M1-R2 risk threshold must be in [0,1]")
+    if not 0.0 <= float(ood_threshold) <= 1.0:
+        raise ValueError("M1-R2 OOD threshold must be in [0,1]")
+
+    id_ood_scores = ood_scores_for_cache(
+        ood_head,
+        ood_feature_mean,
+        ood_feature_std,
+        id_cache,
+        feature_indices=ood_feature_indices,
+    )
+    ood_ood_scores = ood_scores_for_cache(
+        ood_head,
+        ood_feature_mean,
+        ood_feature_std,
+        ood_cache,
+        feature_indices=ood_feature_indices,
+    )
+    id_risk_scores = risk_scores_for_any_cache(
+        risk_head,
+        risk_feature_mean,
+        risk_feature_std,
+        id_cache,
+        calibrator,
+        feature_indices=risk_feature_indices,
+    )
+    ood_risk_scores = risk_scores_for_any_cache(
+        risk_head,
+        risk_feature_mean,
+        risk_feature_std,
+        ood_cache,
+        calibrator,
+        feature_indices=risk_feature_indices,
+    )
+
+    id_accepted: list[int] = []
+    for index, case in enumerate(id_cache["cases"]):
+        if case["is_ood"]:
+            continue
+        accept = (
+            float(id_ood_scores[index]) < float(ood_threshold)
+            and float(id_risk_scores[index]) >= float(risk_threshold)
+        )
+        if accept:
+            logits = calibrated_case_logits(case, calibrator)
+            selected = int(logits.argmax())
+            id_accepted.append(selected == int(case["gold_index"]))
+
+    ood_accept_count = 0
+    for index, case in enumerate(ood_cache["cases"]):
+        if not case["is_ood"]:
+            continue
+        accept = (
+            float(ood_ood_scores[index]) < float(ood_threshold)
+            and float(ood_risk_scores[index]) >= float(risk_threshold)
+        )
+        ood_accept_count += int(accept)
+
+    id_total = sum(not case["is_ood"] for case in id_cache["cases"])
+    ood_total = sum(bool(case["is_ood"]) for case in ood_cache["cases"])
+    id_coverage = len(id_accepted) / max(1, id_total)
+    id_accuracy = (
+        sum(id_accepted) / len(id_accepted)
+        if id_accepted
+        else 0.0
+    )
+    return {
+        "id_case_count": float(id_total),
+        "id_accepted_count": float(len(id_accepted)),
+        "id_coverage": id_coverage,
+        "id_accepted_accuracy": id_accuracy,
+        "id_selective_risk": 1.0 - id_accuracy if id_accepted else 1.0,
+        "ood_case_count": float(ood_total),
+        "ood_final_accept_count": float(ood_accept_count),
+        "ood_final_accept_rate": ood_accept_count / max(1, ood_total),
+    }
+
+
 def m1_r2_dev_qualification(
     calibration: Mapping[str, object],
     risk: Mapping[str, object],
@@ -487,6 +632,9 @@ __all__ = [
     "TinySelectiveRiskHead",
     "build_selected_calibrator",
     "evaluate_risk_head",
+    "evaluate_r2_final_policy",
+    "risk_scores_for_any_cache",
+    "risk_scores_for_cache",
     "m1_r2_dev_qualification",
     "safe_calibration_tournament",
     "train_selective_risk_tournament",
