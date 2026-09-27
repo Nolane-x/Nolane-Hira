@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M2 — dynamic high-K
 
-Status: **M2-A MECHANICS IMPLEMENTED / EXACT INTEGRATION PRE-PROOF**
+Status: **M2-A MECHANICS READY / M2-B SEMANTIC PRE-EXPOSURE**
 
 Issue: #163  
 Branch: `feat/hira-v0-mainline-m2-high-k`  
@@ -175,3 +175,105 @@ No candidate pruning is allowed in the first M2-B authority.
 5. only then design fresh M2-B semantic authority.
 
 No M2 semantic evidence has been exposed yet.
+
+
+## 12. Exact M2-A integration — authoritative result
+
+Run:
+
+`36310118240`
+
+Outcome:
+
+`HIRA_V0_M2_MECHANICS_READY`
+
+Artifact:
+- `hira-v0-mainline-m2-mechanics-integration`
+- ID: `10928771833`
+- digest: `sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453`
+
+Exact model:
+- resident params: 13,213,199
+- trainable params: 0
+- semantic front-end resident: 12,750,080
+- relation core resident: 422,159
+- transfer scorer resident: 40,960
+- W28 projection: 32,768
+- W34 transfer candidate: 8,192
+
+Whole-suite:
+- K ladder: 4 / 8 / 16 / 32 / 64 / 128 / 255
+- state encode delta: **1**
+- total queries: **14**
+- full-K: PASS at every K
+- finite: PASS at every K
+- relation delta: 0 at every K
+- max probability-mass error: **1.1920928955078125e-07**
+- max permutation probability error: **4.656612873077393e-10**
+- selected-option permutation invariant: PASS at every K
+- mechanics pass: **true**
+
+### Exact CPU timing / schema tensor surface
+
+K=4:
+- schema compile: 41.46 ms
+- decision: 1.62 ms
+- schema tensors: 81,344 bytes
+
+K=8:
+- schema compile: 60.96 ms
+- decision: 1.25 ms
+- schema tensors: 151,404 bytes
+
+K=16:
+- schema compile: 107.88 ms
+- decision: 1.35 ms
+- schema tensors: 291,524 bytes
+
+K=32:
+- schema compile: 200.82 ms
+- decision: 1.43 ms
+- schema tensors: 571,764 bytes
+
+K=64:
+- schema compile: 397.30 ms
+- decision: 1.60 ms
+- schema tensors: 1,132,244 bytes
+
+K=128:
+- schema compile: 762.79 ms
+- decision: 1.92 ms
+- schema tensors: 2,253,204 bytes
+
+K=255:
+- schema compile: **1482.21 ms**
+- decision: **2.66 ms**
+- schema tensors: **4,477,609 bytes**
+
+Scientific/product interpretation:
+
+**Hira v0 decision mechanics themselves scale cleanly through K=255.**
+
+The dominant high-K runtime cost is schema semantic compilation, not the typed decision core.
+
+No semantic quality claim was made by this integration.
+
+## 13. M2-A product maturity promotion
+
+Exact mechanics authority:
+
+`run:36310118240;artifact:10928771833;digest:sha256:99e8c02aeb48fa32910a591d71b92e3e6f96258c0fa8501f38682ea4a2b7f453`
+
+M2 manifest now permits:
+
+- `high_k_mechanics = available`
+- `high_k_mechanics_authority = <exact authority above>`
+
+It does **not** permit:
+
+- `high_k = available`
+- semantic K=255 quality claims
+- candidate pruning claims
+- production-ready claims
+
+`high_k` remains `provisional` until M2-B fresh semantic authority.
