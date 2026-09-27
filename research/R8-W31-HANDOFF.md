@@ -1,6 +1,6 @@
 # R8-W31 handoff — qualified dual semantic adapter
 
-Status: **TRAIN/DEV FROZEN / SEALED CONFIRM PRE-EXPOSURE**
+Status: **CLOSED — W31_DUAL_ADAPTER_FAIL**
 
 Issue: #151  
 Branch: `feat/r8-w31-qualified-dual-semantic-adapter`  
@@ -204,12 +204,44 @@ Implemented after TRAIN/DEV freeze:
 - pooled transfer gate against frozen unbridged T0
 - `.github/workflows/r8-w31-sealed-confirm.yml`
 
-Current boundary:
-1. sealed evaluator unit/full CI must pass;
-2. only then create `research/R8-W31-ENABLE-CONFIRM`;
-3. first QO/QP exposure is one-way and cannot tune this checkpoint;
-4. freeze authoritative outcome;
-5. closure + FULL bundle;
-6. only `HIRA_V0_TRANSFER_CORE_READY` may unblock calibration/OOD/high-K.
+Final SEALED CONFIRM:
+- authority run: `36290775556`
+- domains: QO/QP = 192 cases
+- outcome: `W31_DUAL_ADAPTER_FAIL`
+- quality QO: FAIL
+- quality QP: FAIL
+- runtime QO: PASS
+- runtime QP: PASS
+- audit artifact: `r8-w31-authoritative-audit`
+- artifact ID: `10922082803`
+- artifact digest: `sha256:2ac2825617223df4bf8d68701618e938f60117d2c1a2db1370781e51ae06bc9d`
 
-QO/QP remain sealed at this moment.
+Frozen pooled QO/QP result:
+- baseline composed severity: 0.2864583333333333
+- dual composed severity: 0.6197916666666666
+- severity delta: +0.3333333333333333
+- baseline worst-factor top-1: 0.609375
+- dual worst-factor top-1: 0.828125
+- worst-factor delta: +0.21875
+- pooled transfer gate: PASS
+- dual F0/F1/F2 top-1: 0.828125 / 0.8541666666666666 / 0.8541666666666666
+- dual F0/F1/F2 balanced accuracy: 0.8854166666666667 / 0.8541666666666666 / 0.75
+- dual factor-vector/composed severity: 0.6197916666666666
+- dual invalid-vector rate: 0.057291666666666664
+- probability mass max error: 1.1920928955078125e-07
+
+Interpretation:
+- W31 solved the transfer-regression problem seen in W30;
+- state/schema asymmetry plus anchor preservation is a real positive architectural signal;
+- absolute F1/F2 discrimination and composed-vector quality remain below the frozen production gate;
+- no HIRA-v0 transfer-core promotion is authorized.
+
+Permanent boundary:
+- QO/QP are exposed and forbidden for all future fitting/selection/candidate choice;
+- W31 checkpoint must never be retuned against QO/QP;
+- calibration/OOD/high-K/Laya-JEV gates remain blocked;
+- next wave must use wholly fresh evidence and preserve the successful W31 runtime invariants.
+
+Closure:
+- `research/R8-W31-CLOSURE.md`
+- packaging-only FULL bundle is the final W31 handoff surface.
