@@ -11,6 +11,7 @@ from nmd.w31_transfer_eval import (
     _selection_key,
     _signed_margin,
 )
+from scripts.r8_w31_confirm import _quality_pass, _transfer_summary
 from nmd.typed_competitive_cache import file_sha256
 from nmd.semantic_core import W28_T0_CHECKPOINT_SHA256
 
@@ -77,3 +78,59 @@ def test_w31_checkpoint_contract_roundtrip(tmp_path):
     assert set(loaded) == set(state)
     for key in state:
         assert torch.equal(loaded[key], state[key])
+
+
+def test_w31_sealed_quality_gate_requires_every_factor():
+    good = {
+        "factors": {
+            "F0": {"top1": 0.91, "balanced_accuracy": 0.89},
+            "F1": {"top1": 0.92, "balanced_accuracy": 0.90},
+            "F2": {"top1": 0.90, "balanced_accuracy": 0.88},
+        },
+        "factor_vector_top1": 0.83,
+        "composed_severity_top1": 0.84,
+        "invalid_factor_vector_rate": 0.04,
+        "factor_probability_mass_max_error": 1e-7,
+    }
+    assert _quality_pass(good)
+    bad = {
+        **good,
+        "factors": {
+            **good["factors"],
+            "F2": {"top1": 0.899, "balanced_accuracy": 0.90},
+        },
+    }
+    assert not _quality_pass(bad)
+
+
+def test_w31_transfer_gate_is_pooled_and_strict():
+    baseline = {
+        "factors": {
+            "F0": {"top1": 0.70},
+            "F1": {"top1": 0.72},
+            "F2": {"top1": 0.74},
+        },
+        "composed_severity_top1": 0.50,
+    }
+    dual = {
+        "factors": {
+            "F0": {"top1": 0.80},
+            "F1": {"top1": 0.83},
+            "F2": {"top1": 0.84},
+        },
+        "composed_severity_top1": 0.66,
+    }
+    result = _transfer_summary(baseline, dual)
+    assert result["pass"]
+    assert result["severity_delta"] >= 0.15
+    assert result["worst_factor_top1_delta"] >= 0.08
+
+    regressed = {
+        **dual,
+        "factors": {
+            "F0": {"top1": 0.80},
+            "F1": {"top1": 0.69},
+            "F2": {"top1": 0.84},
+        },
+    }
+    assert not _transfer_summary(baseline, regressed)["pass"]
