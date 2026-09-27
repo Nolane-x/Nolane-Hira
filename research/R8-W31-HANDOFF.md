@@ -1,6 +1,6 @@
 # R8-W31 handoff — qualified dual semantic adapter
 
-Status: **PRE-QUALIFICATION / IMPLEMENTATION**
+Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
 
 Issue: #151  
 Branch: `feat/r8-w31-qualified-dual-semantic-adapter`  
@@ -136,21 +136,46 @@ Relative to frozen unbridged T0:
 
 ## Current implementation state
 
+Reference qualification is complete and frozen:
+- authority run: `36281931836`
+- outcome: `W31_REFERENCE_QUALIFIED`
+- QH: PASS
+- QI: PASS
+- qualification artifact: `r8-w31-reference-qualification`
+- artifact ID: `10918919102`
+- artifact digest: `sha256:badc9d6e91864519d7a3472b6b7cde313e42908611be38faa978a95b8f622d5e`
+- no HIRA candidate evaluated;
+- A13 not loaded;
+- no W29/W30/older authority rows used.
+
 Implemented:
 - `src/nmd/w31_dual_semantic_adapter.py`
 - runtime coarse mode `dual_symmetric_semantic`
-- exact capacity/identity/runtime/checkpoint tests
-
-Implemented additionally:
 - `src/nmd/w31_transfer_authority.py`
-- QH/QI reference-only qualification evaluator
-- qualification workflow that cannot load A13 or evaluate HIRA
+- `src/nmd/w31_transfer_cache.py`
+- `src/nmd/w31_transfer_eval.py`
+- `src/nmd/w31_transfer_core.py`
+- `scripts/r8_w31_qualify.py`
+- `scripts/r8_w31_train.py`
+- qualification-gated TRAIN/DEV workflow
+- exact capacity/identity/runtime/checkpoint/selection tests
 
-Next:
-1. pass unit/full CI;
-2. run QH/QI reference qualification;
-3. only if qualified, build train/dev cache and balanced+anchor trainer;
-4. sealed confirm evaluator;
-5. closure and full bundle.
+Frozen TRAIN/DEV implementation details:
+- QJ/QK/QL/QM TRAIN = 384 cases;
+- QN DEV = 96 cases;
+- exactly 4,096 trainable adapter parameters;
+- factor-balanced F0/F1/F2 CE;
+- T0-correct anchors with frozen baseline margin >= 0.08;
+- anchor hinge preserves adapted signed margin >= 0.08;
+- anchor coefficient = 0.35;
+- DEV selection order is worst-factor BA, worst-factor top-1, composed severity, lower invalid-vector rate, earlier epoch.
 
-Do not create a TRAIN authority marker until qualification passes.
+Current boundary:
+1. new unit/full CI must pass;
+2. only then create `research/R8-W31-ENABLE-TRAIN`;
+3. run QJ-QM TRAIN + QN DEV;
+4. freeze selected checkpoint and receipt;
+5. only after that implement/preregister sealed QO/QP confirmation;
+6. closure and full bundle.
+
+QO/QP remain sealed. Do not implement empirical tuning from them or expose them before TRAIN/DEV is frozen.
