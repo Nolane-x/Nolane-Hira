@@ -284,3 +284,32 @@ M4 may improve:
 - CPU execution path.
 
 M4 must preserve all fail-closed maturity labels from M1-M3.
+
+
+## 9. Closure bundle
+
+Closure bundle run:
+
+`36323149176`
+
+Outcome:
+
+**PASS**
+
+Artifact:
+- name: `hira-v0-mainline-m3-closure-full-bundle`
+- ID: `10933725316`
+- digest: `sha256:426b2d0ce4b4ba47f0ebb677d3bc744478eb2beacbc4ecace63c0797f6225e39`
+- size: 2,857,477 bytes
+
+The bundle includes:
+- repository snapshot;
+- canonical M3 handoff;
+- canonical M3 closure;
+- exact W28 T0 evidence;
+- exact W34 transfer evidence;
+- M3-A paired DEV evidence;
+- M3-R1 TRAIN/DEV evidence;
+- integrity manifest.
+
+No MVC sealed evidence exists because MVC was never exposed.
