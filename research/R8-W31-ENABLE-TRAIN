@@ -1,0 +1,52 @@
+R8-W31 TRAIN/DEV ENABLED
+
+This marker authorizes the first preregistered W31 HIRA candidate exposure after successful reference qualification.
+
+Frozen reference qualification:
+- run: 36281931836
+- outcome: W31_REFERENCE_QUALIFIED
+- QH: PASS
+- QI: PASS
+- artifact ID: 10918919102
+- artifact digest: sha256:badc9d6e91864519d7a3472b6b7cde313e42908611be38faa978a95b8f622d5e
+
+Frozen candidate:
+- base main: fc906391fd55ffc6edcce60e383364801260701a
+- exact W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- state adapter rank: 8
+- schema adapter rank: 8
+- total trainable adapter parameters: 4096
+- state/schema up projections identity-zero initialized
+- seed: 3117
+- epochs: 16
+- batch size: 32
+- AdamW lr: 2e-4
+- weight decay: 0.01
+- grad clip: 1.0
+- semantic temperature: 0.07
+- anchor coefficient: 0.35
+- positive frozen-T0 anchor margin threshold: 0.08
+
+Evidence partitions:
+- TRAIN: QJ, QK, QL, QM
+- DEV: QN
+- SEALED CONFIRM: QO, QP (NOT AUTHORIZED BY THIS MARKER)
+
+DEV selection order:
+1. worst-factor balanced accuracy
+2. worst-factor top-1
+3. composed severity top-1
+4. lower invalid-vector rate
+5. earlier epoch
+
+Evidence firewall:
+- QH/QI qualification rows are forbidden from candidate loss/selection
+- W29 EW/EX/EY/EZ forbidden
+- W30 FA/FB/FC/FD/FE/FF/FG forbidden
+- W28 and older authority rows forbidden
+- Banking77 final/test forbidden
+- typed final/test forbidden
+- Laya/JEV result cells forbidden
+- QO/QP remain sealed and forbidden for training or model selection
+
+This marker must not be edited after TRAIN/DEV begins.
