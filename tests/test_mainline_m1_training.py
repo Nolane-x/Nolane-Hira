@@ -12,7 +12,9 @@ from nmd.mainline_m1_training import (
     SELECTIVE_MIN_COVERAGE,
     SELECTIVE_TARGET_ACCURACY,
     evaluate_calibration_cache,
+    evaluate_final_reliability_policy,
     m1_dev_qualification,
+    m1_sealed_qualification,
     select_selective_threshold,
     train_calibration_tournament,
     train_ood_tournament,
@@ -299,4 +301,81 @@ def test_dev_qualification_requires_all_three_authorities():
     broken_ood["selected_dev"]["auroc"] = 0.1
     failed = m1_dev_qualification(calibration, selective, broken_ood)
     assert failed["ood"]["auroc"] is False
+    assert failed["pass"] is False
+
+
+def test_final_reliability_policy_combines_ood_and_selective_thresholds():
+    id_train, ood_train, id_dev, ood_dev = _ood_caches()
+    selection = train_ood_tournament(
+        id_train,
+        ood_train,
+        id_dev,
+        ood_dev,
+    )
+    from nmd.mainline_m1_training import TinyOODHead
+
+    head = TinyOODHead(len(selection["selected_feature_indices"]))
+    head.load_state_dict(selection["selected_state_dict"], strict=True)
+    head.eval()
+
+    result = evaluate_final_reliability_policy(
+        id_dev,
+        ood_dev,
+        None,
+        head,
+        selection["selected_feature_mean"],
+        selection["selected_feature_std"],
+        feature_indices=tuple(selection["selected_feature_indices"]),
+        ood_threshold=float(selection["selected_threshold"]),
+        selective_threshold=0.0,
+    )
+    assert 0.0 <= result["id_coverage"] <= 1.0
+    assert 0.0 <= result["id_accepted_accuracy"] <= 1.0
+    assert 0.0 <= result["ood_final_accept_rate"] <= 1.0
+
+
+def test_sealed_qualification_requires_every_component():
+    selected_calibration = {
+        "soft_ece": 0.10,
+        "probability_mass_max_error": 1e-7,
+        "accuracy": 0.95,
+    }
+    control_calibration = {
+        "soft_ece": 0.14,
+        "accuracy": 0.95,
+    }
+    ood_metrics = {
+        "auroc": 0.90,
+        "balanced_accuracy": 0.85,
+        "ood_recall": 0.90,
+        "ood_false_accept_rate": 0.10,
+        "id_accept_rate": 0.80,
+    }
+    final_policy = {
+        "id_coverage": 0.50,
+        "id_accepted_accuracy": 0.95,
+        "id_selective_risk": 0.05,
+        "ood_final_accept_rate": 0.05,
+    }
+    passed = m1_sealed_qualification(
+        selected_calibration,
+        control_calibration,
+        ood_metrics,
+        final_policy,
+    )
+    assert passed["pass"] is True
+    assert all(passed["calibration"].values())
+    assert all(passed["ood"].values())
+    assert all(passed["selective"].values())
+    assert all(passed["final_ood"].values())
+
+    broken = dict(final_policy)
+    broken["ood_final_accept_rate"] = 0.50
+    failed = m1_sealed_qualification(
+        selected_calibration,
+        control_calibration,
+        ood_metrics,
+        broken,
+    )
+    assert failed["final_ood"]["ood_final_accept"] is False
     assert failed["pass"] is False
