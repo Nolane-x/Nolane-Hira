@@ -12,6 +12,8 @@ on:
       - "tests/test_mainline_m4_runtime.py"
       - "scripts/hira_v0_m4_schema_benchmark.py"
       - ".github/workflows/hira-v0-mainline-m4-schema-benchmark.yml"
+      - "scripts/hira_v0_m4_cache_stress.py"
+      - ".github/workflows/hira-v0-mainline-m4-cache-stress.yml"
       - "research/HIRA-V0-MAINLINE-M4-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m4.yml"
 
