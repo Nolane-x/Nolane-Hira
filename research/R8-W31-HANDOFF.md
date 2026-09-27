@@ -141,10 +141,15 @@ Implemented:
 - runtime coarse mode `dual_symmetric_semantic`
 - exact capacity/identity/runtime/checkpoint tests
 
+Implemented additionally:
+- `src/nmd/w31_transfer_authority.py`
+- QH/QI reference-only qualification evaluator
+- qualification workflow that cannot load A13 or evaluate HIRA
+
 Next:
-1. isolated W31 fresh authority generator;
-2. qualification-only reference workflow;
-3. train/dev cache and balanced+anchor trainer;
+1. pass unit/full CI;
+2. run QH/QI reference qualification;
+3. only if qualified, build train/dev cache and balanced+anchor trainer;
 4. sealed confirm evaluator;
 5. closure and full bundle.
 
