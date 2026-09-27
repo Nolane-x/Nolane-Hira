@@ -11,6 +11,7 @@ from .contracts import CompiledSchema, LogicalOption, Primitive, StateMemory
 from .hira import HIRACore, HIRAOutput
 from .schema import SchemaCompiler, SchemaCompileReceipt
 from .semantic import TextSemanticEncoder
+from .semantic_transfer_bridge import BridgedSymmetricSemanticScorer
 from .symmetric_semantic import SymmetricSemanticScorer
 
 PRIMITIVE_TO_ID: dict[Primitive, int] = {"choice": 0, "score": 1, "noul": 2}
@@ -21,11 +22,21 @@ RELATION_MODES: tuple[RelationMode, ...] = (
     "state_tokens",
     "dual_tokens",
 )
-CoarseMode = Literal["legacy", "competitive", "symmetric_semantic"]
+CoarseMode = Literal[
+    "legacy",
+    "competitive",
+    "symmetric_semantic",
+    "bridged_symmetric_semantic",
+]
 COARSE_MODES: tuple[CoarseMode, ...] = (
     "legacy",
     "competitive",
     "symmetric_semantic",
+    "bridged_symmetric_semantic",
+)
+COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
+    "symmetric_semantic",
+    "bridged_symmetric_semantic",
 )
 
 
@@ -48,6 +59,7 @@ class NolaneHira(nn.Module):
         hira: HIRACore | None = None,
         coarse_scorer: CompetitiveCoarseScorer | None = None,
         symmetric_semantic_scorer: SymmetricSemanticScorer | None = None,
+        bridged_symmetric_semantic_scorer: BridgedSymmetricSemanticScorer | None = None,
         reliability_calibrator: TypedReliabilityCalibrator | None = None,
     ):
         super().__init__()
@@ -65,6 +77,12 @@ class NolaneHira(nn.Module):
         ):
             raise ValueError("symmetric semantic scorer d_model mismatch")
         self.symmetric_semantic_scorer = symmetric_semantic_scorer
+        if (
+            bridged_symmetric_semantic_scorer is not None
+            and bridged_symmetric_semantic_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("bridged symmetric semantic scorer d_model mismatch")
+        self.bridged_symmetric_semantic_scorer = bridged_symmetric_semantic_scorer
         self.reliability_calibrator = reliability_calibrator
         self.schema_compiler = SchemaCompiler(encoder)
         self.state_encode_calls = 0
@@ -203,6 +221,47 @@ class NolaneHira(nn.Module):
             option_view_mask=schema.option_view_mask.unsqueeze(0),
         )
 
+    def _bridged_symmetric_semantic_coarse(
+        self,
+        memory: StateMemory,
+        schema: CompiledSchema,
+    ) -> Tensor:
+        scorer = self.bridged_symmetric_semantic_scorer
+        if scorer is None:
+            raise ValueError(
+                "bridged_symmetric_semantic coarse mode requires "
+                "BridgedSymmetricSemanticScorer"
+            )
+        if memory.content_token_embeddings is None:
+            raise ValueError(
+                "bridged_symmetric_semantic coarse mode requires state content tokens"
+            )
+        required = (
+            schema.option_view_token_embeddings,
+            schema.option_view_token_mask,
+            schema.option_view_mask,
+        )
+        if any(value is None for value in required):
+            raise ValueError(
+                "bridged_symmetric_semantic coarse mode requires "
+                "multi-view schema artifacts"
+            )
+
+        state_tokens = memory.content_token_embeddings.unsqueeze(0)
+        state_mask = torch.ones(
+            1,
+            state_tokens.shape[1],
+            dtype=torch.bool,
+            device=state_tokens.device,
+        )
+        return scorer(
+            state_tokens=state_tokens,
+            state_mask=state_mask,
+            option_view_tokens=schema.option_view_token_embeddings.unsqueeze(0),
+            option_view_token_mask=schema.option_view_token_mask.unsqueeze(0),
+            option_view_mask=schema.option_view_mask.unsqueeze(0),
+        )
+
     def _coarse_only_output(
         self,
         memory: StateMemory,
@@ -322,7 +381,7 @@ class NolaneHira(nn.Module):
         if coarse_mode not in COARSE_MODES:
             raise ValueError(f"unsupported coarse_mode: {coarse_mode}")
         if relation_refinement is None:
-            relation_refinement = coarse_mode != "symmetric_semantic"
+            relation_refinement = coarse_mode not in COARSE_ONLY_SEMANTIC_MODES
         primitive = schema.primitive
         qtype = torch.tensor(
             [PRIMITIVE_TO_ID[primitive]], dtype=torch.long,
@@ -354,8 +413,10 @@ class NolaneHira(nn.Module):
             coarse_override = self._competitive_coarse(memory, schema)
         elif coarse_mode == "symmetric_semantic":
             coarse_override = self._symmetric_semantic_coarse(memory, schema)
+        elif coarse_mode == "bridged_symmetric_semantic":
+            coarse_override = self._bridged_symmetric_semantic_coarse(memory, schema)
 
-        if coarse_mode == "symmetric_semantic" and not relation_refinement:
+        if coarse_mode in COARSE_ONLY_SEMANTIC_MODES and not relation_refinement:
             out = self._coarse_only_output(memory, coarse_override)
         else:
             out = self.hira(
@@ -374,7 +435,7 @@ class NolaneHira(nn.Module):
         # Calibration is a post-W29 gate. The semantic-core mode preserves the
         # frozen rescued logits exactly until a calibrated layer is separately
         # qualified.
-        if coarse_mode != "symmetric_semantic":
+        if coarse_mode not in COARSE_ONLY_SEMANTIC_MODES:
             out = self._apply_reliability_calibration(
                 out,
                 schema,
@@ -420,7 +481,11 @@ class NolaneHira(nn.Module):
         memory = self.compile_state(state_text)
         needs_option_tokens = (
             relation_mode in {"option_tokens", "dual_tokens"}
-            or coarse_mode in {"competitive", "symmetric_semantic"}
+            or coarse_mode in {
+                "competitive",
+                "symmetric_semantic",
+                "bridged_symmetric_semantic",
+            }
         )
         schema, _ = self.compile_schema(
             primitive=primitive,
