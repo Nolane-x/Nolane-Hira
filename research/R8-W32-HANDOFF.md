@@ -189,3 +189,23 @@ Next frozen boundary:
 8. sealed confirm, closure and FULL bundle.
 
 RA/RB are now exposed and permanently forbidden from candidate loss or DEV selection.
+
+TRAIN/DEV implementation is now present but remains pre-exposure:
+- `src/nmd/w32_transfer_cache.py`
+- `src/nmd/w32_transfer_eval.py`
+- `src/nmd/w32_transfer_core.py`
+- `scripts/r8_w32_train.py`
+- `tests/test_w32_transfer_training.py`
+- marker-gated `r8-w32-train-dev` workflow
+
+Frozen training objective:
+- factor-balanced F0/F1/F2 CE;
+- frozen-T0 positive-anchor hinge, threshold 0.08, coefficient 0.35;
+- invalid-vector probability mass over 001/010/011/101, coefficient 0.15;
+- exactly 6,144 trainable candidate parameters;
+- RC/RD/RE/RF TRAIN = 384 cases;
+- RG DEV = 96 cases;
+- RH/RI confirm usage = 0 during training/selection.
+
+Do not create `research/R8-W32-ENABLE-TRAIN` until the extended W32 unit gate and full repository CI are green.
+
