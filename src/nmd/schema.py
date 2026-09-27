@@ -76,6 +76,29 @@ class SchemaCompiler:
             "evictions": self._cache_evictions,
         }
 
+    def configure_cache(
+        self,
+        *,
+        max_entries: int,
+        max_bytes: int,
+        clear: bool = True,
+    ) -> None:
+        if max_entries < 0:
+            raise ValueError("max_entries must be >= 0")
+        if max_bytes < 0:
+            raise ValueError("max_bytes must be >= 0")
+        if not clear and (
+            len(self._cache) > max_entries
+            or self._cache_bytes > max_bytes
+        ):
+            raise ValueError(
+                "new cache limits are below current residency; clear is required"
+            )
+        self.max_cache_entries = int(max_entries)
+        self.max_cache_bytes = int(max_bytes)
+        if clear:
+            self.clear()
+
     def _store_cache(
         self,
         cache_key: tuple[str, bool],
