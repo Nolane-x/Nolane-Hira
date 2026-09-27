@@ -6,8 +6,13 @@ on:
       - feat/r8-w34-qualified-coevidence
     paths:
       - "src/nmd/w34_transfer_authority.py"
+      - "src/nmd/w34_transfer_cache.py"
+      - "src/nmd/w34_transfer_eval.py"
+      - "src/nmd/w34_transfer_core.py"
       - "scripts/r8_w34_qualify.py"
+      - "scripts/r8_w34_train.py"
       - "tests/test_w34_transfer_authority.py"
+      - "tests/test_w34_transfer_training.py"
       - "research/R8-W34-HANDOFF.md"
       - ".github/workflows/r8-w34-reference-qualification.yml"
       - ".github/workflows/r8-w34-unit.yml"
@@ -36,10 +41,15 @@ jobs:
         run: |
           python -m py_compile \
             src/nmd/w34_transfer_authority.py \
-            scripts/r8_w34_qualify.py
+            src/nmd/w34_transfer_cache.py \
+            src/nmd/w34_transfer_eval.py \
+            src/nmd/w34_transfer_core.py \
+            scripts/r8_w34_qualify.py \
+            scripts/r8_w34_train.py
       - name: Run W34 authority and frozen candidate contracts
         run: |
           pytest -q \
             tests/test_w34_transfer_authority.py \
+            tests/test_w34_transfer_training.py \
             tests/test_w33_coevidence_semantic.py \
             tests/test_symmetric_semantic_runtime.py
