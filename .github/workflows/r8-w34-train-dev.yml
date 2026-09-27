@@ -1,0 +1,159 @@
+name: r8-w34-train-dev
+
+on:
+  push:
+    branches:
+      - feat/r8-w34-qualified-coevidence
+    paths:
+      - "research/R8-W34-ENABLE-TRAIN"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w34-train-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen W34 TRAIN stack
+        run: |
+          python -m py_compile \
+            src/nmd/w33_coevidence_semantic.py \
+            src/nmd/w34_transfer_authority.py \
+            src/nmd/w34_transfer_cache.py \
+            src/nmd/w34_transfer_eval.py \
+            src/nmd/w34_transfer_core.py \
+            scripts/r8_w34_train.py
+
+      - name: Run W34 TRAIN contracts
+        run: |
+          pytest -q \
+            tests/test_w34_transfer_authority.py \
+            tests/test_w34_transfer_training.py \
+            tests/test_w33_coevidence_semantic.py \
+            tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify frozen W34 qualification artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924507541 --jq .digest)" = "sha256:13cfd1301f7fa7e03c7c2580c80409fd48c2aecb48b022f7e5fea811b71f5432"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924507541 --jq .expired)" = "false"
+
+      - name: Verify exact W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+  train:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-reference-qualification
+          path: inputs/qualification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36298394141
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen empirical stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]" sentencepiece
+
+      - name: Mark W34 TRAIN DEV exposure
+        run: echo R8_W34_TC_TF_TRAIN_TG_DEV_EXPOSURE_BEGIN
+
+      - name: Train and select co-evidence candidate on TRAIN DEV only
+        run: |
+          python scripts/r8_w34_train.py \
+            --t0-dir inputs/T0 \
+            --qualification-dir inputs/qualification \
+            --out artifacts/w34-train
+
+      - name: Verify W34 training receipt
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open("artifacts/w34-train/receipt.json"))
+          sha=hashlib.sha256(open("artifacts/w34-train/candidate.pt","rb").read()).hexdigest()
+          assert x["schema_version"]=="r8-w34-coevidence-training-receipt-v1"
+          assert x["status"]=="PASS"
+          assert x["qualification_outcome"]=="W34_REFERENCE_QUALIFIED"
+          assert x["qualification_domains"]==["TA","TB"]
+          assert x["checkpoint_sha256"]==sha
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["train_case_count"]==384
+          assert x["dev_case_count"]==96
+          assert x["confirm_case_count_used"]==0
+          assert x["qualification_rows_used_for_training"] is False
+          assert x["w33_rows_used"] is False
+          assert x["w32_rows_used"] is False
+          assert x["w31_rows_used"] is False
+          assert x["w30_rows_used"] is False
+          assert x["w29_rows_used"] is False
+          assert x["older_authority_rows_used"] is False
+          assert x["projection_training_performed"] is False
+          assert x["candidate_training_performed"] is True
+          assert x["candidate_parameter_count"]==8192
+          assert x["candidate_rank"]==8
+          assert x["seed"]==3417
+          assert x["epochs"]==20
+          assert x["batch_size"]==32
+          assert abs(x["lr"]-2e-4)<1e-12
+          assert abs(x["temperature"]-0.07)<1e-12
+          assert abs(x["anchor_coefficient"]-0.35)<1e-12
+          assert abs(x["anchor_margin_threshold"]-0.08)<1e-12
+          assert abs(x["vector_validity_coefficient"]-0.15)<1e-12
+          assert x["exact_text_overlap"]==[]
+          print("W34_TRAIN_RECEIPT="+json.dumps({
+            "checkpoint_sha256":x["checkpoint_sha256"],
+            "selected_dev_epoch":x["selected_dev_epoch"],
+            "anchor_rate":x["anchor_rate"],
+            "baseline_dev":x["baseline_dev"],
+            "candidate_dev":x["candidate_dev"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: artifacts/w34-train
+          if-no-files-found: error
+          retention-days: 90
