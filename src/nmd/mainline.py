@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import TYPE_CHECKING, Iterable, Literal
 
 import torch
 from torch import nn
@@ -12,12 +12,16 @@ from .hira import HIRACore
 from .runtime import DecisionOutput, NolaneHira
 from .semantic import TextSemanticEncoder
 from .semantic_core import W28_T0_CHECKPOINT_SHA256
+if TYPE_CHECKING:
+    from .mainline_reliability import HiraV0ReliabilityPolicy, HiraV0ReliableDecision
+
 from .w34_transfer_core import (
     W34_CANDIDATE_PARAMETER_COUNT,
     build_hira_v0_w34_core,
 )
 
 HIRA_V0_MAINLINE_VERSION = "0.0-m0"
+HIRA_V0_MAINLINE_M1_VERSION = "0.0-m1a"
 W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256 = (
     "d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
 )
@@ -71,6 +75,13 @@ class HiraV0Manifest:
             transfer_candidate_parameter_count=W34_CANDIDATE_PARAMETER_COUNT,
             transfer_authority="R8-W34:W34_COEVIDENCE_COMPOSITION_FAIL:PROVISIONAL_TRANSFER_CORE",
         )
+
+    @classmethod
+    def m1_mechanism_provisional(cls) -> "HiraV0Manifest":
+        base = cls.m0_provisional().to_dict()
+        base["version"] = HIRA_V0_MAINLINE_M1_VERSION
+        base["reliability_ood_abstention"] = "provisional"
+        return cls(**base)
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -150,6 +161,37 @@ class HiraV0Session:
         self.query_count += 1
         return out
 
+    def decide_reliable(
+        self,
+        *,
+        primitive: Primitive,
+        question_text: str,
+        options: Iterable[LogicalOption],
+        use_schema_cache: bool = True,
+        probabilities_calibrated: bool = False,
+        ood_score: float | None = None,
+        distribution_shift: bool = False,
+        ood_calibrator_valid: bool = True,
+    ) -> "HiraV0ReliableDecision":
+        from .mainline_reliability import HiraV0ReliabilityPolicy
+
+        decision = self.decide(
+            primitive=primitive,
+            question_text=question_text,
+            options=options,
+            use_schema_cache=use_schema_cache,
+        )
+        policy = self._mainline.reliability_policy
+        if policy is None:
+            policy = HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
+        return policy.evaluate(
+            decision,
+            probabilities_calibrated=probabilities_calibrated,
+            ood_score=ood_score,
+            distribution_shift=distribution_shift,
+            ood_calibrator_valid=ood_calibrator_valid,
+        )
+
 
 class HiraV0Mainline(nn.Module):
     """Integrated Hira v0 M0 inference shell.
@@ -164,11 +206,13 @@ class HiraV0Mainline(nn.Module):
         runtime: NolaneHira,
         *,
         manifest: HiraV0Manifest | None = None,
+        reliability_policy: "HiraV0ReliabilityPolicy | None" = None,
         freeze_runtime: bool = True,
     ):
         super().__init__()
         self.runtime = runtime
         self.manifest = manifest or HiraV0Manifest.m0_provisional()
+        self.reliability_policy = reliability_policy
 
         if freeze_runtime:
             for parameter in self.runtime.parameters():
@@ -199,6 +243,13 @@ class HiraV0Mainline(nn.Module):
         if self.runtime.reliability_calibrator is not None:
             raise RuntimeError(
                 "Hira v0 M0 reliability calibration is not mainline-qualified"
+            )
+        if (
+            self.manifest.reliability_ood_abstention == "available"
+            and self.reliability_policy is None
+        ):
+            raise RuntimeError(
+                "available mainline reliability requires an explicit policy"
             )
         if self.manifest.production_ready:
             raise RuntimeError("Hira v0 M0 cannot claim production readiness")
@@ -292,12 +343,49 @@ def build_hira_v0_mainline(
     return HiraV0Mainline(runtime, manifest=HiraV0Manifest.m0_provisional())
 
 
+def build_hira_v0_m1_mechanism(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    transfer_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
+    expected_transfer_sha256: str = W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256,
+    reliability_policy: "HiraV0ReliabilityPolicy | None" = None,
+) -> HiraV0Mainline:
+    """Build M1-A with explicit fail-closed reliability mechanism only."""
+    from .mainline_reliability import HiraV0ReliabilityPolicy
+
+    for parameter in encoder.parameters():
+        parameter.requires_grad_(False)
+    encoder.eval()
+
+    runtime = build_hira_v0_w34_core(
+        encoder,
+        t0_checkpoint_path,
+        transfer_checkpoint_path,
+        expected_t0_sha256=expected_t0_sha256,
+        expected_candidate_sha256=expected_transfer_sha256,
+        hira=HIRACore(d_model=256, dropout=0.0),
+        include_unbridged_baseline=False,
+    )
+    return HiraV0Mainline(
+        runtime,
+        manifest=HiraV0Manifest.m1_mechanism_provisional(),
+        reliability_policy=(
+            reliability_policy
+            or HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
+        ),
+    )
+
+
 __all__ = [
     "HIRA_V0_MAINLINE_VERSION",
+    "HIRA_V0_MAINLINE_M1_VERSION",
     "W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256",
     "HiraV0Mainline",
     "HiraV0Manifest",
     "HiraV0ParameterReport",
     "HiraV0Session",
     "build_hira_v0_mainline",
+    "build_hira_v0_m1_mechanism",
 ]
