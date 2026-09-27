@@ -21,6 +21,7 @@ class CountingEncoder(TrainableSemanticEncoder):
             max_length=48,
         )
         self.calls = 0
+        self.eval()
 
     def encode_texts(self, texts):
         self.calls += 1
