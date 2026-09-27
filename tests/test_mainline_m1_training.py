@@ -12,6 +12,7 @@ from nmd.mainline_m1_training import (
     SELECTIVE_MIN_COVERAGE,
     SELECTIVE_TARGET_ACCURACY,
     evaluate_calibration_cache,
+    m1_dev_qualification,
     select_selective_threshold,
     train_calibration_tournament,
     train_ood_tournament,
@@ -271,3 +272,31 @@ def test_selective_threshold_is_dev_only_and_can_meet_target_on_easy_data():
     assert 0.0 <= float(result["coverage"]) <= 1.0
     assert 0.0 <= float(result["selective_accuracy"]) <= 1.0
     assert bool(result["meets_target"]) is True
+
+
+def test_dev_qualification_requires_all_three_authorities():
+    train, dev = _calibration_caches()
+    calibration = train_calibration_tournament(train, dev)
+    calibrator = None
+    if calibration["selected_candidate"] != "control":
+        from nmd.calibration import TypedReliabilityCalibrator
+        calibrator = TypedReliabilityCalibrator(calibration["selected_candidate"])
+        calibrator.load_state_dict(calibration["selected_state_dict"], strict=True)
+        calibrator.eval()
+
+    selective = select_selective_threshold(dev, calibrator)
+    id_train, ood_train, id_dev, ood_dev = _ood_caches()
+    ood = train_ood_tournament(id_train, ood_train, id_dev, ood_dev)
+
+    result = m1_dev_qualification(calibration, selective, ood)
+    assert set(result) == {"pass", "calibration", "selective", "ood"}
+    assert all(result["calibration"].values())
+    assert all(result["selective"].values())
+    assert all(result["ood"].values())
+    assert result["pass"] is True
+
+    broken_ood = copy.deepcopy(ood)
+    broken_ood["selected_dev"]["auroc"] = 0.1
+    failed = m1_dev_qualification(calibration, selective, broken_ood)
+    assert failed["ood"]["auroc"] is False
+    assert failed["pass"] is False
