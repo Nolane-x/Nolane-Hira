@@ -47,7 +47,8 @@ def main() -> None:
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--t0-dir", type=Path, required=True)
     parser.add_argument("--w34-dir", type=Path, required=True)
-    parser.add_argument("--train-dir", type=Path, required=True)
+    parser.add_argument("--r1-dir", type=Path, required=True)
+    parser.add_argument("--r2-dir", type=Path, required=True)
     parser.add_argument("--confirm-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
@@ -69,8 +70,9 @@ def main() -> None:
     staged = (
         (args.t0_dir.resolve(), out / "base" / "W28-T0"),
         (args.w34_dir.resolve(), out / "base" / "W34-provisional-transfer"),
-        (args.train_dir.resolve(), out / "evidence" / "train-dev"),
-        (args.confirm_dir.resolve(), out / "evidence" / "sealed-confirm"),
+        (args.r1_dir.resolve(), out / "evidence" / "r1-train-dev"),
+        (args.r2_dir.resolve(), out / "evidence" / "r2-train-dev"),
+        (args.confirm_dir.resolve(), out / "evidence" / "r2-sealed-confirm"),
     )
     for source, destination in staged:
         if not source.is_dir():
