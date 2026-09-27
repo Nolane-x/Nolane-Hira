@@ -7,11 +7,16 @@ on:
     paths:
       - "src/nmd/w32_interaction_semantic_adapter.py"
       - "src/nmd/w32_transfer_authority.py"
+      - "src/nmd/w32_transfer_cache.py"
+      - "src/nmd/w32_transfer_eval.py"
+      - "src/nmd/w32_transfer_core.py"
       - "src/nmd/runtime.py"
       - "scripts/r8_w32_qualify.py"
+      - "scripts/r8_w32_train.py"
       - ".github/workflows/r8-w32-reference-qualification.yml"
       - "tests/test_w32_interaction_semantic_adapter.py"
       - "tests/test_w32_transfer_authority.py"
+      - "tests/test_w32_transfer_training.py"
       - "research/R8-W32-HANDOFF.md"
       - ".github/workflows/r8-w32-unit.yml"
 
@@ -40,13 +45,18 @@ jobs:
           python -m py_compile \
             src/nmd/w32_interaction_semantic_adapter.py \
             src/nmd/w32_transfer_authority.py \
+            src/nmd/w32_transfer_cache.py \
+            src/nmd/w32_transfer_eval.py \
+            src/nmd/w32_transfer_core.py \
             src/nmd/runtime.py \
-            scripts/r8_w32_qualify.py
+            scripts/r8_w32_qualify.py \
+            scripts/r8_w32_train.py
       - name: Run W32 contracts
         run: |
           pytest -q \
             tests/test_w32_interaction_semantic_adapter.py \
             tests/test_w32_transfer_authority.py \
+            tests/test_w32_transfer_training.py \
             tests/test_w31_dual_semantic_adapter.py \
             tests/test_symmetric_semantic_runtime.py
       - name: Runtime regressions
