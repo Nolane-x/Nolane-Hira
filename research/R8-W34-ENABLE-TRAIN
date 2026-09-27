@@ -1,0 +1,55 @@
+R8-W34 TRAIN/DEV ENABLED
+
+This marker authorizes the first preregistered W34 candidate TRAIN/DEV execution.
+
+Reference qualification is frozen:
+- run: 36298394141
+- outcome: W34_REFERENCE_QUALIFIED
+- TA: PASS
+- TB: PASS
+- qualification artifact ID: 10924507541
+- qualification artifact digest: sha256:13cfd1301f7fa7e03c7c2580c80409fd48c2aecb48b022f7e5fea811b71f5432
+
+Frozen before TRAIN exposure:
+- base main: 81551ab38329959aed25a6cd2704ebb8f4a996cb
+- issue: #157
+- PR: #158
+- exact W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- candidate: frozen W33 shared co-evidence geometry
+- total trainable candidate parameters: 8192
+- rank: 8
+- seed: 3417
+- epochs: 20
+- batch size: 32
+- AdamW lr: 2e-4
+- weight decay: 0.01
+- grad clip: 1.0
+- semantic temperature: 0.07
+- anchor coefficient: 0.35
+- positive anchor margin threshold: 0.08
+- invalid-vector mass coefficient: 0.15
+- TRAIN domains: TC, TD, TE, TF
+- DEV domain: TG
+- SEALED CONFIRM domains: TH, TI
+
+DEV selection:
+1. worst-factor balanced accuracy
+2. worst-factor top-1
+3. composed severity top-1
+4. lower invalid-vector rate
+5. earlier epoch
+
+Evidence firewall:
+- TA/TB qualification rows forbidden for candidate loss/selection
+- W33 SA..SI forbidden
+- W32 RA..RI forbidden
+- W31 QH..QP forbidden
+- W30 FA..FG forbidden
+- W29 EW..EZ forbidden
+- W28 and older authority rows forbidden
+- Banking77 final/test forbidden
+- typed final/test forbidden
+- Laya/JEV result cells forbidden
+- TH/TI remain sealed and forbidden for training/selection
+
+This marker must not be edited after first W34 TRAIN/DEV authority begins.
