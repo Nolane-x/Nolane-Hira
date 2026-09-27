@@ -1,0 +1,55 @@
+R8-W31 SEALED CONFIRM ENABLED
+
+This marker authorizes the first and only preregistered QO/QP sealed evaluation of the frozen W31 dual adapter.
+
+Frozen prerequisite evidence:
+- reference qualification run: 36281931836
+- qualification outcome: W31_REFERENCE_QUALIFIED
+- QH/QI: PASS/PASS
+- qualification artifact ID: 10918919102
+- qualification artifact digest: sha256:badc9d6e91864519d7a3472b6b7cde313e42908611be38faa978a95b8f622d5e
+
+Frozen TRAIN/DEV:
+- run: 36290117569
+- TRAIN: QJ/QK/QL/QM
+- DEV: QN
+- selected DEV epoch: 12
+- adapter checkpoint SHA256: 2a14479cc45b4e92c9ac76ce1535500b11778c8aa5b194b4ff53669f7f11054f
+- training artifact ID: 10922330271
+- training artifact digest: sha256:2e055d2050b3fc27c85bdb47aa0044947b5b33b27b76d5c4f96989286aef358c
+- exact W28 T0 SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+
+SEALED CONFIRM:
+- domains: QO, QP
+- 96 cases/domain
+- 192 cases total
+- no training
+- no model selection
+- no hyperparameter adaptation
+
+Per-domain quality gates:
+- each F0/F1/F2 top-1 >= 0.90
+- each factor balanced accuracy >= 0.88
+- factor-vector top-1 >= 0.82
+- composed severity top-1 >= 0.82
+- invalid-vector rate <= 0.05
+- probability mass error <= 1e-6
+
+Per-domain runtime gates:
+- typed primitive agreement
+- option-order invariance
+- state-once rate = 1
+- full-K rate = 1
+- relation delta = 0
+- cache/runtime prediction consistency
+
+Pooled transfer gate versus frozen unbridged T0:
+- composed severity improvement >= +0.15
+- worst-factor top-1 improvement >= +0.08
+- no factor top-1 regression > 0.02
+
+Frozen outcomes:
+1. W31_DUAL_ADAPTER_FAIL
+2. HIRA_V0_TRANSFER_CORE_READY
+
+QO/QP may never be used for future fitting, selection, hyperparameter tuning, or candidate choice after this marker.

@@ -1,0 +1,76 @@
+name: r8-w31-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/r8-w31-qualified-dual-semantic-adapter
+    paths:
+      - "research/R8-W31-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w31-reference-qualification
+          path: inputs/qualification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36281931836
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w31-dual-adapter-training
+          path: inputs/train
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36290117569
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w31-authoritative-audit
+          path: inputs/confirm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36290775556
+
+      - name: Build complete W31 closure bundle
+        run: |
+          python scripts/r8_w31_bundle.py \
+            --repo-root . \
+            --t0-dir inputs/T0 \
+            --qualification-dir inputs/qualification \
+            --train-dir inputs/train \
+            --confirm-dir inputs/confirm \
+            --out artifacts/w31-bundle
+
+      - name: Verify W31 bundle integrity
+        run: |
+          test -f artifacts/w31-bundle/NOLANE-HIRA-R8-W31-FULL.zip
+          test -f artifacts/w31-bundle/R8-W31-HANDOFF.md
+          test -f artifacts/w31-bundle/R8-W31-CLOSURE.md
+          test -f artifacts/w31-bundle/R8-W31-INTEGRITY.sha256
+          cd artifacts/w31-bundle
+          sha256sum -c R8-W31-INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w31-closure-full-bundle
+          path: artifacts/w31-bundle
+          if-no-files-found: error
+          retention-days: 90

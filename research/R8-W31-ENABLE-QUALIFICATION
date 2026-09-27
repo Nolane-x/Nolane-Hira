@@ -1,0 +1,20 @@
+R8-W31 REFERENCE QUALIFICATION ENABLED
+
+This marker authorizes the first reference-only W31 qualification exposure.
+
+Frozen before qualification:
+- base main: fc906391fd55ffc6edcce60e383364801260701a
+- issue: #151
+- PR: #152
+- qualification domains: QH, QI
+- 96 cases/domain
+- external frozen NLI panel only
+- HIRA candidate evaluation forbidden
+- A13 loading forbidden
+- TRAIN/DEV/CONFIRM remain sealed
+
+If either QH or QI fails the frozen semantic-reference gate:
+- outcome = W31_REFERENCE_QUALIFICATION_FAIL
+- W31 must stop before training
+
+This marker must not be edited after qualification begins.

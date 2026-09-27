@@ -1,0 +1,155 @@
+name: r8-w31-train-dev
+
+on:
+  push:
+    branches:
+      - feat/r8-w31-qualified-dual-semantic-adapter
+    paths:
+      - "research/R8-W31-ENABLE-TRAIN"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: r8-w31-train-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen W31 TRAIN stack
+        run: |
+          python -m py_compile \
+            src/nmd/w31_dual_semantic_adapter.py \
+            src/nmd/w31_transfer_authority.py \
+            src/nmd/w31_transfer_cache.py \
+            src/nmd/w31_transfer_eval.py \
+            src/nmd/w31_transfer_core.py \
+            scripts/r8_w31_train.py
+
+      - name: Run W31 TRAIN contracts
+        run: |
+          pytest -q \
+            tests/test_w31_dual_semantic_adapter.py \
+            tests/test_w31_transfer_authority.py \
+            tests/test_w31_transfer_training.py \
+            tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify frozen qualification artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10918919102 --jq .digest)" = "sha256:badc9d6e91864519d7a3472b6b7cde313e42908611be38faa978a95b8f622d5e"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10918919102 --jq .expired)" = "false"
+
+      - name: Verify exact W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+  train:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w31-reference-qualification
+          path: inputs/qualification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36281931836
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen empirical stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,research,dev]" sentencepiece
+
+      - name: Mark W31 TRAIN DEV exposure
+        run: echo R8_W31_QJ_QM_TRAIN_QN_DEV_EXPOSURE_BEGIN
+
+      - name: Train and select dual adapter on TRAIN DEV only
+        run: |
+          python scripts/r8_w31_train.py \
+            --t0-dir inputs/T0 \
+            --qualification-dir inputs/qualification \
+            --out artifacts/w31-train
+
+      - name: Verify W31 training receipt
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          x=json.load(open("artifacts/w31-train/receipt.json"))
+          sha=hashlib.sha256(open("artifacts/w31-train/adapter.pt","rb").read()).hexdigest()
+          assert x["schema_version"]=="r8-w31-dual-adapter-training-receipt-v1"
+          assert x["status"]=="PASS"
+          assert x["qualification_outcome"]=="W31_REFERENCE_QUALIFIED"
+          assert x["qualification_domains"]==["QH","QI"]
+          assert x["checkpoint_sha256"]==sha
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["train_case_count"]==384
+          assert x["dev_case_count"]==96
+          assert x["confirm_case_count_used"]==0
+          assert x["qualification_rows_used_for_training"] is False
+          assert x["w30_rows_used"] is False
+          assert x["w29_rows_used"] is False
+          assert x["older_authority_rows_used"] is False
+          assert x["projection_training_performed"] is False
+          assert x["adapter_training_performed"] is True
+          assert x["adapter_parameter_count"]==4096
+          assert x["adapter_rank"]==8
+          assert x["seed"]==3117
+          assert x["epochs"]==16
+          assert x["batch_size"]==32
+          assert abs(x["lr"]-2e-4)<1e-12
+          assert abs(x["temperature"]-0.07)<1e-12
+          assert abs(x["anchor_coefficient"]-0.35)<1e-12
+          assert abs(x["anchor_margin_threshold"]-0.08)<1e-12
+          assert x["exact_text_overlap"]==[]
+          print("W31_TRAIN_RECEIPT="+json.dumps({
+            "checkpoint_sha256":x["checkpoint_sha256"],
+            "selected_dev_epoch":x["selected_dev_epoch"],
+            "anchor_rate":x["anchor_rate"],
+            "baseline_dev":x["baseline_dev"],
+            "dual_dev":x["dual_dev"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r8-w31-dual-adapter-training
+          path: artifacts/w31-train
+          if-no-files-found: error
+          retention-days: 90
