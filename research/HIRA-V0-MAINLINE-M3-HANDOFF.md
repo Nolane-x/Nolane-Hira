@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M3 handoff — multilingual EN/VI
 
-Status: **M3-A DEV FAIL / M3-R1 PREREGISTERED**
+Status: **CLOSED — M3-R1 DEV FAIL / MULTILINGUAL PROVISIONAL**
 
 Issue: #165  
 Branch: `feat/hira-v0-mainline-m3-multilingual`  
@@ -342,3 +342,110 @@ Both primary and replica must independently pass the original M3 gates:
 Only then may MVC be exposed once using the primary checkpoint.
 
 If either primary or replica fails, M3 closes with multilingual provisional and MVC remains sealed. No M3-R2 blocking rescue is authorized.
+
+
+## 12. M3-R1 authoritative result — FAIL
+
+Run:
+
+`36322772094`
+
+Artifact:
+- `hira-v0-mainline-m3-r1-train-dev`
+- ID: `10933185512`
+- digest: `sha256:29b0ae348ddc4dfbdfcb37f8a276861b540725cc47cd3aaa85ef509f3b521e03`
+
+Outcome:
+
+`HIRA_V0_M3_R1_DEV_FAIL`
+
+Joint primary+replica qualification:
+- PASS: false
+- sealed exposure authorized: false
+
+### Primary
+
+Seed:
+`23031`
+
+Selected epoch:
+`8`
+
+English:
+- top-1 0.6388888888888888
+- MRR 0.7916666666666666
+
+Vietnamese:
+- top-1 0.5416666666666666
+- MRR 0.7453703703703703
+
+Cross-lingual:
+- VI/EN top-1 ratio 0.8478260869565217
+- VI/EN MRR ratio 0.9415204678362573
+- paired prediction agreement 0.5277777777777778
+- paired both-correct rate 0.3888888888888889
+
+Primary failed:
+- EN >= 0.65
+- VI >= 0.65
+- VI/EN top-1 ratio >= 0.90
+- paired agreement >= 0.85
+
+Primary passed all runtime integrity gates.
+
+### Replica
+
+Seed:
+`23037`
+
+Selected epoch:
+`6`
+
+English:
+- top-1 0.5972222222222222
+- MRR 0.7708333333333334
+
+Vietnamese:
+- top-1 0.5416666666666666
+- MRR 0.7430555555555556
+
+Cross-lingual:
+- VI/EN top-1 ratio 0.9069767441860465
+- VI/EN MRR ratio 0.963963963963964
+- paired prediction agreement 0.5277777777777778
+- paired both-correct rate 0.3888888888888889
+
+Replica failed:
+- EN >= 0.65
+- VI >= 0.65
+- paired agreement >= 0.85
+
+Replica passed all runtime integrity gates.
+
+## 13. Final evidence firewall
+
+Permanently exposed:
+- MVA/MVB
+- MVD/MVE/MVF/MVG
+- MVH/MVI
+
+Still sealed:
+- **MVC**
+
+MVC was never exposed.
+
+No M3-R2 blocking rescue is authorized.
+
+## 14. Mainline transition
+
+M3 closes with:
+- multilingual = provisional
+- production_ready = false
+
+Future multilingual work is a parallel replaceable semantic-front-end research track.
+
+Mainline proceeds to:
+- **M4 runtime / latency / RAM / packaging**
+
+Canonical closure:
+- `research/HIRA-V0-MAINLINE-M3-CLOSURE.md`
