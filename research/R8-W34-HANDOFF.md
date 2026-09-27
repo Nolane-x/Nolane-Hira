@@ -1,6 +1,6 @@
 # R8-W34 handoff — fresh qualified authority for co-evidence composition
 
-Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
+Status: **TRAIN-DEV FROZEN / SEALED CONFIRM PRE-EXPOSURE**
 
 Issue: #157  
 Branch: `feat/r8-w34-qualified-coevidence`  
@@ -207,22 +207,92 @@ Frozen artifact:
 
 TA/TB are now permanently exposed and forbidden from candidate fitting or DEV selection.
 
+## TRAIN/DEV — frozen
+
+Authoritative run:
+
+`36299087572`
+
+Partitions:
+- TRAIN: TC/TD/TE/TF = 384 cases
+- DEV: TG = 96 cases
+- confirm rows used: 0
+- qualification rows used for training: false
+- prior-wave rows used: false
+
+Selected checkpoint:
+- epoch: **20**
+- SHA256: `d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c`
+- anchor rate: `0.6050347222222222`
+
+Training artifact:
+- name: `r8-w34-coevidence-training`
+- artifact ID: `10924803779`
+- digest: `sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c`
+
+### TG frozen T0 baseline
+
+- F0 top-1: 0.875
+- F0 BA: 0.9166666666666667
+- F1 top-1: 0.5
+- F1 BA: 0.5
+- F2 top-1: 0.7395833333333334
+- F2 BA: 0.6736111111111112
+- factor-vector / composed severity: 0.23958333333333334
+- composed severity MAE: 1.5104166666666667
+- invalid-vector rate: 0.375
+- probability-mass max error: 1.1920928955078125e-07
+
+### TG frozen W34 candidate
+
+- F0 top-1: 0.8958333333333334
+- F0 BA: 0.9305555555555556
+- F1 top-1: 0.9895833333333334
+- F1 BA: 0.9895833333333333
+- F2 top-1: 0.875
+- F2 BA: 0.7777777777777778
+- factor-vector / composed severity: 0.7708333333333334
+- composed severity MAE: 0.23958333333333334
+- invalid-vector rate: 0.0
+- probability-mass max error: 1.1920928955078125e-07
+
+Scientific DEV observation:
+- co-evidence gives a large fresh gain over T0;
+- F1 is essentially solved on TG;
+- F2 improves strongly but remains the weakest factor;
+- vector legality is clean on TG;
+- DEV alone does not authorize promotion.
+
+## Sealed-confirm stack — implemented, not exposed
+
+Present:
+- `scripts/r8_w34_confirm.py`
+- `.github/workflows/r8-w34-sealed-confirm.yml`
+- exact frozen quality and transfer gate helpers
+- exact frozen checkpoint/artifact provenance checks
+- typed primitive agreement audit
+- option-order invariance audit
+- state-once audit
+- full-K audit
+- relation-delta-zero audit
+- probability-mass audit
+- baseline-vs-candidate transfer audit
+
+Frozen TH/TI outcome space:
+1. `W34_COEVIDENCE_COMPOSITION_FAIL`
+2. `HIRA_V0_TRANSFER_CORE_READY`
+
+The qualification failure outcome is no longer reachable because TA/TB already qualified.
+
 ## Current boundary
 
-TRAIN/DEV implementation is present and qualification-gated:
-- `src/nmd/w34_transfer_cache.py`
-- `src/nmd/w34_transfer_eval.py`
-- `src/nmd/w34_transfer_core.py`
-- `scripts/r8_w34_train.py`
-- `.github/workflows/r8-w34-train-dev.yml`
-
-TC/TD/TE/TF and TG are still unexposed.
+TH/TI remain sealed and must not be inspected, tuned against, or used for candidate selection.
 
 Next:
-1. pass dedicated W34 unit gate and full repository CI on the qualification-frozen TRAIN stack;
-2. only then create `research/R8-W34-ENABLE-TRAIN`;
-3. expose TC..TF TRAIN and TG DEV exactly once;
-4. freeze selected checkpoint and receipt;
-5. implement/preregister TH/TI sealed-confirm stack without changing the selected candidate;
-6. expose TH/TI once;
-7. closure + full evidence bundle.
+1. pass dedicated W34 unit gate and full repository CI on this sealed-confirm implementation;
+2. only then create `research/R8-W34-ENABLE-CONFIRM`;
+3. expose TH/TI exactly once using the frozen checkpoint `d69fa118...`;
+4. freeze authoritative outcome regardless of result;
+5. write closure;
+6. build FULL source/research/evidence bundle + standalone HANDOFF + integrity manifest;
+7. merge PR #158 only after final CI and bundle integrity pass.
