@@ -18,6 +18,12 @@ on:
       - "tests/test_mainline_m1_authority.py"
       - "tests/test_mainline_m1_cache.py"
       - "tests/test_mainline_m1_training.py"
+      - "src/nmd/mainline_m1_r2_authority.py"
+      - "src/nmd/mainline_m1_r2_training.py"
+      - "scripts/hira_v0_m1_r2_train.py"
+      - "tests/test_mainline_m1_r2_authority.py"
+      - "tests/test_mainline_m1_r2_training.py"
+      - ".github/workflows/hira-v0-mainline-m1-r2-train-dev.yml"
       - "research/HIRA-V0-MAINLINE-M1-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m1.yml"
 
