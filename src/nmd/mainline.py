@@ -24,6 +24,7 @@ HIRA_V0_MAINLINE_VERSION = "0.0-m0"
 HIRA_V0_MAINLINE_M1_VERSION = "0.0-m1a"
 HIRA_V0_MAINLINE_M2_VERSION = "0.0-m2a"
 HIRA_V0_MAINLINE_M3_VERSION = "0.0-m3a"
+HIRA_V0_MAINLINE_M4_VERSION = "0.0-m4a"
 HIRA_V0_MAX_K = 255
 M2_MECHANICS_AUTHORITY = (
     "run:36310118240;artifact:10928771833;"
@@ -114,6 +115,12 @@ class HiraV0Manifest:
         base = cls.m2_mechanics_available().to_dict()
         base["version"] = HIRA_V0_MAINLINE_M3_VERSION
         base["multilingual"] = "provisional"
+        return cls(**base)
+
+    @classmethod
+    def m4_runtime_provisional(cls) -> "HiraV0Manifest":
+        base = cls.m3_multilingual_provisional().to_dict()
+        base["version"] = HIRA_V0_MAINLINE_M4_VERSION
         return cls(**base)
 
     def to_dict(self) -> dict[str, object]:
@@ -502,11 +509,47 @@ def build_hira_v0_m3_baseline(
     )
 
 
+def build_hira_v0_m4_runtime(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    transfer_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
+    expected_transfer_sha256: str = W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256,
+    reliability_policy: "HiraV0ReliabilityPolicy | None" = None,
+) -> HiraV0Mainline:
+    """Build the M4 runtime-optimized package without maturity promotion."""
+    from .mainline_reliability import HiraV0ReliabilityPolicy
+
+    for parameter in encoder.parameters():
+        parameter.requires_grad_(False)
+    encoder.eval()
+
+    runtime = build_hira_v0_w34_core(
+        encoder,
+        t0_checkpoint_path,
+        transfer_checkpoint_path,
+        expected_t0_sha256=expected_t0_sha256,
+        expected_candidate_sha256=expected_transfer_sha256,
+        hira=HIRACore(d_model=256, dropout=0.0),
+        include_unbridged_baseline=False,
+    )
+    return HiraV0Mainline(
+        runtime,
+        manifest=HiraV0Manifest.m4_runtime_provisional(),
+        reliability_policy=(
+            reliability_policy
+            or HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
+        ),
+    )
+
+
 __all__ = [
     "HIRA_V0_MAINLINE_VERSION",
     "HIRA_V0_MAINLINE_M1_VERSION",
     "HIRA_V0_MAINLINE_M2_VERSION",
     "HIRA_V0_MAINLINE_M3_VERSION",
+    "HIRA_V0_MAINLINE_M4_VERSION",
     "HIRA_V0_MAX_K",
     "M2_MECHANICS_AUTHORITY",
     "W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256",
@@ -518,4 +561,5 @@ __all__ = [
     "build_hira_v0_m1_mechanism",
     "build_hira_v0_m2_mechanics",
     "build_hira_v0_m3_baseline",
+    "build_hira_v0_m4_runtime",
 ]
