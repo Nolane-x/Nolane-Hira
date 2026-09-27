@@ -248,3 +248,122 @@ Before any M1 empirical exposure:
 7. freeze all selections;
 8. expose UE and UI once;
 9. reliability may become `available` only if sealed gates pass.
+
+
+## 14. Frozen M1 TRAIN/DEV optimizer contract
+
+Calibration tournament:
+- candidates: control / primitive-temperature / primitive-temperature-noul-bias;
+- trainable params: 0 / 3 / 4;
+- epochs: 8;
+- optimizer: Adam;
+- lr: 0.01;
+- weight decay: 0;
+- seed: 11017;
+- objective: soft-target NLL + soft Brier;
+- DEV selection: lower soft ECE, lower soft NLL, lower soft Brier, higher hard accuracy, fewer params, earlier epoch.
+
+OOD tournament:
+- candidates: semantic-linear / semantic-confidence-linear;
+- feature counts: 5 / 8;
+- trainable params: 6 / 9;
+- epochs: 60;
+- optimizer: AdamW;
+- lr: 0.02;
+- weight decay: 0.001;
+- seed: 11029;
+- positive class = OOD;
+- feature normalization fit on TRAIN only;
+- threshold selected on DEV only;
+- selection: higher AUROC, higher balanced accuracy, lower OOD false-accept, higher ID accept, simpler semantic-only candidate on exact tie.
+
+Both OOD candidates include all four frozen semantic-geometry features:
+1. state-question cosine;
+2. state-option max cosine;
+3. state-option mean cosine;
+4. state-option spread.
+
+The full candidate may additionally use confidence diagnostics.
+No confidence-only OOD candidate exists.
+
+Selective-risk policy:
+- threshold selected on CAL DEV only;
+- target selective accuracy: >= 0.90;
+- minimum coverage: >= 0.25;
+- selection maximizes coverage among thresholds meeting the target.
+
+## 15. Frozen DEV qualification gate
+
+After the first UA-UD/UF-UH empirical run, the selected candidate is allowed to expose UE/UI only if all of the following pass.
+
+Calibration DEV:
+- selected soft ECE <= 0.20;
+- selected hard accuracy no worse than control by > 0.01;
+- ECE improvement >= 0.01 OR control soft ECE already <= 0.15;
+- probability mass error <= 1e-6.
+
+Selective DEV:
+- `meets_target = true`;
+- selective accuracy >= 0.90;
+- coverage >= 0.25.
+
+OOD DEV:
+- AUROC >= 0.80;
+- balanced accuracy >= 0.75;
+- OOD false-accept rate <= 0.25;
+- selected candidate contains all mandatory semantic features.
+
+If this DEV qualification fails:
+- do not expose UE;
+- do not expose UI;
+- do not tune against sealed evidence;
+- close or redesign M1 candidate using only aggregate TRAIN/DEV results.
+
+## 16. Frozen sealed promotion gate
+
+If DEV qualifies, freeze:
+- calibration candidate and checkpoint;
+- OOD candidate, feature normalization, checkpoint and threshold;
+- selective confidence threshold;
+- exact W28/W34 provenance.
+
+Then expose UE and UI exactly once.
+
+Calibration on sealed UE:
+- soft ECE <= 0.15;
+- probability mass error <= 1e-6;
+- hard accuracy no worse than fresh uncalibrated control by > 0.01;
+- ECE improvement >= 0.02 OR control ECE already <= 0.15.
+
+OOD on sealed UE + UI:
+- AUROC >= 0.85;
+- balanced accuracy >= 0.80;
+- OOD recall >= 0.80;
+- OOD false-accept rate <= 0.20;
+- ID accept rate >= 0.70.
+
+Final selective reliability on sealed UE:
+- accepted coverage >= 0.25;
+- accepted hard accuracy >= 0.90;
+- selective risk <= 0.10.
+
+Final OOD safety on sealed UI:
+- final policy ACCEPT rate on OOD <= 0.10.
+
+Runtime/integrity:
+- one state encode per case;
+- full-K;
+- relation delta = 0;
+- no decision-core gradients/training;
+- confidence is not OOD authority;
+- UE/UI used for no fitting, threshold selection or candidate ranking.
+
+Only if every sealed component passes may M1 produce:
+
+`HIRA_V0_M1_RELIABILITY_READY`
+
+Otherwise:
+
+`HIRA_V0_M1_RELIABILITY_FAIL`
+
+Reliability remains provisional after a failure.
