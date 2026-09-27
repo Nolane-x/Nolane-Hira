@@ -1,0 +1,32 @@
+R8-W34 REFERENCE QUALIFICATION ENABLED
+
+This marker authorizes the first reference-only TA/TB qualification execution.
+
+Frozen before exposure:
+- base main: 81551ab38329959aed25a6cd2704ebb8f4a996cb
+- issue: #157
+- PR: #158
+- qualification domains: TA, TB
+- TRAIN domains: TC, TD, TE, TF
+- DEV domain: TG
+- SEALED CONFIRM domains: TH, TI
+- HIRA candidate evaluation during qualification: forbidden
+- A13 loading during qualification: forbidden
+- W33 SA..SI rows forbidden
+- W32 RA..RI rows forbidden
+- W31 QH..QP rows forbidden
+- W30 FA..FG rows forbidden
+- W29 EW..EZ rows forbidden
+- W28 and older authority rows forbidden
+- exact-text overlap with exposed authorities forbidden
+
+Frozen W34 candidate contract:
+- reuse W33 co-evidence geometry unchanged
+- state/schema residual rank: 8
+- interaction rank: 8
+- composition rank: 8
+- total trainable candidate parameters: 8192
+- exact T0 identity initialization required
+- no factor-specific or primitive-specific learned head
+
+TA/TB may only qualify authority semantics. They are permanently forbidden from future candidate loss or DEV selection.
