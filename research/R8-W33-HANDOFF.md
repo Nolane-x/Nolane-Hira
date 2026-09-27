@@ -1,201 +1,158 @@
 # R8-W33 handoff — shared co-evidence compositional metric
 
-Status: **PREREGISTERED / PRE-QUALIFICATION**
+Status: **CLOSED — W33_REFERENCE_QUALIFICATION_FAIL**
 
 Issue: #155  
+PR: #156  
 Branch: `feat/r8-w33-coevidence-composition`  
 Base main: `8be5d068225d364211987d0b73071030e39401c4`
 
-## Why W33 exists
+## Why W33 existed
 
-W32 closed `W32_INTERACTION_ADAPTER_FAIL`.
+W32 closed with:
+- F0 top-1 0.9427083333333334
+- F1 top-1 0.953125
+- F2 top-1 0.8125
+- F2 balanced accuracy 0.7916666666666667
+- composed severity 0.7135416666666666
+- invalid-vector rate 0.0
+- runtime PASS on both sealed domains
 
-The important W32 result was not a generic transfer collapse:
+That localized the dominant remaining semantic bottleneck to F2 compositional discrimination.
 
-- sealed F0 top-1: 0.9427083333333334;
-- sealed F1 top-1: 0.953125;
-- sealed F2 top-1: 0.8125;
-- sealed F2 BA: 0.7916666666666667;
-- composed severity: 0.7135416666666666;
-- invalid-vector rate: 0.0;
-- runtime integrity passed on RH and RI.
+W33 therefore preregistered a **shared co-evidence compositional metric**.
 
-The remaining dominant bottleneck is therefore F2 compositional discrimination.
-
-W33 tests whether generic **co-evidence** — support from more than one distinct semantic state token — can recover conjunction-like semantics without introducing a factor-specific head.
-
-## Frozen base
-
-- A13 frozen;
-- exact W28 T0 frozen;
-- W29 unbridged symmetric scorer remains the baseline;
-- W32 checkpoint is not reused as initialization;
-- relation refinement OFF;
-- no factor-specific learned head;
-- no primitive-specific learned head.
-
-## Candidate
-
-W33 preserves from-scratch W32 geometry:
-
-```
-z_s = normalize(T0(state)  + U_s(D_s(T0(state))))
-z_o = normalize(T0(schema) + U_o(D_o(T0(schema))))
-
-r_s = M_s(z_s)
-r_o = M_o(z_o)
-I(o,s) = <r_o, r_s> / sqrt(8)
-```
-
-Then adds a separate shared rank-8 composition space:
-
-```
-c_s = C_s(z_s)
-c_o = C_o(z_o)
-P(o,s) = <c_o, c_s> / sqrt(8)
-```
-
-For each option semantic view, the co-evidence term is derived from the **second strongest distinct state-token match** in the composition matrix. It therefore rewards semantic support that is distributed across multiple state tokens instead of being explained entirely by a single strongest token.
-
-The operator is shared across every factor, schema, primitive and domain.
-
-## Capacity
-
-- state residual rank-8: 2,048
-- schema residual rank-8: 2,048
-- state interaction 128→8: 1,024
-- schema interaction 128→8: 1,024
-- state composition 128→8: 1,024
-- schema composition 128→8: 1,024
-- total trainable candidate parameters: **8,192**
-
-Initialization:
-
-- residual up projections zero;
-- state interaction map zero;
-- state composition map zero;
-- schema interaction/composition maps retain seeded basis initialization;
-- interaction term = 0 at initialization;
-- co-evidence term = 0 at initialization;
-- initial W33 logits must exactly equal frozen T0.
+## Candidate hypothesis
 
 Runtime mode:
 
 `coevidence_symmetric_semantic`
 
-## Training contract
+Architecture:
+- state residual rank-8: 2,048 params
+- schema residual rank-8: 2,048 params
+- state interaction 128→8: 1,024 params
+- schema interaction 128→8: 1,024 params
+- state composition 128→8: 1,024 params
+- schema composition 128→8: 1,024 params
+- total candidate parameters: **8,192**
 
-- seed: 3317
-- epochs: 20
-- batch: 32
-- AdamW lr: 2e-4
-- weight decay: 0.01
-- grad clip: 1.0
-- semantic temperature: 0.07
-- anchor coefficient: 0.35
-- frozen-T0 positive anchor margin: 0.08
-- invalid-vector mass coefficient: 0.15
-- exactly 8,192 candidate parameters may receive gradients
+The composition term uses the second strongest distinct state-token support for each semantic view.
 
-Primary loss:
+Identity boundary:
+- residual up projections start at zero
+- state interaction starts at zero
+- state composition starts at zero
+- initial interaction = 0
+- initial co-evidence = 0
+- initial candidate logits exactly equal frozen T0
 
-- factor-balanced F0/F1/F2 CE.
+## Frozen optimizer contract
 
-Anchor loss:
+Prepared before qualification result:
+- seed 3317
+- epochs 20
+- batch 32
+- AdamW lr 2e-4
+- weight decay 0.01
+- grad clip 1.0
+- temperature 0.07
+- anchor coefficient 0.35
+- anchor margin threshold 0.08
+- invalid-vector mass coefficient 0.15
 
-- preserve frozen T0 correct decisions with margin >= 0.08.
+No TRAIN/DEV marker was ever created.
 
-Structural validity:
+## Fresh evidence plan
 
-- valid vectors: 000, 100, 110, 111;
-- invalid vectors: 001, 010, 011, 101.
-
-No F2-specific loss weight or factor-ID feature is permitted.
-
-## DEV selection
-
-1. worst-factor balanced accuracy;
-2. worst-factor top-1;
-3. composed severity top-1;
-4. lower invalid-vector rate;
-5. earlier epoch.
-
-## Fresh evidence
-
-### Reference qualification
+Qualification:
 - SA
 - SB
 
-### TRAIN
+TRAIN:
 - SC
 - SD
 - SE
 - SF
 
-### DEV
+DEV:
 - SG
 
-### SEALED CONFIRM
+SEALED CONFIRM:
 - SH
 - SI
 
-Each domain has 96 balanced cases. All contexts, style banks and exact texts must be fresh against W28/W29/W30/W31/W32.
+All W33 exact text was fresh against exposed W28–W32 evidence.
 
-## Promotion gate
+## Qualification result — frozen
 
-Per sealed domain:
+Authoritative run:
 
-- every factor top-1 >= 0.90
-- every factor BA >= 0.88
-- factor-vector top-1 >= 0.82
-- composed severity >= 0.82
-- invalid-vector rate <= 0.05
-- option-order invariance = 1
-- state-once = 1
-- full-K = 1
-- relation delta = 0
-- probability mass error <= 1e-6
+`36295893504`
 
-Pooled transfer versus frozen T0:
+Outcome:
 
-- composed severity delta >= +0.15
-- worst-factor top-1 delta >= +0.08
-- no factor top-1 regression > 0.02
+`W33_REFERENCE_QUALIFICATION_FAIL`
 
-## Frozen outcomes
+Per domain:
+- SA: FAIL
+- SB: PASS
 
-1. `W33_REFERENCE_QUALIFICATION_FAIL`
-2. `W33_COEVIDENCE_COMPOSITION_FAIL`
-3. `HIRA_V0_TRANSFER_CORE_READY`
+Isolation:
+- case count: 192
+- HIRA candidate evaluated: false
+- A13 loaded: false
+- W32 rows used: false
+- W31 rows used: false
+- W30 rows used: false
+- W29 rows used: false
+- older authority rows used: false
+- exact-text overlap: none
 
-No partial promotion.
+Artifact:
+- `r8-w33-reference-qualification`
+- ID: `10924395669`
+- digest: `sha256:ce511450337120be77f4d864ee48d0d5fa2029dab785bf20c0b616b6b2cf0ad1`
 
-## Evidence firewall
+## Hard-stop consequence
 
-Forbidden for W33 fitting/selection/candidate choice:
+The preregistered rule required **both SA and SB to pass**.
 
-- W29 EW/EX/EY/EZ
-- W30 FA..FG
-- W31 QH..QP
-- W32 RA..RI
-- W28 and older authority rows
-- Banking77 final/test
-- typed final/test
-- Laya/JEV benchmark cells
+Because SA failed:
+- SC–SF TRAIN were not exposed;
+- SG DEV was not exposed;
+- SH/SI remained sealed;
+- A13 candidate execution did not begin;
+- the 8,192-param co-evidence candidate was never empirically tested.
 
-Only aggregate prior-wave metrics may motivate architecture.
+Do not report W33 as a candidate failure.
 
-## Current boundary
+It is an **authority qualification failure**.
 
-No W33 empirical evidence has been exposed.
+## Evidence firewall after closure
 
-Next:
+SA/SB are permanently exposed and forbidden for:
+- training
+- DEV selection
+- hyperparameter tuning
+- candidate choice
+- authority tuning
+- future candidate comparison
 
-1. implement co-evidence scorer/runtime;
-2. lock capacity/identity/runtime contracts;
-3. create wholly fresh SA..SI authority;
-4. pass unit/full CI;
-5. run reference-only SA/SB qualification;
-6. only if qualified, build TRAIN/DEV;
-7. freeze selected checkpoint before SH/SI implementation/exposure;
-8. sealed confirm, closure and full evidence bundle.
+Do not repair W33 by modifying SA wording or lowering thresholds after the fact.
+
+## Next wave
+
+W34 should keep the co-evidence hypothesis as **untested**, but create wholly fresh authority with clearer reference entailment structure.
+
+W34 must retain:
+- fresh qualification/TRAIN/DEV/CONFIRM partitions;
+- reference-only qualification;
+- no A13/candidate load during qualification;
+- exact T0 identity;
+- no factor-specific or primitive-specific learned head;
+- hard stop if either qualification domain fails.
+
+Canonical closure:
+
+`research/R8-W33-CLOSURE.md`
