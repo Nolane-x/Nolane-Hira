@@ -1,0 +1,71 @@
+HIRA V0 MAINLINE M1-R2 SEALED CONFIRM ENABLED
+
+This marker authorizes the first and only preregistered UE/UI sealed exposure for M1-R2.
+
+Frozen pre-confirm code head:
+- a70afd4ac84c65252a382b223967dbeb61da3a47
+
+Pre-confirm gates:
+- dedicated M1 run 36308674342: PASS
+- full repo CI run 36308676644: PASS
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Base decision provenance:
+- W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 provisional transfer checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+- decision-core trainable parameter count: 0
+
+Frozen M1-R2 TRAIN/DEV authority:
+- run: 36307009727
+- artifact ID: 10928285228
+- artifact digest: sha256:2e4bed910adc75ac2a3579765d712ea881a30e9c0888e693f0de293ff14e9178
+- empirical head: f3de89217725e070ed591f553bacc0df26830b40
+- TRAIN UJ/UK/UL/UM: 144 cases
+- DEV UN/UO: 72 cases
+- DEV qualification: PASS
+
+Frozen calibration:
+- candidate: primitive-temperature
+- trainable params: 3
+- selected epoch: 3
+- checkpoint SHA256: dccee8d11c42e56e2ea6ef030c7044adb963ac8a48ae40daec082f17fe52ce3a
+- DEV hard accuracy: 0.5277777777777778
+- DEV control hard accuracy: 0.5277777777777778
+- DEV soft ECE: 0.054004438428415194
+- DEV soft NLL: 0.9380818158388138
+- DEV soft Brier: 0.2184828238354789
+
+Frozen selective correctness authority:
+- candidate: semantic-confidence-risk-linear
+- trainable params: 9
+- selected epoch: 78
+- threshold: 0.52
+- checkpoint SHA256: 08e4afcb3db9f4be3e7553b40d955aa2d304ffad7f544b78f01cb18f4ed3f39e
+- DEV correctness AUROC: 0.8351393342018127
+- DEV coverage: 0.375
+- DEV accepted accuracy: 0.9259259104728699
+- DEV selective risk: 0.07407408952713013
+
+Frozen OOD authority from M1 R1:
+- source run: 36305969587
+- source artifact ID: 10927625673
+- source artifact digest: sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca
+- candidate: semantic-linear
+- trainable params: 6
+- threshold: 0.52
+- checkpoint SHA256: 2fda61a53fd2db05be5a703c6640a87e52588091fd22ed320cc0ab3f4cc80a3e
+- retraining in R2: forbidden
+- retuning in R2: forbidden
+
+First and only sealed partitions:
+- UE: selective/calibration confirmation, 36 cases
+- UI: OOD confirmation, 36 cases
+
+UE/UI are forbidden from:
+- fitting
+- threshold selection
+- candidate ranking
+- architecture selection
+
+After this marker all M1-R2 candidate choices, thresholds, checkpoints and sealed gates are immutable regardless of outcome.

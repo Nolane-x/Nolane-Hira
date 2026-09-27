@@ -1,0 +1,152 @@
+name: hira-v0-mainline-m1-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m1-reliability
+    paths:
+      - "research/HIRA-V0-MAINLINE-M1-ENABLE-TRAIN"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hira-v0-mainline-m1-train-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen M1 empirical stack
+        run: |
+          python -m py_compile \
+            src/nmd/mainline.py \
+            src/nmd/mainline_reliability.py \
+            src/nmd/mainline_m1_authority.py \
+            src/nmd/mainline_m1_cache.py \
+            src/nmd/mainline_m1_training.py \
+            scripts/hira_v0_m1_train.py
+
+      - name: Run M1 pre-exposure contracts
+        run: |
+          pytest -q \
+            tests/test_mainline_reliability.py \
+            tests/test_mainline_m1_authority.py \
+            tests/test_mainline_m1_cache.py \
+            tests/test_mainline_m1_training.py \
+            tests/test_mainline.py
+
+      - name: Verify exact frozen W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+      - name: Verify exact frozen W34 training artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .digest)" = "sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .expired)" = "false"
+
+  train:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen M1 empirical stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" sentencepiece
+
+      - name: Mark first M1 TRAIN DEV empirical exposure
+        run: echo HIRA_V0_M1_UA_UD_UF_UH_TRAIN_DEV_EXPOSURE_BEGIN
+
+      - name: Run frozen M1 TRAIN DEV
+        run: |
+          python scripts/hira_v0_m1_train.py \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --out artifacts/m1-train-dev
+
+      - name: Verify M1 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/m1-train-dev/receipt.json"))
+          assert x["schema_version"]=="hira-v0-mainline-m1-train-dev-v1"
+          assert x["status"]=="PASS"
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["transfer_checkpoint_sha256"]=="d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
+          assert x["transfer_core_maturity"]=="provisional"
+          assert x["decision_core_frozen"] is True
+          assert x["decision_core_trainable_parameter_count"]==0
+          assert x["case_counts"]=={
+            "cal_train":108,
+            "cal_dev":36,
+            "ood_train":72,
+            "ood_dev":36,
+          }
+          assert x["state_encode_count"]==252
+          assert x["state_encodes_per_case"]==1.0
+          assert x["calibration"]["selected_parameter_count"] in {0,3,4}
+          assert x["ood"]["selected_parameter_count"] in {6,9}
+          assert isinstance(x["dev_qualification"]["pass"], bool)
+          assert x["sealed_exposure_authorized"] is x["dev_qualification"]["pass"]
+          assert x["selective_confirm_exposed"] is False
+          assert x["ood_confirm_exposed"] is False
+          assert x["sealed_rows_used"] is False
+          assert x["confidence_used_as_ood_authority"] is False
+          assert x["quality_claim_made"] is False
+          print("HIRA_V0_M1_TRAIN_DEV_FINAL="+json.dumps({
+            "calibration":x["calibration"],
+            "selective_policy":x["selective_policy"],
+            "ood":x["ood"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-train-dev
+          path: artifacts/m1-train-dev
+          if-no-files-found: error
+          retention-days: 90

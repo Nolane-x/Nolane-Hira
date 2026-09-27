@@ -1,0 +1,776 @@
+# HIRA V0 MAINLINE M1 — reliability / OOD / abstention
+
+Status: **CLOSED — HIRA_V0_M1_RELIABILITY_FAIL / M2 ENTRY AUTHORIZED**
+
+Issue: #161  
+Branch: `feat/hira-v0-mainline-m1-reliability`  
+Base main: `17ad32104ac610908230c13d4b936a1b1ac3ecac`
+
+## 1. Why M1 exists
+
+M0 integrated a real Hira v0 typed model shell with exact W28 + W34 provenance.
+
+M0 intentionally did not claim:
+- calibrated confidence;
+- OOD detection;
+- abstention;
+- selective acceptance.
+
+M1 makes those first-class product behavior.
+
+## 2. Non-negotiable separation
+
+Calibration is not OOD.
+
+OOD is not:
+- 1 - max softmax;
+- entropy;
+- top-margin;
+- temperature.
+
+Decision confidence signals are diagnostics only.
+
+Automatic ACCEPT requires three independent qualified authorities:
+
+1. calibrated decision probabilities;
+2. qualified OOD authority returning in-distribution;
+3. qualified selective-risk threshold.
+
+Missing or provisional authority fails closed.
+
+## 3. M1-A mechanism
+
+Implemented:
+
+- `src/nmd/mainline_reliability.py`
+- `ConfidenceDiagnostics`
+- `HiraV0ReliabilityReceipt`
+- `HiraV0ReliableDecision`
+- `HiraV0ReliabilityPolicy`
+- `HiraV0Session.decide_reliable()`
+- M1 provisional manifest
+
+Diagnostics:
+
+- max probability;
+- normalized entropy;
+- top-1 / top-2 probability margin;
+- option count.
+
+These metrics never act as OOD authority.
+
+## 4. Fail-closed action order
+
+Final reliability action is one of:
+
+- `accept`
+- `abstain`
+- `escalate`
+
+Frozen M1-A order:
+
+1. missing/unqualified OOD authority -> ESCALATE;
+2. OOD authority detects explicit distribution shift -> ESCALATE;
+3. missing/stale OOD calibration -> ESCALATE;
+4. qualified OOD score above threshold -> ABSTAIN;
+5. calibration authority not qualified -> ESCALATE;
+6. probabilities not explicitly marked qualified-calibrated -> ESCALATE;
+7. selective-risk policy not qualified -> ESCALATE;
+8. qualified calibrated confidence below frozen threshold -> ABSTAIN;
+9. only otherwise -> ACCEPT.
+
+Thus high raw model confidence can never bypass OOD or calibration.
+
+## 5. Typed semantics remain separate
+
+`noul` is still a typed semantic decision primitive.
+
+Reliability abstention is a control-plane result.
+
+A model may produce an ordinary `noul` decision while reliability separately returns:
+- accept;
+- abstain;
+- escalate.
+
+The two meanings must never be conflated.
+
+## 6. State-once contract
+
+`HiraV0Session.decide_reliable()` first executes the ordinary typed decision through the existing session.
+
+It then computes reliability from the resulting decision and external OOD authority inputs.
+
+It does not call `compile_state` again.
+
+M0 invariants remain:
+- full-K;
+- relation refinement OFF;
+- W34 provisional transfer core;
+- dynamic schema;
+- one state encode per session.
+
+## 7. Current manifest
+
+M1-A manifest:
+
+- version: `0.0-m1a`
+- semantic front-end: provisional
+- projection: frozen research base
+- transfer core: provisional
+- typed runtime: available
+- reliability/OOD/abstention: **provisional**
+- high-K: pending
+- multilingual: pending
+- production-ready: false
+
+M1-A does not promote reliability to available.
+
+## 8. Fresh authority still required
+
+No M1 empirical reliability authority has been exposed yet.
+
+M1-B must use wholly fresh evidence.
+
+Required evidence separation:
+
+- calibration TRAIN;
+- calibration DEV;
+- selective-risk CONFIRM;
+- OOD DEV;
+- OOD sealed CONFIRM.
+
+No sealed row may be used for:
+- calibration fitting;
+- OOD-head fitting;
+- threshold selection;
+- candidate selection.
+
+## 9. Candidate families
+
+Calibration mechanism family may reuse code knowledge from W6c:
+- primitive temperature: 3 trainable params;
+- primitive temperature + semantic noul bias: 4 trainable params.
+
+But W6c rows are not M1 authority.
+
+OOD must be independent.
+
+Candidate families may include:
+- frozen-feature distance;
+- energy-like semantic score;
+- tiny dedicated OOD head.
+
+No candidate may define OOD as `1-max_probability`.
+
+## 10. Decision core freeze
+
+During M1 reliability training:
+
+- semantic front-end gradients: forbidden;
+- W28 projection gradients: forbidden;
+- W34 transfer gradients: forbidden;
+- HIRA relation-core gradients: forbidden.
+
+Only explicitly declared reliability/control parameters may train.
+
+## 11. M1-A exit boundary
+
+Mechanism code may merge after:
+- fail-closed contracts pass;
+- state-once test passes;
+- confidence-as-OOD shortcut test passes;
+- M0 regressions pass;
+- full repository CI passes.
+
+But M1 overall remains open until fresh calibration + OOD sealed authority is completed.
+
+Next after M1-A mechanism merge or freeze:
+- build fresh M1 authority namespace;
+- fit tiny calibration candidate;
+- build independent OOD candidate tournament;
+- freeze thresholds on DEV;
+- expose sealed CONFIRM once;
+- only then promote reliability from provisional to available.
+
+
+## 12. Fresh M1 authority namespace — implemented, unexposed
+
+Implemented:
+- `src/nmd/mainline_m1_authority.py`
+- `tests/test_mainline_m1_authority.py`
+
+Partitions:
+
+Calibration/selective ID:
+- CAL TRAIN: UA / UB / UC = 108 cases
+- CAL DEV: UD = 36 cases
+- SELECTIVE CONFIRM: UE = 36 cases, sealed
+
+OOD:
+- OOD TRAIN: UF / UG = 72 cases
+- OOD DEV: UH = 36 cases
+- OOD CONFIRM: UI = 36 cases, sealed
+
+Every domain is exactly balanced across:
+- choice
+- score
+- noul
+
+Calibration ID rows also balance fresh confidence bands:
+- strong
+- mixed
+- thin
+
+OOD rows balance:
+- topic mismatch
+- foreign task
+- no relevant evidence
+
+Important:
+- OOD rows have no fabricated gold decision;
+- OOD labels are separate from typed-task labels;
+- calibration and OOD state texts are disjoint;
+- sealed partitions fail closed unless explicitly opened;
+- exact text is regression-tested against W33/W34 authority and W6c reliability lexicons.
+
+No M1 model inference, calibration fitting, OOD training, threshold selection, or sealed exposure has occurred yet.
+
+## 13. Immediate next boundary
+
+Before any M1 empirical exposure:
+
+1. M1 mechanism + authority contracts must pass dedicated CI;
+2. full repository Python 3.10/3.12 CI must pass;
+3. freeze exact M0/W34 provenance;
+4. implement frozen logit/feature cache so the decision core cannot receive gradients;
+5. only then expose CAL TRAIN/DEV and OOD TRAIN/DEV;
+6. select calibration candidate, OOD candidate and selective thresholds using DEV only;
+7. freeze all selections;
+8. expose UE and UI once;
+9. reliability may become `available` only if sealed gates pass.
+
+
+## 14. Frozen M1 TRAIN/DEV optimizer contract
+
+Calibration tournament:
+- candidates: control / primitive-temperature / primitive-temperature-noul-bias;
+- trainable params: 0 / 3 / 4;
+- epochs: 8;
+- optimizer: Adam;
+- lr: 0.01;
+- weight decay: 0;
+- seed: 11017;
+- objective: soft-target NLL + soft Brier;
+- DEV selection: lower soft ECE, lower soft NLL, lower soft Brier, higher hard accuracy, fewer params, earlier epoch.
+
+OOD tournament:
+- candidates: semantic-linear / semantic-confidence-linear;
+- feature counts: 5 / 8;
+- trainable params: 6 / 9;
+- epochs: 60;
+- optimizer: AdamW;
+- lr: 0.02;
+- weight decay: 0.001;
+- seed: 11029;
+- positive class = OOD;
+- feature normalization fit on TRAIN only;
+- threshold selected on DEV only;
+- selection: higher AUROC, higher balanced accuracy, lower OOD false-accept, higher ID accept, simpler semantic-only candidate on exact tie.
+
+Both OOD candidates include all four frozen semantic-geometry features:
+1. state-question cosine;
+2. state-option max cosine;
+3. state-option mean cosine;
+4. state-option spread.
+
+The full candidate may additionally use confidence diagnostics.
+No confidence-only OOD candidate exists.
+
+Selective-risk policy:
+- threshold selected on CAL DEV only;
+- target selective accuracy: >= 0.90;
+- minimum coverage: >= 0.25;
+- selection maximizes coverage among thresholds meeting the target.
+
+## 15. Frozen DEV qualification gate
+
+After the first UA-UD/UF-UH empirical run, the selected candidate is allowed to expose UE/UI only if all of the following pass.
+
+Calibration DEV:
+- selected soft ECE <= 0.20;
+- selected hard accuracy no worse than control by > 0.01;
+- ECE improvement >= 0.01 OR control soft ECE already <= 0.15;
+- probability mass error <= 1e-6.
+
+Selective DEV:
+- `meets_target = true`;
+- selective accuracy >= 0.90;
+- coverage >= 0.25.
+
+OOD DEV:
+- AUROC >= 0.80;
+- balanced accuracy >= 0.75;
+- OOD false-accept rate <= 0.25;
+- selected candidate contains all mandatory semantic features.
+
+If this DEV qualification fails:
+- do not expose UE;
+- do not expose UI;
+- do not tune against sealed evidence;
+- close or redesign M1 candidate using only aggregate TRAIN/DEV results.
+
+## 16. Frozen sealed promotion gate
+
+If DEV qualifies, freeze:
+- calibration candidate and checkpoint;
+- OOD candidate, feature normalization, checkpoint and threshold;
+- selective confidence threshold;
+- exact W28/W34 provenance.
+
+Then expose UE and UI exactly once.
+
+Calibration on sealed UE:
+- soft ECE <= 0.15;
+- probability mass error <= 1e-6;
+- hard accuracy no worse than fresh uncalibrated control by > 0.01;
+- ECE improvement >= 0.02 OR control ECE already <= 0.15.
+
+OOD on sealed UE + UI:
+- AUROC >= 0.85;
+- balanced accuracy >= 0.80;
+- OOD recall >= 0.80;
+- OOD false-accept rate <= 0.20;
+- ID accept rate >= 0.70.
+
+Final selective reliability on sealed UE:
+- accepted coverage >= 0.25;
+- accepted hard accuracy >= 0.90;
+- selective risk <= 0.10.
+
+Final OOD safety on sealed UI:
+- final policy ACCEPT rate on OOD <= 0.10.
+
+Runtime/integrity:
+- one state encode per case;
+- full-K;
+- relation delta = 0;
+- no decision-core gradients/training;
+- confidence is not OOD authority;
+- UE/UI used for no fitting, threshold selection or candidate ranking.
+
+Only if every sealed component passes may M1 produce:
+
+`HIRA_V0_M1_RELIABILITY_READY`
+
+Otherwise:
+
+`HIRA_V0_M1_RELIABILITY_FAIL`
+
+Reliability remains provisional after a failure.
+
+
+## 17. First M1 TRAIN/DEV authority — frozen result
+
+Authoritative run:
+
+`36305969587`
+
+Empirical head:
+
+`bcc947e95d312e229a93b579356c7eaf6269f788`
+
+Artifact:
+- name: `hira-v0-mainline-m1-train-dev`
+- ID: `10927625673`
+- digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+
+Exposure:
+- UA/UB/UC calibration TRAIN: 108
+- UD calibration DEV: 36
+- UF/UG OOD TRAIN: 72
+- UH OOD DEV: 36
+- total state encodes: 252
+- state encodes/case: 1.0
+- decision-core trainable params: 0
+- sealed rows used: false
+- UE exposed: false
+- UI exposed: false
+
+### Calibration DEV
+
+Control:
+- hard accuracy: 0.6388888888888888
+- soft ECE: 0.1296966220769617
+- soft Brier: 0.23696935145805278
+- soft NLL: 0.9593999683856964
+
+Primitive temperature, epoch 7:
+- params: 3
+- hard accuracy: 0.6388888888888888
+- soft ECE: 0.10072291601035327
+- soft Brier: 0.2298705099096373
+- soft NLL: 0.9521524227327771
+
+Primitive temperature + noul bias, epoch 1:
+- params: 4
+- hard accuracy: 0.5833333333333334
+- soft ECE: 0.0819705815778838
+- soft Brier: 0.23640032479953435
+- soft NLL: 0.9588056471612718
+
+The original cross-candidate selection key chose the 4-param candidate because it prioritized ECE before the already-frozen hard-accuracy DEV gate.
+
+The DEV gate correctly rejected that selection:
+- calibration accuracy non-regression: FAIL
+- calibration ECE absolute: PASS
+- calibration ECE mechanism: PASS
+- probability integrity: PASS
+
+### OOD DEV
+
+Selected candidate:
+
+`semantic-linear`
+
+- parameters: 6
+- features:
+  - state-question cosine
+  - state-option max cosine
+  - state-option mean cosine
+  - state-option spread
+  - normalized log K
+- no confidence feature used
+- selected epoch: 60
+- threshold: 0.52
+- AUROC: **0.9969135522842407**
+- balanced accuracy: **0.9722222222222222**
+- OOD recall: **0.9722222222222222**
+- OOD false-accept: **0.027777777777777776**
+- ID accept: **0.9722222222222222**
+
+All frozen OOD DEV gates PASS.
+
+The 9-param semantic+confidence candidate was weaker:
+- AUROC 0.9567901492118835
+- balanced accuracy 0.9305555555555556
+- OOD false-accept 0.1388888888888889
+
+This strengthens the separation hypothesis: semantic geometry is a better OOD authority here than raw decision confidence.
+
+### Selective DEV
+
+Original max-probability threshold policy:
+- threshold: 0.51
+- coverage: 0.2777777777777778
+- accepted accuracy: 0.8
+- selective risk: 0.2
+- target >= 0.90: FAIL
+
+### Frozen DEV verdict
+
+`dev_qualification.pass = false`
+
+Failures:
+- calibration accuracy non-regression
+- selective accuracy
+- selective target
+
+Passes:
+- calibration ECE absolute
+- calibration ECE mechanism
+- calibration probability integrity
+- selective coverage
+- all OOD gates
+
+Therefore:
+
+**UE and UI remain sealed.**
+
+`HIRA-V0-MAINLINE-M1-ENABLE-CONFIRM` MUST NOT be created for this candidate.
+
+## 18. M1-R2 hypothesis — fresh selective correctness authority
+
+The R1 failure localizes the remaining reliability problem.
+
+OOD is already strong enough to freeze as a provisional M1 subcomponent.
+
+The weak link is selective correctness:
+- maximum probability is not sufficiently aligned with correctness;
+- calibration selection must respect hard-decision non-regression before optimizing ECE.
+
+M1-R2 changes only the reliability control layer.
+
+### Frozen from M1-B R1
+
+OOD candidate:
+- `semantic-linear`
+- 6 trainable parameters
+- epoch 60
+- threshold 0.52
+- exact source artifact: `10927625673`
+- source artifact digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+
+It is not retrained or retuned in R2.
+
+### Fresh calibration selection rule
+
+Use wholly fresh R2 TRAIN/DEV.
+
+First filter candidates by:
+- hard accuracy regression versus fresh control <= 0.01;
+- probability mass error <= 1e-6.
+
+Only eligible candidates participate in calibration ranking.
+
+Among eligible candidates:
+1. lower soft ECE;
+2. lower soft NLL;
+3. lower soft Brier;
+4. fewer parameters;
+5. earlier epoch.
+
+This prevents a lower-ECE calibrator from silently damaging the typed hard decision.
+
+### New selective-risk head
+
+Do not use max probability as the selective authority.
+
+Train a tiny correctness predictor on frozen decision features.
+
+Target:
+- 1 if the frozen typed hard decision is correct;
+- 0 otherwise.
+
+Candidate families:
+1. `semantic-risk-linear`
+   - semantic geometry + normalized K
+   - 6 parameters
+2. `semantic-confidence-risk-linear`
+   - semantic geometry + calibrated confidence diagnostics + normalized K
+   - 9 parameters
+
+The risk head is distinct from OOD:
+- OOD predicts distribution mismatch;
+- selective-risk predicts decision correctness conditional on being evaluated.
+
+No decision-core parameter may train.
+
+### Fresh R2 ID authority
+
+R2 must not reuse UA-UD for fitting or selection.
+
+Use wholly fresh domains:
+- R2 TRAIN: UJ / UK / UL / UM
+- R2 DEV: UN / UO
+
+Each domain remains balanced over:
+- choice
+- score
+- noul
+- strong / mixed / thin evidence bands
+
+R2 may continue using untouched UE as final selective/calibration sealed confirmation only after fresh R2 DEV passes.
+
+UI remains untouched OOD sealed confirmation for the already-frozen semantic-linear OOD head.
+
+### R2 DEV gate
+
+Calibration:
+- hard accuracy regression <= 0.01
+- soft ECE <= 0.20
+- ECE improvement >= 0.01 OR fresh control ECE <= 0.15
+- probability mass error <= 1e-6
+
+Selective risk:
+- accepted accuracy >= 0.90
+- coverage >= 0.25
+- selective risk <= 0.10
+
+Frozen OOD:
+- retain exact R1 candidate/checkpoint/normalization/threshold
+- no retuning against R2 ID DEV
+
+Only if every R2 DEV gate passes may UE/UI be exposed.
+
+
+## 19. M1-R2 TRAIN/DEV — frozen authoritative result
+
+Authoritative run:
+
+`36307009727`
+
+Empirical head:
+
+`f3de89217725e070ed591f553bacc0df26830b40`
+
+Artifact:
+- name: `hira-v0-mainline-m1-r2-train-dev`
+- ID: `10928285228`
+- digest: `sha256:2e4bed910adc75ac2a3579765d712ea881a30e9c0888e693f0de293ff14e9178`
+
+Fresh R2 exposure:
+- TRAIN UJ/UK/UL/UM: 144 cases
+- DEV UN/UO: 72 cases
+- total state encodes: 216
+- state encodes/case: 1.0
+- decision-core trainable params: 0
+- R1 UA-UH reused for R2 fitting: false
+- UE exposed: false
+- UI exposed: false
+- sealed rows used: false
+
+### Safe calibration selection
+
+Fresh R2 control:
+- hard accuracy: 0.5277777777777778
+- soft ECE: 0.08572898246347904
+- soft Brier: 0.2331335171798451
+- soft NLL: 0.9540489067633947
+
+Selected:
+- candidate: `primitive-temperature`
+- parameters: 3
+- selected epoch: 3
+- hard accuracy: **0.5277777777777778**
+- soft ECE: **0.054004438428415194**
+- soft Brier: **0.2184828238354789**
+- soft NLL: **0.9380818158388138**
+- probability-mass max error: 1.1920928955078125e-07
+
+All calibration candidates passed the pre-ranking hard-accuracy guardrail in R2.
+The selected 3-param candidate improves calibration while preserving hard accuracy exactly.
+
+### Selective correctness risk
+
+Selected:
+- candidate: `semantic-confidence-risk-linear`
+- parameters: 9
+- selected epoch: 78
+- threshold: 0.52
+- correctness AUROC: **0.8351393342018127**
+- accepted count: 27 / 72
+- coverage: **0.375**
+- accepted accuracy: **0.9259259104728699**
+- selective risk: **0.07407408952713013**
+- meets target: true
+
+The semantic-only 6-param risk head reached 100% accepted accuracy but only 18.06% coverage, therefore failed the >=25% coverage requirement.
+
+### Frozen OOD authority
+
+Reused exactly from M1 R1:
+- candidate: `semantic-linear`
+- parameters: 6
+- threshold: 0.52
+- head SHA256: `2fda61a53fd2db05be5a703c6640a87e52588091fd22ed320cc0ab3f4cc80a3e`
+- source run: `36305969587`
+- source artifact ID: `10927625673`
+- source digest: `sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca`
+- retrained: false
+- retuned: false
+
+### R2 DEV qualification
+
+`dev_qualification.pass = true`
+
+Calibration:
+- accuracy non-regression: PASS
+- ECE absolute: PASS
+- ECE mechanism: PASS
+- probability integrity: PASS
+
+Selective-risk:
+- accepted accuracy: PASS
+- coverage: PASS
+- selective risk: PASS
+- meets target: PASS
+
+Therefore M1-R2 is authorized to proceed to the first and only UE/UI sealed confirmation after the sealed workflow and pre-confirm CI are frozen green.
+
+Candidate selection is now immutable.
+
+
+## 20. Final M1 sealed closure
+
+First and only UE/UI sealed run:
+
+`36308933278`
+
+Outcome:
+
+`HIRA_V0_M1_RELIABILITY_FAIL`
+
+Artifact:
+- `hira-v0-mainline-m1-r2-sealed-confirm`
+- ID: `10928705130`
+- digest: `sha256:48caf250ab9273a046b6070b3c23319c313367de6079f3961136afda18ef4e10`
+
+### Sealed calibration — PASS
+
+Selected 3-param primitive-temperature calibration:
+- hard accuracy 0.5, equal to control 0.5
+- soft ECE 0.04066400757680334 vs control 0.058990628665520066
+- soft Brier 0.22894535659222776
+- soft NLL 0.9512354135513306
+- probability integrity PASS
+
+### Sealed selective correctness — FAIL
+
+Frozen 9-param risk head at threshold 0.52:
+- correctness AUROC 0.6728395223617554
+- coverage 0.2777777777777778
+- accepted accuracy 0.800000011920929
+- selective risk 0.19999998807907104
+
+Required:
+- coverage >= 0.25
+- accepted accuracy >= 0.90
+- selective risk <= 0.10
+
+Only coverage passed.
+
+### Sealed OOD — threshold-transfer FAIL
+
+Frozen 6-param semantic OOD head at threshold 0.52:
+- AUROC 0.9984567761421204
+- balanced accuracy 0.8611111111111112
+- ID accept 1.0
+- OOD recall 0.7222222222222222
+- OOD false accept 0.2777777777777778
+
+The ranking remained extremely strong but the frozen absolute threshold did not transfer.
+
+### Combined fail-closed policy
+
+- ID coverage 0.2777777777777778
+- ID accepted accuracy 0.8
+- ID selective risk 0.2
+- OOD final accept 1 / 36
+- OOD final accept rate 0.027777777777777776
+
+Therefore reliability is not promoted.
+
+Final manifest requirement:
+
+`reliability_ood_abstention = provisional`
+
+No M1 checkpoint may be described as production-qualified reliability.
+
+## 21. Mainline continuation
+
+M1 is closed as a non-blocking negative promotion result.
+
+The mechanism remains valuable because it fails closed:
+- missing/unqualified authority escalates;
+- high confidence is not treated as OOD;
+- semantic noul and reliability abstention remain separate.
+
+There is no blocking M1-R3 before continuing model construction.
+
+Next mainline phase:
+
+**HIRA V0 MAINLINE M2 — DYNAMIC HIGH-K**
+
+Future reliability research is a parallel replaceable-control track.
+
+See `research/HIRA-V0-MAINLINE-M1-CLOSURE.md` for canonical closure.

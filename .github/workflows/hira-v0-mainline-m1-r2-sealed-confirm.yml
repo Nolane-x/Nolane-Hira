@@ -1,0 +1,176 @@
+name: hira-v0-mainline-m1-r2-sealed-confirm
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m1-reliability
+    paths:
+      - "research/HIRA-V0-MAINLINE-M1-R2-ENABLE-CONFIRM"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hira-v0-mainline-m1-r2-sealed-confirm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install unit stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile frozen M1-R2 sealed stack
+        run: |
+          python -m py_compile \
+            src/nmd/mainline.py \
+            src/nmd/mainline_reliability.py \
+            src/nmd/mainline_m1_authority.py \
+            src/nmd/mainline_m1_cache.py \
+            src/nmd/mainline_m1_training.py \
+            src/nmd/mainline_m1_r2_training.py \
+            scripts/hira_v0_m1_r2_confirm.py
+
+      - name: Run frozen M1-R2 contracts
+        run: |
+          pytest -q \
+            tests/test_mainline_reliability.py \
+            tests/test_mainline_m1_authority.py \
+            tests/test_mainline_m1_cache.py \
+            tests/test_mainline_m1_training.py \
+            tests/test_mainline_m1_r2_authority.py \
+            tests/test_mainline_m1_r2_training.py \
+            tests/test_mainline.py
+
+      - name: Verify exact W28 T0 artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .digest)" = "sha256:e47020da54c45f896ebb957f852e09dc3cb1719caa14ef2ae1af605927c57258"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10905153620 --jq .expired)" = "false"
+
+      - name: Verify exact W34 transfer artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .digest)" = "sha256:8374f2eb849cf80d1201e4ad05a8c8bf4c9bf1f824da17306f57c87456fd186c"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10924803779 --jq .expired)" = "false"
+
+      - name: Verify frozen M1 R1 OOD source artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10927625673 --jq .digest)" = "sha256:79ff7eb67c3ce82ed82562787d813b75d35e7eca1bed0211f01ddf1b09c31dca"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/runs/36305969587 --jq .conclusion)" = "success"
+
+      - name: Verify frozen M1-R2 TRAIN DEV artifact
+        run: |
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10928285228 --jq .digest)" = "sha256:2e4bed910adc75ac2a3579765d712ea881a30e9c0888e693f0de293ff14e9178"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/artifacts/10928285228 --jq .expired)" = "false"
+          test "$(gh api repos/Nolane-x/Nolane-Hira/actions/runs/36307009727 --jq .conclusion)" = "success"
+
+  confirm:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w28-candidate-T0
+          path: inputs/T0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36240250948
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: r8-w34-coevidence-training
+          path: inputs/W34
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36299087572
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-r2-train-dev
+          path: inputs/R2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36307009727
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install frozen M1-R2 sealed stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" sentencepiece
+
+      - name: Mark first UE UI sealed exposure
+        run: echo HIRA_V0_M1_R2_UE_UI_SEALED_CONFIRM_EXPOSURE_BEGIN
+
+      - name: Run frozen M1-R2 sealed confirm
+        run: |
+          python scripts/hira_v0_m1_r2_confirm.py \
+            --t0-dir inputs/T0 \
+            --w34-dir inputs/W34 \
+            --r2-dir inputs/R2 \
+            --out artifacts/m1-r2-confirm
+
+      - name: Verify M1-R2 sealed receipt
+        run: |
+          python - <<'PY'
+          import json
+          x=json.load(open("artifacts/m1-r2-confirm/receipt.json"))
+          assert x["schema_version"]=="hira-v0-mainline-m1-r2-sealed-confirm-v1"
+          assert x["status"]=="PASS"
+          assert x["outcome"] in {
+            "HIRA_V0_M1_RELIABILITY_READY",
+            "HIRA_V0_M1_RELIABILITY_FAIL",
+          }
+          assert x["t0_checkpoint_sha256"]=="1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert x["transfer_checkpoint_sha256"]=="d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c"
+          assert x["r2_sealed_exposure_authorized"] is True
+          assert x["ue_case_count"]==36
+          assert x["ui_case_count"]==36
+          assert x["state_encode_count"]==72
+          assert x["state_encodes_per_case"]==1.0
+          assert x["sealed_rows_used_for_fitting"] is False
+          assert x["sealed_rows_used_for_threshold_selection"] is False
+          assert x["sealed_rows_used_for_candidate_ranking"] is False
+          assert x["decision_core_frozen"] is True
+          assert x["decision_core_trainable_parameter_count"]==0
+          assert x["r1_ood_retrained"] is False
+          assert x["r1_ood_retuned"] is False
+          assert x["confidence_used_as_ood_authority"] is False
+          print("HIRA_V0_M1_R2_SEALED_FINAL="+json.dumps({
+            "outcome":x["outcome"],
+            "selected_calibration":x["selected_calibration"],
+            "control_calibration":x["control_calibration"],
+            "standalone_risk":x["standalone_risk"],
+            "ood_metrics":x["ood_metrics"],
+            "final_policy":x["final_policy"],
+            "gates":x["gates"],
+          },sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m1-r2-sealed-confirm
+          path: artifacts/m1-r2-confirm
+          if-no-files-found: error
+          retention-days: 90

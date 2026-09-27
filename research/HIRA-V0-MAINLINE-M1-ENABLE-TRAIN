@@ -1,0 +1,26 @@
+HIRA V0 MAINLINE M1 TRAIN/DEV ENABLED
+
+This marker authorizes the first empirical M1 exposure for:
+- CAL TRAIN: UA / UB / UC
+- CAL DEV: UD
+- OOD TRAIN: UF / UG
+- OOD DEV: UH
+
+Frozen before exposure:
+- base main: 17ad32104ac610908230c13d4b936a1b1ac3ecac
+- issue: #161
+- PR: #162
+- W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- W34 provisional transfer checkpoint SHA256: d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c
+- decision core trainable parameter count during M1: 0
+- calibration candidates: control / primitive-temperature / primitive-temperature-noul-bias
+- OOD candidates: semantic-linear / semantic-confidence-linear
+- selective threshold selected on CAL DEV only
+- OOD threshold selected on OOD DEV only
+- confidence-only OOD candidate: forbidden
+
+Sealed and still forbidden:
+- SELECTIVE CONFIRM: UE
+- OOD CONFIRM: UI
+
+UE/UI may be exposed only if the frozen DEV qualification gate passes.
