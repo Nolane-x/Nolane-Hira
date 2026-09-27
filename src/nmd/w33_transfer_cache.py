@@ -153,7 +153,9 @@ def validate_w33_cache(
         raise ValueError("W33 schema adapter rank changed")
     if int(metadata.get("interaction_rank", -1)) != 8:
         raise ValueError("W33 interaction rank changed")
-    if int(metadata.get("composition_rank", -1)) != 8:\n        raise ValueError("W33 composition rank changed")\n    if int(metadata.get("candidate_trainable_parameter_count", -1)) != 8192:
+    if int(metadata.get("composition_rank", -1)) != 8:
+        raise ValueError("W33 composition rank changed")
+    if int(metadata.get("candidate_trainable_parameter_count", -1)) != 8192:
         raise ValueError("W33 candidate parameter contract changed")
     if set(schemas) != set(domains):
         raise ValueError("W33 schema domains changed")
