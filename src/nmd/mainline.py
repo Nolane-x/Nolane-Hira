@@ -351,6 +351,25 @@ class HiraV0Mainline(nn.Module):
             use_schema_cache=use_schema_cache,
         )
 
+    def schema_cache_info(self) -> dict[str, int]:
+        return self.runtime.schema_cache_info()
+
+    def configure_schema_cache(
+        self,
+        *,
+        max_entries: int,
+        max_bytes: int,
+        clear: bool = True,
+    ) -> None:
+        self.runtime.configure_schema_cache(
+            max_entries=max_entries,
+            max_bytes=max_bytes,
+            clear=clear,
+        )
+
+    def clear_schema_cache(self) -> None:
+        self.runtime.clear_schema_cache()
+
     def parameter_report(self) -> HiraV0ParameterReport:
         scorer = self.runtime.coevidence_symmetric_semantic_scorer
         if scorer is None:
@@ -517,6 +536,8 @@ def build_hira_v0_m4_runtime(
     expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
     expected_transfer_sha256: str = W34_PROVISIONAL_TRANSFER_CHECKPOINT_SHA256,
     reliability_policy: "HiraV0ReliabilityPolicy | None" = None,
+    schema_cache_max_entries: int | None = None,
+    schema_cache_max_bytes: int | None = None,
 ) -> HiraV0Mainline:
     """Build the M4 runtime-optimized package without maturity promotion."""
     from .mainline_reliability import HiraV0ReliabilityPolicy
@@ -534,7 +555,7 @@ def build_hira_v0_m4_runtime(
         hira=HIRACore(d_model=256, dropout=0.0),
         include_unbridged_baseline=False,
     )
-    return HiraV0Mainline(
+    model = HiraV0Mainline(
         runtime,
         manifest=HiraV0Manifest.m4_runtime_provisional(),
         reliability_policy=(
@@ -542,6 +563,22 @@ def build_hira_v0_m4_runtime(
             or HiraV0ReliabilityPolicy.m1_mechanism_fail_closed()
         ),
     )
+    if schema_cache_max_entries is not None or schema_cache_max_bytes is not None:
+        current = model.schema_cache_info()
+        model.configure_schema_cache(
+            max_entries=(
+                current["max_entries"]
+                if schema_cache_max_entries is None
+                else int(schema_cache_max_entries)
+            ),
+            max_bytes=(
+                current["max_bytes"]
+                if schema_cache_max_bytes is None
+                else int(schema_cache_max_bytes)
+            ),
+            clear=True,
+        )
+    return model
 
 
 __all__ = [
