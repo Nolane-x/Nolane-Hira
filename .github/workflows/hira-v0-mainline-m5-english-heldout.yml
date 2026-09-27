@@ -1,0 +1,147 @@
+name: hira-v0-mainline-m5-english-heldout
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-ENGLISH-HELDOUT"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  english-heldout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-banking77-direct
+          path: inputs/M5B1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358746320
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and benchmark stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "datasets>=3,<5" pytest
+
+      - name: Run M5 English held-out protocol contracts
+        run: |
+          python -m pytest tests/test_m5_english_heldout.py tests/test_m5_contract.py -q
+
+      - name: Verify prior M5 authorities and M4 integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/M5A/receipt.json").read_text())
+          assert a["outcome"] == "HIRA_V0_M5_CONTRACT_READY"
+          assert a["status"] == "PASS"
+          assert a["errors"] == []
+
+          b = json.loads(Path("inputs/M5B1/result.json").read_text())
+          assert b["outcome"] == "HIRA_V0_M5_BANKING77_DIRECT_READY"
+          assert b["status"] == "PASS"
+          assert b["used_for_model_selection"] is False
+          assert b["model_weights_changed_after_exposure"] is False
+          PY
+
+      - name: Run frozen M4 English held-out matched authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_english_heldout.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract benchmarks/m5_contract.json \
+            --contract-receipt inputs/M5A/receipt.json \
+            --contract-artifact-id 10943744649 \
+            --contract-artifact-digest sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230 \
+            --out artifacts/m5-english-heldout
+
+      - name: Verify English held-out authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-english-heldout")
+          r = json.loads((root / "result.json").read_text())
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_ENGLISH_HELDOUT_READY"
+          assert r["scientific_authority"] == "M5_MATCHED_HELD_OUT_DIRECT"
+          assert r["task_training_used"] == {
+              "sst5": False,
+              "emotion": False,
+              "prompt_injections": False,
+          }
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["runtime"]["manifest"]["production_ready"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["model_weights_changed_after_exposure"] is False
+          assert r["production_ready_claimed"] is False
+
+          expected = {"sst5": (600, 5), "emotion": (600, 6), "prompt_injections": (116, 2)}
+          for name, (n, k) in expected.items():
+              m = r["tasks"][name]
+              assert m["case_count"] == n
+              assert m["state_encode_calls"] == n
+              assert m["state_encode_calls_per_case"] == 1.0
+              assert m["candidate_budget_min"] == k
+              assert m["candidate_budget_max"] == k
+              assert m["probability_mass_max_error"] <= 1e-6
+              assert m["relation_delta_max_abs"] == 0.0
+
+          rows = (root / "per-example.jsonl").read_text().splitlines()
+          assert len(rows) == 1316
+          PY
+
+      - name: Freeze result integrity
+        run: |
+          (
+            cd artifacts/m5-english-heldout
+            sha256sum result.json per-example.jsonl scorecard-input.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-english-heldout
+          path: artifacts/m5-english-heldout
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
