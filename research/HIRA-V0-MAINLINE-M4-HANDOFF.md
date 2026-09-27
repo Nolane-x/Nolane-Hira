@@ -256,3 +256,75 @@ Before claiming RAM discipline, run a cache-stress authority that:
 M4-B is runtime-only.
 
 No model parameter, threshold, semantic authority, or scientific maturity may change.
+
+
+## 11. M4-B stress v1 — harness failure, cache bounds validated
+
+Authoritative run:
+
+`36328918665`
+
+Artifact:
+- `hira-v0-mainline-m4-cache-stress`
+- ID: `10934986918`
+- digest: `sha256:e2624ce369a17c068cf8bb78fffb70615d86581a630dc49d31c3ae9d3cfc5ed4`
+
+Outcome:
+
+`HIRA_V0_M4_BOUNDED_CACHE_FAIL`
+
+Observed after pressure:
+- resident entries: **12**
+- resident tensor bytes: **63,260,364**
+- max entries: 16
+- max bytes: 67,108,864
+- evictions: **9**
+
+After evicted-schema recompile:
+- resident entries: 12
+- resident bytes: 62,466,276
+- evictions: 11
+
+Passed gates:
+- entry bound
+- byte bound
+- eviction observed
+- early schema evicted
+- early semantic equivalence
+- early probability equivalence
+- early selected option match
+- full-K
+- state-once
+- relation delta zero
+
+Exact recompile probability max error:
+- **0.0**
+
+Failed gate:
+- `anchor_survived_lru`
+
+Reason:
+
+The v1 harness touched the anchor after 8 unique schemas and then inserted 13 additional distinct K=255 schemas.
+
+The preregistration implicitly assumed the 64 MiB byte budget would retain at least 14 K=255 entries based on the M4-A 4,477,609-byte schema.
+
+In this stress workload, longer question text increases padded token-artifact tensor width. The actual resident working set was only 12 entries under 64 MiB. Therefore 13 newer entries necessarily evicted the touched anchor even with correct LRU ordering.
+
+This is a **stress-authority design error**, not evidence of incorrect eviction:
+- byte accounting bounded correctly;
+- entry accounting bounded correctly;
+- eviction happened;
+- evicted schema reproduced identical decision probabilities;
+- no semantic/runtime invariant regressed.
+
+M4-B v1 remains immutable failed evidence.
+
+A single M4-B2 mechanical witness is authorized with:
+- the same cache implementation;
+- the same 16-entry / 64 MiB limits;
+- no code change to LRU policy;
+- a touch point chosen from an entry known to be resident immediately before bounded additional pressure;
+- explicit proof that a hit moves that entry to MRU while an older resident entry is evicted.
+
+M4-B2 must not alter cache limits or scientific maturity.
