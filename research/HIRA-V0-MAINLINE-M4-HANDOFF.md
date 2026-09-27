@@ -1,330 +1,117 @@
-# HIRA V0 MAINLINE M4 handoff — runtime / latency / RAM / packaging
+# HIRA V0 MAINLINE M4 -> M5 HANDOFF
 
-Status: **M4-A READY / M4-B BOUNDED CACHE IMPLEMENTED PRE-STRESS**
+Status: **M4 CLOSED — NEXT FRONTIER M5 MATCHED EXTERNAL BENCHMARK**
 
 Issue: #167  
-Branch: `feat/hira-v0-mainline-m4-runtime`  
-Base main: `29eaa8b4eb687efb18155930aebfe5f14dd3c851`
+PR: #168  
+Branch: `feat/hira-v0-mainline-m4-runtime`
 
-## 1. Mainline state entering M4
+## Frozen M4 authority
 
-Frozen scientific maturity:
-- typed runtime: available
-- state-once: available
-- high-K mechanics: available
-- high-K semantic quality: provisional
-- reliability/OOD/abstention: provisional/fail-closed
-- multilingual: provisional
-- production-ready: false
+Package outcome:
 
-M4 is a deployment/runtime phase. It must not silently promote semantic maturity.
+`HIRA_V0_M4_PACKAGE_READY`
 
-## 2. M4-A bottleneck
+Run: `36357825580`  
+Artifact: `10944174953`  
+Digest: `sha256:5fa30c93aca4110bc8602f347c2992b7eb034056c01c432d26c84acbfd619f9a`
 
-Exact M2 K=255 integration measured:
-- schema compile: ~1482.21 ms
-- decision core: ~2.66 ms
-- schema tensors: ~4.48 MB
-
-The decision engine is not the dominant runtime cost.
+M4-A authority:
 
-Code inspection found an O(K) encoder-call pattern inside `SchemaCompiler.compile()`:
+- run `36327904288`;
+- artifact `10934506746`;
+- digest `sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb`;
+- outcome `HIRA_V0_M4_SCHEMA_BATCHING_READY`.
 
-Before M4-A:
-1. encode question
-2. for every option, encode criterion/aliases/exemplars separately
-3. if token artifacts requested, encode question+criteria
-4. encode all positive multi-view texts again
+M4-B2 authority:
 
-At K=255 this can require hundreds of semantic encoder forward calls.
+- run `36329648932`;
+- artifact `10934788096`;
+- digest `sha256:15f2b3358338049fec79a5ce79049aa7e43d61c7ec8285203d8cba85314833ef`;
+- outcome `HIRA_V0_M4_BOUNDED_CACHE_READY`.
 
-## 3. M4-A optimization
+Preserve M4-B1 failed stress-harness evidence:
 
-Implemented in:
-- `src/nmd/schema.py`
+- run `36328918665`;
+- artifact `10934986918`;
+- digest `sha256:e2624ce369a17c068cf8bb78fffb70615d86581a630dc49d31c3ae9d3cfc5ed4`.
 
-New compile path:
+Canonical closure:
 
-Without token artifacts:
-1. question batch
-2. one flattened positive-view batch
+`research/HIRA-V0-MAINLINE-M4-CLOSURE.md`
 
-Total cold encoder calls:
-- **2**
+## Runtime to benchmark
 
-With token artifacts:
-1. question batch
-2. one flattened positive-view batch
-3. question+criteria token-artifact batch
+Use the exact M4 frozen runtime:
 
-Total cold encoder calls:
-- **3**
+- W28 T0 SHA256 `1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f`;
+- W34 SHA256 `d69fa11805291e6a06631d5bda941065f209ea96f5c46091187e984ff083834c`;
+- A13 revision `4226d9e4d2c08703e5cb0491b479bfc6a1607181`;
+- A13 weight SHA256 `5b0593e0bb4620631320d2b4d5604cc39ca53348a9a240392c6c0b830dd8d880`;
+- cache defaults: 16 schemas / 64 MiB tensor residency;
+- full-K;
+- state-once;
+- relation refinement disabled;
+- adaptive budget disabled;
+- trainable parameters: 0.
 
-The positive-view batch is reused for:
-- pooled logical option embeddings
-- option multi-view token artifacts
+Do not silently retrain or change checkpoints inside M5.
 
-No second positive-view encode is performed.
+## Scientific status entering M5
 
-## 4. Semantic contract preserved
+Do not overclaim:
 
-Unchanged:
-- schema hash
-- cache key
-- option ordering
-- option IDs as non-semantic routing keys
-- question semantics
-- positive prototype semantics
-- criterion/alias/exemplar view set
-- prototype aggregation formula:
-  - normalize each prototype
-  - average per option
-  - normalize the mean
-- full-K runtime
-- relation refinement OFF
-- adaptive budget OFF
+- semantic quality: provisional;
+- reliability/OOD/abstention: provisional/fail-closed;
+- high-K semantic quality: provisional;
+- multilingual: provisional;
+- production-ready: false.
 
-No model/scorer parameter changes.
+## M5 purpose
 
-## 5. M4 manifest
+M5 is not another internal ablation wave.
 
-Added:
-- version `0.0-m4a`
-- `HiraV0Manifest.m4_runtime_provisional()`
-- `build_hira_v0_m4_runtime()`
+It must answer a stricter question:
 
-The M4 manifest changes phase/version only.
+**How does the frozen Hira v0 runtime compare with Laya/JEV under the same benchmark contract?**
 
-It preserves:
-- reliability provisional
-- high-K semantic provisional
-- multilingual provisional
-- production_ready false
+Matched means:
 
-## 6. Unit authority
+- same examples;
+- same split;
+- same allowed input information;
+- same output/scoring rule;
+- same K where applicable;
+- same retry policy;
+- explicit model/checkpoint versions;
+- explicit hardware/runtime accounting;
+- no cherry-picking best historical rows from different conditions.
 
-Implemented:
-- `tests/test_schema_batching.py`
-- `tests/test_mainline_m4_runtime.py`
+## Recommended M5 order
 
-Contracts:
-- optimized option embeddings match legacy per-option aggregation
-- K255 cold compile with token artifacts uses exactly 3 encoder calls
-- K255 cold compile without token artifacts uses exactly 2 encoder calls
-- warm schema cache adds zero encoder calls
-- token artifacts remain present and correctly packed
-- downstream probabilities remain stable
-- M4 maturity does not overclaim readiness
+1. recover and pin authoritative Laya/JEV repositories/checkpoints;
+2. freeze benchmark contract before seeing final Hira-vs-baseline results;
+3. create adapters preserving each model's native inference path;
+4. run matched correctness/quality benchmarks;
+5. run dynamic-K/high-K only where the external baseline supports it;
+6. measure latency, memory and parameter surfaces separately from quality;
+7. retain raw per-example outputs;
+8. generate matched receipts and integrity manifests;
+9. write M5 closure with bounded claims;
+10. only then create the final Hira v0 release package.
 
-## 7. Immediate next boundary
+Any baseline that cannot execute a matched task must be reported as unsupported/not-comparable, not assigned a fabricated score.
 
-Before exact A13 performance claims:
-1. dedicated M4 CI must pass;
-2. full repo Python 3.10/3.12 CI must pass;
-3. run exact A13/W28/W34 integration benchmark;
-4. compare M4 K-ladder timings with frozen M2 mechanics receipt;
-5. record call-count and latency improvement;
-6. only then proceed to M4-B bounded cache/RAM discipline.
-
-No performance improvement is claimed before the exact integration receipt freezes.
+## M4 package smoke reference
 
-
-## 8. M4-A exact A13 integration — authoritative result
-
-Run:
-
-`36327904288`
-
-Empirical marker head:
-
-`144858eff949a00aec9da086a593b89d9ade301a`
-
-Artifact:
-- `hira-v0-mainline-m4-schema-benchmark`
-- ID: `10934506746`
-- digest: `sha256:447c394a5a6b2246a354b21d49e9ee848c2271a636eedd019ba2ae23496324eb`
-
-Outcome:
-
-`HIRA_V0_M4_SCHEMA_BATCHING_READY`
-
-Every frozen gate passed:
-- semantic tensor equivalence
-- mechanics preservation
-- cold encoder calls <= 3
-- warm encoder calls = 0
-- cold cache miss
-- warm cache hit
-- K255 optimized cold compile faster than same-runner legacy
-
-### K=255 exact result
-
-Legacy same-runner:
-- semantic compile: **1392.831263 ms**
-- encoder calls: **258**
+The exact CPU smoke from run `36357825580` passed:
 
-M4-A:
-- cold schema compile: **304.870836 ms**
-- cold encoder calls: **3**
-- warm schema compile: **0.812787 ms**
-- warm encoder calls: **0**
-- decision: **2.562596 ms**
-- same-runner cold speedup: **4.5686x**
+- CPU local load: ~3072.45 ms on the authority runner;
+- resident total: 13,213,199 parameters;
+- trainable total: 0;
+- state encode calls: 1;
+- full-K: true;
+- probability sum: 1.0;
+- production_ready: false.
 
-Historical M2:
-- schema compile: 1482.206577 ms
-- decision: 2.655830 ms
-
-Semantic/mechanics integrity:
-- option embedding max error: 1.3783574104309082e-07
-- question embedding error: 0
-- criterion token error: 0
-- view token error: 0
-- selected option: `m2-route-044`
-- historical selected option: `m2-route-044`
-- probability mass error: 5.960464477539063e-08
-- relation delta: 0
-- full-K: true
-- finite: true
-
-Schema tensor bytes:
-- **4,477,609 bytes**
-
-Benchmark process RSS peak delta across the K ladder:
-- **19,492 KiB**
-
-M4-A is therefore accepted as a runtime optimization.
-
-It does not promote:
-- semantic quality;
-- reliability;
-- multilingual;
-- production readiness.
-
-## 9. M4-B bounded schema cache
-
-The original schema cache was an unbounded Python dict.
-
-That is unsafe for long-running local inference because one K=255 token-artifact schema is approximately 4.48 MB in tensor residency.
-
-Implemented M4-B policy:
-
-Default bounds:
-- max entries: **16**
-- max tensor bytes: **64 MiB**
-
-Eviction:
-- true LRU
-- a cache hit moves the entry to MRU
-- insertion evicts oldest entries until both limits are satisfied
-- an individual entry larger than the byte budget remains valid for the current query but is not retained
-
-Cache receipt now reports:
-- cache stored
-- entry tensor bytes
-- resident entries
-- resident tensor bytes
-- cumulative evictions
-
-Runtime/mainline controls:
-- inspect cache info
-- clear schema cache
-- reconfigure entry/byte limits
-- M4 builder accepts deployment-specific cache limits
-
-Changing cache limits never changes:
-- schema hash
-- semantic compilation
-- selected option
-- probability calculation
-- maturity claims
-
-## 10. M4-B frozen stress boundary
-
-Before claiming RAM discipline, run a cache-stress authority that:
-- uses exact A13/W28/W34;
-- repeatedly compiles distinct dynamic schemas;
-- includes multiple K=255 schemas;
-- exceeds both the entry working set and byte working set;
-- verifies resident entries <= 16;
-- verifies resident tensor bytes <= 64 MiB;
-- verifies evictions occur;
-- verifies recently-hit entries survive LRU pressure;
-- verifies an evicted schema recompiles to semantically/mechanically equivalent output;
-- verifies state-once and full-K remain unchanged.
-
-M4-B is runtime-only.
-
-No model parameter, threshold, semantic authority, or scientific maturity may change.
-
-
-## 11. M4-B stress v1 — harness failure, cache bounds validated
-
-Authoritative run:
-
-`36328918665`
-
-Artifact:
-- `hira-v0-mainline-m4-cache-stress`
-- ID: `10934986918`
-- digest: `sha256:e2624ce369a17c068cf8bb78fffb70615d86581a630dc49d31c3ae9d3cfc5ed4`
-
-Outcome:
-
-`HIRA_V0_M4_BOUNDED_CACHE_FAIL`
-
-Observed after pressure:
-- resident entries: **12**
-- resident tensor bytes: **63,260,364**
-- max entries: 16
-- max bytes: 67,108,864
-- evictions: **9**
-
-After evicted-schema recompile:
-- resident entries: 12
-- resident bytes: 62,466,276
-- evictions: 11
-
-Passed gates:
-- entry bound
-- byte bound
-- eviction observed
-- early schema evicted
-- early semantic equivalence
-- early probability equivalence
-- early selected option match
-- full-K
-- state-once
-- relation delta zero
-
-Exact recompile probability max error:
-- **0.0**
-
-Failed gate:
-- `anchor_survived_lru`
-
-Reason:
-
-The v1 harness touched the anchor after 8 unique schemas and then inserted 13 additional distinct K=255 schemas.
-
-The preregistration implicitly assumed the 64 MiB byte budget would retain at least 14 K=255 entries based on the M4-A 4,477,609-byte schema.
-
-In this stress workload, longer question text increases padded token-artifact tensor width. The actual resident working set was only 12 entries under 64 MiB. Therefore 13 newer entries necessarily evicted the touched anchor even with correct LRU ordering.
-
-This is a **stress-authority design error**, not evidence of incorrect eviction:
-- byte accounting bounded correctly;
-- entry accounting bounded correctly;
-- eviction happened;
-- evicted schema reproduced identical decision probabilities;
-- no semantic/runtime invariant regressed.
-
-M4-B v1 remains immutable failed evidence.
-
-A single M4-B2 mechanical witness is authorized with:
-- the same cache implementation;
-- the same 16-entry / 64 MiB limits;
-- no code change to LRU policy;
-- a touch point chosen from an entry known to be resident immediately before bounded additional pressure;
-- explicit proof that a hit moves that entry to MRU while an older resident entry is evicted.
-
-M4-B2 must not alter cache limits or scientific maturity.
+M5 is now the only Hira v0 mainline frontier.
