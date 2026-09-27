@@ -1,0 +1,29 @@
+R8-W33 REFERENCE QUALIFICATION ENABLED
+
+This marker authorizes the first reference-only SA/SB qualification execution.
+
+Frozen before exposure:
+- base main: 8be5d068225d364211987d0b73071030e39401c4
+- issue: #155
+- PR: #156
+- qualification domains: SA, SB
+- TRAIN domains: SC, SD, SE, SF
+- DEV domain: SG
+- SEALED CONFIRM domains: SH, SI
+- HIRA candidate evaluation during qualification: forbidden
+- A13 loading during qualification: forbidden
+- W32 RA..RI rows forbidden
+- W31 QH..QP rows forbidden
+- W30 FA..FG rows forbidden
+- W29 EW..EZ rows forbidden
+- W28 and older authority rows forbidden
+- exact-text overlap with exposed authorities forbidden
+
+Frozen W33 candidate contract:
+- state/schema residual rank: 8
+- interaction rank: 8
+- composition rank: 8
+- total trainable candidate parameters: 8192
+- exact T0 identity initialization required
+
+SA/SB may only qualify authority semantics. They are permanently forbidden from future candidate loss or DEV selection.
