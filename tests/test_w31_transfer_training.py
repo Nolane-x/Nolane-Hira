@@ -11,7 +11,7 @@ from nmd.w31_transfer_eval import (
     _selection_key,
     _signed_margin,
 )
-from scripts.r8_w31_confirm import _quality_pass, _transfer_summary
+from nmd.w31_transfer_eval import quality_gate_pass, transfer_gate_summary
 from nmd.typed_competitive_cache import file_sha256
 from nmd.semantic_core import W28_T0_CHECKPOINT_SHA256
 
@@ -92,7 +92,7 @@ def test_w31_sealed_quality_gate_requires_every_factor():
         "invalid_factor_vector_rate": 0.04,
         "factor_probability_mass_max_error": 1e-7,
     }
-    assert _quality_pass(good)
+    assert quality_gate_pass(good)
     bad = {
         **good,
         "factors": {
@@ -100,7 +100,7 @@ def test_w31_sealed_quality_gate_requires_every_factor():
             "F2": {"top1": 0.899, "balanced_accuracy": 0.90},
         },
     }
-    assert not _quality_pass(bad)
+    assert not quality_gate_pass(bad)
 
 
 def test_w31_transfer_gate_is_pooled_and_strict():
@@ -120,7 +120,7 @@ def test_w31_transfer_gate_is_pooled_and_strict():
         },
         "composed_severity_top1": 0.66,
     }
-    result = _transfer_summary(baseline, dual)
+    result = transfer_gate_summary(baseline, dual)
     assert result["pass"]
     assert result["severity_delta"] >= 0.15
     assert result["worst_factor_top1_delta"] >= 0.08
@@ -133,4 +133,4 @@ def test_w31_transfer_gate_is_pooled_and_strict():
             "F2": {"top1": 0.84},
         },
     }
-    assert not _transfer_summary(baseline, regressed)["pass"]
+    assert not transfer_gate_summary(baseline, regressed)["pass"]
