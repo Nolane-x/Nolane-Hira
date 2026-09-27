@@ -449,3 +449,21 @@ Mainline proceeds to:
 
 Canonical closure:
 - `research/HIRA-V0-MAINLINE-M3-CLOSURE.md`
+
+
+## 15. Closure bundle
+
+Run:
+
+`36323149176`
+
+Artifact:
+- `hira-v0-mainline-m3-closure-full-bundle`
+- ID: `10933725316`
+- digest: `sha256:426b2d0ce4b4ba47f0ebb677d3bc744478eb2beacbc4ecace63c0797f6225e39`
+- size: 2,857,477 bytes
+
+Integrity verification:
+- PASS
+
+MVC remains sealed and is therefore intentionally absent from the bundle.
