@@ -1,6 +1,6 @@
 # HIRA V0 MAINLINE M1 — reliability / OOD / abstention
 
-Status: **M1-B DEV QUALIFICATION FAIL / M1-R2 PREREGISTRATION**
+Status: **CLOSED — HIRA_V0_M1_RELIABILITY_FAIL / M2 ENTRY AUTHORIZED**
 
 Issue: #161  
 Branch: `feat/hira-v0-mainline-m1-reliability`  
@@ -688,3 +688,89 @@ Selective-risk:
 Therefore M1-R2 is authorized to proceed to the first and only UE/UI sealed confirmation after the sealed workflow and pre-confirm CI are frozen green.
 
 Candidate selection is now immutable.
+
+
+## 20. Final M1 sealed closure
+
+First and only UE/UI sealed run:
+
+`36308933278`
+
+Outcome:
+
+`HIRA_V0_M1_RELIABILITY_FAIL`
+
+Artifact:
+- `hira-v0-mainline-m1-r2-sealed-confirm`
+- ID: `10928705130`
+- digest: `sha256:48caf250ab9273a046b6070b3c23319c313367de6079f3961136afda18ef4e10`
+
+### Sealed calibration — PASS
+
+Selected 3-param primitive-temperature calibration:
+- hard accuracy 0.5, equal to control 0.5
+- soft ECE 0.04066400757680334 vs control 0.058990628665520066
+- soft Brier 0.22894535659222776
+- soft NLL 0.9512354135513306
+- probability integrity PASS
+
+### Sealed selective correctness — FAIL
+
+Frozen 9-param risk head at threshold 0.52:
+- correctness AUROC 0.6728395223617554
+- coverage 0.2777777777777778
+- accepted accuracy 0.800000011920929
+- selective risk 0.19999998807907104
+
+Required:
+- coverage >= 0.25
+- accepted accuracy >= 0.90
+- selective risk <= 0.10
+
+Only coverage passed.
+
+### Sealed OOD — threshold-transfer FAIL
+
+Frozen 6-param semantic OOD head at threshold 0.52:
+- AUROC 0.9984567761421204
+- balanced accuracy 0.8611111111111112
+- ID accept 1.0
+- OOD recall 0.7222222222222222
+- OOD false accept 0.2777777777777778
+
+The ranking remained extremely strong but the frozen absolute threshold did not transfer.
+
+### Combined fail-closed policy
+
+- ID coverage 0.2777777777777778
+- ID accepted accuracy 0.8
+- ID selective risk 0.2
+- OOD final accept 1 / 36
+- OOD final accept rate 0.027777777777777776
+
+Therefore reliability is not promoted.
+
+Final manifest requirement:
+
+`reliability_ood_abstention = provisional`
+
+No M1 checkpoint may be described as production-qualified reliability.
+
+## 21. Mainline continuation
+
+M1 is closed as a non-blocking negative promotion result.
+
+The mechanism remains valuable because it fails closed:
+- missing/unqualified authority escalates;
+- high confidence is not treated as OOD;
+- semantic noul and reliability abstention remain separate.
+
+There is no blocking M1-R3 before continuing model construction.
+
+Next mainline phase:
+
+**HIRA V0 MAINLINE M2 — DYNAMIC HIGH-K**
+
+Future reliability research is a parallel replaceable-control track.
+
+See `research/HIRA-V0-MAINLINE-M1-CLOSURE.md` for canonical closure.
