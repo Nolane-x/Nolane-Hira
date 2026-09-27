@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -11,6 +12,10 @@ def load_module():
     spec = importlib.util.spec_from_file_location("hira_v0_m5_english_heldout", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
+    # Python 3.12 dataclasses resolving postponed annotations consult
+    # sys.modules while the class decorator runs. Register the dynamic
+    # module exactly as normal import machinery would before exec_module.
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
