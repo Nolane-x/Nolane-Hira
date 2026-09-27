@@ -15,7 +15,7 @@ from nmd.typed_competitive_cache import file_sha256
 from nmd.w30_transfer_authority import all_w30_text_atoms
 from nmd.w31_transfer_authority import all_w31_text_atoms
 from nmd.w32_transfer_authority import all_w32_text_atoms
-from nmd.w34_transfer_authority import all_w34_text_atoms
+from nmd.w33_transfer_authority import all_w33_text_atoms
 from nmd.w34_transfer_authority import (
     PARTITION_DOMAINS,
     REFERENCE_HYPOTHESES,
@@ -204,6 +204,7 @@ def main() -> None:
         "reference_entailment_label_index": entailment_indices,
         "hira_candidate_evaluated": False,
         "a13_loaded": False,
+        "w33_rows_used": False,
         "w32_rows_used": False,
         "w31_rows_used": False,
         "w30_rows_used": False,
