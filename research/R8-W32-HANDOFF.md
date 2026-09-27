@@ -1,6 +1,6 @@
 # R8-W32 handoff — dual residual adapter + shared interaction metric
 
-Status: **REFERENCE QUALIFIED / TRAIN-DEV PRE-EXPOSURE**
+Status: **TRAIN-DEV FROZEN / SEALED CONFIRM PRE-EXPOSURE**
 
 Issue: #153  
 Branch: `feat/r8-w32-interaction-semantic-adapter`  
@@ -207,5 +207,48 @@ Frozen training objective:
 - RG DEV = 96 cases;
 - RH/RI confirm usage = 0 during training/selection.
 
-Do not create `research/R8-W32-ENABLE-TRAIN` until the extended W32 unit gate and full repository CI are green.
+TRAIN/DEV authority is now complete and frozen:
+- run: `36293558503`
+- TRAIN: RC/RD/RE/RF = 384 cases
+- DEV: RG = 96 cases
+- selected epoch: `17`
+- candidate checkpoint SHA256: `212caf6d5cdb06743979da5d7b64fff5887fc5c2b11e1be91006bc6463e63a5f`
+- training artifact: `r8-w32-interaction-training`
+- artifact ID: `10923630412`
+- artifact digest: `sha256:4b8289345f92f7fb45b5af1f4c2e6d2765ca56b4e1e52dffc62968f26b868f92`
+- confirm cases used during training/selection: 0
+- qualification rows used for candidate loss/selection: false
+- prior-wave rows used: false
+
+Frozen RG baseline:
+- F0 top-1: 0.7916666666666666
+- F1 top-1: 0.875
+- F2 top-1: 0.7604166666666666
+- factor-vector / composed severity: 0.5104166666666666
+- invalid-vector rate: 0.08333333333333333
+
+Frozen RG W32 candidate:
+- F0 top-1: 0.9166666666666666
+- F1 top-1: 0.96875
+- F2 top-1: 0.8020833333333334
+- factor-vector / composed severity: 0.6875
+- invalid-vector rate: 0.0
+- probability mass max error: 1.1920928955078125e-07
+
+Pre-confirm implementation is now present:
+- `scripts/r8_w32_confirm.py`
+- frozen quality/transfer gate helpers in `src/nmd/w32_transfer_eval.py`
+- promotion-gate unit tests
+- marker-gated `r8-w32-sealed-confirm` workflow
+- dedicated unit workflow compiles the sealed-confirm stack
+
+Current boundary:
+1. pass dedicated W32 unit and full repository CI on the sealed-confirm implementation;
+2. only then create `research/R8-W32-ENABLE-CONFIRM`;
+3. expose RH/RI exactly once;
+4. freeze audit and outcome;
+5. write closure and FULL source/evidence bundle;
+6. merge only after final CI/bundle integrity pass.
+
+RH/RI remain sealed and must not be inspected or used for tuning before the confirm marker is created.
 
