@@ -13,6 +13,8 @@ on:
       - "src/nmd/w31_transfer_core.py"
       - "scripts/r8_w31_qualify.py"
       - "scripts/r8_w31_train.py"
+      - "scripts/r8_w31_confirm.py"
+      - ".github/workflows/r8-w31-sealed-confirm.yml"
       - ".github/workflows/r8-w31-reference-qualification.yml"
       - "tests/test_w31_dual_semantic_adapter.py"
       - "tests/test_w31_transfer_authority.py"
@@ -42,7 +44,7 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile W31 core
         run: |
-          python -m py_compile             src/nmd/w31_dual_semantic_adapter.py             src/nmd/w31_transfer_authority.py             src/nmd/w31_transfer_cache.py             src/nmd/w31_transfer_eval.py             src/nmd/w31_transfer_core.py             src/nmd/runtime.py             scripts/r8_w31_qualify.py             scripts/r8_w31_train.py
+          python -m py_compile             src/nmd/w31_dual_semantic_adapter.py             src/nmd/w31_transfer_authority.py             src/nmd/w31_transfer_cache.py             src/nmd/w31_transfer_eval.py             src/nmd/w31_transfer_core.py             src/nmd/runtime.py             scripts/r8_w31_qualify.py             scripts/r8_w31_train.py             scripts/r8_w31_confirm.py
       - name: Run W31 contracts
         run: |
           pytest -q             tests/test_w31_dual_semantic_adapter.py             tests/test_w31_transfer_authority.py             tests/test_w31_transfer_training.py             tests/test_symmetric_semantic_runtime.py             tests/test_semantic_transfer_bridge.py
