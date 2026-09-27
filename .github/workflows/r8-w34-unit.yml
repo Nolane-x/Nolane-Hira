@@ -11,11 +11,13 @@ on:
       - "src/nmd/w34_transfer_core.py"
       - "scripts/r8_w34_qualify.py"
       - "scripts/r8_w34_train.py"
+      - "scripts/r8_w34_confirm.py"
       - "tests/test_w34_transfer_authority.py"
       - "tests/test_w34_transfer_training.py"
       - "research/R8-W34-HANDOFF.md"
       - ".github/workflows/r8-w34-reference-qualification.yml"
       - ".github/workflows/r8-w34-train-dev.yml"
+      - ".github/workflows/r8-w34-sealed-confirm.yml"
       - ".github/workflows/r8-w34-unit.yml"
 
 permissions:
@@ -46,7 +48,8 @@ jobs:
             src/nmd/w34_transfer_eval.py \
             src/nmd/w34_transfer_core.py \
             scripts/r8_w34_qualify.py \
-            scripts/r8_w34_train.py
+            scripts/r8_w34_train.py \
+            scripts/r8_w34_confirm.py
       - name: Run W34 authority and frozen candidate contracts
         run: |
           pytest -q \
