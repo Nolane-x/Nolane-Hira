@@ -130,6 +130,8 @@ jobs:
           assert x["state_encodes_per_case"]==1.0
           assert x["calibration"]["selected_parameter_count"] in {0,3,4}
           assert x["ood"]["selected_parameter_count"] in {6,9}
+          assert isinstance(x["dev_qualification"]["pass"], bool)
+          assert x["sealed_exposure_authorized"] is x["dev_qualification"]["pass"]
           assert x["selective_confirm_exposed"] is False
           assert x["ood_confirm_exposed"] is False
           assert x["sealed_rows_used"] is False
