@@ -7,8 +7,10 @@ on:
     paths:
       - "src/nmd/mainline.py"
       - "src/nmd/mainline_reliability.py"
+      - "src/nmd/mainline_m1_authority.py"
       - "tests/test_mainline.py"
       - "tests/test_mainline_reliability.py"
+      - "tests/test_mainline_m1_authority.py"
       - "research/HIRA-V0-MAINLINE-M1-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m1.yml"
 
@@ -40,12 +42,15 @@ jobs:
           python -m py_compile \
             src/nmd/mainline.py \
             src/nmd/mainline_reliability.py \
-            tests/test_mainline_reliability.py
+            src/nmd/mainline_m1_authority.py \
+            tests/test_mainline_reliability.py \
+            tests/test_mainline_m1_authority.py
 
       - name: Run M1 fail-closed contracts
         run: |
           pytest -q \
             tests/test_mainline_reliability.py \
+            tests/test_mainline_m1_authority.py \
             tests/test_mainline.py \
             tests/test_typed_reliability_calibration.py
 
