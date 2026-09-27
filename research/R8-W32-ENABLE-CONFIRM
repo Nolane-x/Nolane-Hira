@@ -1,0 +1,41 @@
+R8-W32 SEALED CONFIRM ENABLED
+
+This marker authorizes the first and only preregistered W32 RH/RI sealed candidate exposure.
+
+Frozen before exposure:
+- base main: 762289911da2b7cde860383268c5d35d6ebd2f98
+- issue: #153
+- PR: #154
+- qualification outcome: W32_REFERENCE_QUALIFIED
+- qualification domains: RA, RB
+- qualification artifact ID: 10922738458
+- qualification artifact digest: sha256:02cafde04b10c075df848d3c0d45b9f9c139b3ae1516a82c2a428e2163131751
+- TRAIN domains: RC, RD, RE, RF
+- DEV domain: RG
+- selected DEV epoch: 17
+- selected candidate checkpoint SHA256: 212caf6d5cdb06743979da5d7b64fff5887fc5c2b11e1be91006bc6463e63a5f
+- training artifact ID: 10923630412
+- training artifact digest: sha256:4b8289345f92f7fb45b5af1f4c2e6d2765ca56b4e1e52dffc62968f26b868f92
+- W28 T0 checkpoint SHA256: 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+- candidate parameter count: 6144
+- sealed domains: RH, RI
+
+Frozen promotion gate per sealed domain:
+- F0/F1/F2 top-1 >= 0.90
+- every factor balanced accuracy >= 0.88
+- factor-vector top-1 >= 0.82
+- composed severity top-1 >= 0.82
+- invalid-vector rate <= 0.05
+- option-order invariance = 1
+- state-once = 1
+- full-K = 1
+- relation delta = 0
+- probability mass error <= 1e-6
+
+Frozen pooled transfer gate versus unbridged T0:
+- composed severity delta >= +0.15
+- worst-factor top-1 delta >= +0.08
+- no factor top-1 regression > 0.02
+
+RH/RI are forbidden from all fitting, selection, tuning, or architecture choice.
+After this marker, the scientific W32 candidate is immutable regardless of outcome.
