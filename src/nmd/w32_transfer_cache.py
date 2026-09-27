@@ -14,7 +14,7 @@ from .w32_transfer_authority import (
     factor_options,
 )
 
-CACHE_SCHEMA = "r8-w32-dual-transfer-cache-v1"
+CACHE_SCHEMA = "r8-w32-interaction-transfer-cache-v1"
 
 
 def _schema_payload(schema, receipt) -> dict[str, object]:
@@ -96,7 +96,8 @@ def compile_w32_cache(
             "factor_ids": list(FACTOR_IDS),
             "state_adapter_rank": 8,
             "schema_adapter_rank": 8,
-            "adapter_trainable_parameter_count": 4096,
+            "interaction_rank": 8,
+            "candidate_trainable_parameter_count": 6144,
         },
         "schemas": schemas,
         "cases": cases,
@@ -149,8 +150,10 @@ def validate_w32_cache(
         raise ValueError("W32 state adapter rank changed")
     if int(metadata.get("schema_adapter_rank", -1)) != 8:
         raise ValueError("W32 schema adapter rank changed")
-    if int(metadata.get("adapter_trainable_parameter_count", -1)) != 4096:
-        raise ValueError("W32 adapter parameter contract changed")
+    if int(metadata.get("interaction_rank", -1)) != 8:
+        raise ValueError("W32 interaction rank changed")
+    if int(metadata.get("candidate_trainable_parameter_count", -1)) != 6144:
+        raise ValueError("W32 candidate parameter contract changed")
     if set(schemas) != set(domains):
         raise ValueError("W32 schema domains changed")
 
