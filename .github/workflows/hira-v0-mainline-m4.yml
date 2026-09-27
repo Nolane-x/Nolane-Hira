@@ -14,6 +14,10 @@ on:
       - ".github/workflows/hira-v0-mainline-m4-schema-benchmark.yml"
       - "scripts/hira_v0_m4_cache_stress.py"
       - ".github/workflows/hira-v0-mainline-m4-cache-stress.yml"
+      - "src/nmd/local_runtime.py"
+      - "scripts/hira_v0_m4_cache_witness.py"
+      - "tests/test_local_runtime_bundle.py"
+      - ".github/workflows/hira-v0-mainline-m4-cache-witness.yml"
       - "research/HIRA-V0-MAINLINE-M4-HANDOFF.md"
       - ".github/workflows/hira-v0-mainline-m4.yml"
 
@@ -45,8 +49,10 @@ jobs:
           python -m py_compile \
             src/nmd/schema.py \
             src/nmd/mainline.py \
+            src/nmd/local_runtime.py \
             tests/test_schema_batching.py \
             tests/test_schema_cache_bounds.py \
+            tests/test_local_runtime_bundle.py \
             tests/test_mainline_m4_runtime.py \
             scripts/hira_v0_m4_schema_benchmark.py
 
