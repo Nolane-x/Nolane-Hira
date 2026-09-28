@@ -21,6 +21,7 @@ from nmd.v1_s2_semantic_core import (
     HIRA_V1_S2_FUSION_PARAMETER_COUNT,
     build_hira_v1_s2_fusion_core,
 )
+from hira_v1_s2_a0_question_as_evidence import cases as s2_a0_cases
 
 
 SCHEMA_VERSION = "hira-v1-s2-qtrf-train-dev-v1"
@@ -82,6 +83,14 @@ def _assert_fresh_against_prior(
         raise RuntimeError("S2 exact state overlap with exposed S0/S1 rows")
     if prior_questions & current_questions:
         raise RuntimeError("S2 exact question overlap with exposed S0/S1 rows")
+
+    a0 = s2_a0_cases()
+    a0_states = {row.state for row in a0}
+    a0_questions = {q for row in a0 for q in (row.question_a, row.question_b)}
+    if a0_states & current_states:
+        raise RuntimeError("S2 exact state overlap with exposed S2-A0 rows")
+    if a0_questions & current_questions:
+        raise RuntimeError("S2 exact question overlap with exposed S2-A0 rows")
 
 
 @torch.no_grad()
