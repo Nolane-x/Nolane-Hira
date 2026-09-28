@@ -120,9 +120,9 @@ def _assert_fresh_against_prior(
     current_states = {text for row in current for text in _state_texts(row)}
     current_questions = {text for row in current for text in _question_texts(row)}
     if prior_states & current_states:
-        raise RuntimeError("S12 exact state overlap with exposed S0-S10 rows")
+        raise RuntimeError("S12 exact state overlap with exposed S0-S11 rows")
     if prior_questions & current_questions:
-        raise RuntimeError("S12 exact question overlap with exposed S0-S10 rows")
+        raise RuntimeError("S12 exact question overlap with exposed S0-S11 rows")
 
 
 def _content_mask(batch) -> Tensor:
@@ -932,9 +932,9 @@ def main() -> None:
             "outcome": a0["outcome"],
             "a13_token_output_identity": a0["a13_token_output_identity"],
             "exact_logit_identity_rate": a0["exact_logit_identity_rate"],
-            "canonical_binding_accuracy": a0["canonical_relation_binding_accuracy"],
-            "canonical_binding_mean_gold_margin": a0[
-                "canonical_binding_mean_gold_margin"
+            "canonical_relation_binding_accuracy": a0["canonical_relation_binding_accuracy"],
+            "canonical_relation_binding_mean_gold_margin": a0[
+                "canonical_relation_binding_mean_gold_margin"
             ],
         },
         "history": history,
