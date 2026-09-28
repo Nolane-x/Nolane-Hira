@@ -1,0 +1,179 @@
+name: hira-v1-s3-triadic-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s3-triadic-semantic
+    paths:
+      - "research/HIRA-V1-S3-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s3-a0-parameter-free-triadic
+          path: inputs/S3A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36393304057
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S3 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" \
+            "transformers>=4.45,<6" \
+            "safetensors>=0.4" \
+            "huggingface_hub>=0.24"
+
+      - name: Compile and run S3 contracts
+        run: |
+          python -m py_compile \
+            src/nmd/v1_triadic_semantic.py \
+            src/nmd/v1_s3_semantic_core.py \
+            src/nmd/v1_s3_authority.py \
+            src/nmd/v1_s3_checkpoint.py \
+            src/nmd/runtime.py \
+            scripts/hira_v1_s3_train_dev.py
+          pytest -q \
+            tests/test_v1_triadic_semantic.py \
+            tests/test_v1_s3_authority.py \
+            tests/test_v1_query_token_fusion.py \
+            tests/test_v1_query_keyed_evidence.py \
+            tests/test_v1_query_conditioned_semantic.py \
+            tests/test_w33_coevidence_semantic.py \
+            tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify S3-A0 authority
+        run: |
+          (
+            cd inputs/S3A0
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("inputs/S3A0/result.json").read_text(encoding="utf-8"))
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S3_A0_PARAMETER_FREE_TRIADIC_READY"
+          assert r["scientific_authority"] == "S3_A0_LOCALIZATION_ONLY"
+          assert r["added_parameter_count"] == 0
+          assert r["trainable_parameter_count"] == 0
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Run fresh English triadic TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "2"
+          MKL_NUM_THREADS: "2"
+        run: |
+          python scripts/hira_v1_s3_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --a0-result inputs/S3A0/result.json \
+            --out artifacts/s3-train-dev
+
+      - name: Verify S3 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s3-train-dev")
+          r = json.loads((root / "result.json").read_text(encoding="utf-8"))
+
+          assert r["schema_version"] == "hira-v1-s3-triadic-train-dev-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S3_TRIADIC_DEV_READY",
+              "HIRA_V1_S3_TRIADIC_DEV_FAIL",
+          }
+          assert r["scientific_authority"] == "V1_S3_FRESH_ENGLISH_TRAIN_DEV"
+          assert r["seed"] == 8301
+          assert r["optimizer"]["epochs"] == 20
+          assert r["optimizer"]["lr"] == 5e-4
+          assert r["partitions"]["train_base_cases"] == 256
+          assert r["partitions"]["train_queries"] == 512
+          assert r["partitions"]["dev_base_cases"] == 64
+          assert r["partitions"]["dev_queries"] == 128
+          assert r["partitions"]["language"] == "en"
+          assert r["partitions"]["k"] == 4
+          assert r["partitions"]["s0_exact_rows_used"] is False
+          assert r["partitions"]["s1_exact_rows_used"] is False
+          assert r["partitions"]["s2_exact_rows_used"] is False
+          assert r["partitions"]["s3_a0_rows_used"] is False
+          assert r["partitions"]["m5_final_rows_used"] is False
+          assert r["partitions"]["w29_w34_sealed_rows_used"] is False
+          assert r["parameter_surface"]["factor_trainable_parameters"] == 12288
+          assert r["parameter_surface"]["w28_projection_trainable"] == 0
+          assert r["parameter_surface"]["encoder_trainable"] == 0
+          assert r["parameter_surface"]["hira_core_trainable"] == 0
+          assert r["parameter_surface"]["w34_in_semantic_path"] is False
+          assert r["state_once"]["train_encode_calls"] == 256
+          assert r["state_once"]["dev_encode_calls"] == 64
+          assert 1 <= r["selected_dev_epoch"] <= 20
+          assert r["post_dev_tuning_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert len(r["history"]) == 20
+          assert (root / "triadic-candidate.pt").is_file()
+          assert (root / "train-manifest.json").is_file()
+          assert (root / "dev-manifest.json").is_file()
+
+          if r["outcome"] == "HIRA_V1_S3_TRIADIC_DEV_READY":
+              assert all(r["gates"].values())
+          else:
+              assert not all(r["gates"].values())
+          PY
+
+      - name: Freeze S3 TRAIN DEV integrity
+        run: |
+          (
+            cd artifacts/s3-train-dev
+            sha256sum \
+              result.json \
+              triadic-candidate.pt \
+              train-manifest.json \
+              dev-manifest.json \
+              > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s3-triadic-train-dev
+          path: artifacts/s3-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
