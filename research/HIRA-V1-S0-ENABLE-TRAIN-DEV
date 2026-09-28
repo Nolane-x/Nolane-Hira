@@ -1,0 +1,21 @@
+# HIRA V1 S0 — query-only TRAIN DEV authority
+
+Trigger the preregistered S0-C authority from `research/HIRA-V1-S0-CONTRACT.md`.
+
+Preconditions:
+- exact v0 question-blindness authority is frozen;
+- zero-new-parameter query baseline is frozen;
+- exact M4 runtime integrity passes.
+
+Frozen optimization surface:
+- trainable query parameters: 3,072 exactly;
+- W28 projection: frozen;
+- W34 base candidate: frozen;
+- A13 encoder: frozen;
+- HIRACore: frozen.
+
+The run may return either:
+- HIRA_V1_S0_QUERY_REPAIR_DEV_READY
+- HIRA_V1_S0_QUERY_REPAIR_DEV_FAIL
+
+A scientific FAIL must be preserved. No post-DEV repair is authorized inside this authority.
