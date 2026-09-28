@@ -57,9 +57,25 @@ def test_s2_train_dev_banks_are_separated():
     train_text = "\n".join(row.state for row in train)
     dev_text = "\n".join(row.state for row in dev)
 
-    for token in ("ion", "2026-01-14", "cardamom", "runway 04", "Arbor Institute"):
+    # Use complete lexical sentinels rather than short substrings.  The
+    # previous "ion" sentinel falsely matched the unrelated word
+    # "calibration" in DEV and stopped the authority before optimizer/DEV
+    # exposure.
+    for token in (
+        "sensor family ion",
+        "2026-01-14",
+        "features cardamom",
+        "runway 04",
+        "Arbor Institute",
+    ):
         assert token in train_text
         assert token not in dev_text
-    for token in ("infrared", "2026-09-03", "saffron", "runway 05", "Iris Institute"):
+    for token in (
+        "unit as infrared",
+        "2026-09-03",
+        "names saffron",
+        "runway 05",
+        "Iris Institute",
+    ):
         assert token in dev_text
         assert token not in train_text
