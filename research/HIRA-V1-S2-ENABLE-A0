@@ -12,3 +12,8 @@ Requirements:
 - report question logit-change, choice-change, accuracy and paired-both-correct;
 - do not use A0 for learned S2 model selection;
 - make no parity, multilingual, reliability/OOD or production claim.
+
+Pre-exposure retry note:
+- first trigger run 36389807113 stopped at py_compile before unit tests/A0;
+- A0 job was skipped and no localization rows were exposed;
+- retry changes only source-file newline serialization, not the S2 contract or A0 suite.
