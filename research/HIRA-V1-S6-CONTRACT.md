@@ -144,9 +144,23 @@ DEV:
 - seed: 11601;
 - AdamW;
 - 24 epochs;
+- mini-batch size: 32 base states;
 - lr: 2e-4;
 - weight decay: 0.01;
 - grad clip: 1.0.
+
+Because A13 now changes after each optimizer step, S6 cannot reuse a single
+state/schema embedding snapshot across the full training run.  The state-once
+contract therefore means:
+
+- within each model snapshot / mini-batch evaluation, every base state is
+  encoded exactly once and reused for its paired questions;
+- every full DEV evaluation encodes each of the 192 DEV base states exactly
+  once at that selected model snapshot;
+- stale state/schema tensors are never reused after an optimizer update.
+
+TRAIN uses batched A13 encoding for efficiency but preserves this semantic
+state-once rule.
 
 DEV selection order:
 1. paired both-correct;
