@@ -40,3 +40,5 @@ Rules:
 - no S0-S5/S6-A0/M5/sealed fitting rows;
 - no post-DEV tuning;
 - sealed confirm remains closed unless DEV READY.
+
+Trigger S6 TRAIN/DEV after workflow and checkpoint replay registration.
