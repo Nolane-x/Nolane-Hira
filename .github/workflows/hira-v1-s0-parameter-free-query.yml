@@ -1,0 +1,128 @@
+name: hira-v1-s0-parameter-free-query
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s0-query-conditioned-semantic
+    paths:
+      - "research/HIRA-V1-S0-ENABLE-PARAMETER-FREE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  parameter-free:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-question-blindness
+          path: inputs/S0V0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36382301792
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install current v1 source and exact runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"             "transformers>=4.45,<6"             "safetensors>=0.4"             "huggingface_hub>=0.24"
+
+      - name: Compile and run complete S0 unit contracts
+        run: |
+          python -m py_compile             src/nmd/v1_query_conditioned_semantic.py             src/nmd/v1_parameter_free_query.py             src/nmd/v1_semantic_core.py             src/nmd/runtime.py             scripts/hira_v1_s0_parameter_free_query.py
+          pytest -q             tests/test_v1_query_conditioned_semantic.py             tests/test_w33_coevidence_semantic.py             tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify frozen v0 localization authority
+        run: |
+          (
+            cd inputs/S0V0
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          r = json.loads(Path("inputs/S0V0/result.json").read_text(encoding="utf-8"))
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S0_QUESTION_BLINDNESS_CONFIRMED"
+          assert r["identical_logit_rate"] == 1.0
+          assert r["identical_probability_rate"] == 1.0
+          assert r["identical_choice_rate"] == 1.0
+          assert r["question_token_embeddings_change_rate"] == 1.0
+          assert r["runtime"]["manifest"]["version"] == "0.0-m4a"
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          PY
+
+      - name: Verify M4 runtime integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Run zero-new-parameter question baseline
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s0_parameter_free_query.py             --bundle inputs/M4/hira-v0-m4-runtime             --v0-result inputs/S0V0/result.json             --out artifacts/s0-parameter-free
+
+      - name: Verify parameter-free receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s0-parameter-free")
+          r = json.loads((root / "result.json").read_text(encoding="utf-8"))
+
+          assert r["schema_version"] == "hira-v1-s0-parameter-free-query-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S0_PARAMETER_FREE_QUERY_BASELINE_READY"
+          assert r["case_count"] == 8
+          assert r["query_count"] == 16
+          assert r["languages"] == ["en", "vi"]
+          assert r["added_parameter_count"] == 0
+          assert r["candidate_parameter_count"] == 8192
+          assert r["trainable_parameter_count"] == 0
+          assert r["question_changes_logits_rate"] > 0.0
+          assert 0.0 <= r["question_changes_choice_rate"] <= 1.0
+          assert 0.0 <= r["accuracy"] <= 1.0
+          assert r["state_encode_calls"] == 8
+          assert r["v0_localization"]["identical_logit_rate"] == 1.0
+          assert r["production_ready_claimed"] is False
+          assert len((root / "per-case.jsonl").read_text(encoding="utf-8").splitlines()) == 8
+          PY
+
+      - name: Freeze parameter-free integrity
+        run: |
+          (
+            cd artifacts/s0-parameter-free
+            sha256sum result.json per-case.jsonl > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s0-parameter-free-query
+          path: artifacts/s0-parameter-free
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
