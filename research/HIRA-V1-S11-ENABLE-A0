@@ -1,0 +1,16 @@
+# HIRA V1 S11 — enable A0 exposure
+
+Prerequisites satisfied before exposure:
+- S10 merged main: f76a3c2cbe4a95435e10c7120dbc8a657cc95462
+- S11 issue: #193
+- S11 contract: research/HIRA-V1-S11-CONTRACT.md
+- physical trainable surface frozen at 49,152
+- binding-added parameters frozen at 0
+- role expert temperature frozen at 0.10
+- state expert temperature frozen at 0.10
+- A0 suite frozen in scripts/hira_v1_s11_a0_role_value.py
+- 16 fresh English semantic cases
+- no S0-S10/M5/W29-W34 row authorized for fitting or selection
+- A0 is mechanics/baseline only and may not select a model
+
+Authorize exactly one S11-A0 authority run under the preregistered contract.
