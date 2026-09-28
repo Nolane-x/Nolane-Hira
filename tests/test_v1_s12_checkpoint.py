@@ -150,7 +150,7 @@ def test_s12_checkpoint_roundtrip_and_frozen_replay(tmp_path):
         t0,
         checkpoint,
         expected_t0_sha256=t0_sha,
-        expected_binding_sha256=checkpoint_sha,
+        expected_relation_binding_sha256=checkpoint_sha,
         semantic_revision="fake-revision",
     )
     assert replay_meta["sha256"] == checkpoint_sha
