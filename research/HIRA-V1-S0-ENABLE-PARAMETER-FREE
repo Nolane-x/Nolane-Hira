@@ -1,0 +1,11 @@
+# HIRA V1 S0 — zero-parameter query baseline
+
+Run the parameter-free query-conditioned W34 baseline only after the exact
+frozen v0 question-blindness authority is qualified.
+
+This authority may measure query sensitivity and diagnostic accuracy, but it:
+- adds zero parameters;
+- performs no training;
+- may not use external final/test benchmark labels;
+- is not a promotion set;
+- may not claim production readiness or Laya/Jev parity.
