@@ -298,3 +298,93 @@ def test_s4_builder_can_freeze_complete_candidate(tmp_path):
         train_adapter=False,
     )
     assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+
+
+def test_s4_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.typed_competitive_cache import file_sha256
+    from nmd.v1_s4_checkpoint import (
+        build_frozen_hira_v1_s4_candidate,
+        load_hira_v1_s4_adapter_checkpoint,
+    )
+
+    torch.manual_seed(64006)
+    t0, t0_sha = _write_t0(tmp_path)
+    checkpoint = tmp_path / "adapter.pt"
+    adapter_state = {
+        "adapter.down.weight": torch.randn(32, 256),
+        "adapter.up.weight": torch.randn(256, 32),
+    }
+    torch.save(
+        {
+            "schema_version": "hira-v1-s4-adapter-checkpoint-v1",
+            "kind": "shared-residual-semantic-adapter",
+            "bottleneck": 32,
+            "adapter_parameter_count": 16384,
+            "selected_dev_epoch": 5,
+            "t0_checkpoint_sha256": t0_sha,
+            "adapter_state_dict": adapter_state,
+        },
+        checkpoint,
+    )
+    adapter_sha = file_sha256(checkpoint)
+
+    loaded, metadata = load_hira_v1_s4_adapter_checkpoint(
+        checkpoint,
+        expected_sha256=adapter_sha,
+        expected_t0_sha256=t0_sha,
+    )
+    assert metadata["selected_dev_epoch"] == 5
+    for key, value in adapter_state.items():
+        assert torch.equal(loaded[key], value.float())
+
+    encoder = TrainableSemanticEncoder(
+        vocab_size=1024,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    runtime, replay = build_frozen_hira_v1_s4_candidate(
+        encoder,
+        t0,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_adapter_sha256=adapter_sha,
+    )
+    assert replay["sha256"] == adapter_sha
+    assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+    scorer = runtime.adapted_triadic_scorer
+    assert scorer is not None
+    own = scorer.state_dict()
+    for key, value in adapter_state.items():
+        assert torch.equal(own[key], value.float())
+
+
+def test_s4_checkpoint_rejects_wrong_t0_identity(tmp_path):
+    from nmd.v1_s4_checkpoint import load_hira_v1_s4_adapter_checkpoint
+
+    checkpoint = tmp_path / "bad-adapter.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s4-adapter-checkpoint-v1",
+            "kind": "shared-residual-semantic-adapter",
+            "bottleneck": 32,
+            "adapter_parameter_count": 16384,
+            "selected_dev_epoch": 1,
+            "t0_checkpoint_sha256": "wrong",
+            "adapter_state_dict": {
+                "adapter.down.weight": torch.randn(32, 256),
+                "adapter.up.weight": torch.randn(256, 32),
+            },
+        },
+        checkpoint,
+    )
+    try:
+        load_hira_v1_s4_adapter_checkpoint(
+            checkpoint,
+            expected_t0_sha256="expected-t0",
+        )
+    except RuntimeError as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("wrong S4 T0 identity must fail closed")
