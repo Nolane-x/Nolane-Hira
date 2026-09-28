@@ -57,16 +57,15 @@ jobs:
           assert r["exact_choice_identity_rate"] == 1.0
           assert r["candidate_parameter_count"] == 49152
           assert r["runtime_trainable_parameter_count"] == 0
-          assert r["binding_added_parameter_count"] == 0
+          assert r["relation_binding_added_parameter_count"] == 0
           assert r["role_temperature"] == 0.10
           assert r["contrastive_temperature"] == 0.10
-          assert r["value_window"] == 4
           assert r["used_for_model_selection"] is False
           PY
       - name: Verify frozen M4 runtime integrity
         run: |
           (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
-      - name: Run fresh English S12 role-binding TRAIN DEV authority
+      - name: Run fresh English S12 relation-binding TRAIN DEV authority
         env:
           HF_HUB_DISABLE_TELEMETRY: "1"
           TOKENIZERS_PARALLELISM: "false"
@@ -85,7 +84,7 @@ jobs:
           assert r["status"] == "PASS"
           assert r["outcome"] in {"HIRA_V1_S12_RELATION_BINDING_DEV_READY", "HIRA_V1_S12_RELATION_BINDING_DEV_FAIL"}
           assert r["scientific_authority"] == "V1_S12_FRESH_ENGLISH_RELATION_STRUCTURED_BINDING"
-          assert r["seed"] == 17001
+          assert r["seed"] == 18001
           assert r["optimizer"]["epochs"] == 24
           assert r["optimizer"]["batch_size_semantic_cases"] == 16
           assert r["partitions"]["train_semantic_cases"] == 768
@@ -98,9 +97,9 @@ jobs:
           assert r["parameter_surface"]["projection_trainable_parameters"] == 32768
           assert r["parameter_surface"]["original_a13_trainable"] == 0
           assert r["parameter_surface"]["hira_core_trainable"] == 0
-          assert r["parameter_surface"]["binding_added_parameters"] == 0
+          assert r["parameter_surface"]["relation_binding_added_parameters"] == 0
           assert r["parameter_surface"]["learned_downstream_scorer_parameters"] == 0
-          assert r["loss"]["role_preserving_binding_coefficient"] == 0.10
+          assert r["loss"]["relation_structured_binding_coefficient"] == 0.10
           assert r["loss"]["role_temperature"] == 0.10
           assert r["loss"]["binding_contrastive_temperature"] == 0.10
           assert r["state_once"]["train_state_view_encodes_per_epoch"] == 1536
