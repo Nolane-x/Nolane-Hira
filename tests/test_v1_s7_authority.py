@@ -67,7 +67,7 @@ def test_s7_split_specific_sentinels():
 
     for token in (
         "andesite",
-        "Syrah" if False else "Bourbon",
+        "Typica",
         "SMF-28",
         "reverse osmosis",
         "panchromatic",
