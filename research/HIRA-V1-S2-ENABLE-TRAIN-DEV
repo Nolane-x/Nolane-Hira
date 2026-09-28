@@ -28,3 +28,16 @@ Rules:
 - no S0/S1/S2-A0/M5/sealed fitting rows;
 - no post-DEV tuning;
 - sealed confirm remains closed unless DEV READY.
+
+
+## Qualified retry note
+
+The first TRAIN/DEV run `36390503180` stopped in pre-exposure unit freshness checks before:
+- A0 authority verification;
+- M4 integrity verification;
+- any optimizer step;
+- any DEV exposure.
+
+Cause: the TRAIN lexical sentinel `ion` was a substring of the unrelated DEV word `calibration`.
+
+Retry changes only the test sentinel to complete lexical phrases. Model, data, seed, optimizer, epochs, loss, selection order and frozen DEV gates are unchanged.
