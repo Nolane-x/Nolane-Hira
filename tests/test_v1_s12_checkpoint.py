@@ -6,7 +6,7 @@ from nmd.v1_s12_checkpoint import (
     build_frozen_hira_v1_s12_candidate,
     load_hira_v1_s12_checkpoint,
 )
-from nmd.v1_s12_semantic_core import build_hira_v1_s12_role_binding_core
+from nmd.v1_s12_semantic_core import build_hira_v1_s12_relation_binding_core
 
 
 class _FakeConfig:
@@ -92,7 +92,7 @@ def test_s12_checkpoint_roundtrip_and_frozen_replay(tmp_path):
 
     torch.manual_seed(18101)
     t0, t0_sha = _write_t0(tmp_path)
-    runtime = build_hira_v1_s12_role_binding_core(
+    runtime = build_hira_v1_s12_relation_binding_core(
         _encoder(),
         t0,
         expected_t0_sha256=t0_sha,
