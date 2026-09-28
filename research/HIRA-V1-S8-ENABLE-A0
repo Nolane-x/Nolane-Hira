@@ -1,0 +1,16 @@
+# HIRA V1 S8 — enable A0
+
+Trigger the first S8 authority.
+
+Requirements:
+- run S8 unit/freshness/consistency contracts before exposure;
+- use exact frozen M4 A13 and exact W28 T0;
+- inherit the exact S7 49,152-parameter physical candidate;
+- freeze LoRA and projection during A0;
+- evaluate both wording views for 16 fresh semantic cases;
+- require exact A13 token/pooled identity;
+- require exact final logit and selected-choice identity over all 64 decisions;
+- preserve state-once separately for both state wording views;
+- preserve full-K/option-order invariance/relation-delta-zero;
+- A0 is never used for model selection;
+- no parity, multilingual, reliability/OOD or production claim.
