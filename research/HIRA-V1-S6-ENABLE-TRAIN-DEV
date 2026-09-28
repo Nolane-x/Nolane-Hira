@@ -1,0 +1,42 @@
+# HIRA V1 S6 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36406203754
+- artifact: 10962577478
+- digest: sha256:13ad5013cd2e4873c5801e4441602de6997e50305ccac39284886647268c4976
+- outcome: HIRA_V1_S6_A0_IDENTITY_READY
+
+Observed A0:
+- A13 token identity: true
+- A13 pooled identity: true
+- exact logit identity: 1.0
+- exact choice identity: 1.0
+- LoRA parameter count: 16,384
+- original A13 trainable: 0
+- option-order flip: 0.0
+- state-once/full-K/relation-delta-zero: PASS
+
+Authorize only the preregistered S6 A13-LoRA TRAIN/DEV experiment.
+
+Rules:
+- exact pinned A13 base;
+- LoRA only on final-layer Q/K/V/attention-output;
+- rank 8 / alpha 8 / dropout 0;
+- exactly 16,384 trainable LoRA parameters;
+- all original A13 weights frozen;
+- exact W28 T0 frozen;
+- no learned downstream scorer;
+- 768 fresh English TRAIN states / 1,536 queries;
+- 192 fresh English DEV states / 384 queries;
+- twelve fresh domains;
+- K=4 and exactly two semantic views per option;
+- seed 11601;
+- 24 epochs;
+- AdamW lr 2e-4, weight decay 0.01, grad clip 1.0;
+- CE + 0.25 paired swap-margin, margin 0.20;
+- option-view InfoNCE coefficient 0.05, temperature 0.10;
+- question-option InfoNCE coefficient 0.10, temperature 0.10;
+- frozen DEV gates from HIRA-V1-S6-CONTRACT.md;
+- no S0-S5/S6-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
