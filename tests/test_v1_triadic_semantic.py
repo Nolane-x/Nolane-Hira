@@ -281,3 +281,85 @@ def test_s3_factor_checkpoint_load_and_freeze():
     for key, value in state.items():
         assert torch.equal(own[key], value)
     assert scorer.factor_trainable_parameter_count == 0
+
+
+def test_s3_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.v1_s3_checkpoint import (
+        build_frozen_hira_v1_s3_candidate,
+        load_hira_v1_s3_triadic_checkpoint,
+    )
+
+    torch.manual_seed(93108)
+    t0, t0_sha, _ = _write_t0(tmp_path)
+    checkpoint = tmp_path / "triadic.pt"
+    factors = {
+        "state_factor.weight": torch.randn(32, 128),
+        "question_factor.weight": torch.randn(32, 128),
+        "option_factor.weight": torch.randn(32, 128),
+    }
+    torch.save(
+        {
+            "schema_version": "hira-v1-s3-triadic-checkpoint-v1",
+            "kind": "triadic-cp-semantic",
+            "factor_parameter_count": 12288,
+            "selected_dev_epoch": 3,
+            "t0_checkpoint_sha256": t0_sha,
+            "factor_state_dict": factors,
+        },
+        checkpoint,
+    )
+    checkpoint_sha = file_sha256(checkpoint)
+
+    loaded, metadata = load_hira_v1_s3_triadic_checkpoint(
+        checkpoint,
+        expected_sha256=checkpoint_sha,
+        expected_t0_sha256=t0_sha,
+    )
+    assert metadata["selected_dev_epoch"] == 3
+    for key, value in factors.items():
+        assert torch.equal(loaded[key], value.float())
+
+    runtime, replay = build_frozen_hira_v1_s3_candidate(
+        _encoder(),
+        t0,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_triadic_sha256=checkpoint_sha,
+    )
+    assert replay["sha256"] == checkpoint_sha
+    assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+    scorer = runtime.triadic_cp_scorer
+    assert scorer is not None
+    own = scorer.state_dict()
+    for key, value in factors.items():
+        assert torch.equal(own[key], value.float())
+
+
+def test_s3_checkpoint_rejects_wrong_t0_identity(tmp_path):
+    from nmd.v1_s3_checkpoint import load_hira_v1_s3_triadic_checkpoint
+
+    checkpoint = tmp_path / "bad-triadic.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s3-triadic-checkpoint-v1",
+            "kind": "triadic-cp-semantic",
+            "factor_parameter_count": 12288,
+            "selected_dev_epoch": 1,
+            "t0_checkpoint_sha256": "wrong",
+            "factor_state_dict": {
+                "state_factor.weight": torch.randn(32, 128),
+                "question_factor.weight": torch.randn(32, 128),
+                "option_factor.weight": torch.randn(32, 128),
+            },
+        },
+        checkpoint,
+    )
+    try:
+        load_hira_v1_s3_triadic_checkpoint(
+            checkpoint,
+            expected_t0_sha256="expected",
+        )
+    except RuntimeError as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("wrong T0 identity must fail closed")
