@@ -144,7 +144,7 @@ _DOMAINS = (
         "kiln_glaze", "kiln glaze trial", "KG",
         "glaze family", "hold time",
         ("celadon", "shino", "tenmoku", "ash glaze", "salt glaze", "crystalline", "copper red", "matte white"),
-        ("satin black", "rutile blue", "lichen", "nuka", "oil spot", "hare's fur", " chun blue", "floating blue"),
+        ("satin black", "rutile blue", "lichen", "nuka", "oil spot", "hare's fur", "chun blue", "floating blue"),
         ("8 min", "12 min", "16 min", "20 min", "24 min", "28 min", "32 min", "36 min"),
         ("10 min", "14 min", "18 min", "22 min", "26 min", "30 min", "34 min", "38 min"),
         14801, 71000,
@@ -164,24 +164,36 @@ _DOMAINS = (
 def _shuffle(
     *,
     case_id: str,
+    noun: str,
+    field_a: str,
+    field_b: str,
     first: str,
     second: str,
     distractor_first: str,
     distractor_second: str,
     seed: int,
 ) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...], int, int]:
+    # Domain+field context is semantic content, not routing metadata.  It keeps
+    # split-specific option banks globally disjoint even when unrelated domains
+    # happen to reuse the same bare numeric/string value.
     rows = [
-        ("a", first),
-        ("b", second),
-        ("x", distractor_first),
-        ("y", distractor_second),
+        ("a", field_a, first),
+        ("b", field_b, second),
+        ("x", field_a, distractor_first),
+        ("y", field_b, distractor_second),
     ]
     random.Random(seed).shuffle(rows)
-    texts = tuple(f"the answer value is {value}" for _, value in rows)
-    aliases = tuple(f"{value} is the semantically equivalent option" for _, value in rows)
+    texts = tuple(
+        f"for the {noun}, the {field} answer is {value}"
+        for _, field, value in rows
+    )
+    aliases = tuple(
+        f"{value} is the semantically equivalent {field} option for the {noun}"
+        for _, field, value in rows
+    )
     ids = tuple(f"{case_id}__opaque_{i:02d}" for i in range(4))
-    ga = next(i for i, (kind, _) in enumerate(rows) if kind == "a")
-    gb = next(i for i, (kind, _) in enumerate(rows) if kind == "b")
+    ga = next(i for i, (kind, _, _) in enumerate(rows) if kind == "a")
+    gb = next(i for i, (kind, _, _) in enumerate(rows) if kind == "b")
     return texts, aliases, ids, ga, gb
 
 
@@ -242,6 +254,9 @@ def _build(spec: _Domain, index: int, split: Split) -> S8InvariantCase:
     )
     texts, aliases, ids, ga, gb = _shuffle(
         case_id=case_id,
+        noun=spec.noun,
+        field_a=spec.field_a,
+        field_b=spec.field_b,
         first=first,
         second=second,
         distractor_first=distractor_first,
