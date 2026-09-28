@@ -1,0 +1,84 @@
+name: hira-v0-mainline-m5-contract
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-CONTRACT"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install contract test stack
+        run: |
+          python -m pip install --upgrade pip pytest
+
+      - name: Run benchmark and M5 contract unit tests
+        run: |
+          python -m pytest tests/test_benchmark_contracts.py tests/test_m5_contract.py -q
+
+      - name: Run strict frozen R8 source-contract preflight
+        run: |
+          python benchmarks/contract_preflight.py \
+            --strict-final \
+            --out artifacts/m5-contract/r8-contract-preflight.json
+
+      - name: Bind exact M4 runtime and resolve external authorities
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/hira_v0_m5_contract_preflight.py \
+            --contract benchmarks/m5_contract.json \
+            --m4-runtime inputs/M4/hira-v0-m4-runtime \
+            --verify-github \
+            --out artifacts/m5-contract/receipt.json
+
+      - name: Verify M5-A contract receipt
+        run: |
+          python - <<'PY'
+          import json
+
+          x = json.load(open("artifacts/m5-contract/receipt.json"))
+          assert x["schema_version"] == "hira-v0-mainline-m5-contract-receipt-v1"
+          assert x["status"] == "PASS"
+          assert x["outcome"] == "HIRA_V0_M5_CONTRACT_READY"
+          assert x["base_main"] == "97840f88b592ddfa10ae66e156fab781a4f18af7"
+          assert x["m4_runtime_bound"] is True
+          assert x["contract_valid"] is True
+          assert x["remote_verification_requested"] is True
+          assert len(x["external_authorities"]) == 4
+          assert all(row["resolved"] for row in x["external_authorities"])
+          assert x["final_scores_exposed"] is False
+          assert x["production_ready_claimed"] is False
+          assert x["errors"] == []
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: artifacts/m5-contract
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

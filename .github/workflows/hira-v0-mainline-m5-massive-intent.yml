@@ -1,0 +1,143 @@
+name: hira-v0-mainline-m5-massive-intent
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-MASSIVE-INTENT"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  massive-intent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-xnli
+          path: inputs/M5B3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359330862
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-jev-btzsc
+          path: inputs/M5B4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359563201
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and MASSIVE stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "datasets>=3,<5" pytest
+
+      - name: Run MASSIVE protocol contracts
+        run: |
+          python -m pytest tests/test_m5_massive_intent.py tests/test_m5_contract.py -q
+
+      - name: Verify prior authorities and M4 integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          checks = [
+              ("inputs/M5A/receipt.json", "HIRA_V0_M5_CONTRACT_READY"),
+              ("inputs/M5B3/result.json", "HIRA_V0_M5_XNLI_READY"),
+              ("inputs/M5B4/result.json", "HIRA_V0_M5_JEV_BTZSC_READY"),
+          ]
+          for path, expected in checks:
+              x = json.loads(Path(path).read_text())
+              assert x["status"] == "PASS"
+              assert x["outcome"] == expected
+              if "used_for_model_selection" in x:
+                  assert x["used_for_model_selection"] is False
+          PY
+
+      - name: Run frozen M4 MASSIVE intent authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_massive_intent.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract-receipt inputs/M5A/receipt.json \
+            --out artifacts/m5-massive-intent
+
+      - name: Verify MASSIVE authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-massive-intent")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v0-mainline-m5-massive-intent-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_MASSIVE_INTENT_READY"
+          assert r["scientific_authority"] == "M5_MATCHED_DYNAMIC_SCHEMA_MULTILINGUAL"
+          assert r["dataset"]["revision"] == "940fd47a81eaa7f2cc7b129674d945d618ac38c2"
+          assert r["dataset"]["seed"] == 13
+          assert r["dataset"]["n_options"] == 20
+          assert r["dataset"]["total_cases"] == 4200
+          assert r["protocol"]["task_training_used"] is False
+          assert r["protocol"]["full_k"] is True
+          assert r["total_state_encode_calls"] == 4200
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["runtime"]["manifest"]["production_ready"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["model_weights_changed_after_exposure"] is False
+          assert r["production_ready_claimed"] is False
+          assert len((root / "per-example.jsonl").read_text().splitlines()) == 4200
+          PY
+
+      - name: Freeze MASSIVE integrity
+        run: |
+          (
+            cd artifacts/m5-massive-intent
+            sha256sum result.json per-example.jsonl scorecard-input.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-massive-intent
+          path: artifacts/m5-massive-intent
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

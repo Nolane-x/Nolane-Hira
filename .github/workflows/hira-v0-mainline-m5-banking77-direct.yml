@@ -1,0 +1,135 @@
+name: hira-v0-mainline-m5-banking77-direct
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-BANKING77-DIRECT"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  banking77-direct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and benchmark stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "datasets>=3,<5" pytest
+
+      - name: Run M5 Banking77 protocol unit contracts
+        run: |
+          python -m pytest tests/test_m5_banking77_direct.py tests/test_m5_contract.py -q
+
+      - name: Verify downloaded authority integrity before exposure
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          c = json.loads(Path("inputs/M5A/receipt.json").read_text())
+          assert c["status"] == "PASS"
+          assert c["outcome"] == "HIRA_V0_M5_CONTRACT_READY"
+          assert c["final_scores_exposed"] is False
+          assert c["m4_runtime_bound"] is True
+          assert c["errors"] == []
+          PY
+
+      - name: Run frozen M4 Banking77 matched direct authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_banking77_direct.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract benchmarks/m5_contract.json \
+            --contract-receipt inputs/M5A/receipt.json \
+            --contract-artifact-id 10943744649 \
+            --contract-artifact-digest sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230 \
+            --out artifacts/m5-banking77-direct
+
+      - name: Verify M5 Banking77 authority receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-banking77-direct")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v0-mainline-m5-banking77-direct-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_BANKING77_DIRECT_READY"
+          assert r["scientific_authority"] == "M5_MATCHED_HELD_OUT_DIRECT"
+          assert r["dataset"]["revision"] == "18072d2685ea682290f7b8924d94c62acc19c0b2"
+          assert r["dataset"]["examples"] == 400
+          assert r["dataset"]["labels"] == 77
+          assert r["protocol"]["banking77_task_training_used"] is False
+          assert r["protocol"]["retrieved_labeled_examples_per_prediction"] == 0
+          assert r["protocol"]["full_k"] is True
+          assert r["metrics"]["state_encode_calls"] == 400
+          assert r["metrics"]["state_encode_calls_per_case"] == 1.0
+          assert r["metrics"]["candidate_budget_min"] == 77
+          assert r["metrics"]["candidate_budget_max"] == 77
+          assert r["metrics"]["relation_delta_max_abs"] == 0.0
+          assert r["metrics"]["probability_mass_max_error"] <= 1e-6
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["runtime"]["manifest"]["production_ready"] is False
+          assert r["jev_banking77_24shot"]["status"] == "NOT_COMPARABLE"
+          assert r["jev_banking77_24shot"]["score_populated"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["model_weights_changed_after_exposure"] is False
+          assert r["production_ready_claimed"] is False
+
+          rows = (root / "per-example.jsonl").read_text().splitlines()
+          assert len(rows) == 400
+          assert all(len(json.loads(x)["probabilities"]) == 77 for x in rows)
+          PY
+
+      - name: Freeze result integrity
+        run: |
+          (
+            cd artifacts/m5-banking77-direct
+            sha256sum result.json per-example.jsonl scorecard-input.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-banking77-direct
+          path: artifacts/m5-banking77-direct
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

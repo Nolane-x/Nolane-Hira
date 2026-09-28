@@ -1,0 +1,15 @@
+# HIRA V0 MAINLINE M5 CLOSURE BUNDLE
+
+Trigger the canonical M5/v0 closure bundle after final scorecard authority.
+
+Required final authority:
+- run: 36380679813
+- artifact: 10952164776
+- digest: sha256:21334052dee015be8196eb89c6be3c787b0bdf70844e06481ca61d1eabffee06
+- scorecard: 1 WIN / 16 LOSS / 5 NOT_COMPARABLE / 31 MISSING
+- final research archive SHA256: 2b524645c831b12521cd7edb506e708afad81336f1f23ebf13a271cfde514e5d
+
+The closure must preserve the negative semantic result:
+- no Laya/Jev parity claim;
+- production_ready=false;
+- no post-exposure model rescue.

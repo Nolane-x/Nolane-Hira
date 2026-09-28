@@ -1,0 +1,14 @@
+# HIRA V0 MAINLINE M5 CONFIRMATORY AUTHORITY
+
+Trigger the fresh M5-D confirmatory robustness suite after all public/matched M5-B and M5-C authorities are frozen.
+
+Rules:
+- use exact M4 frozen runtime;
+- no weight updates;
+- no threshold/model selection;
+- 24 fresh EN/VI base cases;
+- two option orders per state;
+- opaque option IDs;
+- preserve low scores if observed;
+- PASS means valid evidence, not quality promotion;
+- production_ready remains false.

@@ -1,0 +1,159 @@
+name: hira-v0-mainline-m5-systems-cpu
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-SYSTEMS-CPU"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  systems-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-jev-btzsc
+          path: inputs/M5B4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359563201
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and systems stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "numpy>=1.26" pytest
+
+      - name: Run systems call-shape contracts
+        run: |
+          python -m pytest tests/test_m5_systems_cpu.py tests/test_m5_contract.py -q
+
+      - name: Verify upstream M5 authorities and M4 integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/M5A/receipt.json").read_text())
+          assert a["status"] == "PASS"
+          assert a["outcome"] == "HIRA_V0_M5_CONTRACT_READY"
+
+          b = json.loads(Path("inputs/M5B4/result.json").read_text())
+          assert b["status"] == "PASS"
+          assert b["outcome"] == "HIRA_V0_M5_JEV_BTZSC_READY"
+          assert b["used_for_model_selection"] is False
+          PY
+
+      - name: Re-resolve pinned Laya systems source
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          url = (
+              "https://api.github.com/repos/NandhaKishorM/laya/contents/"
+              "research/scripts/bench_latency.py"
+              "?ref=42626c348753fbb17572a813127df2278a1ec527"
+          )
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "nolane-hira-m5",
+              },
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              row = json.load(response)
+          assert row["sha"] == "e97ddbb499fcfd86ee626ceab238608cddbfb426"
+          PY
+
+      - name: Run Hira CPU matched-call-shape systems authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_systems_cpu.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract-receipt inputs/M5A/receipt.json \
+            --out artifacts/m5-systems-cpu
+
+      - name: Verify systems receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          r = json.loads(Path("artifacts/m5-systems-cpu/result.json").read_text())
+          assert r["schema_version"] == "hira-v0-mainline-m5-systems-cpu-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_SYSTEMS_CPU_READY"
+          assert r["scientific_authority"] == "M5_SYSTEMS_CPU_MATCHED_CALL_SHAPE"
+          assert r["laya_authority"]["bench_latency_blob"] == "e97ddbb499fcfd86ee626ceab238608cddbfb426"
+          assert r["laya_authority"]["call_shape"] == "one state + Q typed questions"
+          assert r["state_once"] is True
+          assert r["measured_state_encode_calls"] == 48
+          assert r["expected_state_encode_calls"] == 48
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["runtime"]["manifest"]["production_ready"] is False
+          assert set(r["latency"]) == {"1", "5", "10", "50"}
+          assert all(
+              value == "NOT_COMPARABLE"
+              for value in r["systems_target_cells"].values()
+          )
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze systems result integrity
+        run: |
+          (
+            cd artifacts/m5-systems-cpu
+            sha256sum result.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-systems-cpu
+          path: artifacts/m5-systems-cpu
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

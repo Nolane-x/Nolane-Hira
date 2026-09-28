@@ -1,0 +1,22 @@
+# HIRA V0 MAINLINE M5 — CONTRACT AUTHORITY ENABLE
+
+Issue: #169
+Base main: 97840f88b592ddfa10ae66e156fab781a4f18af7
+
+This marker freezes M5-A before any new final benchmark score is opened.
+
+Required invariants:
+- exact M4 runtime artifact run 36357825580 / artifact 10944174953;
+- exact W28/W34/A13 identities;
+- Laya commit 42626c348753fbb17572a813127df2278a1ec527;
+- Jev BTZSC commit 0d610cc53e79bcbec691312b0c4adb4a0e371642;
+- Jev Banking77 adapted commit 5cac4ff7783a4cfc0badba4124a309dd2a2b9862;
+- official Banking77 commit 57ec275d8078af65b7731c2a98be812d844a6d6b;
+- no final labels/results used for model selection;
+- missing != zero;
+- unsupported != loss;
+- no cross-protocol/global-majority superiority claim;
+- confirmatory suite remains required;
+- production_ready remains false.
+
+Do not edit this marker after the first M5-A authority run begins.

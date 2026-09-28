@@ -1,0 +1,147 @@
+name: hira-v0-mainline-m5-xnli
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-XNLI"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  xnli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-banking77-direct
+          path: inputs/M5B1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358746320
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-english-heldout
+          path: inputs/M5B2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359178166
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact packaged Hira runtime and XNLI stack
+        run: |
+          WHEEL="$(find inputs/M4/hira-v0-m4-runtime/python -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python -m pip install --upgrade pip
+          python -m pip install "$WHEEL" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24" "datasets>=3,<5" pytest
+
+      - name: Run XNLI protocol contracts
+        run: |
+          python -m pytest tests/test_m5_xnli.py tests/test_m5_contract.py -q
+
+      - name: Verify prior M5 authorities and M4 integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/M5A/receipt.json").read_text())
+          assert a["status"] == "PASS"
+          assert a["outcome"] == "HIRA_V0_M5_CONTRACT_READY"
+
+          b1 = json.loads(Path("inputs/M5B1/result.json").read_text())
+          assert b1["status"] == "PASS"
+          assert b1["outcome"] == "HIRA_V0_M5_BANKING77_DIRECT_READY"
+          assert b1["used_for_model_selection"] is False
+
+          b2 = json.loads(Path("inputs/M5B2/result.json").read_text())
+          assert b2["status"] == "PASS"
+          assert b2["outcome"] == "HIRA_V0_M5_ENGLISH_HELDOUT_READY"
+          assert b2["used_for_model_selection"] is False
+          assert b2["model_weights_changed_after_exposure"] is False
+          PY
+
+      - name: Run frozen M4 XNLI multilingual matched authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v0_m5_xnli.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --contract-receipt inputs/M5A/receipt.json \
+            --contract-artifact-id 10943744649 \
+            --contract-artifact-digest sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230 \
+            --out artifacts/m5-xnli
+
+      - name: Verify XNLI authority receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-xnli")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v0-mainline-m5-xnli-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_XNLI_READY"
+          assert r["scientific_authority"] == "M5_MATCHED_MULTILINGUAL_HELD_OUT"
+          assert r["dataset"]["revision"] == "b8dd5d7af51114dbda02c0e3f6133f332186418e"
+          assert r["dataset"]["total_cases"] == 4500
+          assert r["protocol"]["task_training_used"] is False
+          assert r["protocol"]["full_k"] is True
+          assert r["total_state_encode_calls"] == 4500
+          assert r["probability_mass_max_error"] <= 1e-6
+          assert r["runtime"]["parameter_report"]["trainable_total"] == 0
+          assert r["runtime"]["manifest"]["production_ready"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["model_weights_changed_after_exposure"] is False
+          assert r["production_ready_claimed"] is False
+          assert len((root / "per-example.jsonl").read_text().splitlines()) == 4500
+          PY
+
+      - name: Freeze XNLI result integrity
+        run: |
+          (
+            cd artifacts/m5-xnli
+            sha256sum result.json per-example.jsonl scorecard-input.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-xnli
+          path: artifacts/m5-xnli
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

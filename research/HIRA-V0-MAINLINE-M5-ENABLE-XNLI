@@ -1,0 +1,53 @@
+# HIRA V0 MAINLINE M5 — XNLI MULTILINGUAL AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+M5-A contract:
+- run: 36358456335
+- artifact: 10943744649
+- digest: sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230
+- outcome: HIRA_V0_M5_CONTRACT_READY
+
+M5-B1 Banking77 direct:
+- run: 36358746320
+- artifact: 10944752687
+- digest: sha256:7291569fb47f21b22b24b1eb9a8ec6690dc7a6d3f2e5658185e4c991e78f59e8
+- Hira 0.06 vs Laya 0.492
+- used_for_model_selection: false
+
+M5-B2 English held-out qualified retry:
+- pre-exposure failed run: 36358956766
+- failure: TEST_HARNESS_IMPORT_REGISTRATION
+- final exposure in failed run: SKIPPED
+- qualified retry run: 36359178166
+- artifact: 10944159765
+- digest: sha256:865f29d48ad9e7354e756453e22cf170b0927b0110dc5c86f34fa80ddab9dd9e
+- outcome: HIRA_V0_M5_ENGLISH_HELDOUT_READY
+- SST-5: 0.2633333333333333 vs Laya 0.37166666666666665
+- Emotion: 0.20666666666666667 vs Laya 0.5733333333333334
+- Prompt-Injections: 0.43103448275862066 vs Laya 0.6982758620689655
+- used_for_model_selection: false
+- model weights unchanged after exposure
+
+Authorize the exact pinned Laya XNLI protocol:
+- source: NandhaKishorM/laya@42626c348753fbb17572a813127df2278a1ec527
+- source script blob: 8b131f2d0caa0c0b096c1654214464b02aef1461
+- dataset: facebook/xnli@b8dd5d7af51114dbda02c0e3f6133f332186418e
+- split: test
+- languages: en,de,fr,es,ru,tr,ar,hi,ur,vi,th,el,bg,zh,sw
+- first 300 per language
+- question: What is the relationship between `premise` and `hypothesis`?
+- option order: entailment, neutral, contradiction
+- zero task training
+- full-K K=3
+- state-once
+- adaptive budget off
+- relation refinement off
+
+Matched headline targets:
+- laya.xnli.en = 0.86
+- laya.xnli.vi = 0.7233333333333334
+- laya.xnli.other14_macro = 0.731
+
+No post-exposure model, checkpoint, prompt, threshold or schema tuning is authorized.

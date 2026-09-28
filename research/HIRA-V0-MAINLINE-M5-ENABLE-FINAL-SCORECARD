@@ -1,0 +1,16 @@
+# HIRA V0 MAINLINE M5 FINAL SCORECARD
+
+Trigger the bounded final scorecard and research-release evidence bundle.
+
+Preconditions:
+- M5-A contract PASS
+- M5-B Banking77/English/XNLI/Jev-BTZSC/MASSIVE authorities PASS
+- M5-C systems PASS
+- M5-D confirmatory PASS
+- exact frozen M4 runtime only
+- no model updates after final exposure
+- no global Laya/Jev winner claim
+- production_ready remains false
+
+The workflow must score all 53 preregistered target cells and preserve
+MISSING / NOT_COMPARABLE semantics exactly.

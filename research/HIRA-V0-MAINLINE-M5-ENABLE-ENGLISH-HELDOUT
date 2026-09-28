@@ -1,0 +1,49 @@
+# HIRA V0 MAINLINE M5 — ENGLISH HELD-OUT AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+M5-A:
+- run 36358456335
+- artifact 10943744649
+- digest sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230
+- outcome HIRA_V0_M5_CONTRACT_READY
+
+M5-B1 Banking77 direct:
+- run 36358746320
+- artifact 10944752687
+- digest sha256:7291569fb47f21b22b24b1eb9a8ec6690dc7a6d3f2e5658185e4c991e78f59e8
+- outcome HIRA_V0_M5_BANKING77_DIRECT_READY
+- Hira accuracy 0.06
+- Laya matched target 0.492
+- no post-exposure model selection
+
+Authorize exactly these additional held-out Laya protocols from pinned
+NandhaKishorM/laya@42626c348753fbb17572a813127df2278a1ec527:
+
+1. SST-5
+- SetFit/sst5@e51bdcd8cd3a30da231967c1a249ba59361279a3
+- test first 600
+- 5 ordered score options
+- target laya.en.sst5 = 0.37166666666666665
+
+2. Emotion
+- dair-ai/emotion config split@cab853a1dbdf4c42c2b3ef2173804746df8825fe
+- test first 600
+- 6-way choice
+- target laya.en.emotion = 0.5733333333333334
+
+3. Prompt injections
+- deepset/prompt-injections@4f61ecb038e9c3fb77e21034b22511b523772cdd
+- entire test split, expected 116
+- noul/binary
+- target laya.en.prompt_injections = 0.6982758620689655
+
+All three use:
+- exact M4 runtime artifact;
+- zero task training;
+- state-once;
+- full-K;
+- adaptive budget off;
+- relation refinement off;
+- no post-exposure parameter, threshold, prompt, or checkpoint selection.

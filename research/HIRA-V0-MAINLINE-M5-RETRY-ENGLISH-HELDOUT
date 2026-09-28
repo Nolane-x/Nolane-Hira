@@ -1,0 +1,22 @@
+# HIRA V0 MAINLINE M5 — ENGLISH HELD-OUT HARNESS RETRY
+
+Original authorization:
+- research/HIRA-V0-MAINLINE-M5-ENABLE-ENGLISH-HELDOUT
+- head: 2fef66a15b1ad4cd955d62a42c7680c92e5bd1c2
+
+Failed pre-exposure run:
+- run: 36358956766
+- failed step: Run M5 English held-out protocol contracts
+- final exposure step: SKIPPED
+- score exposed: false
+- model/checkpoint/threshold/prompt changed after failure: false
+
+Failure classification:
+- TEST_HARNESS_IMPORT_REGISTRATION
+- Python 3.12 dataclasses resolving postponed annotations required the dynamically
+  loaded module to be registered in sys.modules before exec_module.
+- The benchmark script, frozen datasets, prompts, targets, M4 runtime and M5-A
+  authority remain unchanged.
+
+Retry is authorized only with the import-harness correction in
+tests/test_m5_english_heldout.py. The same final exposure contract remains in force.

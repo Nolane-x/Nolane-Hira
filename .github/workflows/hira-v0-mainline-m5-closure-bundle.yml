@@ -1,0 +1,136 @@
+name: hira-v0-mainline-m5-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-final-release
+          path: inputs/M5FINAL
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36380679813
+
+      - name: Verify final M5 authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("inputs/M5FINAL")
+          release = json.loads((root / "final-release-receipt.json").read_text(encoding="utf-8"))
+          score = json.loads((root / "final-scorecard" / "receipt.json").read_text(encoding="utf-8"))
+
+          assert release["status"] == "PASS"
+          assert release["outcome"] == "HIRA_V0_FINAL_RESEARCH_RELEASE_READY"
+          assert release["production_ready_claimed"] is False
+          assert release["global_winner_claimed"] is False
+          assert release["archive_sha256"] == "2b524645c831b12521cd7edb506e708afad81336f1f23ebf13a271cfde514e5d"
+
+          assert score["status"] == "PASS"
+          assert score["outcome"] == "HIRA_V0_M5_FINAL_SCORECARD_READY"
+          assert score["target_count"] == 53
+          assert score["counts"] == {
+              "LOSS": 16,
+              "MISSING": 31,
+              "NOT_COMPARABLE": 5,
+              "TIE": 0,
+              "UNSUPPORTED": 0,
+              "WIN": 1,
+          }
+          assert score["production_ready_claimed"] is False
+
+          assert (root / "NOLANE-HIRA-V0-FINAL-RESEARCH-RELEASE.zip").is_file()
+          assert (root / "release" / "INTEGRITY.sha256").is_file()
+          PY
+
+      - name: Verify embedded research release integrity
+        run: |
+          (
+            cd inputs/M5FINAL/release
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Build canonical M5 closure bundle
+        run: |
+          mkdir -p artifacts/m5-closure/release-authority
+          cp -a inputs/M5FINAL/. artifacts/m5-closure/release-authority/
+          cp research/HIRA-V0-MAINLINE-M5-CLOSURE.md artifacts/m5-closure/
+          cp research/HIRA-V0-FINAL-RELEASE.md artifacts/m5-closure/
+          cp benchmarks/m5_contract.json artifacts/m5-closure/
+          cp benchmarks/laya_jev_targets.json artifacts/m5-closure/
+
+          (
+            cd artifacts/m5-closure
+            find . -type f ! -name HIRA-V0-MAINLINE-M5-INTEGRITY.sha256 ! -name NOLANE-HIRA-V0-MAINLINE-M5-FULL.zip -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > HIRA-V0-MAINLINE-M5-INTEGRITY.sha256
+            sha256sum -c HIRA-V0-MAINLINE-M5-INTEGRITY.sha256
+            zip -qr NOLANE-HIRA-V0-MAINLINE-M5-FULL.zip \
+              release-authority \
+              HIRA-V0-MAINLINE-M5-CLOSURE.md \
+              HIRA-V0-FINAL-RELEASE.md \
+              m5_contract.json \
+              laya_jev_targets.json \
+              HIRA-V0-MAINLINE-M5-INTEGRITY.sha256
+          )
+
+      - name: Emit closure receipt
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/m5-closure")
+          archive = root / "NOLANE-HIRA-V0-MAINLINE-M5-FULL.zip"
+          receipt = {
+              "schema_version": "hira-v0-mainline-m5-closure-bundle-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V0_MAINLINE_M5_CLOSED",
+              "archive": archive.name,
+              "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+              "archive_bytes": archive.stat().st_size,
+              "final_release_run_id": 36380679813,
+              "final_release_artifact_id": 10952164776,
+              "final_release_artifact_digest": "sha256:21334052dee015be8196eb89c6be3c787b0bdf70844e06481ca61d1eabffee06",
+              "scorecard_counts": {
+                  "WIN": 1,
+                  "TIE": 0,
+                  "LOSS": 16,
+                  "NOT_COMPARABLE": 5,
+                  "UNSUPPORTED": 0,
+                  "MISSING": 31,
+              },
+              "laya_jev_parity_established": False,
+              "production_ready_claimed": False,
+          }
+          (root / "closure-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V0_M5_CLOSURE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-closure-full-bundle
+          path: artifacts/m5-closure
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

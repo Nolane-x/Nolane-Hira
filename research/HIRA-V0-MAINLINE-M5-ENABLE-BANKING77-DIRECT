@@ -1,0 +1,35 @@
+# HIRA V0 MAINLINE M5 — BANKING77 DIRECT AUTHORITY ENABLE
+
+Issue: #169
+PR: #170
+
+M5-A contract authority:
+- run: 36358456335
+- artifact: 10943744649
+- digest: sha256:856031dec357cb0a0d0f1b0fff82a5d7661832a5c67aebc7c2b45d309ec45230
+- outcome: HIRA_V0_M5_CONTRACT_READY
+
+Frozen M4 runtime:
+- run: 36357825580
+- artifact: 10944174953
+- digest: sha256:5fa30c93aca4110bc8602f347c2992b7eb034056c01c432d26c84acbfd619f9a
+
+Authorize exactly one matched Laya Banking77 direct exposure:
+- dataset: mteb/banking77
+- revision: 18072d2685ea682290f7b8924d94c62acc19c0b2
+- split: test
+- selection: first 400
+- labels: 77
+- question: Which banking intent does `message` express?
+- zero Banking77 task training
+- zero retrieved labeled examples
+- full-K 77
+- state-once
+- no adaptive budget
+- no relation refinement
+- target cell: laya.app.banking77_full
+- Laya target: 0.492
+
+Jev Banking77 0.924 retrieved24 is NOT_COMPARABLE in this zero-demo lane and must not receive a score.
+
+No model/checkpoint/threshold selection is authorized after exposure.
