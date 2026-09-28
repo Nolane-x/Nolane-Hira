@@ -35,6 +35,12 @@ class _Layer(nn.Module):
         self.ffn = nn.Linear(256, 256)
 
 
+class _EncoderBody(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer = nn.ModuleList([_Layer() for _ in range(6)])
+
+
 class _FakeBert(nn.Module):
     def __init__(self):
         super().__init__()
@@ -45,9 +51,7 @@ class _FakeBert(nn.Module):
             num_attention_heads=8,
             _name_or_path="fake-a13",
         )
-        self.encoder = SimpleNamespace(
-            layer=nn.ModuleList([_Layer() for _ in range(6)])
-        )
+        self.encoder = _EncoderBody()
         self.embeddings = nn.Embedding(32, 256)
 
 
