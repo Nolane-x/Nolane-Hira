@@ -459,7 +459,7 @@ def main() -> None:
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
         "outcome": OUTCOME,
-        "scientific_authority": "S12_A0_ROLE_BINDING_IDENTITY_LOCALIZATION_ONLY",
+        "scientific_authority": "S12_A0_RELATION_BINDING_IDENTITY_LOCALIZATION_ONLY",
         "semantic_case_count": len(suite),
         "decision_count": total_decisions,
         "state_view_count": len(suite) * 2,
