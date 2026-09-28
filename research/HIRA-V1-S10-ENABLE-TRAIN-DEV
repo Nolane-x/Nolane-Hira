@@ -1,0 +1,69 @@
+# HIRA V1 S10 — enable TRAIN DEV
+
+Qualified A0 authority:
+- run: 36429235962
+- head: bb1ce0cc96cbe3a95f29e0736ef71022df2fea67
+- artifact: 10973275125
+- digest: sha256:b3a632682cccd5c78a91d2d799e74d2d328a115113a4871a3e9b43d18218b5f3
+- outcome: HIRA_V1_S10_A0_IDENTITY_READY
+
+A0 identity:
+- exact A13 token identity: true
+- exact A13 pooled identity: true
+- exact final triadic logit identity: 1.0
+- exact selected-choice identity: 1.0
+- candidate physical params: 49,152
+- grounding added params: 0
+- runtime trainable during A0: 0
+- state-once/full-K/order invariance: PASS
+
+Fresh A0 grounding diagnostics:
+- canonical grounding accuracy: 0.34375
+- canonical grounding signed gold margin: -0.19469201564788818
+- paraphrase grounding accuracy: 0.34375
+- paraphrase grounding signed gold margin: -0.249116912484169
+- grounding cross-view selected-choice agreement: 0.40625
+- canonical attention normalized entropy: 0.809822641313076
+- canonical max attention weight: 0.22189235920086503
+
+Authorize only the preregistered S10 fresh TRAIN/DEV authority.
+
+Frozen:
+- exact 49,152 trainable physical surface;
+- A13 final attention LoRA 16,384;
+- shared projection 32,768;
+- original A13 frozen;
+- HIRACore frozen;
+- no W34;
+- no learned downstream/grounding head;
+- grounding operator adds 0 params;
+- seed 16001;
+- 24 epochs;
+- batch 16 semantic cases;
+- AdamW lr 2e-4;
+- weight decay 0.01;
+- grad clip 1.0;
+- CE both views;
+- paired swap-margin coefficient .25 / margin .20;
+- option-view InfoNCE .05 / temperature .10;
+- query-conditioned state-option grounding .10;
+- grounding attention temperature .10;
+- grounding contrastive temperature .10;
+- cross-view JS .25;
+- 768 wholly fresh TRAIN semantic cases;
+- 192 wholly fresh DEV semantic cases;
+- 12 fresh domains;
+- two state views;
+- two question wording views per semantic query;
+- K=4;
+- two semantic option views.
+
+Forbidden:
+- all S0-S9 rows;
+- S10-A0 rows;
+- M5 final/confirmatory;
+- W29-W34 sealed rows;
+- post-DEV tuning or gate weakening.
+
+Sealed English and Vietnamese transfer remain closed unless
+`HIRA_V1_S10_GROUNDING_DEV_READY` is achieved.
