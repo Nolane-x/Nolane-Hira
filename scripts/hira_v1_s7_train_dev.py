@@ -27,16 +27,21 @@ from nmd.v1_s2_authority import generate_s2_pairs
 from nmd.v1_s3_authority import generate_s3_pairs
 from nmd.v1_s4_authority import generate_s4_pairs
 from nmd.v1_s5_authority import generate_s5_pairs
-from nmd.v1_s6_authority import (
+from nmd.v1_s6_authority import generate_s6_pairs
+from nmd.v1_s7_authority import (
     S7PairCase,
     generate_s7_pairs,
     validate_s7_partitions,
 )
 from nmd.v1_s6_semantic_core import (
-    HIRA_V1_S7_TOTAL_PARAMETER_COUNT,
+    HIRA_V1_S6_LORA_PARAMETER_COUNT,
     HIRA_V1_S6_LORA_RANK,
-    build_hira_v1_s6_a13_lora_core,
-    enforce_s6_encoder_eval,
+)
+from nmd.v1_s7_semantic_core import (
+    HIRA_V1_S7_PROJECTION_PARAMETER_COUNT,
+    HIRA_V1_S7_TOTAL_PARAMETER_COUNT,
+    build_hira_v1_s7_coadapt_core,
+    enforce_s7_eval,
 )
 
 
@@ -156,7 +161,7 @@ def _question_option_loss(
 
 def _encode_batch(runtime, rows: list[S7PairCase]) -> dict[str, Tensor]:
     encoder = runtime.encoder
-    enforce_s6_encoder_eval(runtime)
+    enforce_s7_eval(runtime)
 
     states = [row.state for row in rows]
     questions = [
@@ -327,7 +332,7 @@ def _batch_metrics(
 
 @torch.no_grad()
 def evaluate(runtime, rows: tuple[S7PairCase, ...]) -> dict:
-    enforce_s6_encoder_eval(runtime)
+    enforce_s7_eval(runtime)
     total_queries = 0
     correct = 0
     pair_both = 0
@@ -441,7 +446,7 @@ def main() -> None:
     encoder = frozen.runtime.encoder
 
     # LoRA A initialization is seeded above.  B starts at zero.
-    runtime = build_hira_v1_s6_a13_lora_core(
+    runtime = build_hira_v1_s7_coadapt_core(
         encoder,
         bundle / str(manifest["t0_checkpoint"]),
         expected_t0_sha256=str(manifest["t0_checkpoint_sha256"]),
@@ -450,7 +455,7 @@ def main() -> None:
     )
     del frozen
     runtime.clear_schema_cache()
-    enforce_s6_encoder_eval(runtime)
+    enforce_s7_eval(runtime)
 
     trainable = [p for p in runtime.parameters() if p.requires_grad]
     trainable_count = sum(p.numel() for p in trainable)
@@ -464,7 +469,7 @@ def main() -> None:
     if scorer.projection_trainable_parameter_count != HIRA_V1_S7_PROJECTION_PARAMETER_COUNT:
         raise RuntimeError("S7 trainable projection surface changed")
     if any(p.requires_grad for p in runtime.hira.parameters()):
-        raise RuntimeError("S6 HIRACore became trainable")
+        raise RuntimeError("S7 HIRACore became trainable")
 
     optimizer = torch.optim.AdamW(
         trainable,
@@ -501,7 +506,7 @@ def main() -> None:
             loss.backward()
             torch.nn.utils.clip_grad_norm_(trainable, GRAD_CLIP)
             optimizer.step()
-            enforce_s6_encoder_eval(runtime)
+            enforce_s7_eval(runtime)
 
             n = len(rows)
             total_loss_sum += pieces["total"] * n
@@ -569,7 +574,7 @@ def main() -> None:
 
     load_a13_lora_state_dict(runtime.encoder, best_state["lora"], freeze=False)
     scorer.load_projection_state_dict(best_state["projection"], freeze=False)
-    enforce_s6_encoder_eval(runtime)
+    enforce_s7_eval(runtime)
     selected = evaluate(runtime, dev_rows)
 
     for key in (
@@ -657,7 +662,7 @@ def main() -> None:
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
         "outcome": outcome,
-        "scientific_authority": "V1_S6_FRESH_ENGLISH_TRAIN_DEV",
+        "scientific_authority": "V1_S7_FRESH_ENGLISH_COADAPT_TRAIN_DEV",
         "seed": SEED,
         "optimizer": {
             "name": "AdamW",
