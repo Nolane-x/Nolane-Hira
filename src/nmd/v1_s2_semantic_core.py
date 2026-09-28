@@ -1,1 +1,108 @@
-from __future__ import annotations\n\nfrom pathlib import Path\n\nfrom .hira import HIRACore\nfrom .runtime import NolaneHira\nfrom .semantic import TextSemanticEncoder\nfrom .semantic_core import W28_T0_CHECKPOINT_SHA256, load_rescued_projection_checkpoint\nfrom .v1_query_token_fusion import QuestionAsEvidenceScorer, QueryTokenResidualFusionScorer\nfrom .w34_transfer_core import W34_CANDIDATE_PARAMETER_COUNT, W34_CANDIDATE_RANK, load_w34_candidate_checkpoint\n\nHIRA_V1_S2_FUSION_PARAMETER_COUNT = 8192\nHIRA_V1_S2_CANDIDATE_PARAMETER_COUNT = W34_CANDIDATE_PARAMETER_COUNT + HIRA_V1_S2_FUSION_PARAMETER_COUNT\n\n\ndef _freeze_encoder_hira(encoder: TextSemanticEncoder) -> HIRACore:\n    for p in encoder.parameters():\n        p.requires_grad_(False)\n    encoder.eval()\n    hira = HIRACore(d_model=256, dropout=0.0)\n    for p in hira.parameters():\n        p.requires_grad_(False)\n    hira.eval()\n    return hira\n\n\ndef _load_base(\n    encoder: TextSemanticEncoder,\n    t0_checkpoint_path: str | Path,\n    w34_checkpoint_path: str | Path,\n    *,\n    expected_t0_sha256: str,\n    expected_w34_sha256: str | None,\n):\n    if int(encoder.d_model) != 256:\n        raise ValueError("Hira v1 S2 requires d_model=256")\n    projection = load_rescued_projection_checkpoint(\n        t0_checkpoint_path, expected_sha256=expected_t0_sha256\n    )\n    state, meta = load_w34_candidate_checkpoint(\n        w34_checkpoint_path, expected_sha256=expected_w34_sha256\n    )\n    return projection, state, meta\n\n\ndef build_hira_v1_s2_question_as_evidence_core(\n    encoder: TextSemanticEncoder,\n    t0_checkpoint_path: str | Path,\n    w34_checkpoint_path: str | Path,\n    *,\n    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,\n    expected_w34_sha256: str | None = None,\n) -> NolaneHira:\n    projection, state, _ = _load_base(\n        encoder, t0_checkpoint_path, w34_checkpoint_path,\n        expected_t0_sha256=expected_t0_sha256,\n        expected_w34_sha256=expected_w34_sha256,\n    )\n    hira = _freeze_encoder_hira(encoder)\n    scorer = QuestionAsEvidenceScorer(d_model=256, d_rel=128, rank=W34_CANDIDATE_RANK)\n    scorer.load_projection_weight(projection, freeze=True)\n    scorer.load_candidate_state_dict(state, freeze=True)\n    if scorer.added_parameter_count != 0 or scorer.trainable_parameter_count != 0:\n        raise RuntimeError("S2 A0 must remain zero-parameter and frozen")\n    runtime = NolaneHira(encoder, hira=hira, question_as_evidence_scorer=scorer)\n    if sum(p.numel() for p in runtime.parameters() if p.requires_grad) != 0:\n        raise RuntimeError("S2 A0 runtime unexpectedly trainable")\n    return runtime\n\n\ndef build_hira_v1_s2_fusion_core(\n    encoder: TextSemanticEncoder,\n    t0_checkpoint_path: str | Path,\n    w34_checkpoint_path: str | Path,\n    *,\n    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,\n    expected_w34_sha256: str | None = None,\n    train_fusion: bool = True,\n) -> NolaneHira:\n    projection, state, _ = _load_base(\n        encoder, t0_checkpoint_path, w34_checkpoint_path,\n        expected_t0_sha256=expected_t0_sha256,\n        expected_w34_sha256=expected_w34_sha256,\n    )\n    hira = _freeze_encoder_hira(encoder)\n    scorer = QueryTokenResidualFusionScorer(d_model=256, d_rel=128, rank=W34_CANDIDATE_RANK)\n    scorer.load_projection_weight(projection, freeze=True)\n    scorer.load_w34_base_state_dict(state, freeze_base=True)\n    if scorer.fusion_parameter_count != HIRA_V1_S2_FUSION_PARAMETER_COUNT:\n        raise RuntimeError("S2 fusion parameter count changed")\n    if scorer.candidate_parameter_count != HIRA_V1_S2_CANDIDATE_PARAMETER_COUNT:\n        raise RuntimeError("S2 candidate parameter count changed")\n    if not train_fusion:\n        scorer.freeze_fusion()\n    runtime = NolaneHira(encoder, hira=hira, query_token_residual_fusion_scorer=scorer)\n    trainable = sum(p.numel() for p in runtime.parameters() if p.requires_grad)\n    expected = HIRA_V1_S2_FUSION_PARAMETER_COUNT if train_fusion else 0\n    if trainable != expected:\n        raise RuntimeError(f"S2 optimization surface changed: {trainable} != {expected}")\n    return runtime\n\n\n__all__ = [\n    "HIRA_V1_S2_FUSION_PARAMETER_COUNT",\n    "HIRA_V1_S2_CANDIDATE_PARAMETER_COUNT",\n    "build_hira_v1_s2_question_as_evidence_core",\n    "build_hira_v1_s2_fusion_core",\n]\n
+from __future__ import annotations
+
+from pathlib import Path
+
+from .hira import HIRACore
+from .runtime import NolaneHira
+from .semantic import TextSemanticEncoder
+from .semantic_core import W28_T0_CHECKPOINT_SHA256, load_rescued_projection_checkpoint
+from .v1_query_token_fusion import QuestionAsEvidenceScorer, QueryTokenResidualFusionScorer
+from .w34_transfer_core import W34_CANDIDATE_PARAMETER_COUNT, W34_CANDIDATE_RANK, load_w34_candidate_checkpoint
+
+HIRA_V1_S2_FUSION_PARAMETER_COUNT = 8192
+HIRA_V1_S2_CANDIDATE_PARAMETER_COUNT = W34_CANDIDATE_PARAMETER_COUNT + HIRA_V1_S2_FUSION_PARAMETER_COUNT
+
+
+def _freeze_encoder_hira(encoder: TextSemanticEncoder) -> HIRACore:
+    for p in encoder.parameters():
+        p.requires_grad_(False)
+    encoder.eval()
+    hira = HIRACore(d_model=256, dropout=0.0)
+    for p in hira.parameters():
+        p.requires_grad_(False)
+    hira.eval()
+    return hira
+
+
+def _load_base(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    w34_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str,
+    expected_w34_sha256: str | None,
+):
+    if int(encoder.d_model) != 256:
+        raise ValueError("Hira v1 S2 requires d_model=256")
+    projection = load_rescued_projection_checkpoint(
+        t0_checkpoint_path, expected_sha256=expected_t0_sha256
+    )
+    state, meta = load_w34_candidate_checkpoint(
+        w34_checkpoint_path, expected_sha256=expected_w34_sha256
+    )
+    return projection, state, meta
+
+
+def build_hira_v1_s2_question_as_evidence_core(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    w34_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
+    expected_w34_sha256: str | None = None,
+) -> NolaneHira:
+    projection, state, _ = _load_base(
+        encoder, t0_checkpoint_path, w34_checkpoint_path,
+        expected_t0_sha256=expected_t0_sha256,
+        expected_w34_sha256=expected_w34_sha256,
+    )
+    hira = _freeze_encoder_hira(encoder)
+    scorer = QuestionAsEvidenceScorer(d_model=256, d_rel=128, rank=W34_CANDIDATE_RANK)
+    scorer.load_projection_weight(projection, freeze=True)
+    scorer.load_candidate_state_dict(state, freeze=True)
+    if scorer.added_parameter_count != 0 or scorer.trainable_parameter_count != 0:
+        raise RuntimeError("S2 A0 must remain zero-parameter and frozen")
+    runtime = NolaneHira(encoder, hira=hira, question_as_evidence_scorer=scorer)
+    if sum(p.numel() for p in runtime.parameters() if p.requires_grad) != 0:
+        raise RuntimeError("S2 A0 runtime unexpectedly trainable")
+    return runtime
+
+
+def build_hira_v1_s2_fusion_core(
+    encoder: TextSemanticEncoder,
+    t0_checkpoint_path: str | Path,
+    w34_checkpoint_path: str | Path,
+    *,
+    expected_t0_sha256: str = W28_T0_CHECKPOINT_SHA256,
+    expected_w34_sha256: str | None = None,
+    train_fusion: bool = True,
+) -> NolaneHira:
+    projection, state, _ = _load_base(
+        encoder, t0_checkpoint_path, w34_checkpoint_path,
+        expected_t0_sha256=expected_t0_sha256,
+        expected_w34_sha256=expected_w34_sha256,
+    )
+    hira = _freeze_encoder_hira(encoder)
+    scorer = QueryTokenResidualFusionScorer(d_model=256, d_rel=128, rank=W34_CANDIDATE_RANK)
+    scorer.load_projection_weight(projection, freeze=True)
+    scorer.load_w34_base_state_dict(state, freeze_base=True)
+    if scorer.fusion_parameter_count != HIRA_V1_S2_FUSION_PARAMETER_COUNT:
+        raise RuntimeError("S2 fusion parameter count changed")
+    if scorer.candidate_parameter_count != HIRA_V1_S2_CANDIDATE_PARAMETER_COUNT:
+        raise RuntimeError("S2 candidate parameter count changed")
+    if not train_fusion:
+        scorer.freeze_fusion()
+    runtime = NolaneHira(encoder, hira=hira, query_token_residual_fusion_scorer=scorer)
+    trainable = sum(p.numel() for p in runtime.parameters() if p.requires_grad)
+    expected = HIRA_V1_S2_FUSION_PARAMETER_COUNT if train_fusion else 0
+    if trainable != expected:
+        raise RuntimeError(f"S2 optimization surface changed: {trainable} != {expected}")
+    return runtime
+
+
+__all__ = [
+    "HIRA_V1_S2_FUSION_PARAMETER_COUNT",
+    "HIRA_V1_S2_CANDIDATE_PARAMETER_COUNT",
+    "build_hira_v1_s2_question_as_evidence_core",
+    "build_hira_v1_s2_fusion_core",
+]
