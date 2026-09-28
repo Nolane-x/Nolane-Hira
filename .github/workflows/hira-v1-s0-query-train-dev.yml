@@ -1,0 +1,168 @@
+name: hira-v1-s0-query-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s0-query-conditioned-semantic
+    paths:
+      - "research/HIRA-V1-S0-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-question-blindness
+          path: inputs/S0A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36382301792
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-parameter-free-query
+          path: inputs/S0B0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36382895869
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S0 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"             "transformers>=4.45,<6"             "safetensors>=0.4"             "huggingface_hub>=0.24"
+
+      - name: Compile and run S0 contracts
+        run: |
+          python -m py_compile             src/nmd/v1_query_conditioned_semantic.py             src/nmd/v1_parameter_free_query.py             src/nmd/v1_semantic_core.py             src/nmd/v1_s0_authority.py             src/nmd/runtime.py             scripts/hira_v1_s0_train_dev.py
+          pytest -q             tests/test_v1_query_conditioned_semantic.py             tests/test_w33_coevidence_semantic.py             tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify prior S0 authorities
+        run: |
+          (
+            cd inputs/S0A
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/S0B0
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/S0A/result.json").read_text(encoding="utf-8"))
+          b = json.loads(Path("inputs/S0B0/result.json").read_text(encoding="utf-8"))
+
+          assert a["status"] == "PASS"
+          assert a["outcome"] == "HIRA_V1_S0_QUESTION_BLINDNESS_CONFIRMED"
+          assert a["identical_logit_rate"] == 1.0
+          assert a["question_token_embeddings_change_rate"] == 1.0
+
+          assert b["status"] == "PASS"
+          assert b["outcome"] == "HIRA_V1_S0_PARAMETER_FREE_QUERY_BASELINE_READY"
+          assert b["added_parameter_count"] == 0
+          assert b["trainable_parameter_count"] == 0
+          assert b["question_changes_logits_rate"] == 1.0
+          assert b["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Run query-only TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "2"
+          MKL_NUM_THREADS: "2"
+        run: |
+          python scripts/hira_v1_s0_train_dev.py             --bundle inputs/M4/hira-v0-m4-runtime             --parameter-free-result inputs/S0B0/result.json             --out artifacts/s0-train-dev
+
+      - name: Verify S0 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s0-train-dev")
+          r = json.loads((root / "result.json").read_text(encoding="utf-8"))
+
+          assert r["schema_version"] == "hira-v1-s0-query-train-dev-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S0_QUERY_REPAIR_DEV_READY",
+              "HIRA_V1_S0_QUERY_REPAIR_DEV_FAIL",
+          }
+          assert r["scientific_authority"] == "V1_S0_FRESH_TRAIN_DEV"
+          assert r["seed"] == 5101
+          assert r["optimizer"]["epochs"] == 12
+          assert r["partitions"]["train_base_cases"] == 256
+          assert r["partitions"]["train_queries"] == 512
+          assert r["partitions"]["dev_base_cases"] == 64
+          assert r["partitions"]["dev_queries"] == 128
+          assert r["partitions"]["k"] == 4
+          assert r["partitions"]["s0_localization_rows_used"] is False
+          assert r["partitions"]["m5_final_rows_used"] is False
+          assert r["partitions"]["w29_w34_sealed_rows_used"] is False
+          assert r["parameter_surface"]["query_trainable_parameters"] == 3072
+          assert r["parameter_surface"]["candidate_parameters"] == 11264
+          assert r["parameter_surface"]["w34_base_trainable"] == 0
+          assert r["parameter_surface"]["encoder_trainable"] == 0
+          assert r["parameter_surface"]["hira_core_trainable"] == 0
+          assert r["state_once"]["train_encode_calls"] == 256
+          assert r["state_once"]["dev_encode_calls"] == 64
+          assert 1 <= r["selected_dev_epoch"] <= 12
+          assert r["post_dev_tuning_performed"] is False
+          assert r["production_ready_claimed"] is False
+          assert len(r["history"]) == 12
+          assert (root / "query-candidate.pt").is_file()
+          assert (root / "train-manifest.json").is_file()
+          assert (root / "dev-manifest.json").is_file()
+
+          gates = r["gates"]
+          if r["outcome"] == "HIRA_V1_S0_QUERY_REPAIR_DEV_READY":
+              assert all(gates.values())
+          else:
+              assert not all(gates.values())
+          PY
+
+      - name: Freeze S0 TRAIN DEV integrity
+        run: |
+          (
+            cd artifacts/s0-train-dev
+            sha256sum               result.json               query-candidate.pt               train-manifest.json               dev-manifest.json               > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s0-query-train-dev
+          path: artifacts/s0-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

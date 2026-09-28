@@ -1,0 +1,13 @@
+# HIRA V1 S0 — question-conditioning diagnostic authority
+
+Trigger the first Hira v1 authority.
+
+This run must:
+- test the new query-conditioned scorer separately from v0;
+- execute the localization diagnostic with the exact frozen M4 wheel;
+- keep the v0 candidate trainable parameter count at 0;
+- prove whether changing only question text leaves frozen v0 co-evidence logits unchanged;
+- retain EN/VI per-case evidence;
+- make no production or parity claim.
+
+This localization set is not a future promotion set and may not be used for v1 model selection.
