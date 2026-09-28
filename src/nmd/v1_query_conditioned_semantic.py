@@ -145,8 +145,14 @@ class QueryConditionedCoEvidenceScorer(CoEvidenceSemanticScorer):
         *,
         freeze_base: bool = True,
     ) -> None:
-        """Load the eight W34 candidate tensors without touching query weights."""
-        super().load_candidate_state_dict(state_dict, freeze=freeze_base)
+        """Load W34 tensors while preserving the v1 query trainable surface."""
+        CoEvidenceSemanticScorer.load_candidate_state_dict(
+            self,
+            state_dict,
+            freeze=False,
+        )
+        if freeze_base:
+            CoEvidenceSemanticScorer.freeze_candidate(self)
 
     def _project_question(self, question_tokens: Tensor) -> Tensor:
         return F.normalize(self.projection(question_tokens), dim=-1)
