@@ -1,0 +1,30 @@
+# HIRA V1 S3 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36393304057
+- artifact: 10956484697
+- digest: sha256:614c1b48421392e53906075c34670b879fc2033141f7e824c31cc848bf41e0e6
+- outcome: HIRA_V1_S3_A0_PARAMETER_FREE_TRIADIC_READY
+
+Observed A0:
+- accuracy: 0.3125
+- paired both-correct: 0.0
+- question changes logits: 1.0
+- question changes choice: 0.25
+- fresh v0 control accuracy: 0.21875
+
+Authorize only the preregistered learned Triadic CP TRAIN/DEV experiment.
+
+Rules:
+- exact frozen M4 A13/W28 base;
+- W34 excluded from the S3 semantic scoring path;
+- exactly 12,288 trainable factor parameters;
+- English-only fresh S3-A rows;
+- seed 8301 fixed before Xavier construction;
+- 20 epochs;
+- AdamW lr 5e-4, weight decay 0.01, grad clip 1.0;
+- CE + 0.25 paired swap-margin, margin 0.20;
+- frozen DEV gates from HIRA-V1-S3-CONTRACT.md;
+- no S0/S1/S2/S3-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.

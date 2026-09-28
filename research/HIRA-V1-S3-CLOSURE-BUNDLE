@@ -1,0 +1,20 @@
+# HIRA V1 S3 — closure bundle trigger
+
+S3 is frozen as:
+
+`HIRA_V1_S3_TRIADIC_DEV_FAIL`
+
+Canonical evidence:
+- A0 run 36393304057 / artifact 10956484697 / digest sha256:614c1b48421392e53906075c34670b879fc2033141f7e824c31cc848bf41e0e6
+- TRAIN/DEV run 36393893293 / artifact 10957677382 / digest sha256:6ef1e9dc5188814ea77a2b3ecfbc66787e93cf8b2ca754ce91a186e42d5f9863
+
+Selected triadic candidate:
+- epoch 1
+- checkpoint sha256 ddcb2e99049aa3c321030cd93b499d4dcbb2c6f1fd3550de8e07710f67d3efd5
+- DEV accuracy 0.3125
+- paired both-correct 0.09375
+- question-swap choice-change 0.25
+- option-order flip 0.0
+
+No S3 post-DEV rescue is authorized.
+Sealed confirm and multilingual probe remain closed.

@@ -1,0 +1,147 @@
+name: hira-v1-s3-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s3-triadic-semantic
+    paths:
+      - "research/HIRA-V1-S3-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s3-a0-parameter-free-triadic
+          path: inputs/A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36393304057
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s3-triadic-train-dev
+          path: inputs/TRAINDEV
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36393893293
+
+      - name: Verify frozen S3 authorities
+        run: |
+          (
+            cd inputs/A0
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/TRAINDEV
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a0 = json.loads(Path("inputs/A0/result.json").read_text(encoding="utf-8"))
+          td = json.loads(Path("inputs/TRAINDEV/result.json").read_text(encoding="utf-8"))
+
+          assert a0["status"] == "PASS"
+          assert a0["outcome"] == "HIRA_V1_S3_A0_PARAMETER_FREE_TRIADIC_READY"
+          assert a0["added_parameter_count"] == 0
+          assert a0["a0"]["accuracy"] == 0.3125
+          assert a0["a0"]["question_changes_choice_rate"] == 0.25
+          assert a0["used_for_model_selection"] is False
+          assert a0["production_ready_claimed"] is False
+
+          assert td["status"] == "PASS"
+          assert td["outcome"] == "HIRA_V1_S3_TRIADIC_DEV_FAIL"
+          assert td["selected_dev_epoch"] == 1
+          assert td["checkpoint_sha256"] == "ddcb2e99049aa3c321030cd93b499d4dcbb2c6f1fd3550de8e07710f67d3efd5"
+          assert td["selected_dev"]["accuracy"] == 0.3125
+          assert td["selected_dev"]["paired_both_correct_rate"] == 0.09375
+          assert td["selected_dev"]["question_swap_choice_change_rate"] == 0.25
+          assert td["selected_dev"]["option_order_flip_rate"] == 0.0
+          assert td["parameter_surface"]["factor_trainable_parameters"] == 12288
+          assert td["parameter_surface"]["w34_in_semantic_path"] is False
+          assert td["post_dev_tuning_performed"] is False
+          assert td["sealed_confirm_opened"] is False
+          assert td["multilingual_probe_opened"] is False
+          assert td["production_ready_claimed"] is False
+          PY
+
+      - name: Build canonical S3 closure bundle
+        run: |
+          mkdir -p artifacts/s3-closure/evidence/A0
+          mkdir -p artifacts/s3-closure/evidence/TRAINDEV
+          cp -a inputs/A0/. artifacts/s3-closure/evidence/A0/
+          cp -a inputs/TRAINDEV/. artifacts/s3-closure/evidence/TRAINDEV/
+          cp research/HIRA-V1-S3-CONTRACT.md artifacts/s3-closure/
+          cp research/HIRA-V1-S3-A0-RECEIPT.md artifacts/s3-closure/
+          cp research/HIRA-V1-S3-CLOSURE.md artifacts/s3-closure/
+          cp research/HIRA-V1-S3-HANDOFF.md artifacts/s3-closure/
+
+          (
+            cd artifacts/s3-closure
+            find . -type f ! -name HIRA-V1-S3-INTEGRITY.sha256 ! -name NOLANE-HIRA-V1-S3-FULL.zip -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > HIRA-V1-S3-INTEGRITY.sha256
+            sha256sum -c HIRA-V1-S3-INTEGRITY.sha256
+            zip -qr NOLANE-HIRA-V1-S3-FULL.zip \
+              evidence \
+              HIRA-V1-S3-CONTRACT.md \
+              HIRA-V1-S3-A0-RECEIPT.md \
+              HIRA-V1-S3-CLOSURE.md \
+              HIRA-V1-S3-HANDOFF.md \
+              HIRA-V1-S3-INTEGRITY.sha256
+          )
+
+      - name: Emit closure receipt
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s3-closure")
+          archive = root / "NOLANE-HIRA-V1-S3-FULL.zip"
+          receipt = {
+              "schema_version": "hira-v1-s3-closure-bundle-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V1_S3_CLOSED_DEV_FAIL",
+              "archive": archive.name,
+              "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+              "archive_bytes": archive.stat().st_size,
+              "a0_run_id": 36393304057,
+              "a0_artifact_id": 10956484697,
+              "a0_artifact_digest": "sha256:614c1b48421392e53906075c34670b879fc2033141f7e824c31cc848bf41e0e6",
+              "train_dev_run_id": 36393893293,
+              "train_dev_artifact_id": 10957677382,
+              "train_dev_artifact_digest": "sha256:6ef1e9dc5188814ea77a2b3ecfbc66787e93cf8b2ca754ce91a186e42d5f9863",
+              "selected_dev_epoch": 1,
+              "selected_dev_accuracy": 0.3125,
+              "paired_both_correct_rate": 0.09375,
+              "question_swap_choice_change_rate": 0.25,
+              "sealed_confirm_opened": False,
+              "multilingual_probe_opened": False,
+              "production_ready_claimed": False,
+          }
+          (root / "closure-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V1_S3_CLOSURE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s3-closure-full-bundle
+          path: artifacts/s3-closure
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
