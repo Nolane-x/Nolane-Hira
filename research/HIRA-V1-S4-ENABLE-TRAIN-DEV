@@ -1,0 +1,32 @@
+# HIRA V1 S4 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36397966988
+- artifact: 10959630634
+- digest: sha256:1943d802440ec759e4d32c97c61fdb93714ce8fb0a1897df25bd3bcdbc071c59
+- outcome: HIRA_V1_S4_A0_IDENTITY_READY
+
+Observed A0:
+- exact logit identity: 1.0
+- exact choice identity: 1.0
+- accuracy: 0.28125
+- paired both-correct: 0.0
+- option-order flip: 0.0
+
+Authorize only the preregistered S4 SRSA TRAIN/DEV experiment.
+
+Rules:
+- exact M4 A13/W28 base;
+- exactly 16,384 trainable shared adapter parameters;
+- no learned downstream scorer;
+- English-only fresh S4-A rows;
+- 384 TRAIN states / 768 queries;
+- 96 DEV states / 192 queries;
+- seed 9401;
+- 24 epochs;
+- AdamW lr 4e-4, weight decay 0.01, grad clip 1.0;
+- CE + 0.25 paired swap-margin, margin 0.20;
+- frozen DEV gates from HIRA-V1-S4-CONTRACT.md;
+- no S0-S3/S4-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
