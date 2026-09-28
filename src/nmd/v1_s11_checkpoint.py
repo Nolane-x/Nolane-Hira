@@ -22,7 +22,7 @@ from .v1_s11_semantic_core import (
 )
 
 S11_CHECKPOINT_SCHEMA = "hira-v1-s11-role-binding-checkpoint-v1"
-S11_CHECKPOINT_KIND = "state-option-role-preserving-binding-a13-w28"
+S11_CHECKPOINT_KIND = "role-preserving-binding-a13-w28"
 S11_LORA_KEYS = {
     *(f"lora.{i}.a" for i in range(4)),
     *(f"lora.{i}.b" for i in range(4)),
