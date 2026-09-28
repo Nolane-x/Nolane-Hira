@@ -28,11 +28,23 @@ jobs:
 
       - name: Compile S10 modules
         run: |
-          python -m py_compile             src/nmd/v1_grounding.py             src/nmd/v1_s10_semantic_core.py             src/nmd/v1_s10_authority.py             scripts/hira_v1_s10_a0_identity.py
+          python -m py_compile \
+            src/nmd/v1_grounding.py \
+            src/nmd/v1_s10_semantic_core.py \
+            src/nmd/v1_s10_checkpoint.py \
+            src/nmd/v1_s10_authority.py \
+            scripts/hira_v1_s10_a0_identity.py \
+            scripts/hira_v1_s10_train_dev.py
 
       - name: Run S10 and inherited contracts
         run: |
-          pytest -q             tests/test_v1_grounding.py             tests/test_v1_s10_authority.py             tests/test_v1_invariance.py             tests/test_v1_a13_lora.py             tests/test_v1_triadic_semantic.py
+          pytest -q \
+            tests/test_v1_grounding.py \
+            tests/test_v1_s10_authority.py \
+            tests/test_v1_s10_checkpoint.py \
+            tests/test_v1_invariance.py \
+            tests/test_v1_a13_lora.py \
+            tests/test_v1_triadic_semantic.py
 
   a0:
     needs: unit
