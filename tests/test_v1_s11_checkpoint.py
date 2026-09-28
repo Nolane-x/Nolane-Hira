@@ -116,7 +116,7 @@ def test_s11_checkpoint_roundtrip_and_frozen_replay(tmp_path):
     torch.save(
         {
             "schema_version": "hira-v1-s11-role-binding-checkpoint-v1",
-            "kind": "state-option-role-preserving-binding-a13-w28",
+            "kind": "role-preserving-binding-a13-w28",
             "lora_parameter_count": 16384,
             "projection_parameter_count": 32768,
             "total_parameter_count": 49152,
