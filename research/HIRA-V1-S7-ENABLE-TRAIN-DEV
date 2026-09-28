@@ -1,0 +1,40 @@
+# HIRA V1 S7 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36411385031
+- artifact: 10964497583
+- digest: sha256:38c9a23606053c4131143817a555677bdbe0e09dac645cbd725572a1d6cd4bdc
+- outcome: HIRA_V1_S7_A0_IDENTITY_READY
+
+Observed A0:
+- A13 token identity: true
+- A13 pooled identity: true
+- exact logit identity: 1.0
+- exact choice identity: 1.0
+- candidate capacity: 49,152
+- option-order flip: 0.0
+- state-once/full-K/relation-delta-zero: PASS
+
+Authorize only the preregistered S7 joint A13-W28 TRAIN/DEV experiment.
+
+Rules:
+- exact pinned A13 base;
+- final-layer rank-8 LoRA only on Q/K/V/attention-output;
+- shared bias-free 256->128 projection initialized from exact W28 T0;
+- exactly 16,384 LoRA + 32,768 projection = 49,152 trainable params;
+- every original A13 parameter frozen;
+- HIRACore frozen;
+- no learned downstream scorer;
+- 768 fresh English TRAIN states / 1,536 queries;
+- 192 fresh English DEV states / 384 queries;
+- twelve fresh domains;
+- K=4 and two semantic views per option;
+- seed 12701;
+- 24 epochs;
+- batch 32;
+- AdamW lr 2e-4, weight decay 0.01, grad clip 1.0;
+- exact S6 loss coefficients preserved;
+- frozen DEV gates from HIRA-V1-S7-CONTRACT.md;
+- no S0-S6/S7-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
