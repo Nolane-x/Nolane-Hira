@@ -1,0 +1,250 @@
+name: hira-v0-mainline-m5-final-scorecard
+
+on:
+  push:
+    branches:
+      - feat/hira-v0-mainline-m5-matched-benchmark
+    paths:
+      - "research/HIRA-V0-MAINLINE-M5-ENABLE-FINAL-SCORECARD"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  final-scorecard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-contract
+          path: inputs/M5A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358456335
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-banking77-direct
+          path: inputs/M5B1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36358746320
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-english-heldout
+          path: inputs/M5B2
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359178166
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-xnli
+          path: inputs/M5B3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359330862
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-jev-btzsc
+          path: inputs/M5B4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359563201
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-massive-intent
+          path: inputs/M5B5
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359747332
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-systems-cpu
+          path: inputs/M5C
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36359707957
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-confirmatory
+          path: inputs/M5D
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36380411753
+
+      - name: Verify frozen authority integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/M5D
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          checks = [
+              ("inputs/M5A/receipt.json", "HIRA_V0_M5_CONTRACT_READY"),
+              ("inputs/M5B1/result.json", "HIRA_V0_M5_BANKING77_DIRECT_READY"),
+              ("inputs/M5B2/result.json", "HIRA_V0_M5_ENGLISH_HELDOUT_READY"),
+              ("inputs/M5B3/result.json", "HIRA_V0_M5_XNLI_READY"),
+              ("inputs/M5B4/result.json", "HIRA_V0_M5_JEV_BTZSC_READY"),
+              ("inputs/M5B5/result.json", "HIRA_V0_M5_MASSIVE_INTENT_READY"),
+              ("inputs/M5C/result.json", "HIRA_V0_M5_SYSTEMS_CPU_READY"),
+              ("inputs/M5D/result.json", "HIRA_V0_M5_CONFIRMATORY_READY"),
+          ]
+          for path, expected in checks:
+              row = json.loads(Path(path).read_text(encoding="utf-8"))
+              assert row["status"] == "PASS", path
+              assert row["outcome"] == expected, (path, row.get("outcome"), expected)
+              if "used_for_model_selection" in row:
+                  assert row["used_for_model_selection"] is False, path
+              if "production_ready_claimed" in row:
+                  assert row["production_ready_claimed"] is False, path
+          PY
+
+      - name: Build bounded final 53-cell scorecard
+        run: |
+          python scripts/hira_v0_m5_final_scorecard.py             --targets benchmarks/laya_jev_targets.json             --banking77 inputs/M5B1/result.json             --english inputs/M5B2/result.json             --xnli inputs/M5B3/result.json             --jev inputs/M5B4/result.json             --massive inputs/M5B5/result.json             --systems inputs/M5C/result.json             --confirmatory inputs/M5D/result.json             --out artifacts/final-scorecard
+
+      - name: Verify final scorecard contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/final-scorecard")
+          r = json.loads((root / "final-scorecard.json").read_text(encoding="utf-8"))
+          receipt = json.loads((root / "receipt.json").read_text(encoding="utf-8"))
+          assert r["schema_version"] == "hira-v0-mainline-m5-final-scorecard-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V0_M5_FINAL_SCORECARD_READY"
+          assert r["target_count"] == 53
+          assert sum(r["counts"].values()) == 53
+          assert r["matched_scored_cells"] >= 17
+          assert r["global_winner_claimed"] is False
+          assert r["public_targets_used_for_model_selection"] is False
+          assert r["model_weights_changed_after_final_exposure"] is False
+          assert r["production_ready_claimed"] is False
+          assert receipt["production_ready_claimed"] is False
+          assert receipt["release_class"] == "research_release_evidence"
+          PY
+
+      - name: Stage complete research-release evidence
+        run: |
+          mkdir -p artifacts/release/runtime
+          mkdir -p artifacts/release/evidence
+          mkdir -p artifacts/release/scorecard
+          mkdir -p artifacts/release/contracts
+
+          cp -a inputs/M4/hira-v0-m4-runtime/. artifacts/release/runtime/
+          cp inputs/M4/hira-v0-m4-package-smoke.json artifacts/release/runtime-package-smoke.json
+
+          cp -a inputs/M5A artifacts/release/evidence/M5A-contract
+          cp -a inputs/M5B1 artifacts/release/evidence/M5B1-banking77
+          cp -a inputs/M5B2 artifacts/release/evidence/M5B2-english
+          cp -a inputs/M5B3 artifacts/release/evidence/M5B3-xnli
+          cp -a inputs/M5B4 artifacts/release/evidence/M5B4-jev-btzsc
+          cp -a inputs/M5B5 artifacts/release/evidence/M5B5-massive
+          cp -a inputs/M5C artifacts/release/evidence/M5C-systems
+          cp -a inputs/M5D artifacts/release/evidence/M5D-confirmatory
+
+          cp artifacts/final-scorecard/final-scorecard.json artifacts/release/scorecard/
+          cp artifacts/final-scorecard/FINAL-SCORECARD.md artifacts/release/scorecard/
+          cp artifacts/final-scorecard/receipt.json artifacts/release/scorecard/
+
+          cp benchmarks/m5_contract.json artifacts/release/contracts/
+          cp benchmarks/laya_jev_targets.json artifacts/release/contracts/
+          cp benchmarks/laya_protocol_manifest.json artifacts/release/contracts/
+          cp benchmarks/jev_protocol_manifest.json artifacts/release/contracts/
+          cp benchmarks/source_registry.json artifacts/release/contracts/
+          cp benchmarks/BENCHMARK_CAMPAIGN.md artifacts/release/contracts/
+
+          cat > artifacts/release/README.md <<'EOF'
+          # Nolane Hira v0 — research evidence release
+
+          This bundle freezes the Hira v0 M4 runtime together with the M5 matched
+          benchmark evidence and fresh confirmatory suite.
+
+          It is not a production-ready release and does not claim general Laya/Jev
+          parity. Semantic quality, multilingual quality, reliability/OOD and
+          production readiness remain provisional.
+
+          The final scorecard under scorecard/ is authoritative for M5 claims.
+          Missing cells remain MISSING; cross-hardware/protocol rows remain
+          NOT_COMPARABLE rather than being converted into losses or zeros.
+          EOF
+
+          (
+            cd artifacts/release
+            find . -type f ! -name INTEGRITY.sha256 -print0 | sort -z | xargs -0 sha256sum > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Build research-release archive and receipt
+        run: |
+          (
+            cd artifacts
+            zip -qr NOLANE-HIRA-V0-FINAL-RESEARCH-RELEASE.zip release
+          )
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          archive = Path("artifacts/NOLANE-HIRA-V0-FINAL-RESEARCH-RELEASE.zip")
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+          score = json.loads(Path("artifacts/final-scorecard/receipt.json").read_text())
+          receipt = {
+              "schema_version": "hira-v0-final-research-release-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V0_FINAL_RESEARCH_RELEASE_READY",
+              "archive": archive.name,
+              "archive_sha256": digest,
+              "archive_bytes": archive.stat().st_size,
+              "m5_scorecard_outcome": score["outcome"],
+              "target_count": score["target_count"],
+              "counts": score["counts"],
+              "confirmatory_suite_sha256": score["confirmatory_suite_sha256"],
+              "production_ready_claimed": False,
+              "global_winner_claimed": False,
+          }
+          Path("artifacts/final-release-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V0_FINAL_RELEASE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v0-mainline-m5-final-release
+          path: |
+            artifacts/release
+            artifacts/final-scorecard
+            artifacts/NOLANE-HIRA-V0-FINAL-RESEARCH-RELEASE.zip
+            artifacts/final-release-receipt.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
