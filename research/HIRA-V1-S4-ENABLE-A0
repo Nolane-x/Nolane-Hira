@@ -1,0 +1,13 @@
+# HIRA V1 S4 — enable A0
+
+Trigger the first S4 authority.
+
+Requirements:
+- run S4 unit/regression tests first;
+- use exact frozen M4 A13/W28 provenance;
+- use only the fresh S4-A0 localization suite;
+- freeze the SRSA adapter;
+- require exact logit/choice identity with parameter-free triadic geometry;
+- preserve state-once/full-K/option-order invariance/relation-delta-zero;
+- never use A0 for model selection;
+- make no parity, multilingual, reliability/OOD or production claim.
