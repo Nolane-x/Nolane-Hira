@@ -359,6 +359,24 @@ def validate_s8_partitions(
     if train_questions & dev_questions:
         raise RuntimeError("S8 TRAIN/DEV question-view overlap")
 
+    train_option_texts = {
+        text for row in train for text in row.option_texts
+    }
+    dev_option_texts = {
+        text for row in dev for text in row.option_texts
+    }
+    if train_option_texts & dev_option_texts:
+        raise RuntimeError("S8 TRAIN/DEV option-text overlap")
+
+    train_aliases = {
+        text for row in train for text in row.option_aliases
+    }
+    dev_aliases = {
+        text for row in dev for text in row.option_aliases
+    }
+    if train_aliases & dev_aliases:
+        raise RuntimeError("S8 TRAIN/DEV option-alias overlap")
+
 
 __all__ = [
     "S8InvariantCase",
