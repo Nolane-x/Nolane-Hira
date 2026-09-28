@@ -1,0 +1,35 @@
+# HIRA V1 S5 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36400104371
+- artifact: 10960266188
+- digest: sha256:0ba8a60dd46a8cae47ed7098c558cce9fa7e8b4e137231116bb458943a386607
+- outcome: HIRA_V1_S5_A0_IDENTITY_READY
+
+Observed A0:
+- exact logit identity: 1.0
+- exact choice identity: 1.0
+- accuracy: 0.3125
+- paired both-correct: 0.0625
+- frozen option-view InfoNCE: 0.9803502075374126
+
+Authorize only the preregistered S5 projection TRAIN/DEV experiment.
+
+Rules:
+- exact frozen M4 A13 base;
+- initialize from exact W28 T0;
+- exactly 32,768 trainable shared projection parameters;
+- no learned downstream scorer;
+- 512 fresh English TRAIN states / 1,024 queries;
+- 128 fresh English DEV states / 256 queries;
+- eight fresh domains;
+- K=4 and exactly two semantic views per option;
+- seed 10501;
+- 30 epochs;
+- AdamW lr 3e-4, weight decay 0.01, grad clip 1.0;
+- CE + 0.25 paired swap-margin, margin 0.20;
+- option-view InfoNCE coefficient 0.10, temperature 0.10;
+- frozen DEV gates from HIRA-V1-S5-CONTRACT.md;
+- no S0-S4/S5-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
