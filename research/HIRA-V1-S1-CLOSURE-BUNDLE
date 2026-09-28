@@ -1,0 +1,22 @@
+# HIRA V1 S1 — closure bundle trigger
+
+Final frozen S1 authorities:
+
+A0:
+- run 36387872121
+- artifact 10955282264
+- digest sha256:98428470ca03e5de015517c1355b4d16d2dc1aa6bf8688e6ae2f05476cf5da3a
+
+TRAIN/DEV:
+- run 36388286637
+- artifact 10955218190
+- digest sha256:51b7a808531922f1e3c73c4d01d931562b7f0dc2032e39af7d9d68d5a575468d
+- outcome HIRA_V1_S1_QKEE_DEV_FAIL
+- selected epoch 7
+- checkpoint SHA256 50232f45f0e7b6123c84f9b5378473f8b3028978044e6e0163f93e5cfdc1a4c7
+- DEV accuracy 0.265625
+- paired both-correct 0.0
+- question-swap choice-change 0.0
+
+No sealed confirm or multilingual probe was opened.
+Production-ready remains false.
