@@ -103,24 +103,27 @@ def test_s10_split_specific_lexical_sentinels():
     train_text = "\n".join(row.state_a for row in generate_s10_cases("train"))
     dev_text = "\n".join(row.state_a for row in generate_s10_cases("dev"))
 
+    # Use complete context-bearing sentinels. Short lexical fragments can
+    # legitimately occur inside unrelated split values (for example QPSK is
+    # a substring of the DEV value pi/4-DQPSK).
     for token in (
-        "isobutane",
-        "QPSK",
-        "strain A17",
-        "warm LED",
-        "7075 aluminum",
-        "Gala",
+        "lists working fluid isobutane together with",
+        "lists modulation QPSK together with",
+        "lists culture strain strain A17 together with",
+        "lists lighting mode warm LED together with",
+        "lists impeller alloy 7075 aluminum together with",
+        "lists cultivar Gala together with",
     ):
         assert token in train_text
         assert token not in dev_text
 
     for token in (
-        "R1233zd",
-        "128QAM",
-        "strain J14",
-        "RGBW LED",
-        "Inconel 625",
-        "Jazz",
+        "working fluid field contains R1233zd, while",
+        "modulation field contains 128QAM, while",
+        "culture strain field contains strain J14, while",
+        "lighting mode field contains RGBW LED, while",
+        "impeller alloy field contains Inconel 625, while",
+        "cultivar field contains Jazz, while",
     ):
         assert token in dev_text
         assert token not in train_text
