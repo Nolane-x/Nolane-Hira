@@ -13,3 +13,5 @@ Required:
 - archive all evidence;
 - do not open sealed or multilingual evaluation;
 - do not claim Laya/Jev parity or production readiness.
+
+Trigger closure workflow after workflow registration.
