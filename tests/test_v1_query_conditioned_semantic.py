@@ -475,3 +475,57 @@ def test_v1_parameter_free_query_baseline_is_option_permutation_equivariant():
         atol=1e-6,
         rtol=1e-6,
     )
+
+
+def test_v1_s0_authority_partitions_are_fresh_balanced_and_paired():
+    from nmd.v1_s0_authority import generate_s0_pairs, validate_s0_partitions
+
+    train = generate_s0_pairs("train")
+    dev = generate_s0_pairs("dev")
+    validate_s0_partitions(train, dev)
+
+    assert len(train) == 256
+    assert len(dev) == 64
+    assert sum(row.language == "en" for row in train) == 128
+    assert sum(row.language == "vi" for row in train) == 128
+    assert sum(row.language == "en" for row in dev) == 32
+    assert sum(row.language == "vi" for row in dev) == 32
+    assert {row.domain for row in train} == {
+        "event_record",
+        "account_record",
+        "class_record",
+        "support_record",
+    }
+    assert all(len(row.option_ids) == 4 for row in train + dev)
+    assert all(row.gold_a != row.gold_b for row in train + dev)
+
+    train_states = {row.state for row in train}
+    dev_states = {row.state for row in dev}
+    assert not (train_states & dev_states)
+
+
+def test_v1_s0_authority_does_not_reuse_localization_rows():
+    from nmd.v1_s0_authority import generate_s0_pairs
+    import importlib.util
+    from pathlib import Path
+
+    path = Path("scripts/hira_v1_s0_question_blindness.py")
+    spec = importlib.util.spec_from_file_location("s0_localization", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    localization = module.cases()
+
+    forbidden_states = {row.state for row in localization}
+    forbidden_questions = {
+        text
+        for row in localization
+        for text in (row.question_a, row.question_b)
+    }
+    authority = generate_s0_pairs("train") + generate_s0_pairs("dev")
+    assert not ({row.state for row in authority} & forbidden_states)
+    assert not ({
+        text
+        for row in authority
+        for text in (row.question_a, row.question_b)
+    } & forbidden_questions)
