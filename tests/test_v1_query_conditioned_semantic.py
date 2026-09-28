@@ -419,3 +419,59 @@ def test_v1_s0_builder_can_freeze_complete_candidate(tmp_path):
         for parameter in runtime.parameters()
         if parameter.requires_grad
     ) == 0
+
+
+def test_v1_parameter_free_query_baseline_adds_zero_parameters_and_uses_question():
+    from nmd.v1_parameter_free_query import ParameterFreeQueryCoEvidenceScorer
+
+    torch.manual_seed(41008)
+    scorer = ParameterFreeQueryCoEvidenceScorer(
+        d_model=256,
+        d_rel=128,
+        rank=8,
+    )
+    scorer.load_projection_weight(torch.randn(128, 256), freeze=True)
+    scorer.freeze_candidate()
+
+    assert scorer.added_parameter_count == 0
+    assert scorer.candidate_parameter_count == 8192
+    assert scorer.trainable_parameter_count == 0
+
+    args = _inputs()
+    first = scorer(**args)
+    changed = dict(args)
+    changed["question_tokens"] = args["question_tokens"].clone()
+    changed["question_tokens"][:, 0] += 1.5
+    second = scorer(**changed)
+
+    assert not torch.equal(first, second)
+    assert float((first - second).abs().max()) > 1e-7
+
+
+def test_v1_parameter_free_query_baseline_is_option_permutation_equivariant():
+    from nmd.v1_parameter_free_query import ParameterFreeQueryCoEvidenceScorer
+
+    torch.manual_seed(41009)
+    scorer = ParameterFreeQueryCoEvidenceScorer(
+        d_model=256,
+        d_rel=128,
+        rank=8,
+    )
+    scorer.load_projection_weight(torch.randn(128, 256), freeze=True)
+    scorer.freeze_candidate()
+
+    args = _inputs()
+    direct = scorer(**args)
+    permutation = torch.tensor([1, 2, 0])
+    permuted_args = dict(args)
+    permuted_args["option_view_tokens"] = args["option_view_tokens"][:, permutation]
+    permuted_args["option_view_token_mask"] = args["option_view_token_mask"][:, permutation]
+    permuted_args["option_view_mask"] = args["option_view_mask"][:, permutation]
+    permuted = scorer(**permuted_args)
+
+    assert torch.allclose(
+        permuted,
+        direct[:, permutation],
+        atol=1e-6,
+        rtol=1e-6,
+    )
