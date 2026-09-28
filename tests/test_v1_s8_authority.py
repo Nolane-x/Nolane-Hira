@@ -62,6 +62,10 @@ def test_s8_train_dev_all_wording_views_are_disjoint():
         {x for row in train for x in row.option_texts}
         & {x for row in dev for x in row.option_texts}
     )
+    assert not (
+        {x for row in train for x in row.option_aliases}
+        & {x for row in dev for x in row.option_aliases}
+    )
 
 
 def test_s8_exact_state_question_fresh_against_s0_through_s7():
