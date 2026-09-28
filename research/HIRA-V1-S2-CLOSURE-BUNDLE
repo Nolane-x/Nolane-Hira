@@ -1,0 +1,21 @@
+# HIRA V1 S2 — closure bundle trigger
+
+S2 is frozen as:
+
+`HIRA_V1_S2_QTRF_DEV_FAIL`
+
+Canonical evidence to package:
+- A0 run 36390086785 / artifact 10955893093 / digest sha256:e17ccf529e503450686895c983d77df945b21e90570a8945da8c48e95c57c471
+- first pre-exposure TRAIN/DEV run 36390503180 (harness failure only, no optimizer or DEV exposure)
+- qualified TRAIN/DEV run 36391742553 / artifact 10957020098 / digest sha256:0e665e01074eada113ef481fe980fd78076692337344f6312d7022ef4d170472
+
+Selected QTRF:
+- epoch 2
+- checkpoint sha256 dc2cff637771aea70ab7f7011d108cfc08a63048e8ef2502767099126eea4af2
+- DEV accuracy 0.2578125
+- paired both-correct 0.09375
+- question-swap choice-change 0.546875
+- option-order flip 0.0
+
+No S2 post-DEV rescue is authorized.
+Sealed confirm and multilingual probe remain closed.
