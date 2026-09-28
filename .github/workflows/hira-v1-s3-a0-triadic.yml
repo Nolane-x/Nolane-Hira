@@ -1,0 +1,136 @@
+name: hira-v1-s3-a0-triadic
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s3-triadic-semantic
+    paths:
+      - "research/HIRA-V1-S3-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S3 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S3 modules
+        run: |
+          python -m py_compile \
+            src/nmd/v1_triadic_semantic.py \
+            src/nmd/v1_s3_semantic_core.py \
+            src/nmd/runtime.py \
+            scripts/hira_v1_s3_a0_triadic.py
+      - name: Run S3 and frozen regression contracts
+        run: |
+          pytest -q \
+            tests/test_v1_triadic_semantic.py \
+            tests/test_v1_query_token_fusion.py \
+            tests/test_v1_query_keyed_evidence.py \
+            tests/test_v1_query_conditioned_semantic.py \
+            tests/test_w33_coevidence_semantic.py \
+            tests/test_symmetric_semantic_runtime.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S3 runtime stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" \
+            "transformers>=4.45,<6" \
+            "safetensors>=0.4" \
+            "huggingface_hub>=0.24"
+
+      - name: Verify exact frozen M4 integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          from nmd.local_runtime import read_runtime_bundle_manifest
+          m = read_runtime_bundle_manifest("inputs/M4/hira-v0-m4-runtime")
+          assert m["hira_manifest"]["version"] == "0.0-m4a"
+          assert m["t0_checkpoint_sha256"] == "1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          assert m["hira_manifest"]["production_ready"] is False
+          PY
+
+      - name: Run first fresh S3-A0 exposure
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s3_a0_triadic.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --out artifacts/s3-a0
+
+      - name: Verify S3-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s3-a0")
+          r = json.loads((root / "result.json").read_text(encoding="utf-8"))
+          assert r["schema_version"] == "hira-v1-s3-a0-parameter-free-triadic-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S3_A0_PARAMETER_FREE_TRIADIC_READY"
+          assert r["scientific_authority"] == "S3_A0_LOCALIZATION_ONLY"
+          assert r["case_count"] == 16
+          assert r["query_count"] == 32
+          assert r["language"] == "en"
+          assert r["k"] == 4
+          assert r["added_parameter_count"] == 0
+          assert r["trainable_parameter_count"] == 0
+          assert r["runtime"]["state_encode_calls"] == 16
+          assert r["runtime"]["full_k"] is True
+          assert r["runtime"]["relation_refinement"] is False
+          assert r["runtime"]["max_probability_mass_error"] <= 1e-6
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          assert len((root / "per-case.jsonl").read_text(encoding="utf-8").splitlines()) == 16
+          PY
+
+      - name: Freeze S3-A0 integrity
+        run: |
+          (
+            cd artifacts/s3-a0
+            sha256sum result.json per-case.jsonl > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s3-a0-parameter-free-triadic
+          path: artifacts/s3-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
