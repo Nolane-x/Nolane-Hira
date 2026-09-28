@@ -1,0 +1,14 @@
+# HIRA V1 S5 — enable A0
+
+Trigger the first S5 authority.
+
+Requirements:
+- run S5 unit/regression contracts before exposure;
+- use exact frozen M4 A13 and exact W28 T0 initialization;
+- freeze the S5 projection during A0;
+- require exact logit and selected-choice identity with parameter-free W28 triadic scoring;
+- require exactly two semantic views per option;
+- preserve state-once/full-K/option-order invariance/relation-delta-zero;
+- record the frozen option-view InfoNCE baseline;
+- never use A0 for model selection;
+- make no parity, multilingual, reliability/OOD or production claim.

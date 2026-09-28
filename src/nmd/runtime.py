@@ -30,6 +30,7 @@ from .v1_triadic_semantic import (
     TriadicCPSemanticScorer,
 )
 from .v1_semantic_adapter import AdaptedTriadicSemanticScorer
+from .v1_projection_relearning import TrainableProjectionTriadicScorer
 
 PRIMITIVE_TO_ID: dict[Primitive, int] = {"choice": 0, "score": 1, "noul": 2}
 RelationMode = Literal["pooled", "option_tokens", "state_tokens", "dual_tokens"]
@@ -55,6 +56,7 @@ CoarseMode = Literal[
     "parameter_free_triadic",
     "triadic_cp",
     "adapted_triadic",
+    "projection_triadic",
 ]
 COARSE_MODES: tuple[CoarseMode, ...] = (
     "legacy",
@@ -72,6 +74,7 @@ COARSE_MODES: tuple[CoarseMode, ...] = (
     "parameter_free_triadic",
     "triadic_cp",
     "adapted_triadic",
+    "projection_triadic",
 )
 COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "symmetric_semantic",
@@ -87,6 +90,7 @@ COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "parameter_free_triadic",
     "triadic_cp",
     "adapted_triadic",
+    "projection_triadic",
 )
 
 
@@ -121,6 +125,7 @@ class NolaneHira(nn.Module):
         parameter_free_triadic_scorer: ParameterFreeTriadicScorer | None = None,
         triadic_cp_scorer: TriadicCPSemanticScorer | None = None,
         adapted_triadic_scorer: AdaptedTriadicSemanticScorer | None = None,
+        projection_triadic_scorer: TrainableProjectionTriadicScorer | None = None,
         reliability_calibrator: TypedReliabilityCalibrator | None = None,
         schema_cache_max_entries: int | None = None,
         schema_cache_max_bytes: int | None = None,
@@ -212,6 +217,12 @@ class NolaneHira(nn.Module):
         ):
             raise ValueError("adapted triadic scorer d_model mismatch")
         self.adapted_triadic_scorer = adapted_triadic_scorer
+        if (
+            projection_triadic_scorer is not None
+            and projection_triadic_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("projection triadic scorer d_model mismatch")
+        self.projection_triadic_scorer = projection_triadic_scorer
         self.reliability_calibrator = reliability_calibrator
         schema_cache_kwargs = {}
         if schema_cache_max_entries is not None:
@@ -979,6 +990,13 @@ class NolaneHira(nn.Module):
                 scorer=self.adapted_triadic_scorer,
                 mode_name="adapted_triadic",
             )
+        elif coarse_mode == "projection_triadic":
+            coarse_override = self._triadic_coarse(
+                memory,
+                schema,
+                scorer=self.projection_triadic_scorer,
+                mode_name="projection_triadic",
+            )
 
         if coarse_mode in COARSE_ONLY_SEMANTIC_MODES and not relation_refinement:
             out = self._coarse_only_output(memory, coarse_override)
@@ -1060,6 +1078,7 @@ class NolaneHira(nn.Module):
                 "parameter_free_triadic",
                 "triadic_cp",
                 "adapted_triadic",
+                "projection_triadic",
             }
         )
         schema, _ = self.compile_schema(
