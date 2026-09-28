@@ -1,0 +1,17 @@
+# HIRA V1 S8 — closure bundle
+
+Canonical source authorities:
+- A0 run 36416813621 / artifact 10968037685 / digest sha256:cd7b84cf7de183a6bd263ab8923764d810ff97f44a56b930190893e213b2804a
+- TRAIN/DEV run 36417365478 / artifact 10969085984 / digest sha256:40a0f1ae053f03ae59b87f784c5aaeeada3fb36646e7009eb6781592e8c6b49b
+
+Freeze S8 as:
+`HIRA_V1_S8_CLOSED_DEV_FAIL`
+
+Required:
+- preserve A0 and TRAIN/DEV artifacts and integrity manifests;
+- include canonical contract/receipt/closure/handoff;
+- archive all evidence;
+- sealed and multilingual evaluations remain closed;
+- no Laya/Jev parity or production-ready claim.
+
+Trigger closure workflow after workflow registration.
