@@ -1,0 +1,134 @@
+name: hira-v1-s4-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s4-semantic-adaptation
+    paths:
+      - "research/HIRA-V1-S4-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s4-a0-identity
+          path: inputs/S4A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36397966988
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s4-adapter-train-dev
+          path: inputs/S4TRAIN
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36398414087
+
+      - name: Verify source authorities
+        run: |
+          (
+            cd inputs/S4A0
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/S4TRAIN
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("inputs/S4A0/result.json").read_text())
+          t = json.loads(Path("inputs/S4TRAIN/result.json").read_text())
+          assert a["outcome"] == "HIRA_V1_S4_A0_IDENTITY_READY"
+          assert t["outcome"] == "HIRA_V1_S4_ADAPTER_DEV_FAIL"
+          assert t["post_dev_tuning_performed"] is False
+          assert t["sealed_confirm_opened"] is False
+          assert t["multilingual_probe_opened"] is False
+          assert t["production_ready_claimed"] is False
+          PY
+
+      - name: Build canonical S4 full closure archive
+        run: |
+          mkdir -p artifacts/s4-full/research
+          mkdir -p artifacts/s4-full/a0
+          mkdir -p artifacts/s4-full/train-dev
+
+          cp research/HIRA-V1-S4-CONTRACT.md artifacts/s4-full/research/
+          cp research/HIRA-V1-S4-A0-RECEIPT.md artifacts/s4-full/research/
+          cp research/HIRA-V1-S4-CLOSURE.md artifacts/s4-full/research/
+          cp research/HIRA-V1-S4-HANDOFF.md artifacts/s4-full/research/
+
+          cp -a inputs/S4A0/. artifacts/s4-full/a0/
+          cp -a inputs/S4TRAIN/. artifacts/s4-full/train-dev/
+
+          (
+            cd artifacts/s4-full
+            find . -type f ! -name INTEGRITY.sha256 -print0               | sort -z               | xargs -0 sha256sum > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+          (
+            cd artifacts
+            zip -qr NOLANE-HIRA-V1-S4-FULL.zip s4-full
+            sha256sum NOLANE-HIRA-V1-S4-FULL.zip > S4-ARCHIVE-SHA256.txt
+          )
+
+      - name: Write closure receipt
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/S4A0/result.json").read_text())
+          t = json.loads(Path("inputs/S4TRAIN/result.json").read_text())
+          archive = Path("artifacts/NOLANE-HIRA-V1-S4-FULL.zip")
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+
+          receipt = {
+              "schema_version": "hira-v1-s4-closure-bundle-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V1_S4_CLOSED_DEV_FAIL",
+              "a0_run_id": 36397966988,
+              "a0_artifact_id": 10959630634,
+              "a0_artifact_digest": "sha256:1943d802440ec759e4d32c97c61fdb93714ce8fb0a1897df25bd3bcdbc071c59",
+              "train_dev_run_id": 36398414087,
+              "train_dev_artifact_id": 10959711099,
+              "train_dev_artifact_digest": "sha256:112aecf9aa1f9c6d5925fd7beddab5167cce7d3eca6d94d15873909ee02309b4",
+              "selected_dev_epoch": t["selected_dev_epoch"],
+              "selected_dev_accuracy": t["selected_dev"]["accuracy"],
+              "paired_both_correct_rate": t["selected_dev"]["paired_both_correct_rate"],
+              "question_swap_choice_change_rate": t["selected_dev"]["question_swap_choice_change_rate"],
+              "sealed_confirm_opened": False,
+              "multilingual_probe_opened": False,
+              "production_ready_claimed": False,
+              "archive": archive.name,
+              "archive_bytes": archive.stat().st_size,
+              "archive_sha256": digest,
+          }
+          Path("artifacts/S4-CLOSURE-RECEIPT.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+          )
+          print("HIRA_V1_S4_CLOSURE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s4-closure-full-bundle
+          path: |
+            artifacts/NOLANE-HIRA-V1-S4-FULL.zip
+            artifacts/S4-ARCHIVE-SHA256.txt
+            artifacts/S4-CLOSURE-RECEIPT.json
+            artifacts/s4-full
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
