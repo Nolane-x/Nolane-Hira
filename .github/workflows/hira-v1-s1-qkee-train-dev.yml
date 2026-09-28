@@ -47,7 +47,7 @@ jobs:
       - name: Compile and run S1 contracts
         run: |
           python -m py_compile             src/nmd/v1_query_keyed_evidence.py             src/nmd/v1_s1_semantic_core.py             src/nmd/v1_s1_authority.py             src/nmd/v1_s1_checkpoint.py             src/nmd/runtime.py             scripts/hira_v1_s1_train_dev.py
-          pytest -q             tests/test_v1_query_keyed_evidence.py             tests/test_v1_query_conditioned_semantic.py             tests/test_w33_coevidence_semantic.py             tests/test_symmetric_semantic_runtime.py
+          pytest -q             tests/test_v1_query_keyed_evidence.py             tests/test_v1_s1_authority.py             tests/test_v1_query_conditioned_semantic.py             tests/test_w33_coevidence_semantic.py             tests/test_symmetric_semantic_runtime.py
 
       - name: Verify A0 authority
         run: |
