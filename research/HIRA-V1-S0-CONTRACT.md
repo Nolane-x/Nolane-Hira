@@ -94,7 +94,38 @@ It:
 
 This baseline is diagnostic only. Its score cannot be used as a final promotion authority.
 
-## 5. S0-C fresh TRAIN/DEV authority
+## 5. V1-B0 frozen result
+
+Authoritative run:
+
+`36382895869`
+
+Artifact:
+- name: `hira-v1-s0-parameter-free-query`
+- ID: `10952918278`
+- digest: `sha256:e98d93b1db860a4e7f8a867c0789ced676f74f357fff90c964b0fb5b4daa0af9`
+
+Outcome:
+
+`HIRA_V1_S0_PARAMETER_FREE_QUERY_BASELINE_READY`
+
+Observed on the same localization-only paired cases:
+- added parameters: **0**
+- trainable parameters: **0**
+- question changes logits: **1.0**
+- question changes selected choice: **0.0**
+- accuracy: **0.375**
+- paired both-correct: **0.0**
+- state encodes: **8**
+- probability mass max error: **1.1920928955078125e-07**
+
+Interpretation:
+
+The missing-question defect is causally relevant to the geometry: explicitly injecting the question with no new learned parameters changes logits on every pair. But a fixed relevance rule is not sufficient to change the actual decision boundary on this diagnostic. Therefore S0-C's learned 3,072-parameter query-binding path remains justified.
+
+The first parameter-free workflow attempt `36382670392` failed in a unit test before any baseline exposure because a subclass freeze call accidentally froze the query branch. The corrected retry did not change the baseline architecture, data, or gates.
+
+## 6. S0-C fresh TRAIN/DEV authority
 
 ### Dataset structure
 
@@ -170,7 +201,7 @@ Select one epoch only by this lexicographic order:
 
 No external benchmark target may participate.
 
-## 6. S0-C DEV gate
+## 7. S0-C DEV gate
 
 The learned QCCE candidate earns `HIRA_V1_S0_QUERY_REPAIR_DEV_READY` only if:
 
@@ -188,7 +219,7 @@ The learned QCCE candidate earns `HIRA_V1_S0_QUERY_REPAIR_DEV_READY` only if:
 
 Failure is an acceptable scientific result and must not be repaired using DEV labels after exposure.
 
-## 7. S0-D sealed confirm
+## 8. S0-D sealed confirm
 
 If and only if S0-C DEV passes:
 - create a new sealed confirm suite after TRAIN/DEV is frozen;
@@ -199,7 +230,7 @@ If and only if S0-C DEV passes:
 
 S0-A and S0-C rows cannot become sealed confirmation rows.
 
-## 8. External benchmark boundary
+## 9. External benchmark boundary
 
 No Laya/Jev/M5 final test rerun is authorized in S0.
 
@@ -208,7 +239,7 @@ External benchmark reopening requires:
 2. fresh sealed confirmation;
 3. a separately preregistered v1 benchmark contract.
 
-## 9. Promotion boundary
+## 10. Promotion boundary
 
 S0 can only establish:
 
