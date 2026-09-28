@@ -14,3 +14,5 @@ Requirements:
 - preserve full-K/option-order invariance/relation-delta-zero;
 - A0 is never used for model selection;
 - no parity, multilingual, reliability/OOD or production claim.
+
+Retry S8-A0 after pre-exposure lexical-disjointness and checkpoint-replay fixes.
