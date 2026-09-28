@@ -1,0 +1,14 @@
+# HIRA V1 S2 — enable A0
+
+Trigger the first S2 authority after the S2 contract and implementation are committed.
+
+Requirements:
+- run S2 unit + S1/S0/W34 regression contracts first;
+- use exact M4 W28/W34 provenance;
+- use only the fresh 16-state / 32-query English S2-A0 suite;
+- append question content tokens to frozen W34 state evidence;
+- add zero parameters;
+- preserve state-once/full-K/relation-refinement-off;
+- report question logit-change, choice-change, accuracy and paired-both-correct;
+- do not use A0 for learned S2 model selection;
+- make no parity, multilingual, reliability/OOD or production claim.
