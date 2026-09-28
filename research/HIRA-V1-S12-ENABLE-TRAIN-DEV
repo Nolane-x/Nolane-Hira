@@ -65,3 +65,6 @@ Forbidden:
 
 Sealed English and Vietnamese transfer remain closed unless
 `HIRA_V1_S12_RELATION_BINDING_DEV_READY` is achieved.
+
+Retry authorization after pre-exposure checkpoint replay test fix.
+The failed prior workflow did not reach TRAIN/DEV execution and exposed no S12 TRAIN/DEV rows.
