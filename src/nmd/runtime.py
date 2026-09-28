@@ -17,6 +17,10 @@ from .w31_dual_semantic_adapter import DualAdapterSymmetricSemanticScorer
 from .w32_interaction_semantic_adapter import InteractionSemanticScorer
 from .w33_coevidence_semantic import CoEvidenceSemanticScorer
 from .v1_query_conditioned_semantic import QueryConditionedCoEvidenceScorer
+from .v1_query_keyed_evidence import (
+    ParameterFreeQueryEvidenceScorer,
+    QueryKeyedEvidenceScorer,
+)
 
 PRIMITIVE_TO_ID: dict[Primitive, int] = {"choice": 0, "score": 1, "noul": 2}
 RelationMode = Literal["pooled", "option_tokens", "state_tokens", "dual_tokens"]
@@ -35,6 +39,8 @@ CoarseMode = Literal[
     "interaction_symmetric_semantic",
     "coevidence_symmetric_semantic",
     "query_conditioned_coevidence",
+    "parameter_free_query_evidence",
+    "query_keyed_evidence",
 ]
 COARSE_MODES: tuple[CoarseMode, ...] = (
     "legacy",
@@ -45,6 +51,8 @@ COARSE_MODES: tuple[CoarseMode, ...] = (
     "interaction_symmetric_semantic",
     "coevidence_symmetric_semantic",
     "query_conditioned_coevidence",
+    "parameter_free_query_evidence",
+    "query_keyed_evidence",
 )
 COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "symmetric_semantic",
@@ -53,6 +61,8 @@ COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "interaction_symmetric_semantic",
     "coevidence_symmetric_semantic",
     "query_conditioned_coevidence",
+    "parameter_free_query_evidence",
+    "query_keyed_evidence",
 )
 
 
@@ -80,6 +90,8 @@ class NolaneHira(nn.Module):
         interaction_symmetric_semantic_scorer: InteractionSemanticScorer | None = None,
         coevidence_symmetric_semantic_scorer: CoEvidenceSemanticScorer | None = None,
         query_conditioned_coevidence_scorer: QueryConditionedCoEvidenceScorer | None = None,
+        parameter_free_query_evidence_scorer: ParameterFreeQueryEvidenceScorer | None = None,
+        query_keyed_evidence_scorer: QueryKeyedEvidenceScorer | None = None,
         reliability_calibrator: TypedReliabilityCalibrator | None = None,
         schema_cache_max_entries: int | None = None,
         schema_cache_max_bytes: int | None = None,
@@ -129,6 +141,18 @@ class NolaneHira(nn.Module):
         ):
             raise ValueError("query-conditioned co-evidence scorer d_model mismatch")
         self.query_conditioned_coevidence_scorer = query_conditioned_coevidence_scorer
+        if (
+            parameter_free_query_evidence_scorer is not None
+            and parameter_free_query_evidence_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("parameter-free query evidence scorer d_model mismatch")
+        self.parameter_free_query_evidence_scorer = parameter_free_query_evidence_scorer
+        if (
+            query_keyed_evidence_scorer is not None
+            and query_keyed_evidence_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("query-keyed evidence scorer d_model mismatch")
+        self.query_keyed_evidence_scorer = query_keyed_evidence_scorer
         self.reliability_calibrator = reliability_calibrator
         schema_cache_kwargs = {}
         if schema_cache_max_entries is not None:
@@ -497,6 +521,91 @@ class NolaneHira(nn.Module):
             option_view_mask=schema.option_view_mask.unsqueeze(0),
         )
 
+    def _parameter_free_query_evidence_coarse(
+        self,
+        memory: StateMemory,
+        schema: CompiledSchema,
+    ) -> Tensor:
+        scorer = self.parameter_free_query_evidence_scorer
+        if scorer is None:
+            raise ValueError(
+                "parameter_free_query_evidence coarse mode requires "
+                "ParameterFreeQueryEvidenceScorer"
+            )
+        if memory.content_token_embeddings is None:
+            raise ValueError(
+                "parameter_free_query_evidence requires state content tokens"
+            )
+        required = (
+            schema.question_token_embeddings,
+            schema.question_content_token_mask,
+            schema.option_view_token_embeddings,
+            schema.option_view_token_mask,
+            schema.option_view_mask,
+        )
+        if any(value is None for value in required):
+            raise ValueError(
+                "parameter_free_query_evidence requires question and "
+                "multi-view schema token artifacts"
+            )
+        state_tokens = memory.content_token_embeddings.unsqueeze(0)
+        state_mask = torch.ones(
+            1,
+            state_tokens.shape[1],
+            dtype=torch.bool,
+            device=state_tokens.device,
+        )
+        return scorer(
+            state_tokens=state_tokens,
+            state_mask=state_mask,
+            question_tokens=schema.question_token_embeddings.unsqueeze(0),
+            question_mask=schema.question_content_token_mask.unsqueeze(0),
+            option_view_tokens=schema.option_view_token_embeddings.unsqueeze(0),
+            option_view_token_mask=schema.option_view_token_mask.unsqueeze(0),
+            option_view_mask=schema.option_view_mask.unsqueeze(0),
+        )
+
+    def _query_keyed_evidence_coarse(
+        self,
+        memory: StateMemory,
+        schema: CompiledSchema,
+    ) -> Tensor:
+        scorer = self.query_keyed_evidence_scorer
+        if scorer is None:
+            raise ValueError(
+                "query_keyed_evidence coarse mode requires QueryKeyedEvidenceScorer"
+            )
+        if memory.content_token_embeddings is None:
+            raise ValueError("query_keyed_evidence requires state content tokens")
+        required = (
+            schema.question_token_embeddings,
+            schema.question_content_token_mask,
+            schema.option_view_token_embeddings,
+            schema.option_view_token_mask,
+            schema.option_view_mask,
+        )
+        if any(value is None for value in required):
+            raise ValueError(
+                "query_keyed_evidence requires question and "
+                "multi-view schema token artifacts"
+            )
+        state_tokens = memory.content_token_embeddings.unsqueeze(0)
+        state_mask = torch.ones(
+            1,
+            state_tokens.shape[1],
+            dtype=torch.bool,
+            device=state_tokens.device,
+        )
+        return scorer(
+            state_tokens=state_tokens,
+            state_mask=state_mask,
+            question_tokens=schema.question_token_embeddings.unsqueeze(0),
+            question_mask=schema.question_content_token_mask.unsqueeze(0),
+            option_view_tokens=schema.option_view_token_embeddings.unsqueeze(0),
+            option_view_token_mask=schema.option_view_token_mask.unsqueeze(0),
+            option_view_mask=schema.option_view_mask.unsqueeze(0),
+        )
+
     def _coarse_only_output(
         self,
         memory: StateMemory,
@@ -658,6 +767,10 @@ class NolaneHira(nn.Module):
             coarse_override = self._coevidence_symmetric_semantic_coarse(memory, schema)
         elif coarse_mode == "query_conditioned_coevidence":
             coarse_override = self._query_conditioned_coevidence_coarse(memory, schema)
+        elif coarse_mode == "parameter_free_query_evidence":
+            coarse_override = self._parameter_free_query_evidence_coarse(memory, schema)
+        elif coarse_mode == "query_keyed_evidence":
+            coarse_override = self._query_keyed_evidence_coarse(memory, schema)
 
         if coarse_mode in COARSE_ONLY_SEMANTIC_MODES and not relation_refinement:
             out = self._coarse_only_output(memory, coarse_override)
@@ -732,6 +845,8 @@ class NolaneHira(nn.Module):
                 "interaction_symmetric_semantic",
                 "coevidence_symmetric_semantic",
                 "query_conditioned_coevidence",
+                "parameter_free_query_evidence",
+                "query_keyed_evidence",
             }
         )
         schema, _ = self.compile_schema(
