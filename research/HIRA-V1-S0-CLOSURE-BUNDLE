@@ -1,0 +1,17 @@
+# HIRA V1 S0 closure bundle
+
+Trigger the canonical S0 negative-result closure.
+
+Required immutable authorities:
+- S0-A run 36382301792 / artifact 10952694461
+- S0-B0 run 36382895869 / artifact 10952918278
+- S0-C run 36383487080 / artifact 10953344707
+
+Required scientific conclusion:
+- v0 question blindness CONFIRMED;
+- zero-parameter query baseline insufficient;
+- learned 3,072-parameter QCCE DEV FAIL;
+- S0-D not opened;
+- no external benchmark reopened;
+- no post-DEV tuning;
+- production_ready=false.
