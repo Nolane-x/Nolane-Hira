@@ -13,3 +13,5 @@ Requirements:
 - preserve state-once/full-K/option-order invariance/relation-delta-zero;
 - never use A0 for model selection;
 - make no parity, multilingual, reliability/OOD or production claim.
+
+Retry A0 after pre-exposure freshness-sentinel test correction.
