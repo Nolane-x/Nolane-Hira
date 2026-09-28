@@ -165,6 +165,21 @@ class QueryKeyedEvidenceScorer(CoEvidenceSemanticScorer):
             for parameter in module.parameters():
                 parameter.requires_grad_(False)
 
+    def load_w34_base_state_dict(
+        self,
+        state_dict: dict[str, Tensor],
+        *,
+        freeze_base: bool = True,
+    ) -> None:
+        """Load W34 tensors while leaving the S1 extractor trainability intact."""
+        CoEvidenceSemanticScorer.load_candidate_state_dict(
+            self,
+            state_dict,
+            freeze=False,
+        )
+        if freeze_base:
+            CoEvidenceSemanticScorer.freeze_candidate(self)
+
     def freeze_candidate(self) -> None:
         super().freeze_candidate()
         self.freeze_extractor()
