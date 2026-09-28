@@ -19,3 +19,17 @@ The run may return either:
 - HIRA_V1_S0_QUERY_REPAIR_DEV_FAIL
 
 A scientific FAIL must be preserved. No post-DEV repair is authorized inside this authority.
+
+
+## Retry note
+
+First TRAIN/DEV workflow run `36383329831` failed in the freshness unit
+test before any training or DEV exposure. Python 3.12 dynamic-imported the S0-A
+localization script without registering the temporary module in `sys.modules`,
+causing dataclass processing to fail.
+
+No optimizer step ran. No TRAIN/DEV model score was exposed. Data, optimizer,
+loss, selection order, and DEV gates are unchanged.
+
+Retry is authorized after the test-only module-registration fix
+`1fe9d0b638d327385efdea8e3e5646fae5c49646`.
