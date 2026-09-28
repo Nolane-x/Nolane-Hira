@@ -26,10 +26,10 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile S8 modules
         run: |
-          python -m py_compile             src/nmd/v1_invariance.py             src/nmd/v1_s8_semantic_core.py             src/nmd/v1_s8_authority.py             scripts/hira_v1_s8_a0_identity.py
+          python -m py_compile             src/nmd/v1_invariance.py             src/nmd/v1_s8_semantic_core.py             src/nmd/v1_s8_checkpoint.py             src/nmd/v1_s8_authority.py             scripts/hira_v1_s8_a0_identity.py
       - name: Run S8 and frozen regression contracts
         run: |
-          pytest -q             tests/test_v1_invariance.py             tests/test_v1_s8_authority.py             tests/test_v1_s7_coadapt.py             tests/test_v1_a13_lora.py             tests/test_v1_projection_relearning.py
+          pytest -q             tests/test_v1_invariance.py             tests/test_v1_s8_authority.py             tests/test_v1_s8_checkpoint.py             tests/test_v1_s7_coadapt.py             tests/test_v1_a13_lora.py             tests/test_v1_projection_relearning.py
 
   a0:
     needs: unit
