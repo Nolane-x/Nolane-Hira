@@ -106,7 +106,7 @@ def test_s9_split_specific_lexical_sentinels():
         "tilapia",
         "reactive blue",
         "rear-door exchanger",
-        "alum",
+        "records adjuvant alum and",
     ):
         assert token in train_text
         assert token not in dev_text
@@ -117,7 +117,7 @@ def test_s9_split_specific_lexical_sentinels():
         "cobia",
         "mordant crimson",
         "two-phase immersion",
-        "Matrix-M",
+        "identifies Matrix-M under adjuvant",
     ):
         assert token in dev_text
         assert token not in train_text
