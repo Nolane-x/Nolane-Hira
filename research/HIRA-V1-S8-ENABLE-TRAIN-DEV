@@ -1,0 +1,46 @@
+# HIRA V1 S8 — enable TRAIN DEV
+
+Qualified A0 authority:
+- run: 36416813621
+- head: 8bb3568117176bcde588160f7a82302d6b1bcdc7
+- artifact: 10968037685
+- digest: sha256:cd7b84cf7de183a6bd263ab8923764d810ff97f44a56b930190893e213b2804a
+- outcome: HIRA_V1_S8_A0_IDENTITY_READY
+
+A0 identity:
+- A13 token output identity: true
+- A13 pooled output identity: true
+- exact logit identity: 1.0
+- exact choice identity: 1.0
+- LoRA capacity: 16,384
+- projection capacity: 32,768
+- total candidate capacity: 49,152
+- runtime trainable during A0: 0
+- option-order flip: 0.0
+- full-K/state-once/relation-delta-zero: PASS
+
+Authorize only the preregistered S8 paraphrase-invariant TRAIN/DEV experiment.
+
+Frozen rules:
+- exact S7 model surface; no added trainable capacity;
+- total trainable 49,152 = LoRA 16,384 + projection 32,768;
+- original A13/HIRACore frozen;
+- parameter-free triadic scorer;
+- 768 fresh TRAIN semantic cases / 192 fresh DEV cases;
+- 12 domains;
+- two state wording views per semantic case;
+- two wording views per semantic question;
+- K=4; two semantic views per option;
+- seed 13801;
+- 24 epochs;
+- batch size 16 semantic cases;
+- AdamW lr 2e-4, weight decay 0.01, grad clip 1.0;
+- CE on both wording views;
+- swap-margin coefficient 0.25 / margin 0.20;
+- option-view InfoNCE coefficient 0.05 / temperature 0.10;
+- question-option InfoNCE coefficient 0.10 / temperature 0.10;
+- symmetric JS consistency coefficient 0.25;
+- frozen DEV selection and gates from HIRA-V1-S8-CONTRACT.md;
+- no S0-S7/S8-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
