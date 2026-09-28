@@ -334,3 +334,91 @@ def test_s1_parameter_free_builder_is_fully_frozen(tmp_path):
     )
     assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
     assert runtime.parameter_free_query_evidence_scorer is not None
+
+
+def test_s1_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.v1_s1_checkpoint import (
+        build_frozen_hira_v1_s1_candidate,
+        load_hira_v1_s1_qkee_checkpoint,
+    )
+
+    torch.manual_seed(51107)
+    t0, t0_sha, w34, w34_sha, _ = _write_checkpoints(tmp_path)
+    checkpoint = tmp_path / "qkee.pt"
+    extractor_state = {
+        "question_heads.weight": torch.randn(32, 128),
+        "state_keys.weight": torch.randn(32, 128),
+    }
+    torch.save(
+        {
+            "schema_version": "hira-v1-s1-qkee-checkpoint-v1",
+            "kind": "query-keyed-evidence",
+            "extractor_parameter_count": 8192,
+            "candidate_parameter_count": 16384,
+            "selected_dev_epoch": 4,
+            "t0_checkpoint_sha256": t0_sha,
+            "w34_checkpoint_sha256": w34_sha,
+            "extractor_state_dict": extractor_state,
+        },
+        checkpoint,
+    )
+    qkee_sha = file_sha256(checkpoint)
+
+    loaded, metadata = load_hira_v1_s1_qkee_checkpoint(
+        checkpoint,
+        expected_sha256=qkee_sha,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+    )
+    assert metadata["selected_dev_epoch"] == 4
+    for key, value in extractor_state.items():
+        assert torch.equal(loaded[key], value.float())
+
+    runtime, replay = build_frozen_hira_v1_s1_candidate(
+        _encoder(),
+        t0,
+        w34,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+        expected_qkee_sha256=qkee_sha,
+    )
+    assert replay["sha256"] == qkee_sha
+    assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+    scorer = runtime.query_keyed_evidence_scorer
+    assert scorer is not None
+    own = scorer.state_dict()
+    for key, value in extractor_state.items():
+        assert torch.equal(own[key], value.float())
+
+
+def test_s1_checkpoint_rejects_wrong_identity(tmp_path):
+    from nmd.v1_s1_checkpoint import load_hira_v1_s1_qkee_checkpoint
+
+    checkpoint = tmp_path / "bad.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s1-qkee-checkpoint-v1",
+            "kind": "query-keyed-evidence",
+            "extractor_parameter_count": 8192,
+            "candidate_parameter_count": 16384,
+            "selected_dev_epoch": 1,
+            "t0_checkpoint_sha256": "wrong",
+            "w34_checkpoint_sha256": "wrong",
+            "extractor_state_dict": {
+                "question_heads.weight": torch.randn(32, 128),
+                "state_keys.weight": torch.randn(32, 128),
+            },
+        },
+        checkpoint,
+    )
+    try:
+        load_hira_v1_s1_qkee_checkpoint(
+            checkpoint,
+            expected_t0_sha256="expected-t0",
+            expected_w34_sha256="expected-w34",
+        )
+    except RuntimeError as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("wrong checkpoint identity must fail closed")
