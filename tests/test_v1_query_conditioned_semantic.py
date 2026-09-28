@@ -300,3 +300,122 @@ def test_v1_runtime_option_identity_is_order_invariant():
         atol=1e-6,
         rtol=1e-6,
     )
+
+
+def _write_s0_checkpoints(tmp_path):
+    from nmd.semantic_core import W28_T0_CHECKPOINT_SHA256
+    from nmd.typed_competitive_cache import file_sha256
+
+    t0 = tmp_path / "t0.pt"
+    projection = torch.randn(128, 256)
+    torch.save(
+        {
+            "schema_version": "r8-w28-candidate-checkpoint-v1",
+            "candidate": "T0",
+            "kind": "projection",
+            "projection_weight": projection,
+        },
+        t0,
+    )
+
+    state = {
+        "state_adapter.down.weight": torch.randn(8, 128),
+        "state_adapter.up.weight": torch.randn(128, 8),
+        "schema_adapter.down.weight": torch.randn(8, 128),
+        "schema_adapter.up.weight": torch.randn(128, 8),
+        "interaction_state.weight": torch.randn(8, 128),
+        "interaction_schema.weight": torch.randn(8, 128),
+        "composition_state.weight": torch.randn(8, 128),
+        "composition_schema.weight": torch.randn(8, 128),
+    }
+    w34 = tmp_path / "w34.pt"
+    torch.save(
+        {
+            "schema_version": "r8-w34-coevidence-semantic-checkpoint-v1",
+            "kind": "coevidence-semantic",
+            "rank": 8,
+            "parameter_count": 8192,
+            "t0_checkpoint_sha256": W28_T0_CHECKPOINT_SHA256,
+            "selected_dev_epoch": 20,
+            "candidate_state_dict": state,
+        },
+        w34,
+    )
+    return t0, file_sha256(t0), w34, file_sha256(w34), state
+
+
+def test_v1_s0_builder_freezes_v0_base_and_exposes_only_query_params(tmp_path):
+    from nmd.v1_semantic_core import (
+        HIRA_V1_S0_CANDIDATE_PARAMETER_COUNT,
+        HIRA_V1_S0_QUERY_PARAMETER_COUNT,
+        build_hira_v1_s0_query_core,
+    )
+
+    torch.manual_seed(41006)
+    t0, t0_sha, w34, w34_sha, state = _write_s0_checkpoints(tmp_path)
+    encoder = TrainableSemanticEncoder(
+        vocab_size=1024,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    runtime = build_hira_v1_s0_query_core(
+        encoder,
+        t0,
+        w34,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+        train_query_binding=True,
+    )
+
+    scorer = runtime.query_conditioned_coevidence_scorer
+    assert scorer is not None
+    assert scorer.candidate_parameter_count == HIRA_V1_S0_CANDIDATE_PARAMETER_COUNT
+    assert scorer.query_parameter_count == HIRA_V1_S0_QUERY_PARAMETER_COUNT
+
+    trainable = {
+        name: parameter.numel()
+        for name, parameter in runtime.named_parameters()
+        if parameter.requires_grad
+    }
+    assert sum(trainable.values()) == HIRA_V1_S0_QUERY_PARAMETER_COUNT
+    assert set(trainable) == {
+        "query_conditioned_coevidence_scorer.query_basis.weight",
+        "query_conditioned_coevidence_scorer.query_state.weight",
+        "query_conditioned_coevidence_scorer.query_schema.weight",
+    }
+    assert not any(parameter.requires_grad for parameter in runtime.encoder.parameters())
+    assert not any(parameter.requires_grad for parameter in runtime.hira.parameters())
+    assert scorer.projection.weight.requires_grad is False
+
+    own = scorer.state_dict()
+    for key, expected in state.items():
+        assert torch.equal(own[key], expected)
+
+
+def test_v1_s0_builder_can_freeze_complete_candidate(tmp_path):
+    from nmd.v1_semantic_core import build_hira_v1_s0_query_core
+
+    torch.manual_seed(41007)
+    t0, t0_sha, w34, w34_sha, _ = _write_s0_checkpoints(tmp_path)
+    encoder = TrainableSemanticEncoder(
+        vocab_size=1024,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    runtime = build_hira_v1_s0_query_core(
+        encoder,
+        t0,
+        w34,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+        train_query_binding=False,
+    )
+    assert sum(
+        parameter.numel()
+        for parameter in runtime.parameters()
+        if parameter.requires_grad
+    ) == 0
