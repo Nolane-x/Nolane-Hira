@@ -1,0 +1,126 @@
+name: hira-v1-s9-a0-identity
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s9-margin-separation
+    paths:
+      - "research/HIRA-V1-S9-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S9 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S9 modules
+        run: |
+          python -m py_compile             src/nmd/v1_margin.py             src/nmd/v1_s9_semantic_core.py             src/nmd/v1_s9_authority.py             scripts/hira_v1_s9_a0_identity.py
+      - name: Run S9 and inherited contracts
+        run: |
+          pytest -q             tests/test_v1_margin.py             tests/test_v1_s9_authority.py             tests/test_v1_invariance.py             tests/test_v1_s8_checkpoint.py             tests/test_v1_a13_lora.py             tests/test_v1_triadic_semantic.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S9 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]"             "transformers>=4.45,<6"             "safetensors>=0.4"             "huggingface_hub>=0.24"
+
+      - name: Verify exact frozen M4 bundle
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          from nmd.local_runtime import read_runtime_bundle_manifest
+          m = read_runtime_bundle_manifest("inputs/M4/hira-v0-m4-runtime")
+          assert m["hira_manifest"]["version"] == "0.0-m4a"
+          assert m["semantic_revision"] == "4226d9e4d2c08703e5cb0491b479bfc6a1607181"
+          assert m["t0_checkpoint_sha256"] == "1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          PY
+
+      - name: Run fresh S9-A0 identity and margin authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s9_a0_identity.py             --bundle inputs/M4/hira-v0-m4-runtime             --out artifacts/s9-a0
+
+      - name: Verify S9-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("artifacts/s9-a0/result.json").read_text())
+          assert r["schema_version"] == "hira-v1-s9-a0-identity-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S9_A0_IDENTITY_READY"
+          assert r["scientific_authority"] == "S9_A0_IDENTITY_LOCALIZATION_ONLY"
+          assert r["semantic_case_count"] == 16
+          assert r["decision_count"] == 64
+          assert r["state_view_count"] == 32
+          assert r["k"] == 4
+          assert r["views_per_option"] == 2
+          assert r["margin"] == 0.20
+          assert r["a13_token_output_identity"] is True
+          assert r["a13_pooled_output_identity"] is True
+          assert r["exact_logit_identity_rate"] == 1.0
+          assert r["exact_choice_identity_rate"] == 1.0
+          assert r["lora_parameter_count"] == 16384
+          assert r["projection_parameter_count"] == 32768
+          assert r["candidate_parameter_count"] == 49152
+          assert r["runtime_trainable_parameter_count"] == 0
+          assert r["original_a13_trainable_parameter_count"] == 0
+          assert r["option_order_flip_rate"] == 0.0
+          assert r["state_encode_calls"] == 32
+          assert r["max_probability_mass_error"] <= 1e-6
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S9-A0 integrity
+        run: |
+          (
+            cd artifacts/s9-a0
+            sha256sum result.json > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s9-a0-identity
+          path: artifacts/s9-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
