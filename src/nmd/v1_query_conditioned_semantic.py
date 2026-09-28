@@ -83,8 +83,7 @@ class QueryConditionedCoEvidenceScorer(CoEvidenceSemanticScorer):
             + self.query_trainable_parameter_count
         )
 
-    def freeze_candidate(self) -> None:
-        super().freeze_candidate()
+    def freeze_query_binding(self) -> None:
         for module in (
             self.query_basis,
             self.query_state,
@@ -92,6 +91,42 @@ class QueryConditionedCoEvidenceScorer(CoEvidenceSemanticScorer):
         ):
             for parameter in module.parameters():
                 parameter.requires_grad_(False)
+
+    def freeze_candidate(self) -> None:
+        super().freeze_candidate()
+        self.freeze_query_binding()
+
+    def load_query_state_dict(
+        self,
+        state_dict: dict[str, Tensor],
+        *,
+        freeze: bool = True,
+    ) -> None:
+        expected_shapes = {
+            "query_basis.weight": (self.query_rank, self.d_rel),
+            "query_state.weight": (self.query_rank, self.d_rel),
+            "query_schema.weight": (self.query_rank, self.d_rel),
+        }
+        if set(state_dict) != set(expected_shapes):
+            raise ValueError("Hira v1 query checkpoint keys changed")
+
+        own = self.state_dict()
+        with torch.no_grad():
+            for key, shape in expected_shapes.items():
+                value = state_dict[key]
+                if not isinstance(value, Tensor) or tuple(value.shape) != shape:
+                    raise ValueError(
+                        f"Hira v1 query checkpoint shape mismatch: {key}"
+                    )
+                if not bool(torch.isfinite(value).all()):
+                    raise ValueError(
+                        f"Hira v1 query checkpoint contains non-finite values: {key}"
+                    )
+                own[key].copy_(
+                    value.to(device=own[key].device, dtype=own[key].dtype)
+                )
+        if freeze:
+            self.freeze_query_binding()
 
     def load_candidate_state_dict(
         self,
