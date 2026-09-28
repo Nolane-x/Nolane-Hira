@@ -1,0 +1,61 @@
+# HIRA V1 S11 — enable TRAIN DEV
+
+Qualified A0 authority:
+- run: 36436701667
+- head: bc0d7ea57d6f34c963191b4c22475523b2a9c2fc
+- artifact: 10975624156
+- digest: sha256:f92d5d105d58e9dbe1f4ebe44cc385cee7f604a252d044d8caa72c55ed7b0cf0
+- outcome: HIRA_V1_S11_A0_ROLE_VALUE_READY
+
+A0 mechanics:
+- exact A13 token identity: true
+- exact A13 pooled identity: true
+- candidate physical params: 49,152
+- binding added params: 0
+- runtime trainable during A0: 0
+- state-once/full-K/order invariance: PASS
+- A0 used for model selection: false
+
+Authorize only the preregistered S11 fresh TRAIN/DEV authority.
+
+Frozen:
+- A13 final attention LoRA: 16,384 params
+- shared projection: 32,768 params
+- total trainable physical surface: 49,152
+- original A13 frozen
+- HIRACore frozen
+- no W34
+- no learned downstream scorer
+- role-value binding adds 0 params
+- role expert temperature: 0.10
+- state expert temperature: 0.10
+- seed: 17001
+- AdamW
+- 24 epochs
+- batch: 16 semantic cases
+- lr: 2e-4
+- weight decay: 0.01
+- grad clip: 1.0
+- CE on canonical + paraphrase binding views
+- paired swap-margin coefficient 0.25 / margin 0.20
+- option-view InfoNCE coefficient 0.05 / temperature 0.10
+- cross-view symmetric JS coefficient 0.25
+- 768 wholly fresh TRAIN semantic cases
+- 192 wholly fresh DEV semantic cases
+- 12 wholly fresh S11 domain families
+- two state views
+- two question wording views per semantic query
+- K=4
+- two semantic option views
+
+Forbidden:
+- all S0-S10 rows
+- S11-A0 rows
+- M5 final/confirmatory rows
+- W29-W34 sealed rows
+- post-DEV temperature/fusion/loss tuning
+- post-DEV seed/LR/template retries
+- gate weakening
+
+Sealed English confirmation and Vietnamese transfer remain closed unless
+HIRA_V1_S11_ROLE_VALUE_DEV_READY is achieved.
