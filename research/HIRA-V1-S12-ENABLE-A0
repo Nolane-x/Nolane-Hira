@@ -19,3 +19,6 @@ Frozen:
 
 S12-A0 is localization only and cannot be used for fitting or model selection.
 S12 TRAIN/DEV remains closed until A0 qualifies.
+
+Retry authority after receipt-alignment and replay-surface audit.
+Exact branch head must include the corrected S12 relation-binding receipt schema.
