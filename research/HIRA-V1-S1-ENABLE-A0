@@ -1,0 +1,13 @@
+# HIRA V1 S1 — enable A0
+
+Trigger the first S1 authority after the contract and implementation are committed.
+
+Requirements:
+- run S1 unit/regression tests first;
+- use exact M4 W28/W34 provenance;
+- use the fresh 16-state / 32-query English A0 suite only;
+- add zero parameters;
+- preserve state-once/full-K/relation-refinement-off;
+- report evidence-change, choice-change, accuracy and paired-both-correct;
+- do not use A0 for model selection;
+- do not make parity, multilingual, reliability/OOD or production claims.

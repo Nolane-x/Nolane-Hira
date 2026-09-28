@@ -1,0 +1,134 @@
+name: hira-v1-s1-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s1-query-keyed-evidence
+    paths:
+      - "research/HIRA-V1-S1-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s1-a0-parameter-free-evidence
+          path: inputs/A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36387872121
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s1-qkee-train-dev
+          path: inputs/TRAINDEV
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36388286637
+
+      - name: Verify frozen S1 authorities
+        run: |
+          (
+            cd inputs/A0
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/TRAINDEV
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a0 = json.loads(Path("inputs/A0/result.json").read_text(encoding="utf-8"))
+          td = json.loads(Path("inputs/TRAINDEV/result.json").read_text(encoding="utf-8"))
+
+          assert a0["status"] == "PASS"
+          assert a0["outcome"] == "HIRA_V1_S1_A0_PARAMETER_FREE_EVIDENCE_READY"
+          assert a0["added_parameter_count"] == 0
+          assert a0["used_for_model_selection"] is False
+          assert a0["production_ready_claimed"] is False
+
+          assert td["status"] == "PASS"
+          assert td["outcome"] == "HIRA_V1_S1_QKEE_DEV_FAIL"
+          assert td["selected_dev_epoch"] == 7
+          assert td["checkpoint_sha256"] == "50232f45f0e7b6123c84f9b5378473f8b3028978044e6e0163f93e5cfdc1a4c7"
+          assert td["selected_dev"]["accuracy"] == 0.265625
+          assert td["selected_dev"]["paired_both_correct_rate"] == 0.0
+          assert td["selected_dev"]["question_swap_choice_change_rate"] == 0.0
+          assert td["post_dev_tuning_performed"] is False
+          assert td["sealed_confirm_opened"] is False
+          assert td["multilingual_probe_opened"] is False
+          assert td["production_ready_claimed"] is False
+          PY
+
+      - name: Build canonical S1 closure bundle
+        run: |
+          mkdir -p artifacts/s1-closure/evidence/A0
+          mkdir -p artifacts/s1-closure/evidence/TRAINDEV
+          cp -a inputs/A0/. artifacts/s1-closure/evidence/A0/
+          cp -a inputs/TRAINDEV/. artifacts/s1-closure/evidence/TRAINDEV/
+          cp research/HIRA-V1-S1-CONTRACT.md artifacts/s1-closure/
+          cp research/HIRA-V1-S1-A0-RECEIPT.md artifacts/s1-closure/
+          cp research/HIRA-V1-S1-CLOSURE.md artifacts/s1-closure/
+          cp research/HIRA-V1-S1-HANDOFF.md artifacts/s1-closure/
+
+          (
+            cd artifacts/s1-closure
+            find . -type f ! -name HIRA-V1-S1-INTEGRITY.sha256 ! -name NOLANE-HIRA-V1-S1-FULL.zip -print0               | sort -z               | xargs -0 sha256sum > HIRA-V1-S1-INTEGRITY.sha256
+            sha256sum -c HIRA-V1-S1-INTEGRITY.sha256
+            zip -qr NOLANE-HIRA-V1-S1-FULL.zip               evidence               HIRA-V1-S1-CONTRACT.md               HIRA-V1-S1-A0-RECEIPT.md               HIRA-V1-S1-CLOSURE.md               HIRA-V1-S1-HANDOFF.md               HIRA-V1-S1-INTEGRITY.sha256
+          )
+
+      - name: Emit closure receipt
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s1-closure")
+          archive = root / "NOLANE-HIRA-V1-S1-FULL.zip"
+          receipt = {
+              "schema_version": "hira-v1-s1-closure-bundle-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V1_S1_CLOSED_DEV_FAIL",
+              "archive": archive.name,
+              "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+              "archive_bytes": archive.stat().st_size,
+              "a0_run_id": 36387872121,
+              "a0_artifact_id": 10955282264,
+              "a0_artifact_digest": "sha256:98428470ca03e5de015517c1355b4d16d2dc1aa6bf8688e6ae2f05476cf5da3a",
+              "train_dev_run_id": 36388286637,
+              "train_dev_artifact_id": 10955218190,
+              "train_dev_artifact_digest": "sha256:51b7a808531922f1e3c73c4d01d931562b7f0dc2032e39af7d9d68d5a575468d",
+              "selected_dev_epoch": 7,
+              "selected_dev_accuracy": 0.265625,
+              "paired_both_correct_rate": 0.0,
+              "question_swap_choice_change_rate": 0.0,
+              "sealed_confirm_opened": False,
+              "multilingual_probe_opened": False,
+              "production_ready_claimed": False,
+          }
+          (root / "closure-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V1_S1_CLOSURE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s1-closure-full-bundle
+          path: artifacts/s1-closure
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

@@ -1,0 +1,26 @@
+# HIRA V1 S1 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36387872121
+- artifact: 10955282264
+- digest: sha256:98428470ca03e5de015517c1355b4d16d2dc1aa6bf8688e6ae2f05476cf5da3a
+- outcome: HIRA_V1_S1_A0_PARAMETER_FREE_EVIDENCE_READY
+
+Observed A0:
+- evidence-change rate: 0.625
+- choice-change rate: 0.0
+- accuracy: 0.21875
+- paired both-correct: 0.0
+
+Authorize the preregistered learned QKEE TRAIN/DEV only.
+
+Rules:
+- exact M4 W28/W34 base;
+- exactly 8,192 trainable extractor params;
+- English-only fresh S1-A rows;
+- seed 6101;
+- 12 epochs;
+- frozen DEV gates from HIRA-V1-S1-CONTRACT.md;
+- no S0/A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
