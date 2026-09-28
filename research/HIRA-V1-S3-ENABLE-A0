@@ -1,0 +1,17 @@
+# HIRA V1 S3 — enable A0
+
+Trigger the first S3 authority only after:
+- issue #177 is frozen;
+- HIRA-V1-S3-CONTRACT.md is committed;
+- triadic scorer/runtime/builder tests are committed.
+
+A0 rules:
+- exact frozen M4 A13/W28 provenance;
+- W34 excluded from S3 semantic path;
+- 16 fresh English base states / 32 paired queries;
+- K=4;
+- parameter-free triadic scorer only;
+- added/trainable params = 0;
+- state-once/full-K/relation-delta-zero;
+- fresh v0 control on the same memory/schema;
+- no model selection or promotion from A0.
