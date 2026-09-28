@@ -60,7 +60,7 @@ SCHEMA_VERSION = "hira-v1-s9-margin-train-dev-v1"
 READY = "HIRA_V1_S9_MARGIN_DEV_READY"
 FAIL = "HIRA_V1_S9_MARGIN_DEV_FAIL"
 
-SEED = 13801
+SEED = 14901
 EPOCHS = 24
 BATCH_SIZE = 16
 LR = 2e-4
@@ -90,16 +90,28 @@ def _assert_fresh_against_prior(
         *generate_s7_pairs("train"), *generate_s7_pairs("dev"),
         *generate_s8_cases("train"), *generate_s8_cases("dev"),
     )
-    prior_states = {row.state for row in prior}
-    prior_questions = {
-        q for row in prior for q in (row.question_a, row.question_b)
-    }
+
+    def state_texts(row):
+        if hasattr(row, "state"):
+            return (row.state,)
+        return (row.state_a, row.state_b)
+
+    def question_texts(row):
+        if hasattr(row, "question_a"):
+            return (row.question_a, row.question_b)
+        return (
+            row.question_a1,
+            row.question_a2,
+            row.question_b1,
+            row.question_b2,
+        )
+
+    prior_states = {text for row in prior for text in state_texts(row)}
+    prior_questions = {text for row in prior for text in question_texts(row)}
 
     current = (*train_rows, *dev_rows)
     current_states = {
-        text
-        for row in current
-        for text in (row.state_a, row.state_b)
+        text for row in current for text in (row.state_a, row.state_b)
     }
     current_questions = {
         text
@@ -112,10 +124,9 @@ def _assert_fresh_against_prior(
         )
     }
     if prior_states & current_states:
-        raise RuntimeError("S9 exact state overlap with exposed S0-S7 rows")
+        raise RuntimeError("S9 exact state overlap with exposed S0-S8 rows")
     if prior_questions & current_questions:
-        raise RuntimeError("S9 exact question overlap with exposed S0-S7 rows")
-
+        raise RuntimeError("S9 exact question overlap with exposed S0-S8 rows")
 
 def _content_mask(batch) -> Tensor:
     mask = batch.attention_mask.bool()
@@ -801,7 +812,7 @@ def main() -> None:
     checkpoint_path = args.out / "margin-candidate.pt"
     torch.save(
         {
-            "schema_version": "hira-v1-s8-invariant-checkpoint-v1",
+            "schema_version": "hira-v1-s9-margin-checkpoint-v1",
             "kind": "invariant-margin-a13-w28",
             "lora_parameter_count": HIRA_V1_S6_LORA_PARAMETER_COUNT,
             "projection_parameter_count": HIRA_V1_S9_PROJECTION_PARAMETER_COUNT,
