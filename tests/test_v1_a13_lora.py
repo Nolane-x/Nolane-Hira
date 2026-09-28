@@ -264,3 +264,100 @@ def test_s6_enforce_encoder_eval_after_runtime_train(tmp_path):
     assert runtime.encoder.training is False
     assert runtime.hira.training is False
     assert runtime.parameter_free_triadic_scorer.training is False
+
+
+def test_s6_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.typed_competitive_cache import file_sha256
+    from nmd.v1_s6_checkpoint import (
+        build_frozen_hira_v1_s6_candidate,
+        load_hira_v1_s6_lora_checkpoint,
+    )
+    from nmd.v1_s6_semantic_core import build_hira_v1_s6_a13_lora_core
+
+    torch.manual_seed(86006)
+    t0, t0_sha, _ = _write_t0(tmp_path)
+
+    source = build_hira_v1_s6_a13_lora_core(
+        _encoder(),
+        t0,
+        expected_t0_sha256=t0_sha,
+        train_lora=True,
+    )
+    for module in iter_a13_lora_modules(source.encoder):
+        with torch.no_grad():
+            module.lora_a.normal_(mean=0.0, std=0.03)
+            module.lora_b.normal_(mean=0.0, std=0.02)
+    state = a13_lora_state_dict(source.encoder)
+
+    checkpoint = tmp_path / "s6-lora.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s6-a13-lora-checkpoint-v1",
+            "kind": "a13-last-attention-lora",
+            "lora_parameter_count": 16384,
+            "lora_rank": 8,
+            "selected_dev_epoch": 7,
+            "semantic_revision": "fake-revision",
+            "initialization_t0_sha256": t0_sha,
+            "lora_state_dict": state,
+        },
+        checkpoint,
+    )
+    checkpoint_sha = file_sha256(checkpoint)
+
+    loaded, metadata = load_hira_v1_s6_lora_checkpoint(
+        checkpoint,
+        expected_sha256=checkpoint_sha,
+        initialization_t0_sha256=t0_sha,
+        semantic_revision="fake-revision",
+    )
+    assert metadata["selected_dev_epoch"] == 7
+    assert set(loaded) == set(state)
+    for key in state:
+        assert torch.equal(loaded[key], state[key])
+
+    replay, replay_meta = build_frozen_hira_v1_s6_candidate(
+        _encoder(),
+        t0,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_lora_sha256=checkpoint_sha,
+        semantic_revision="fake-revision",
+    )
+    assert replay_meta["sha256"] == checkpoint_sha
+    assert sum(p.numel() for p in replay.parameters() if p.requires_grad) == 0
+    replay_state = a13_lora_state_dict(replay.encoder)
+    for key in state:
+        assert torch.equal(replay_state[key], state[key])
+
+
+def test_s6_checkpoint_rejects_wrong_semantic_revision(tmp_path):
+    from nmd.v1_s6_checkpoint import load_hira_v1_s6_lora_checkpoint
+
+    checkpoint = tmp_path / "bad-s6-lora.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s6-a13-lora-checkpoint-v1",
+            "kind": "a13-last-attention-lora",
+            "lora_parameter_count": 16384,
+            "lora_rank": 8,
+            "selected_dev_epoch": 1,
+            "semantic_revision": "wrong",
+            "initialization_t0_sha256": "t0",
+            "lora_state_dict": {
+                **{f"lora.{i}.a": torch.randn(8, 256) for i in range(4)},
+                **{f"lora.{i}.b": torch.randn(256, 8) for i in range(4)},
+            },
+        },
+        checkpoint,
+    )
+    try:
+        load_hira_v1_s6_lora_checkpoint(
+            checkpoint,
+            initialization_t0_sha256="t0",
+            semantic_revision="expected",
+        )
+    except RuntimeError as exc:
+        assert "revision" in str(exc)
+    else:
+        raise AssertionError("wrong S6 semantic revision must fail closed")
