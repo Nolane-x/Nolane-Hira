@@ -114,12 +114,13 @@ DEV:
 - seed: 13801;
 - AdamW;
 - 24 epochs;
+- mini-batch: **16 underlying semantic cases**;
 - lr: 2e-4;
 - weight decay: 0.01;
 - grad clip: 1.0;
 - invariance coefficient: 0.25.
 
-Because two state views must be encoded per semantic case, the optimizer may batch fewer underlying cases per step for memory, but the effective semantic-case order and loss definitions are frozen before exposure.
+Because two state views and four question views are encoded per semantic case, the S8 batch is frozen at 16 underlying cases per optimizer step before any S8-A0/TRAIN exposure. The semantic-case order and loss definitions are deterministic and frozen.
 
 ## 9. State-once
 
