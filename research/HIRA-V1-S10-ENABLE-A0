@@ -14,3 +14,5 @@ Requirements:
 - record fresh grounding accuracy/margin/attention diagnostics;
 - A0 cannot be used for model selection;
 - make no parity, multilingual, reliability/OOD or production claim.
+
+Retry A0 after pre-exposure freshness-sentinel and contract-gate repair.
