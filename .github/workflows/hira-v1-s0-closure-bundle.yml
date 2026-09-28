@@ -1,0 +1,196 @@
+name: hira-v1-s0-closure-bundle
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s0-query-conditioned-semantic
+    paths:
+      - "research/HIRA-V1-S0-CLOSURE-BUNDLE"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-question-blindness
+          path: inputs/S0A
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36382301792
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-parameter-free-query
+          path: inputs/S0B0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36382895869
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s0-query-train-dev
+          path: inputs/S0C
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36383487080
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install and test latest S0 code
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          pytest -q             tests/test_v1_query_conditioned_semantic.py             tests/test_w33_coevidence_semantic.py             tests/test_symmetric_semantic_runtime.py
+
+      - name: Verify S0 authority chain
+        run: |
+          (
+            cd inputs/S0A
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/S0B0
+            sha256sum -c INTEGRITY.sha256
+          )
+          (
+            cd inputs/S0C
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          a = json.loads(Path("inputs/S0A/result.json").read_text(encoding="utf-8"))
+          b = json.loads(Path("inputs/S0B0/result.json").read_text(encoding="utf-8"))
+          c = json.loads(Path("inputs/S0C/result.json").read_text(encoding="utf-8"))
+
+          assert a["status"] == "PASS"
+          assert a["outcome"] == "HIRA_V1_S0_QUESTION_BLINDNESS_CONFIRMED"
+          assert a["identical_logit_rate"] == 1.0
+
+          assert b["status"] == "PASS"
+          assert b["outcome"] == "HIRA_V1_S0_PARAMETER_FREE_QUERY_BASELINE_READY"
+          assert b["added_parameter_count"] == 0
+          assert b["question_changes_logits_rate"] == 1.0
+          assert b["question_changes_choice_rate"] == 0.0
+
+          assert c["status"] == "PASS"
+          assert c["outcome"] == "HIRA_V1_S0_QUERY_REPAIR_DEV_FAIL"
+          assert c["selected_dev_epoch"] == 8
+          assert c["checkpoint_sha256"] == "1c00d903d8fda91fd3f905eaed2dac21dbd9e49d90422e89fb1a9b01b70575d5"
+          assert c["selected_dev"]["accuracy"] == 0.3828125
+          assert c["selected_dev"]["en_accuracy"] == 0.5
+          assert c["selected_dev"]["vi_accuracy"] == 0.265625
+          assert c["selected_dev"]["paired_both_correct_rate"] == 0.09375
+          assert c["selected_dev"]["question_swap_choice_change_rate"] == 0.421875
+          assert c["selected_dev"]["option_order_flip_rate"] == 0.0
+          assert c["post_dev_tuning_performed"] is False
+          assert c["production_ready_claimed"] is False
+          assert not all(c["gates"].values())
+          PY
+
+      - name: Build canonical S0 bundle
+        run: |
+          mkdir -p artifacts/s0-closure/evidence
+          mkdir -p artifacts/s0-closure/source
+          mkdir -p artifacts/s0-closure/research
+
+          cp -a inputs/S0A artifacts/s0-closure/evidence/S0A-question-blindness
+          cp -a inputs/S0B0 artifacts/s0-closure/evidence/S0B0-parameter-free
+          cp -a inputs/S0C artifacts/s0-closure/evidence/S0C-train-dev
+
+          cp src/nmd/v1_query_conditioned_semantic.py artifacts/s0-closure/source/
+          cp src/nmd/v1_parameter_free_query.py artifacts/s0-closure/source/
+          cp src/nmd/v1_semantic_core.py artifacts/s0-closure/source/
+          cp src/nmd/v1_s0_checkpoint.py artifacts/s0-closure/source/
+          cp src/nmd/v1_s0_authority.py artifacts/s0-closure/source/
+          cp scripts/hira_v1_s0_question_blindness.py artifacts/s0-closure/source/
+          cp scripts/hira_v1_s0_parameter_free_query.py artifacts/s0-closure/source/
+          cp scripts/hira_v1_s0_train_dev.py artifacts/s0-closure/source/
+          cp tests/test_v1_query_conditioned_semantic.py artifacts/s0-closure/source/
+
+          cp research/HIRA-V1-S0-CONTRACT.md artifacts/s0-closure/research/
+          cp research/HIRA-V1-S0-CLOSURE.md artifacts/s0-closure/research/
+          cp research/HIRA-V1-S0-HANDOFF.md artifacts/s0-closure/research/
+
+          cat > artifacts/s0-closure/README.md <<'EOF'
+          # Hira v1 S0 research closure
+
+          S0 confirms the v0 question-blindness root cause but rejects the
+          first learned low-rank multiplicative query-binding candidate on
+          fresh DEV.
+
+          This is a scientifically useful negative result.
+
+          Outcome: HIRA_V1_S0_QUERY_REPAIR_DEV_FAIL
+
+          S0-D sealed confirm was not opened.
+          No external Laya/Jev benchmark was reopened.
+          Production readiness remains false.
+          EOF
+
+          (
+            cd artifacts/s0-closure
+            find . -type f ! -name HIRA-V1-S0-INTEGRITY.sha256 ! -name NOLANE-HIRA-V1-S0-FULL.zip -print0               | sort -z               | xargs -0 sha256sum > HIRA-V1-S0-INTEGRITY.sha256
+            sha256sum -c HIRA-V1-S0-INTEGRITY.sha256
+            zip -qr NOLANE-HIRA-V1-S0-FULL.zip               evidence source research README.md HIRA-V1-S0-INTEGRITY.sha256
+          )
+
+      - name: Emit S0 closure receipt
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s0-closure")
+          archive = root / "NOLANE-HIRA-V1-S0-FULL.zip"
+          receipt = {
+              "schema_version": "hira-v1-s0-closure-bundle-v1",
+              "status": "PASS",
+              "outcome": "HIRA_V1_S0_CLOSED_DEV_FAIL",
+              "archive": archive.name,
+              "archive_bytes": archive.stat().st_size,
+              "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+              "s0a_run_id": 36382301792,
+              "s0a_artifact_id": 10952694461,
+              "s0a_artifact_digest": "sha256:f96fa93dfd2f640008a1ac3cc9ce40129cda9d57bbf062c6616a7b640c87a812",
+              "s0b0_run_id": 36382895869,
+              "s0b0_artifact_id": 10952918278,
+              "s0b0_artifact_digest": "sha256:e98d93b1db860a4e7f8a867c0789ced676f74f357fff90c964b0fb5b4daa0af9",
+              "s0c_run_id": 36383487080,
+              "s0c_artifact_id": 10953344707,
+              "s0c_artifact_digest": "sha256:bf3c2e14dd6f08927bd5f48396c99e897cd85b6bb8b19ea75d6f2f39803972b7",
+              "selected_checkpoint_sha256": "1c00d903d8fda91fd3f905eaed2dac21dbd9e49d90422e89fb1a9b01b70575d5",
+              "dev_accuracy": 0.3828125,
+              "dev_passed": False,
+              "sealed_confirm_opened": False,
+              "external_benchmark_reopened": False,
+              "post_dev_tuning_performed": False,
+              "production_ready_claimed": False,
+          }
+          (root / "closure-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print("HIRA_V1_S0_CLOSURE_RECEIPT=" + json.dumps(receipt, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s0-closure-full-bundle
+          path: artifacts/s0-closure
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
