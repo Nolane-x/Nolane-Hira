@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import log
-
 import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
@@ -193,7 +191,11 @@ class QueryConditionedStateOptionGrounding(nn.Module):
         eps = torch.finfo(attention.dtype).eps
         entropy_per_q = -(attention.clamp_min(eps).log() * attention).sum(-1)
         valid_state_count = state_mask.sum(-1).to(attention.dtype)
-        entropy_denominator = valid_state_count.log().clamp_min(1.0)
+        entropy_denominator = torch.where(
+            valid_state_count > 1,
+            valid_state_count.log(),
+            torch.ones_like(valid_state_count),
+        )
         normalized_entropy = entropy_per_q / entropy_denominator[:, None]
         q_mask_float = question_mask.to(attention.dtype)
         normalized_entropy = (
