@@ -534,3 +534,110 @@ def test_v1_s0_authority_does_not_reuse_localization_rows():
         for row in authority
         for text in (row.question_a, row.question_b)
     } & forbidden_questions)
+
+
+def test_v1_s0_query_checkpoint_roundtrip_and_frozen_replay(tmp_path):
+    from nmd.v1_s0_checkpoint import (
+        build_frozen_hira_v1_s0_candidate,
+        load_hira_v1_s0_query_checkpoint,
+    )
+    from nmd.typed_competitive_cache import file_sha256
+
+    torch.manual_seed(41010)
+    t0, t0_sha, w34, w34_sha, _ = _write_s0_checkpoints(tmp_path)
+    query_state = {
+        "query_basis.weight": torch.randn(8, 128),
+        "query_state.weight": torch.randn(8, 128),
+        "query_schema.weight": torch.randn(8, 128),
+    }
+    checkpoint = tmp_path / "query.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s0-query-checkpoint-v1",
+            "kind": "query-conditioned-coevidence",
+            "query_rank": 8,
+            "query_parameter_count": 3072,
+            "candidate_parameter_count": 11264,
+            "selected_dev_epoch": 7,
+            "t0_checkpoint_sha256": t0_sha,
+            "w34_checkpoint_sha256": w34_sha,
+            "query_state_dict": query_state,
+        },
+        checkpoint,
+    )
+    query_sha = file_sha256(checkpoint)
+
+    loaded, meta = load_hira_v1_s0_query_checkpoint(
+        checkpoint,
+        expected_sha256=query_sha,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+    )
+    assert meta["selected_dev_epoch"] == 7
+    assert meta["query_parameter_count"] == 3072
+    for key, value in query_state.items():
+        assert torch.equal(loaded[key], value)
+
+    encoder = TrainableSemanticEncoder(
+        vocab_size=1024,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    runtime, replay_meta = build_frozen_hira_v1_s0_candidate(
+        encoder,
+        t0,
+        w34,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+        expected_query_sha256=query_sha,
+    )
+    assert replay_meta["sha256"] == query_sha
+    assert sum(
+        parameter.numel()
+        for parameter in runtime.parameters()
+        if parameter.requires_grad
+    ) == 0
+
+    scorer = runtime.query_conditioned_coevidence_scorer
+    assert scorer is not None
+    own = scorer.state_dict()
+    for key, value in query_state.items():
+        assert torch.equal(own[key], value)
+
+
+def test_v1_s0_query_checkpoint_rejects_wrong_base_identity(tmp_path):
+    from nmd.v1_s0_checkpoint import load_hira_v1_s0_query_checkpoint
+
+    checkpoint = tmp_path / "query.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s0-query-checkpoint-v1",
+            "kind": "query-conditioned-coevidence",
+            "query_rank": 8,
+            "query_parameter_count": 3072,
+            "candidate_parameter_count": 11264,
+            "selected_dev_epoch": 1,
+            "t0_checkpoint_sha256": "t0-a",
+            "w34_checkpoint_sha256": "w34-a",
+            "query_state_dict": {
+                "query_basis.weight": torch.zeros(8, 128),
+                "query_state.weight": torch.zeros(8, 128),
+                "query_schema.weight": torch.zeros(8, 128),
+            },
+        },
+        checkpoint,
+    )
+
+    try:
+        load_hira_v1_s0_query_checkpoint(
+            checkpoint,
+            expected_t0_sha256="t0-b",
+            expected_w34_sha256="w34-a",
+        )
+    except RuntimeError as exc:
+        assert "T0 identity" in str(exc)
+    else:
+        raise AssertionError("wrong T0 identity must fail closed")
