@@ -282,3 +282,86 @@ def test_s5_builder_can_freeze_complete_candidate(tmp_path):
         train_projection=False,
     )
     assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+
+
+def test_s5_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.typed_competitive_cache import file_sha256
+    from nmd.v1_s5_checkpoint import (
+        build_frozen_hira_v1_s5_candidate,
+        load_hira_v1_s5_projection_checkpoint,
+    )
+
+    torch.manual_seed(75006)
+    t0, t0_sha, _ = _write_t0(tmp_path)
+    checkpoint = tmp_path / "projection.pt"
+    learned = torch.randn(128, 256)
+    torch.save(
+        {
+            "schema_version": "hira-v1-s5-projection-checkpoint-v1",
+            "kind": "semantic-projection-relearning",
+            "projection_parameter_count": 32768,
+            "selected_dev_epoch": 6,
+            "initialization_t0_sha256": t0_sha,
+            "projection_state_dict": {
+                "projection.weight": learned,
+            },
+        },
+        checkpoint,
+    )
+    projection_sha = file_sha256(checkpoint)
+
+    state, metadata = load_hira_v1_s5_projection_checkpoint(
+        checkpoint,
+        expected_sha256=projection_sha,
+        initialization_t0_sha256=t0_sha,
+    )
+    assert metadata["selected_dev_epoch"] == 6
+    assert torch.equal(state["projection.weight"], learned.float())
+
+    encoder = TrainableSemanticEncoder(
+        vocab_size=1024,
+        d_model=256,
+        n_layers=1,
+        n_heads=4,
+        max_length=64,
+    )
+    runtime, replay = build_frozen_hira_v1_s5_candidate(
+        encoder,
+        t0,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_projection_sha256=projection_sha,
+    )
+    assert replay["sha256"] == projection_sha
+    assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+    scorer = runtime.projection_triadic_scorer
+    assert scorer is not None
+    assert torch.equal(scorer.projection.weight, learned.float())
+
+
+def test_s5_checkpoint_rejects_wrong_initialization_identity(tmp_path):
+    from nmd.v1_s5_checkpoint import load_hira_v1_s5_projection_checkpoint
+
+    checkpoint = tmp_path / "bad-projection.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s5-projection-checkpoint-v1",
+            "kind": "semantic-projection-relearning",
+            "projection_parameter_count": 32768,
+            "selected_dev_epoch": 1,
+            "initialization_t0_sha256": "wrong",
+            "projection_state_dict": {
+                "projection.weight": torch.randn(128, 256),
+            },
+        },
+        checkpoint,
+    )
+    try:
+        load_hira_v1_s5_projection_checkpoint(
+            checkpoint,
+            initialization_t0_sha256="expected-t0",
+        )
+    except RuntimeError as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("wrong S5 initialization identity must fail closed")
