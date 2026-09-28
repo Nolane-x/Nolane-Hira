@@ -209,7 +209,7 @@ _DOMAINS = (
         ("sourdough", "brioche", "rye loaf", "baguette", "ciabatta", "focaccia", "pretzel", "croissant"),
         ("panettone", "pumpernickel", "challah", "naan", "lavash", "bagel", "kouign-amann", "pain de mie"),
         ("182 C", "188 C", "194 C", "200 C", "206 C", "212 C", "218 C", "224 C"),
-        ("185 C", "191 C", "197 C", "203 C", "209 C", "215 C", "221 C", "227 C"),
+        ("185 C", "191 C", "197 C", "203 C", "209 C", "215 C", "225 C", "227 C"),
         "Bakery oven batch {code} bakes product {first} at {second}.",
         "Bakehouse schedule {code} names item {first}; oven target is {second}.",
         "Which product is baked in this bakery oven batch?",
