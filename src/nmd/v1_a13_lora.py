@@ -225,10 +225,10 @@ def load_a13_lora_state_dict(
     freeze: bool = True,
 ) -> None:
     modules = iter_a13_lora_modules(encoder)
-    expected = {
-        **{f"lora.{i}.a" for i in range(len(modules))},
-        **{f"lora.{i}.b" for i in range(len(modules))},
-    }
+    expected = (
+        {f"lora.{i}.a" for i in range(len(modules))}
+        | {f"lora.{i}.b" for i in range(len(modules))}
+    )
     if set(state_dict) != expected:
         raise ValueError("Hira v1 S6 LoRA checkpoint keys changed")
 
