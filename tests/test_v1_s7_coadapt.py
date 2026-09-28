@@ -195,3 +195,85 @@ def test_s7_eval_enforcement_keeps_trainable_surface(tmp_path):
     assert runtime.hira.training is False
     assert runtime.projection_triadic_scorer.training is False
     assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 49152
+
+
+def test_s7_checkpoint_roundtrip_freezes_joint_candidate(tmp_path):
+    from nmd.typed_competitive_cache import file_sha256
+    from nmd.v1_a13_lora import a13_lora_state_dict
+    from nmd.v1_s7_checkpoint import (
+        build_frozen_hira_v1_s7_candidate,
+        load_hira_v1_s7_checkpoint,
+    )
+    from nmd.v1_s7_semantic_core import build_hira_v1_s7_coadapt_core
+
+    torch.manual_seed(97002)
+    t0, t0_sha, _ = _write_t0(tmp_path)
+    source = build_hira_v1_s7_coadapt_core(
+        _encoder(),
+        t0,
+        expected_t0_sha256=t0_sha,
+        train_lora=True,
+        train_projection=True,
+    )
+    for module in iter_a13_lora_modules(source.encoder):
+        with torch.no_grad():
+            module.lora_a.normal_(mean=0.0, std=0.03)
+            module.lora_b.normal_(mean=0.0, std=0.02)
+    scorer = source.projection_triadic_scorer
+    assert scorer is not None
+    with torch.no_grad():
+        scorer.projection.weight.add_(0.01 * torch.randn_like(scorer.projection.weight))
+
+    lora_state = a13_lora_state_dict(source.encoder)
+    projection_state = {
+        "projection.weight": scorer.projection.weight.detach().cpu().clone(),
+    }
+    checkpoint = tmp_path / "s7.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s7-coadapt-checkpoint-v1",
+            "kind": "a13-w28-joint-coadapt",
+            "lora_parameter_count": 16384,
+            "projection_parameter_count": 32768,
+            "total_parameter_count": 49152,
+            "lora_rank": 8,
+            "selected_dev_epoch": 5,
+            "semantic_revision": "fake-revision",
+            "initialization_t0_sha256": t0_sha,
+            "lora_state_dict": lora_state,
+            "projection_state_dict": projection_state,
+        },
+        checkpoint,
+    )
+    checkpoint_sha = file_sha256(checkpoint)
+
+    loaded_lora, loaded_projection, metadata = load_hira_v1_s7_checkpoint(
+        checkpoint,
+        expected_sha256=checkpoint_sha,
+        initialization_t0_sha256=t0_sha,
+        semantic_revision="fake-revision",
+    )
+    assert metadata["selected_dev_epoch"] == 5
+    for key in lora_state:
+        assert torch.equal(loaded_lora[key], lora_state[key])
+    assert torch.equal(
+        loaded_projection["projection.weight"],
+        projection_state["projection.weight"],
+    )
+
+    replay, replay_meta = build_frozen_hira_v1_s7_candidate(
+        _encoder(),
+        t0,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_coadapt_sha256=checkpoint_sha,
+        semantic_revision="fake-revision",
+    )
+    assert replay_meta["sha256"] == checkpoint_sha
+    assert sum(p.numel() for p in replay.parameters() if p.requires_grad) == 0
+    replay_scorer = replay.projection_triadic_scorer
+    assert replay_scorer is not None
+    assert torch.equal(
+        replay_scorer.projection.weight,
+        projection_state["projection.weight"],
+    )
