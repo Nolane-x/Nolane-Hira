@@ -1,0 +1,43 @@
+# HIRA V1 S2 — enable TRAIN DEV
+
+Prior qualified A0 authority:
+- run: 36390086785
+- artifact: 10955893093
+- digest: sha256:e17ccf529e503450686895c983d77df945b21e90570a8945da8c48e95c57c471
+- outcome: HIRA_V1_S2_A0_QUESTION_AS_EVIDENCE_READY
+
+Observed A0:
+- accuracy: 0.25
+- paired both-correct: 0.0
+- question changes logits: 1.0
+- question changes choice: 0.0625
+- fresh v0 control accuracy: 0.25
+
+Authorize only the preregistered learned QTRF TRAIN/DEV experiment.
+
+Rules:
+- exact M4 W28/W34 base;
+- exactly 8,192 trainable fusion parameters;
+- all state tokens preserved;
+- English-only fresh S2-A rows;
+- seed 7201;
+- 16 epochs;
+- AdamW lr 3e-4, weight decay 0.01, grad clip 1.0;
+- CE + 0.25 paired swap-margin, margin 0.20;
+- frozen DEV gates from HIRA-V1-S2-CONTRACT.md;
+- no S0/S1/S2-A0/M5/sealed fitting rows;
+- no post-DEV tuning;
+- sealed confirm remains closed unless DEV READY.
+
+
+## Qualified retry note
+
+The first TRAIN/DEV run `36390503180` stopped in pre-exposure unit freshness checks before:
+- A0 authority verification;
+- M4 integrity verification;
+- any optimizer step;
+- any DEV exposure.
+
+Cause: the TRAIN lexical sentinel `ion` was a substring of the unrelated DEV word `calibration`.
+
+Retry changes only the test sentinel to complete lexical phrases. Model, data, seed, optimizer, epochs, loss, selection order and frozen DEV gates are unchanged.
