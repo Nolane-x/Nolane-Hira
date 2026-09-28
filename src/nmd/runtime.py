@@ -25,6 +25,10 @@ from .v1_query_token_fusion import (
     QuestionAsEvidenceScorer,
     QueryTokenResidualFusionScorer,
 )
+from .v1_triadic_semantic import (
+    ParameterFreeTriadicScorer,
+    TriadicCPSemanticScorer,
+)
 
 PRIMITIVE_TO_ID: dict[Primitive, int] = {"choice": 0, "score": 1, "noul": 2}
 RelationMode = Literal["pooled", "option_tokens", "state_tokens", "dual_tokens"]
@@ -47,6 +51,8 @@ CoarseMode = Literal[
     "query_keyed_evidence",
     "question_as_evidence",
     "query_token_residual_fusion",
+    "parameter_free_triadic",
+    "triadic_cp",
 ]
 COARSE_MODES: tuple[CoarseMode, ...] = (
     "legacy",
@@ -61,6 +67,8 @@ COARSE_MODES: tuple[CoarseMode, ...] = (
     "query_keyed_evidence",
     "question_as_evidence",
     "query_token_residual_fusion",
+    "parameter_free_triadic",
+    "triadic_cp",
 )
 COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "symmetric_semantic",
@@ -73,6 +81,8 @@ COARSE_ONLY_SEMANTIC_MODES: tuple[CoarseMode, ...] = (
     "query_keyed_evidence",
     "question_as_evidence",
     "query_token_residual_fusion",
+    "parameter_free_triadic",
+    "triadic_cp",
 )
 
 
@@ -104,6 +114,8 @@ class NolaneHira(nn.Module):
         query_keyed_evidence_scorer: QueryKeyedEvidenceScorer | None = None,
         question_as_evidence_scorer: QuestionAsEvidenceScorer | None = None,
         query_token_residual_fusion_scorer: QueryTokenResidualFusionScorer | None = None,
+        parameter_free_triadic_scorer: ParameterFreeTriadicScorer | None = None,
+        triadic_cp_scorer: TriadicCPSemanticScorer | None = None,
         reliability_calibrator: TypedReliabilityCalibrator | None = None,
         schema_cache_max_entries: int | None = None,
         schema_cache_max_bytes: int | None = None,
@@ -177,6 +189,18 @@ class NolaneHira(nn.Module):
         ):
             raise ValueError("query-token residual fusion scorer d_model mismatch")
         self.query_token_residual_fusion_scorer = query_token_residual_fusion_scorer
+        if (
+            parameter_free_triadic_scorer is not None
+            and parameter_free_triadic_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("parameter-free triadic scorer d_model mismatch")
+        self.parameter_free_triadic_scorer = parameter_free_triadic_scorer
+        if (
+            triadic_cp_scorer is not None
+            and triadic_cp_scorer.d_model != encoder.d_model
+        ):
+            raise ValueError("triadic CP scorer d_model mismatch")
+        self.triadic_cp_scorer = triadic_cp_scorer
         self.reliability_calibrator = reliability_calibrator
         schema_cache_kwargs = {}
         if schema_cache_max_entries is not None:
@@ -714,6 +738,46 @@ class NolaneHira(nn.Module):
             option_view_mask=schema.option_view_mask.unsqueeze(0),
         )
 
+    def _triadic_coarse(
+        self,
+        memory: StateMemory,
+        schema: CompiledSchema,
+        *,
+        scorer: ParameterFreeTriadicScorer | TriadicCPSemanticScorer | None,
+        mode_name: str,
+    ) -> Tensor:
+        if scorer is None:
+            raise ValueError(f"{mode_name} coarse mode requires its triadic scorer")
+        if memory.content_token_embeddings is None:
+            raise ValueError(f"{mode_name} requires state content tokens")
+        required = (
+            schema.question_token_embeddings,
+            schema.question_content_token_mask,
+            schema.option_view_token_embeddings,
+            schema.option_view_token_mask,
+            schema.option_view_mask,
+        )
+        if any(value is None for value in required):
+            raise ValueError(
+                f"{mode_name} requires question and multi-view schema artifacts"
+            )
+        state_tokens = memory.content_token_embeddings.unsqueeze(0)
+        state_mask = torch.ones(
+            1,
+            state_tokens.shape[1],
+            dtype=torch.bool,
+            device=state_tokens.device,
+        )
+        return scorer(
+            state_tokens=state_tokens,
+            state_mask=state_mask,
+            question_tokens=schema.question_token_embeddings.unsqueeze(0),
+            question_mask=schema.question_content_token_mask.unsqueeze(0),
+            option_view_tokens=schema.option_view_token_embeddings.unsqueeze(0),
+            option_view_token_mask=schema.option_view_token_mask.unsqueeze(0),
+            option_view_mask=schema.option_view_mask.unsqueeze(0),
+        )
+
     def _coarse_only_output(
         self,
         memory: StateMemory,
@@ -883,6 +947,20 @@ class NolaneHira(nn.Module):
             coarse_override = self._question_as_evidence_coarse(memory, schema)
         elif coarse_mode == "query_token_residual_fusion":
             coarse_override = self._query_token_residual_fusion_coarse(memory, schema)
+        elif coarse_mode == "parameter_free_triadic":
+            coarse_override = self._triadic_coarse(
+                memory,
+                schema,
+                scorer=self.parameter_free_triadic_scorer,
+                mode_name="parameter_free_triadic",
+            )
+        elif coarse_mode == "triadic_cp":
+            coarse_override = self._triadic_coarse(
+                memory,
+                schema,
+                scorer=self.triadic_cp_scorer,
+                mode_name="triadic_cp",
+            )
 
         if coarse_mode in COARSE_ONLY_SEMANTIC_MODES and not relation_refinement:
             out = self._coarse_only_output(memory, coarse_override)
@@ -961,6 +1039,8 @@ class NolaneHira(nn.Module):
                 "query_keyed_evidence",
                 "question_as_evidence",
                 "query_token_residual_fusion",
+                "parameter_free_triadic",
+                "triadic_cp",
             }
         )
         schema, _ = self.compile_schema(
