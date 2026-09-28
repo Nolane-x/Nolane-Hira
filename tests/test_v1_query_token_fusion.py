@@ -274,3 +274,96 @@ def test_s2_parameter_free_builder_is_frozen(tmp_path):
     )
     assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
     assert runtime.question_as_evidence_scorer is not None
+
+
+def test_s2_qtrf_checkpoint_roundtrip_freezes_replay(tmp_path):
+    from nmd.v1_s2_checkpoint import (
+        build_frozen_hira_v1_s2_candidate,
+        load_hira_v1_s2_qtrf_checkpoint,
+    )
+
+    torch.manual_seed(62009)
+    t0, t0_sha, w34, w34_sha, _ = _write_checkpoints(tmp_path)
+    checkpoint = tmp_path / "qtrf.pt"
+    fusion_state = {
+        "state_query.weight": torch.randn(16, 128),
+        "question_key.weight": torch.randn(16, 128),
+        "question_value.weight": torch.randn(16, 128),
+        "fusion_up.weight": torch.randn(128, 16),
+    }
+    torch.save(
+        {
+            "schema_version": "hira-v1-s2-qtrf-checkpoint-v1",
+            "kind": "query-token-residual-fusion",
+            "fusion_parameter_count": 8192,
+            "candidate_parameter_count": 16384,
+            "selected_dev_epoch": 6,
+            "t0_checkpoint_sha256": t0_sha,
+            "w34_checkpoint_sha256": w34_sha,
+            "fusion_state_dict": fusion_state,
+        },
+        checkpoint,
+    )
+    qtrf_sha = file_sha256(checkpoint)
+
+    loaded, metadata = load_hira_v1_s2_qtrf_checkpoint(
+        checkpoint,
+        expected_sha256=qtrf_sha,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+    )
+    assert metadata["selected_dev_epoch"] == 6
+    for key, value in fusion_state.items():
+        assert torch.equal(loaded[key], value.float())
+
+    runtime, replay = build_frozen_hira_v1_s2_candidate(
+        _encoder(),
+        t0,
+        w34,
+        checkpoint,
+        expected_t0_sha256=t0_sha,
+        expected_w34_sha256=w34_sha,
+        expected_qtrf_sha256=qtrf_sha,
+    )
+    assert replay["sha256"] == qtrf_sha
+    assert sum(p.numel() for p in runtime.parameters() if p.requires_grad) == 0
+    scorer = runtime.query_token_residual_fusion_scorer
+    assert scorer is not None
+    own = scorer.state_dict()
+    for key, value in fusion_state.items():
+        assert torch.equal(own[key], value.float())
+
+
+def test_s2_qtrf_checkpoint_rejects_wrong_base_identity(tmp_path):
+    from nmd.v1_s2_checkpoint import load_hira_v1_s2_qtrf_checkpoint
+
+    checkpoint = tmp_path / "bad-qtrf.pt"
+    torch.save(
+        {
+            "schema_version": "hira-v1-s2-qtrf-checkpoint-v1",
+            "kind": "query-token-residual-fusion",
+            "fusion_parameter_count": 8192,
+            "candidate_parameter_count": 16384,
+            "selected_dev_epoch": 1,
+            "t0_checkpoint_sha256": "wrong-t0",
+            "w34_checkpoint_sha256": "wrong-w34",
+            "fusion_state_dict": {
+                "state_query.weight": torch.randn(16, 128),
+                "question_key.weight": torch.randn(16, 128),
+                "question_value.weight": torch.randn(16, 128),
+                "fusion_up.weight": torch.randn(128, 16),
+            },
+        },
+        checkpoint,
+    )
+
+    try:
+        load_hira_v1_s2_qtrf_checkpoint(
+            checkpoint,
+            expected_t0_sha256="expected-t0",
+            expected_w34_sha256="expected-w34",
+        )
+    except RuntimeError as exc:
+        assert "identity" in str(exc)
+    else:
+        raise AssertionError("wrong S2 base identity must fail closed")
