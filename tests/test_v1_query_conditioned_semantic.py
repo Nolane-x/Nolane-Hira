@@ -508,13 +508,18 @@ def test_v1_s0_authority_does_not_reuse_localization_rows():
     from nmd.v1_s0_authority import generate_s0_pairs
     import importlib.util
     from pathlib import Path
+    import sys
 
     path = Path("scripts/hira_v1_s0_question_blindness.py")
     spec = importlib.util.spec_from_file_location("s0_localization", path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
-    spec.loader.exec_module(module)
-    localization = module.cases()
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+        localization = module.cases()
+    finally:
+        sys.modules.pop(spec.name, None)
 
     forbidden_states = {row.state for row in localization}
     forbidden_questions = {
