@@ -1,0 +1,157 @@
+name: hira-v1-s5-projection-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s5-projection-relearning
+    paths:
+      - "research/HIRA-V1-S5-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 600
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s5-a0-identity
+          path: inputs/S5A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36400104371
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S5 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"             "transformers>=4.45,<6"             "safetensors>=0.4"             "huggingface_hub>=0.24"
+
+      - name: Compile and run S5 contracts
+        run: |
+          python -m py_compile             src/nmd/v1_projection_relearning.py             src/nmd/v1_s5_semantic_core.py             src/nmd/v1_s5_authority.py             src/nmd/v1_s5_checkpoint.py             src/nmd/runtime.py             scripts/hira_v1_s5_train_dev.py
+          pytest -q             tests/test_v1_projection_relearning.py             tests/test_v1_s5_authority.py             tests/test_v1_semantic_adapter.py             tests/test_v1_triadic_semantic.py
+
+      - name: Verify S5-A0 authority
+        run: |
+          (
+            cd inputs/S5A0
+            sha256sum -c INTEGRITY.sha256
+          )
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          r = json.loads(Path("inputs/S5A0/result.json").read_text(encoding="utf-8"))
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S5_A0_IDENTITY_READY"
+          assert r["scientific_authority"] == "S5_A0_IDENTITY_LOCALIZATION_ONLY"
+          assert r["views_per_option"] == 2
+          assert r["projection_parameter_count"] == 32768
+          assert r["projection_trainable_parameter_count"] == 0
+          assert r["exact_logit_identity_rate"] == 1.0
+          assert r["exact_choice_identity_rate"] == 1.0
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (
+            cd inputs/M4/hira-v0-m4-runtime
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - name: Run fresh English projection TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "2"
+          MKL_NUM_THREADS: "2"
+        run: |
+          python scripts/hira_v1_s5_train_dev.py             --bundle inputs/M4/hira-v0-m4-runtime             --a0-result inputs/S5A0/result.json             --out artifacts/s5-train-dev
+
+      - name: Verify S5 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("artifacts/s5-train-dev")
+          r = json.loads((root / "result.json").read_text(encoding="utf-8"))
+
+          assert r["schema_version"] == "hira-v1-s5-projection-train-dev-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S5_PROJECTION_DEV_READY",
+              "HIRA_V1_S5_PROJECTION_DEV_FAIL",
+          }
+          assert r["scientific_authority"] == "V1_S5_FRESH_ENGLISH_TRAIN_DEV"
+          assert r["seed"] == 10501
+          assert r["optimizer"]["epochs"] == 30
+          assert r["optimizer"]["lr"] == 3e-4
+          assert r["partitions"]["train_base_cases"] == 512
+          assert r["partitions"]["train_queries"] == 1024
+          assert r["partitions"]["dev_base_cases"] == 128
+          assert r["partitions"]["dev_queries"] == 256
+          assert r["partitions"]["language"] == "en"
+          assert r["partitions"]["k"] == 4
+          assert r["partitions"]["views_per_option"] == 2
+          assert r["partitions"]["prior_track_exact_rows_used"] is False
+          assert r["partitions"]["s5_a0_rows_used"] is False
+          assert r["partitions"]["m5_final_rows_used"] is False
+          assert r["partitions"]["w29_w34_sealed_rows_used"] is False
+          assert r["parameter_surface"]["projection_trainable_parameters"] == 32768
+          assert r["parameter_surface"]["encoder_trainable"] == 0
+          assert r["parameter_surface"]["hira_core_trainable"] == 0
+          assert r["parameter_surface"]["learned_downstream_scorer_parameters"] == 0
+          assert r["state_once"]["train_encode_calls"] == 512
+          assert r["state_once"]["dev_encode_calls"] == 128
+          assert 1 <= r["selected_dev_epoch"] <= 30
+          assert r["post_dev_tuning_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert len(r["history"]) == 30
+          assert (root / "projection-candidate.pt").is_file()
+          assert (root / "train-manifest.json").is_file()
+          assert (root / "dev-manifest.json").is_file()
+
+          if r["outcome"] == "HIRA_V1_S5_PROJECTION_DEV_READY":
+              assert all(r["gates"].values())
+          else:
+              assert not all(r["gates"].values())
+          PY
+
+      - name: Freeze S5 TRAIN DEV integrity
+        run: |
+          (
+            cd artifacts/s5-train-dev
+            sha256sum               result.json               projection-candidate.pt               train-manifest.json               dev-manifest.json               > INTEGRITY.sha256
+            sha256sum -c INTEGRITY.sha256
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s5-projection-train-dev
+          path: artifacts/s5-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
