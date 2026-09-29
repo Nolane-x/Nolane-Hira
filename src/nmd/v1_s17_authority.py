@@ -156,30 +156,30 @@ def _views(
 ) -> tuple[str, str, str, str, str, str]:
     if split == "train":
         state_a = (
-            f"S17 {spec.noun} record {code}: {spec.field_a} {first}; "
+            f"S17-Balance {spec.noun} record {code}: {spec.field_a} {first}; "
             f"{spec.field_b} {second}."
         )
         state_b = (
-            f"Record {code} lists {second} beside {spec.field_b}. "
-            f"In the same S17 {spec.noun}, {spec.field_a} is {first}."
+            f"S17-Balance record {code} lists {second} beside {spec.field_b}. "
+            f"In the same {spec.noun}, {spec.field_a} is {first}."
         )
-        qa1 = f"For S17 {spec.noun} {code}, what is the {spec.field_a}?"
-        qa2 = f"Which value fills {spec.field_a} in record {code}?"
-        qb1 = f"For S17 {spec.noun} {code}, what is the {spec.field_b}?"
-        qb2 = f"Which value fills {spec.field_b} in record {code}?"
+        qa1 = f"For S17-Balance {spec.noun} {code}, identify {spec.field_a}."
+        qa2 = f"In S17-Balance record {code}, which entry belongs under {spec.field_a}?"
+        qb1 = f"For S17-Balance {spec.noun} {code}, identify {spec.field_b}."
+        qb2 = f"In S17-Balance record {code}, which entry belongs under {spec.field_b}?"
     else:
         state_a = (
-            f"Inspection dossier {code} for the {spec.noun} places {first} "
+            f"S17-Balance inspection dossier {code} for the {spec.noun} places {first} "
             f"under {spec.field_a}; the {spec.field_b} entry reads {second}."
         )
         state_b = (
-            f"Within dossier {code}, {spec.field_b} carries {second}. "
-            f"Elsewhere in that {spec.noun} dossier, {first} is tagged as {spec.field_a}."
+            f"S17-Balance dossier {code} marks {second} for {spec.field_b}. "
+            f"The same {spec.noun} dossier tags {first} as {spec.field_a}."
         )
-        qa1 = f"From inspection dossier {code}, identify {spec.field_a}."
-        qa2 = f"What entry is tagged as {spec.field_a} for dossier {code}?"
-        qb1 = f"From inspection dossier {code}, identify {spec.field_b}."
-        qb2 = f"What entry is tagged as {spec.field_b} for dossier {code}?"
+        qa1 = f"From S17-Balance dossier {code}, identify {spec.field_a}."
+        qa2 = f"Which S17-Balance dossier entry is tagged {spec.field_a} for {code}?"
+        qb1 = f"From S17-Balance dossier {code}, identify {spec.field_b}."
+        qb2 = f"Which S17-Balance dossier entry is tagged {spec.field_b} for {code}?"
     return state_a, state_b, qa1, qa2, qb1, qb2
 
 
