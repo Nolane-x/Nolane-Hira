@@ -18,7 +18,7 @@ from .v1_s6_semantic_core import (
 from .v1_s17_semantic_core import (
     HIRA_V1_S17_PROJECTION_PARAMETER_COUNT,
     HIRA_V1_S17_TOTAL_PARAMETER_COUNT,
-    build_hira_v1_s17_norm_balanced_surgery_core,
+    build_hira_v1_s17_norm_balanced_core,
 )
 
 S17_CHECKPOINT_SCHEMA = "hira-v1-s17-norm-balanced-gradient-checkpoint-v1"
@@ -127,7 +127,7 @@ def build_frozen_hira_v1_s17_candidate(
     if encoder.revision != semantic_revision:
         raise RuntimeError("Hira v1 S17 encoder revision changed")
 
-    runtime = build_hira_v1_s17_norm_balanced_surgery_core(
+    runtime = build_hira_v1_s17_norm_balanced_core(
         encoder,
         t0_checkpoint_path,
         expected_t0_sha256=expected_t0_sha256,
