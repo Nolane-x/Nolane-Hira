@@ -22,7 +22,7 @@ from .v1_s15_semantic_core import (
 )
 
 S15_CHECKPOINT_SCHEMA = "hira-v1-s15-gradient-isolated-fusion-checkpoint-v1"
-S15_CHECKPOINT_KIND = "symmetric-gradient-isolated-fusion-a13-w28"
+S15_CHECKPOINT_KIND = "gradient-isolated-evidence-fusion-a13-w28"
 S15_LORA_KEYS = {
     *(f"lora.{i}.a" for i in range(4)),
     *(f"lora.{i}.b" for i in range(4)),
