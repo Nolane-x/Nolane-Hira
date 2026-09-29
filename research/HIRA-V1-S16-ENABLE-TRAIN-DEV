@@ -1,0 +1,30 @@
+# HIRA V1 S16 — enable fresh TRAIN/DEV
+
+Issue: #210
+
+Qualified prerequisites:
+- A0 run `36564603152`
+- artifact `11031676959`
+- digest `sha256:cefd83bc1decb2b6e7ebbbfe94ff8fab37d68724f9d3bced095373b4843774b1`
+- outcome `HIRA_V1_S16_A0_IDENTITY_READY`
+- exact S14/S15 inference identity
+- real 49,152-parameter shared-gradient probe recorded
+- S16 surgery/unit/checkpoint/workflow code passed Python 3.10 + 3.12 CI
+
+Authorize exactly one preregistered fresh English TRAIN/DEV authority under `research/HIRA-V1-S16-CONTRACT.md`.
+
+Frozen:
+- TRAIN 768 / DEV 192
+- 12 wholly fresh domains
+- seed 25001
+- 24 epochs
+- batch size 16
+- AdamW lr 2e-4, weight decay 0.01
+- relation-priority global gradient projection
+- surgery epsilon 1e-12
+- post-surgery global grad clip 1.0
+- exact 49,152 trainable physical parameters
+- 0 learned surgery/fusion/router parameters
+- inference identical to S14/S15
+- no post-DEV surgery/loss/seed/temperature retry
+- no sealed confirmation unless DEV_READY
