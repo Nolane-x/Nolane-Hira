@@ -1,0 +1,31 @@
+# HIRA V1 S18 — enable fresh TRAIN/DEV
+
+Issue: #217
+
+Qualified prerequisite:
+- A0 run `36582445491`
+- artifact `11040940678`
+- digest `sha256:cb78b283fbcf1514e88aa8ad08f35c2bcad0a47a90302a8fd97e47640a3af452`
+- outcome `HIRA_V1_S18_A0_IDENTITY_READY`
+- S18 inference vs S17/S14 max abs: 0.0
+- paired margin mechanics: PASS
+- shared physical surface: 49,152
+- code head `3d1d38f76c0164e99cb8ba8c5cef5ce254f6355a` passed Python 3.10 + 3.12 CI
+
+Authorize exactly one preregistered fresh English TRAIN/DEV authority under `research/HIRA-V1-S18-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 wholly fresh domains
+- seed 30001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- exact 49,152 trainable physical surface
+- S17 norm-balanced shared-gradient rule unchanged
+- paired margin 0.20
+- paired coefficient 0.25
+- fusion/canonicalizer/paired operator add 0 learned parameters
+- no post-DEV retry or coefficient/margin tuning
+- no sealed confirmation unless DEV_READY
