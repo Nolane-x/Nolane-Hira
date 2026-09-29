@@ -18,7 +18,7 @@ from .v1_s6_semantic_core import (
 from .v1_s14_semantic_core import (
     HIRA_V1_S14_PROJECTION_PARAMETER_COUNT,
     HIRA_V1_S14_TOTAL_PARAMETER_COUNT,
-    build_hira_v1_s14_canonicalization_core,
+    build_hira_v1_s14_evidence_fusion_core,
 )
 
 S14_CHECKPOINT_SCHEMA = "hira-v1-s14-evidence-fusion-checkpoint-v1"
@@ -127,7 +127,7 @@ def build_frozen_hira_v1_s14_candidate(
     if encoder.revision != semantic_revision:
         raise RuntimeError("Hira v1 S14 encoder revision changed")
 
-    runtime = build_hira_v1_s14_canonicalization_core(
+    runtime = build_hira_v1_s14_evidence_fusion_core(
         encoder,
         t0_checkpoint_path,
         expected_t0_sha256=expected_t0_sha256,
