@@ -1,0 +1,70 @@
+# HIRA V1 S12 — enable TRAIN DEV
+
+Qualified A0 authority:
+- run: 36497191159
+- head: 01d6d6d09e29bbee7e5dcb5a8dcf2b13e7dfbc66
+- artifact: 11004450349
+- artifact digest: sha256:62340525b36377e08d5ec481d852dd9422264a43579a0347c7d126943180bbf5
+- outcome: HIRA_V1_S12_A0_IDENTITY_READY
+
+A0 identity:
+- exact A13 token identity: true
+- exact A13 pooled identity: true
+- exact inherited final logit identity: 1.0
+- exact selected-choice identity: 1.0
+- candidate physical params: 49,152
+- relation-binding added params: 0
+- runtime trainable during A0: 0
+- state-once/full-K/order invariance: PASS
+
+Fresh A0 relation diagnostics:
+- canonical relation-binding accuracy: 0.46875
+- canonical signed gold margin: -0.3835980594
+- paraphrase relation-binding accuracy: 0.34375
+- paraphrase signed gold margin: -0.3163611293
+- cross-view relation-binding agreement: 0.71875
+
+Authorize only the preregistered S12 fresh TRAIN/DEV authority.
+
+Frozen:
+- exact 49,152 trainable physical surface
+- A13 final attention LoRA: 16,384
+- shared projection: 32,768
+- original A13 frozen
+- HIRACore frozen
+- no W34
+- no learned downstream/relation-binding head
+- relation-binding operator adds 0 params
+- seed 18001
+- 24 epochs
+- batch 16 semantic cases
+- AdamW lr 2e-4
+- weight decay 0.01
+- grad clip 1.0
+- CE both views
+- paired swap-margin coefficient .25 / margin .20
+- option-view InfoNCE .05 / temperature .10
+- relation-structured binding CE .10
+- role temperature .10
+- relation-binding contrastive temperature .10
+- cross-view JS .25
+- 768 wholly fresh TRAIN semantic cases
+- 192 wholly fresh DEV semantic cases
+- 12 fresh domains
+- two state views
+- two question wording views per semantic query
+- K=4
+- two semantic option views
+
+Forbidden:
+- all S0-S11 rows
+- S12-A0 rows
+- M5 final/confirmatory rows
+- W29-W34 sealed rows
+- post-DEV tuning or gate weakening
+
+Sealed English and Vietnamese transfer remain closed unless
+`HIRA_V1_S12_RELATION_BINDING_DEV_READY` is achieved.
+
+Retry authorization after pre-exposure checkpoint replay test fix.
+The failed prior workflow did not reach TRAIN/DEV execution and exposed no S12 TRAIN/DEV rows.
