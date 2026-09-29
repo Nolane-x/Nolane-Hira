@@ -30,3 +30,8 @@ Frozen:
 - no raw-triadic standalone CE
 - no post-DEV retry
 - no sealed confirmation unless DEV_READY
+
+Harness retry authorization:
+- run 36528356289 stopped at py_compile before TRAIN/DEV exposure
+- only a generated newline/syntax defect in the selected-DEV replay loop was corrected
+- architecture, fusion, data, seed, optimizer, losses, selection order and gates are unchanged
