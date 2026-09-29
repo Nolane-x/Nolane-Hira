@@ -1,0 +1,141 @@
+name: hira-v1-s15-gradient-isolated-fusion-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s15-gradient-isolated-fusion
+    paths:
+      - "research/HIRA-V1-S15-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s15-a0-identity
+          path: inputs/S15A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36556776351
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S15 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Compile and run S15 contracts
+        run: |
+          python -m py_compile src/nmd/v1_evidence_fusion.py src/nmd/v1_gradient_isolated_fusion.py src/nmd/v1_relation_canonicalization.py src/nmd/v1_s15_semantic_core.py src/nmd/v1_s15_authority.py src/nmd/v1_s15_checkpoint.py scripts/hira_v1_s15_a0_identity.py scripts/hira_v1_s15_train_dev.py
+          pytest -q tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_relation_canonicalization.py tests/test_v1_s15_authority.py tests/test_v1_s15_checkpoint.py tests/test_v1_invariance.py tests/test_v1_a13_lora.py tests/test_v1_triadic_semantic.py
+      - name: Verify S15-A0 authority
+        run: |
+          (cd inputs/S15A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("inputs/S15A0/result.json").read_text())
+          assert r["outcome"] == "HIRA_V1_S15_A0_IDENTITY_READY"
+          assert r["a13_token_output_identity"] is True
+          assert r["a13_pooled_output_identity"] is True
+          assert r["exact_logit_identity_rate"] == 1.0
+          assert r["exact_choice_identity_rate"] == 1.0
+          assert r["candidate_parameter_count"] == 49152
+          assert r["runtime_trainable_parameter_count"] == 0
+          assert r["canonicalizer_added_parameter_count"] == 0
+          assert r["fusion_added_parameter_count"] == 0
+          assert r["fusion_epsilon"] == 1e-6
+          assert r["fusion_expert_swap_max_abs"] == 0.0
+          assert r["s15_vs_s14_forward_max_abs"] == 0.0
+          assert r["primary_triadic_gradient_nonzero"] is True
+          assert r["primary_relation_direct_gradient_zero"] is True
+          assert r["relation_auxiliary_gradient_nonzero"] is True
+          assert r["fused_option_order_flip_rate"] == 0.0
+          assert r["role_temperature"] == 0.10
+          assert r["pair_temperature"] == 0.10
+          assert r["contrastive_temperature"] == 0.10
+          assert r["mean_same_option_signature_cosine"] <= 1.0
+          assert r["used_for_model_selection"] is False
+          PY
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh English S15 gradient-isolated fusion TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s15_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S15A0/result.json --out artifacts/s15-train-dev
+      - name: Verify S15 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/s15-train-dev")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v1-s15-gradient-isolated-fusion-train-dev-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] in {"HIRA_V1_S15_GRADIENT_ISOLATED_FUSION_DEV_READY", "HIRA_V1_S15_GRADIENT_ISOLATED_FUSION_DEV_FAIL"}
+          assert r["scientific_authority"] == "V1_S15_FRESH_ENGLISH_GRADIENT_ISOLATED_EVIDENCE_FUSION"
+          assert r["seed"] == 22001
+          assert r["optimizer"]["epochs"] == 24
+          assert r["optimizer"]["batch_size_semantic_cases"] == 16
+          assert r["partitions"]["train_semantic_cases"] == 768
+          assert r["partitions"]["dev_semantic_cases"] == 192
+          assert len(r["partitions"]["domains"]) == 12
+          assert r["partitions"]["k"] == 4
+          assert r["partitions"]["views_per_option"] == 2
+          assert r["parameter_surface"]["total_trainable_parameters"] == 49152
+          assert r["parameter_surface"]["lora_trainable_parameters"] == 16384
+          assert r["parameter_surface"]["projection_trainable_parameters"] == 32768
+          assert r["parameter_surface"]["original_a13_trainable"] == 0
+          assert r["parameter_surface"]["hira_core_trainable"] == 0
+          assert r["parameter_surface"]["canonicalizer_added_parameters"] == 0
+          assert r["parameter_surface"]["fusion_added_parameters"] == 0
+          assert r["parameter_surface"]["learned_downstream_scorer_parameters"] == 0
+          assert r["loss"]["relation_structured_binding_coefficient"] == 0.10
+          assert r["loss"]["cross_view_relation_canonicalization_coefficient"] == 0.15
+          assert r["loss"]["signature_separation_margin"] == 0.20
+          assert r["loss"]["fusion_epsilon"] == 1e-6
+          assert r["loss"]["fusion_equal_weight"] == 0.5
+          assert r["loss"]["raw_triadic_ce_used"] is False
+          assert r["loss"]["fused_primary_relation_logits_detached"] is True
+          assert r["loss"]["inference_numerically_identical_to_s14"] is True
+          assert r["loss"]["role_temperature"] == 0.10
+          assert r["loss"]["pair_temperature"] == 0.10
+          assert r["loss"]["binding_contrastive_temperature"] == 0.10
+          assert r["state_once"]["train_state_view_encodes_per_epoch"] == 1536
+          assert r["state_once"]["dev_state_view_encodes_per_eval"] == 384
+          assert r["post_dev_tuning_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert (root / "gradient-isolated-fusion-candidate.pt").is_file()
+          PY
+      - name: Freeze S15 TRAIN DEV integrity
+        run: |
+          (cd artifacts/s15-train-dev && sha256sum result.json train-manifest.json dev-manifest.json gradient-isolated-fusion-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s15-gradient-isolated-fusion-train-dev
+          path: artifacts/s15-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
