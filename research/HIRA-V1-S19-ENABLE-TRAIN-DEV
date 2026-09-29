@@ -34,3 +34,25 @@ Frozen:
 - S14 equal-weight inference fusion unchanged
 - no post-DEV retry/tuning
 - no sealed confirmation unless DEV_READY
+
+
+## Harness-only retry authorization
+
+Prior run `36643441796` terminated on the first TRAIN batch before any DEV evaluation or valid artifact because:
+- metric accumulator expected stale key `consistency_js`;
+- S19 emits `triadic_consistency_js`.
+
+Also corrected the stale scientific receipt label to:
+`V1_S19_FRESH_ENGLISH_TRIADIC_VIEW_CONSISTENCY`.
+
+No scientific configuration changed:
+- seed remains 32001
+- data partitions unchanged
+- objective unchanged
+- raw-triadic JS coefficient remains 0.25
+- norm balancing unchanged
+- selection/gates unchanged
+
+Fixed head `f23940679bf28c3da2425c21de92f821bb7ddf08` passed Python 3.10 + 3.12 CI run `36643744794`.
+
+Authorize one replacement authority run because the failed run produced no DEV result and no authority artifact.
