@@ -863,7 +863,8 @@ def main() -> None:
         "fused_option_order_flip_rate",
         "fused_max_probability_mass_error",
         "mean_canonical_decision_loss",
-    )    for key in replay_keys:
+    )
+    for key in replay_keys:
         if not math.isclose(
             float(selected[key]),
             float(best_metrics[key]),
