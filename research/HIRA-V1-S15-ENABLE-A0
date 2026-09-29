@@ -1,0 +1,23 @@
+# HIRA V1 S15 — enable A0
+
+Issue: #207
+
+Authorize only the preregistered S15-A0 identity / gradient-route authority.
+
+Frozen:
+- base main 8d750596505a915f5eb0771bd7b1b283d329d1d4
+- exact inherited 49,152-parameter physical surface
+- runtime trainable during A0 = 0
+- fusion adds 0 learned params
+- inference numerically identical to S14
+- fused-primary direct relation-logit gradient = 0
+- relation auxiliary relation-logit gradient > 0
+- fusion epsilon = 1e-6
+- 16 wholly fresh English cases
+- K=4
+- two state views
+- two question views per semantic query
+- two semantic option views per option
+
+S15-A0 is diagnostic only and cannot be used for model selection.
+S15 TRAIN/DEV remains closed until A0 qualifies.
