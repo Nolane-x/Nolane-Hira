@@ -1,0 +1,33 @@
+# HIRA V1 S13 — enable fresh TRAIN/DEV
+
+Issue: #201
+
+Qualified prerequisite:
+- A0 run `36524047158`
+- artifact `11013757416`
+- digest `sha256:d2aeeec672dd7787aab3f3fe68799e83d303a99b74b4ebf8926ed75e44fbf8ba`
+- outcome `HIRA_V1_S13_A0_IDENTITY_READY`
+
+Authorize exactly one preregistered fresh English TRAIN/DEV authority under `research/HIRA-V1-S13-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 fresh domains
+- seed 19001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- exact 49,152 trainable physical surface
+- canonicalizer adds 0 learned parameters
+- relation binding coefficient 0.10
+- cross-view relation canonicalization coefficient 0.15
+- signature separation margin 0.20
+- role/pair/contrastive temperatures 0.10
+- no post-DEV retry
+- no sealed confirmation unless DEV_READY
+
+Harness retry authorization:
+- previous run stopped before TRAIN at checkpoint contract validation
+- only the checkpoint test kind string was corrected
+- no architecture, data, optimizer, loss, selection order, or gate changed
