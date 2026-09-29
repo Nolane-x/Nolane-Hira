@@ -22,3 +22,9 @@ Frozen:
 
 S14-A0 is diagnostic only and cannot be used for model selection.
 S14 TRAIN/DEV remains closed until A0 qualifies.
+
+Harness retry authorization:
+- first A0 run stopped in unit tests before any A0 exposure
+- only float32 numerical tolerances in permutation/affine invariance tests were corrected
+- measured discrepancies were ~2.38e-7 and ~3.37e-6
+- fusion rule, epsilon, model surface, data and A0 scientific checks are unchanged
