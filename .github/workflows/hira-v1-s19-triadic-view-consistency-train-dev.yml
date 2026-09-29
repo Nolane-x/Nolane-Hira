@@ -104,7 +104,7 @@ jobs:
           assert r["status"] == "PASS"
           assert r["outcome"] in {"HIRA_V1_S19_TRIADIC_VIEW_CONSISTENCY_DEV_READY", "HIRA_V1_S19_TRIADIC_VIEW_CONSISTENCY_DEV_FAIL"}
           assert r["scientific_authority"] == "V1_S19_FRESH_ENGLISH_TRIADIC_VIEW_CONSISTENCY"
-          assert r["seed"] == 27001
+          assert r["seed"] == 32001
           assert r["optimizer"]["epochs"] == 24
           assert r["optimizer"]["batch_size_semantic_cases"] == 16
           assert r["partitions"]["train_semantic_cases"] == 768
