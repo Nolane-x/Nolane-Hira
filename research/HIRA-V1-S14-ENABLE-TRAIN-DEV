@@ -1,0 +1,32 @@
+# HIRA V1 S14 — enable fresh TRAIN/DEV
+
+Issue: #204
+
+Qualified prerequisite:
+- original scientific A0 exposure run `36527407197`
+- reproducibility/artifact run `36527874581`
+- artifact `11015447511`
+- digest `sha256:3fccd10b3bde77a4396cec491d8a01a36c129e7d917dedfc688ff03fb0832976`
+- outcome `HIRA_V1_S14_A0_IDENTITY_READY`
+
+Authorize exactly one preregistered fresh English TRAIN/DEV authority under `research/HIRA-V1-S14-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 fresh domains
+- seed 20001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- exact 49,152 trainable physical surface
+- fusion adds 0 learned parameters
+- fusion epsilon 1e-6
+- exact equal expert weight 0.5 / 0.5
+- relation CE coefficient 0.10
+- cross-view canonicalization coefficient 0.15
+- signature separation margin 0.20
+- fused cross-view JS coefficient 0.25
+- no raw-triadic standalone CE
+- no post-DEV retry
+- no sealed confirmation unless DEV_READY
