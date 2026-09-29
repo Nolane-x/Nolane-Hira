@@ -788,7 +788,7 @@ def main() -> None:
             "option_alignment": 0.0,
             "binding": 0.0,
             "canonicalization": 0.0,
-            "consistency_js": 0.0,
+            "triadic_consistency_js": 0.0,
             "primary_block": 0.0,
             "relation_block": 0.0,
         }
@@ -885,7 +885,7 @@ def main() -> None:
                 totals["canonicalization"] / len(train_rows)
             ),
             "train_mean_triadic_consistency_js": (
-                totals["consistency_js"] / len(train_rows)
+                totals["triadic_consistency_js"] / len(train_rows)
             ),
             "train_mean_primary_block": totals["primary_block"] / len(train_rows),
             "train_mean_relation_block": totals["relation_block"] / len(train_rows),
@@ -1065,7 +1065,7 @@ def main() -> None:
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
         "outcome": outcome,
-        "scientific_authority": "V1_S19_FRESH_ENGLISH_NORM_BALANCED_GRADIENT",
+        "scientific_authority": "V1_S19_FRESH_ENGLISH_TRIADIC_VIEW_CONSISTENCY",
         "seed": SEED,
         "optimizer": {
             "name": "AdamW",
