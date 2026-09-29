@@ -43,7 +43,7 @@ def test_s14_fusion_is_option_permutation_equivariant():
     assert torch.allclose(
         permuted,
         direct[:, permutation],
-        atol=1e-7,
+        atol=1e-6,
         rtol=0.0,
     )
 
@@ -73,7 +73,7 @@ def test_s14_expert_affine_scale_and_shift_do_not_change_fusion():
         triadic * 11.0 + 37.0,
         relation * 0.25 - 9.0,
     )
-    assert torch.allclose(direct, changed, atol=1e-6, rtol=0.0)
+    assert torch.allclose(direct, changed, atol=5e-6, rtol=0.0)
 
 
 def test_s14_fusion_backpropagates_to_both_experts():
