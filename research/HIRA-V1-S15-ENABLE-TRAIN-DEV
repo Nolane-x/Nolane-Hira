@@ -1,0 +1,32 @@
+# HIRA V1 S15 — enable fresh TRAIN/DEV
+
+Issue: #207
+
+Qualified prerequisite:
+- A0 run `36556776351`
+- artifact `11027644171`
+- digest `sha256:2f9025fc14c5bc6ca8c816834d7c5f0cf19c858cff61be93a8edc4c260145e5a`
+- outcome `HIRA_V1_S15_A0_IDENTITY_READY`
+- S15 vs S14 forward max abs: 0.0
+- fused-primary direct relation-logit gradient: 0.0
+- relation auxiliary relation-logit gradient: nonzero
+- checkpoint/replay fix validated by Python 3.10 + 3.12 CI
+
+Authorize exactly one preregistered fresh English TRAIN/DEV authority under `research/HIRA-V1-S15-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 wholly fresh domains
+- seed 22001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- exact 49,152 trainable physical surface
+- fusion/router adds 0 learned parameters
+- inference numerically identical to S14
+- fused-primary relation logits detached
+- relation CE and relation-signature canonicalization remain differentiable
+- all S14 loss coefficients retained exactly
+- no post-DEV retry or route tuning
+- no sealed confirmation unless DEV_READY
