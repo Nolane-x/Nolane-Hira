@@ -1,0 +1,17 @@
+# HIRA V1 S17 — enable A0
+
+Issue: #214
+
+Authorize only the preregistered S17 A0 identity / real shared-gradient balancing authority.
+
+Frozen:
+- base main 82a2702b069f05b571a0cd7383ea7686d0ecdf42
+- exact 49,152 physical surface
+- A0 runtime trainable = 0 for identity checks
+- inference exactly S14-S16
+- balancing epsilon 1e-12
+- arithmetic-mean raw norm reference scale
+- 16 wholly fresh English cases
+- no TRAIN/DEV exposure
+
+A0 is diagnostic only.
