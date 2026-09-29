@@ -1,0 +1,36 @@
+# HIRA V1 S19 — enable fresh TRAIN/DEV
+
+Issue: #221
+
+Qualified prerequisite:
+- A0 run `36588963863`
+- artifact `11042832648`
+- digest `sha256:f54819e15bc642f3424272b05ba3dc66e2418b34314e536709d72171ce858276`
+- outcome `HIRA_V1_S19_A0_IDENTITY_READY`
+- exact inherited raw-triadic logits/choices = 1.0
+- inference numerically identical to S17/S18
+- exact 49,152 physical trainable surface
+- raw-triadic JS coefficient = 0.25
+- norm-balanced gradient rule unchanged
+- workflow seed verification fixed to preregistered seed 32001
+- exact-head Python 3.10 + 3.12 CI PASS
+
+Authorize exactly one preregistered fresh English S19 TRAIN/DEV authority under `research/HIRA-V1-S19-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 wholly fresh domains
+- seed 32001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- exact 49,152 trainable physical surface
+- S17 norm-balanced shared gradients
+- no S18 paired-margin term
+- fused-output JS removed
+- raw-triadic cross-view symmetric JS coefficient 0.25
+- relation CE/canonicalization unchanged
+- S14 equal-weight inference fusion unchanged
+- no post-DEV retry/tuning
+- no sealed confirmation unless DEV_READY
