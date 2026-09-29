@@ -28,3 +28,11 @@ Harness retry authorization:
 - only float32 numerical tolerances in permutation/affine invariance tests were corrected
 - measured discrepancies were ~2.38e-7 and ~3.37e-6
 - fusion rule, epsilon, model surface, data and A0 scientific checks are unchanged
+
+Artifact-packaging retry authorization:
+- run 36527407197 completed the fresh S14-A0 scientific step successfully
+- logged outcome: HIRA_V1_S14_A0_IDENTITY_READY
+- receipt verification then failed only because two stale S13 result-field assertions remained
+- this retry uses the identical S14-A0 script, cases, fusion rule and model surface
+- no A0 metric is used to alter architecture, data, coefficients, epsilon or gates
+- purpose: reproduce and freeze the already-exposed A0 receipt as an integrity artifact
