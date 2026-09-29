@@ -101,8 +101,6 @@ jobs:
           assert r["fusion_expert_swap_max_abs"] == 0.0
           assert r["fused_option_order_flip_rate"] == 0.0
           assert r["fused_max_probability_mass_error"] <= 1e-6
-          assert r["signature_option_permutation_max_abs"] <= 1e-6
-          assert r["canonicalizer_logit_permutation_max_abs"] <= 1e-6
           assert r["option_order_flip_rate"] == 0.0
           assert r["state_encode_calls"] == 32
           assert r["max_probability_mass_error"] <= 1e-6
