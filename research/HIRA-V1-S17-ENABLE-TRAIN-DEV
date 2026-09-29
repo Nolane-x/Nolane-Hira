@@ -28,3 +28,7 @@ Frozen:
 - epsilon 1e-12
 - no learned optimizer/router
 - no post-DEV retry or tuning
+
+## Freshness-only retrigger
+
+Previous run `36575533502` stopped at exact prior-row freshness validation before encoder training or DEV evaluation. S17 authority wording was namespaced with `S17-Balance` only; formula, domains, values, optimizer, seed, loss coefficients, selection and gates are unchanged.
