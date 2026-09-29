@@ -67,8 +67,8 @@ jobs:
           assert r["relation_auxiliary_gradient_nonzero"] is True
           p = r["shared_surface_gradient_probe"]
           assert p["surface_parameter_count"] == 49152
-          assert p["surgery_epsilon"] == 1e-12
-          assert p["post_primary_relation_dot"] >= -1e-5
+          assert p["balance_epsilon"] == 1e-12
+          assert p["normalized_post_dot"] >= -1e-5
           assert r["fused_option_order_flip_rate"] == 0.0
           assert r["role_temperature"] == 0.10
           assert r["pair_temperature"] == 0.10
@@ -124,7 +124,7 @@ jobs:
           assert r["loss"]["inference_numerically_identical_to_s14"] is True
           assert r["loss"]["norm_balanced_gradient"] == "equal_direction_relation_priority_projection"
           assert r["loss"]["balance_epsilon"] == 1e-12
-          assert r["norm_balancing"]["rule"] == "relation_priority_global_projection"
+          assert r["norm_balancing"]["rule"] == "equal_direction_relation_priority_projection"
           assert r["norm_balancing"]["epsilon"] == 1e-12
           assert r["loss"]["role_temperature"] == 0.10
           assert r["loss"]["pair_temperature"] == 0.10
