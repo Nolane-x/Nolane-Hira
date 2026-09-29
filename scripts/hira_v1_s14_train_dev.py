@@ -969,7 +969,7 @@ def main() -> None:
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
         "outcome": outcome,
-        "scientific_authority": "V1_S14_FRESH_ENGLISH_EVIDENCE_FUSION_EVIDENCE_FUSION",
+        "scientific_authority": "V1_S14_FRESH_ENGLISH_CANONICAL_RELATION_EVIDENCE_FUSION",
         "seed": SEED,
         "optimizer": {
             "name": "AdamW",
