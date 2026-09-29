@@ -26,3 +26,8 @@ Frozen:
 - role/pair/contrastive temperatures 0.10
 - no post-DEV retry
 - no sealed confirmation unless DEV_READY
+
+Harness retry authorization:
+- previous run stopped before TRAIN at checkpoint contract validation
+- only the checkpoint test kind string was corrected
+- no architecture, data, optimizer, loss, selection order, or gate changed
