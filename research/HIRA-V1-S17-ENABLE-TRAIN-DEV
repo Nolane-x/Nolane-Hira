@@ -1,0 +1,34 @@
+# HIRA V1 S17 — enable fresh TRAIN/DEV
+
+Issue: #214
+
+Qualified prerequisite:
+- A0 run `36574252783`
+- artifact `11034934999`
+- digest `sha256:4a29beb1cf410f3f98585367d6a0dc0dc6f73be37aee64b91e4030d814f0f0fe`
+- outcome `HIRA_V1_S17_A0_IDENTITY_READY`
+- inference max abs vs S14/S16: 0.0
+- real A0 primary/relation norm ratio: 50.4888757653
+- normalized cosine: +0.0113130677
+- exact latest-head Python 3.10 + 3.12 CI PASS
+
+Authorize exactly one preregistered fresh English S17 TRAIN/DEV authority under `research/HIRA-V1-S17-CONTRACT.md`.
+
+Frozen:
+- TRAIN 768 / DEV 192
+- 12 fresh domains
+- seed 27001
+- 24 epochs
+- batch 16
+- lr 2e-4
+- exact 49,152 physical trainable params
+- equal-direction balancing
+- relation-priority normalized conflict projection
+- arithmetic-mean raw norm reference scale
+- epsilon 1e-12
+- no learned optimizer/router
+- no post-DEV retry or tuning
+
+## Freshness-only retrigger
+
+Previous run `36575533502` stopped at exact prior-row freshness validation before encoder training or DEV evaluation. S17 authority wording was namespaced with `S17-Balance` only; formula, domains, values, optimizer, seed, loss coefficients, selection and gates are unchanged.
