@@ -35,3 +35,10 @@ Harness retry authorization:
 - run 36528356289 stopped at py_compile before TRAIN/DEV exposure
 - only a generated newline/syntax defect in the selected-DEV replay loop was corrected
 - architecture, fusion, data, seed, optimizer, losses, selection order and gates are unchanged
+
+Post-exposure packaging reproduction authorization:
+- authority run 36528589774 completed all 24 TRAIN/DEV epochs and emitted a PASS receipt with outcome HIRA_V1_S14_EVIDENCE_FUSION_DEV_FAIL;
+- artifact upload was blocked only by a scientific_authority metadata-label mismatch;
+- corrected only the emitted authority label to the already-preregistered intended string;
+- no model code, data, seed, optimizer, objective, fusion rule, selection order, gate, or checkpoint logic changed;
+- rerun must reproduce the frozen authority and package the artifact.
