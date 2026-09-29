@@ -1,0 +1,19 @@
+# HIRA V1 S16 — enable A0
+
+Issue: #210
+
+Authorize only the preregistered S16-A0 identity / shared-gradient authority.
+
+Frozen:
+- base main 744bcd246e520970743701eba5ffe8a4a194bb00
+- exact inherited 49,152 trainable physical surface
+- S14/S15 inference unchanged
+- gradient surgery adds 0 learned params
+- relation-priority global projection
+- surgery epsilon = 1e-12
+- 16 wholly fresh A0 semantic cases
+- real primary/relation gradient probe over all 49,152 parameters
+- no optimizer step in A0
+- A0 diagnostic only
+
+S16 TRAIN/DEV remains closed until A0 qualifies.
