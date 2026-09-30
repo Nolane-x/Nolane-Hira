@@ -1,0 +1,152 @@
+name: hira-v1-s22-primary-priority-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s22-primary-priority-gradient
+    paths:
+      - "research/HIRA-V1-S22-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s22-a0-primary-priority
+          path: inputs/S22A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36709243180
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S22 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Compile and run S22 contracts
+        run: |
+          python -m py_compile src/nmd/v1_primary_priority_gradient.py src/nmd/v1_s22_semantic_core.py src/nmd/v1_s22_authority.py src/nmd/v1_s22_checkpoint.py scripts/hira_v1_s22_a0_primary_priority.py scripts/hira_v1_s22_train_dev.py
+          pytest -q tests/test_v1_primary_priority_gradient.py tests/test_v1_s22_authority.py tests/test_v1_s22_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_relation_canonicalization.py tests/test_v1_invariance.py tests/test_v1_a13_lora.py tests/test_v1_triadic_semantic.py
+      - name: Verify S22-A0 authority
+        run: |
+          (cd inputs/S22A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("inputs/S22A0/result.json").read_text())
+          assert r["schema_version"] == "hira-v1-s22-a0-primary-priority-v1"
+          assert r["outcome"] == "HIRA_V1_S22_A0_PRIMARY_PRIORITY_READY"
+          assert r["scientific_authority"] == "S22_A0_PRIMARY_PRIORITY_ONLY"
+          assert r["s21_logit_identity_rate"] == 1.0
+          assert r["s21_choice_identity_rate"] == 1.0
+          assert r["candidate_parameter_count"] == 49152
+          assert r["runtime_trainable_parameter_count"] == 0
+          assert r["factorization_added_parameter_count"] == 0
+          assert r["synthetic_role_content_court_passed"] is True
+          assert r["primary_priority_conflict"] is True
+          assert r["primary_priority_pre_dot"] < 0.0
+          assert r["primary_priority_post_dot"] >= -1e-7
+          assert r["primary_priority_expected_direction_max_abs"] <= 1e-6
+          assert r["primary_priority_relation_direction_change_l1"] > 0.0
+          assert r["primary_priority_primary_direction_identity_max_abs"] == 0.0
+          assert r["primary_priority_no_conflict_matches_s17_max_abs"] <= 1e-7
+          assert r["primary_priority_joint_scale_max_abs"] <= 1e-5
+          assert r["fusion_vs_s14_forward_max_abs"] == 0.0
+          assert r["fused_option_order_flip_rate"] == 0.0
+          assert r["fused_max_probability_mass_error"] <= 1e-6
+          assert r["used_for_model_selection"] is False
+          PY
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh English S22 primary-priority TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s22_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S22A0/result.json --out artifacts/s22-train-dev
+      - name: Verify S22 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("artifacts/s22-train-dev")
+          r = json.loads((root / "result.json").read_text())
+          assert r["schema_version"] == "hira-v1-s22-primary-priority-role-content-train-dev-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] in {"HIRA_V1_S22_PRIMARY_PRIORITY_DEV_READY", "HIRA_V1_S22_PRIMARY_PRIORITY_DEV_FAIL"}
+          assert r["scientific_authority"] == "V1_S22_FRESH_ENGLISH_PRIMARY_PRIORITY_ROLE_CONTENT"
+          assert r["seed"] == 38001
+          assert r["optimizer"]["epochs"] == 24
+          assert r["optimizer"]["batch_size_semantic_cases"] == 16
+          assert r["optimizer"]["lr"] == 2e-4
+          assert r["partitions"]["train_semantic_cases"] == 768
+          assert r["partitions"]["dev_semantic_cases"] == 192
+          assert len(r["partitions"]["domains"]) == 12
+          assert r["partitions"]["k"] == 4
+          assert r["partitions"]["views_per_option"] == 2
+          assert r["partitions"]["prior_track_exact_rows_used"] is False
+          assert r["partitions"]["s22_a0_rows_used"] is False
+          assert r["parameter_surface"]["total_trainable_parameters"] == 49152
+          assert r["parameter_surface"]["lora_trainable_parameters"] == 16384
+          assert r["parameter_surface"]["projection_trainable_parameters"] == 32768
+          assert r["parameter_surface"]["original_a13_trainable"] == 0
+          assert r["parameter_surface"]["hira_core_trainable"] == 0
+          assert r["parameter_surface"]["canonicalizer_added_parameters"] == 0
+          assert r["parameter_surface"]["fusion_added_parameters"] == 0
+          assert r["parameter_surface"]["learned_downstream_scorer_parameters"] == 0
+          assert r["parameter_surface"]["role_content_factorization_added_parameters"] == 0
+          assert r["loss"]["cross_view_js_coefficient"] == 0.25
+          assert r["loss"]["relation_structured_binding_coefficient"] == 0.10
+          assert r["loss"]["cross_view_relation_canonicalization_coefficient"] == 0.15
+          assert r["loss"]["signature_separation_margin"] == 0.20
+          assert r["loss"]["fusion_epsilon"] == 1e-6
+          assert r["loss"]["fusion_equal_weight"] == 0.5
+          assert r["loss"]["raw_triadic_ce_used"] is False
+          assert r["loss"]["fused_primary_relation_logits_detached"] is True
+          assert r["loss"]["primary_operator"] == "role_gated_content_triadic"
+          assert r["loss"]["optimizer_conflict_priority"] == "primary"
+          assert r["loss"]["primary_role_temperature"] == 0.10
+          assert r["loss"]["primary_role_weight"] == 0.50
+          assert r["loss"]["primary_content_weight"] == 0.50
+          assert r["loss"]["norm_balanced_gradient"] == "equal_direction_primary_priority_projection"
+          assert r["loss"]["balance_epsilon"] == 1e-12
+          assert r["loss"]["balance_primary_block"] == "decision + 0.05*option_alignment + 0.25*fused_cross_view_js"
+          assert r["norm_balancing"]["rule"] == "equal_direction_primary_priority_projection"
+          assert r["norm_balancing"]["epsilon"] == 1e-12
+          assert r["state_once"]["train_state_view_encodes_per_epoch"] == 1536
+          assert r["state_once"]["dev_state_view_encodes_per_eval"] == 384
+          assert r["post_dev_tuning_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert (root / "primary-priority-role-content-candidate.pt").is_file()
+          PY
+      - name: Freeze S22 TRAIN DEV integrity
+        run: |
+          (cd artifacts/s22-train-dev && sha256sum result.json train-manifest.json dev-manifest.json primary-priority-role-content-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s22-primary-priority-train-dev
+          path: artifacts/s22-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
