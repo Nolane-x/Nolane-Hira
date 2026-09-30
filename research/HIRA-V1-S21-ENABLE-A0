@@ -1,0 +1,51 @@
+# HIRA V1 S21 — enable A0 role-content authority
+
+Issue: #225
+
+Authorize exactly one preregistered S21-A0 diagnostic exposure.
+
+Qualified exact head before marker:
+`95e4b515635b9339f1b5338666a3cbaa1eee2d6b`
+
+Generic CI:
+- run `36691890418`
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Frozen S21:
+- base main `e822648da309b07f989e112809d1db3ea81008bb`
+- exact physical trainable surface remains 49,152
+- A13 LoRA 16,384
+- shared projection 32,768
+- role/content factorization adds 0 params/state
+- A0 runtime trainable = 0
+- primary scorer intentionally changes from S17 coordinate triad to preregistered role-gated content factorization
+- role temperature = 0.10
+- role weight = 0.50
+- content weight = 0.50
+- S13 relation expert unchanged
+- S14 equal-weight fusion unchanged
+- S17 norm-balanced gradient mechanism unchanged
+- no S18/S19/S20 intervention carried forward
+
+A0:
+- 16 wholly fresh English semantic cases
+- K=4
+- two state views
+- two question views per query
+- two option semantic views
+- diagnostic only, no model selection
+
+Required:
+- A13 token/pooled identity
+- exact 49,152 physical capacity
+- factorization added params = 0
+- synthetic role/content court PASS
+- question role switch changes selected bound option in the controlled tensor court
+- option permutation equivariance
+- degenerate residual geometry finite
+- full-K/state-once/relation-delta-zero
+- S14 fusion mechanics unchanged
+- probability mass error <= 1e-6
+
+TRAIN/DEV remains closed until A0 qualifies and its receipt + interpretation plan are frozen.
