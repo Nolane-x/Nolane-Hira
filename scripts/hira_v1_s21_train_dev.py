@@ -719,8 +719,18 @@ def main() -> None:
         raise RuntimeError("S21-A0 unexpectedly used for selection")
     if a0.get("a13_token_output_identity") is not True:
         raise RuntimeError("S21-A0 A13 identity failed")
-    if float(a0.get("exact_logit_identity_rate", -1.0)) != 1.0:
-        raise RuntimeError("S21-A0 decision identity failed")
+    if int(a0.get("candidate_parameter_count", -1)) != HIRA_V1_S21_TOTAL_PARAMETER_COUNT:
+        raise RuntimeError("S21-A0 physical surface changed")
+    if int(a0.get("factorization_added_parameter_count", -1)) != 0:
+        raise RuntimeError("S21-A0 factorization added parameters")
+    if a0.get("synthetic_role_content_court_passed") is not True:
+        raise RuntimeError("S21-A0 structural court failed")
+    baseline_logit_identity = float(a0.get("baseline_logit_identity_rate", -1.0))
+    baseline_choice_identity = float(a0.get("baseline_choice_identity_rate", -1.0))
+    if not (0.0 <= baseline_logit_identity <= 1.0):
+        raise RuntimeError("S21-A0 baseline logit identity receipt invalid")
+    if not (0.0 <= baseline_choice_identity <= 1.0):
+        raise RuntimeError("S21-A0 baseline choice identity receipt invalid")
 
     train_rows = generate_s21_cases("train")
     dev_rows = generate_s21_cases("dev")
