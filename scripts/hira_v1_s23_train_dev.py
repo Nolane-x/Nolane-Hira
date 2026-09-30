@@ -153,9 +153,9 @@ def _assert_fresh_against_prior(
     current_states = {text for row in current for text in _state_texts(row)}
     current_questions = {text for row in current for text in _question_texts(row)}
     if prior_states & current_states:
-        raise RuntimeError("S23 exact state overlap with exposed S0-S21 rows")
+        raise RuntimeError("S23 exact state overlap with exposed S0-S22 rows")
     if prior_questions & current_questions:
-        raise RuntimeError("S23 exact question overlap with exposed S0-S21 rows")
+        raise RuntimeError("S23 exact question overlap with exposed S0-S22 rows")
 
 
 def _content_mask(batch) -> Tensor:
@@ -1115,7 +1115,7 @@ def main() -> None:
             "primary_role_temperature": 0.10,
             "primary_role_weight": 0.50,
             "primary_content_weight": 0.50,
-            "norm_balanced_gradient": "equal_direction_neutral_bisector_projection",
+            "norm_balanced_gradient": "equal_direction_neutral_bisector_no_projection",
             "balance_epsilon": BALANCE_EPSILON,
             "balance_primary_block": "decision + 0.05*option_alignment + 0.25*fused_cross_view_js",
             "balance_relation_block": "0.10*relation_ce + 0.15*signature_canonicalization",
@@ -1192,7 +1192,7 @@ def main() -> None:
         },
         "history": history,
         "norm_balancing": {
-            "rule": "equal_direction_neutral_bisector_projection",
+            "rule": "equal_direction_neutral_bisector_no_projection",
             "epsilon": BALANCE_EPSILON,
             "reference_scale": "arithmetic_mean_raw_norm",
             "conflict_rate_by_epoch": [
