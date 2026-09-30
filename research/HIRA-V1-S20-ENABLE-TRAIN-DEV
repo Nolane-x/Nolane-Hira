@@ -1,0 +1,39 @@
+# HIRA V1 S20 — enable fresh TRAIN/DEV
+
+Issue: #223
+
+Qualified prerequisite:
+- A0 run `36677124443`
+- artifact `11080820457`
+- digest `sha256:39769042b9620b5444f5a478a1ef12d63acb43c7abbd5332b8978b5177be4b06`
+- outcome `HIRA_V1_S20_A0_IDENTITY_READY`
+- A0 inference identity max abs = 0.0
+- exact physical surface = 49,152
+- standardized consistency coefficient = 0.25
+- standardization epsilon = 1e-6
+- affine / scale / permutation / swap / flat-neutral invariants PASS
+- mismatch loss and gradients nonzero
+- staged TRAIN workflow head CI PASS
+- latest exact head CI run `36677545676` PASS
+
+Authorize exactly one preregistered fresh English S20 TRAIN/DEV authority under `research/HIRA-V1-S20-CONTRACT.md`.
+
+Frozen:
+- 768 TRAIN semantic cases
+- 192 DEV semantic cases
+- 12 wholly fresh domains
+- seed 34001
+- 24 epochs
+- batch size 16
+- lr 2e-4
+- weight decay 0.01
+- exact 49,152 trainable physical surface
+- S17 norm-balanced shared-gradient optimization unchanged
+- S14 equal-weight inference fusion unchanged
+- standardized triadic evidence consistency coefficient 0.25
+- standardization epsilon 1e-6
+- relation CE/signature canonicalization unchanged
+- no S18 paired-margin term
+- no S19 raw-softmax JS
+- no post-DEV retry/tuning
+- no sealed confirmation unless DEV_READY
