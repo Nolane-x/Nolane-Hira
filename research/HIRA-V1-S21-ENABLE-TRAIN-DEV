@@ -1,0 +1,49 @@
+# HIRA V1 S21 — enable fresh TRAIN/DEV
+
+Issue: #225
+
+Qualified A0:
+- run `36701343136`
+- artifact `11089967708`
+- digest `sha256:27219a7f99f8ef8f6f2552ada65ed97e6a99a6bc2234147177fdffdbb365c31b`
+- A0 head `8eafefb9cc49dc1c8e8662b760b0526742645117`
+- outcome `HIRA_V1_S21_A0_ROLE_CONTENT_READY`
+
+Frozen receipt:
+`research/HIRA-V1-S21-A0-RECEIPT.md`
+
+Frozen interpretation:
+`research/HIRA-V1-S21-INTERPRETATION-PLAN.md`
+
+Exact staged-head CI:
+- head `92f99a98d98fc4bdc97661370c9ec53b1ec810a7`
+- run `36701928672`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one preregistered fresh English S21 TRAIN/DEV authority.
+
+Frozen scientific configuration:
+- seed **36001**
+- TRAIN **768** wholly fresh semantic cases
+- DEV **192** wholly fresh semantic cases
+- 12 fresh domains
+- 24 epochs
+- batch size 16
+- AdamW lr 2e-4
+- weight decay 0.01
+- exact 49,152 trainable physical params
+- role-gated content primary scorer
+- role temperature 0.10
+- role/content weights 0.50 / 0.50
+- S17 norm-balanced shared-gradient optimization
+- S17 fused-output JS coefficient 0.25
+- relation CE 0.10
+- relation-signature canonicalization 0.15
+- S14 equal-weight standardized fusion
+- no S18 paired margin
+- no S19 raw-triadic JS replacement
+- no S20 standardized-triadic consistency replacement
+- no post-DEV retry/tuning
+- no Laya/Jev unless DEV_READY
