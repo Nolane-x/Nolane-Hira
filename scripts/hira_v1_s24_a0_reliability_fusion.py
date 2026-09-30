@@ -435,7 +435,7 @@ def _collect_fusion(runtime, suite: tuple[Case, ...]) -> dict:
                     gold_p.append(gold)
 
                 expert_agreement.append(float(diag.expert_top1_agreement))
-                triadic_rms.append(float(diag.triadic_rms))
+                triadic_rms.append(float(diag.primary_rms))
                 relation_rms.append(float(diag.relation_rms))
 
                 reverse_schema, _ = runtime.compile_schema(
