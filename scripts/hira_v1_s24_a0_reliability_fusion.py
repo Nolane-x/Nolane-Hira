@@ -653,10 +653,14 @@ def _reliability_fusion_probe() -> dict[str, float | bool]:
     flat_out, dflat = fusion(flat, -flat)
     nf_out, dnf = fusion(flat, eq_a)
     aff, daff = fusion(7.0*a+13.0, 4.0*b-9.0)
-    ap = a.clone().requires_grad_(True)
-    bp = b.clone().requires_grad_(True)
-    gout, _ = fusion(ap, bp)
-    gout.square().sum().backward()
+    with torch.inference_mode(False), torch.enable_grad():
+        ap = a.clone().requires_grad_(True)
+        bp = b.clone().requires_grad_(True)
+        gout, _ = fusion(ap, bp)
+        gout.square().sum().backward()
+        primary_grad_l1 = 0.0 if ap.grad is None else float(ap.grad.abs().sum())
+        relation_direct_gradient_zero = bp.grad is None
+
     return {
         "reliability_expert_swap_max_abs": float((x-y).abs().max()),
         "reliability_option_permutation_max_abs": float((p-x[:,perm]).abs().max()),
@@ -672,8 +676,8 @@ def _reliability_fusion_probe() -> dict[str, float | bool]:
         "reliability_affine_primary_weight_abs": abs(float(dx.primary_weight-daff.primary_weight)),
         "reliability_affine_relation_weight_abs": abs(float(dx.relation_weight-daff.relation_weight)),
         "reliability_weight_sum_abs": abs(float(dx.primary_weight+dx.relation_weight)-1.0),
-        "reliability_primary_gradient_l1": 0.0 if ap.grad is None else float(ap.grad.abs().sum()),
-        "reliability_relation_direct_gradient_zero": bp.grad is None,
+        "reliability_primary_gradient_l1": primary_grad_l1,
+        "reliability_relation_direct_gradient_zero": relation_direct_gradient_zero,
         "reliability_parameter_count": fusion.parameter_count,
     }
 
