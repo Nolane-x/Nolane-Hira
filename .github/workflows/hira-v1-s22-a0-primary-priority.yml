@@ -1,0 +1,140 @@
+name: hira-v1-s22-a0-primary-priority
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s22-primary-priority-gradient
+    paths:
+      - "research/HIRA-V1-S22-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S22 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S22 modules
+        run: |
+          python -m py_compile src/nmd/v1_primary_priority_gradient.py src/nmd/v1_s22_semantic_core.py src/nmd/v1_s22_authority.py src/nmd/v1_s22_checkpoint.py scripts/hira_v1_s22_train_dev.py scripts/hira_v1_s22_a0_primary_priority.py
+      - name: Run S22 and inherited contracts
+        run: |
+          pytest -q tests/test_v1_primary_priority_gradient.py tests/test_v1_s22_authority.py tests/test_v1_s22_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_relation_canonicalization.py tests/test_v1_invariance.py tests/test_v1_a13_lora.py tests/test_v1_triadic_semantic.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S22 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Verify exact frozen M4 bundle
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          from nmd.local_runtime import read_runtime_bundle_manifest
+          m = read_runtime_bundle_manifest("inputs/M4/hira-v0-m4-runtime")
+          assert m["hira_manifest"]["version"] == "0.0-m4a"
+          assert m["semantic_revision"] == "4226d9e4d2c08703e5cb0491b479bfc6a1607181"
+          assert m["t0_checkpoint_sha256"] == "1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f"
+          PY
+      - name: Run fresh S22-A0 primary-priority authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s22_a0_primary_priority.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s22-a0
+      - name: Verify S22-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("artifacts/s22-a0/result.json").read_text())
+          assert r["schema_version"] == "hira-v1-s22-a0-primary-priority-v1"
+          assert r["status"] == "PASS"
+          assert r["outcome"] == "HIRA_V1_S22_A0_PRIMARY_PRIORITY_READY"
+          assert r["scientific_authority"] == "S22_A0_PRIMARY_PRIORITY_ONLY"
+          assert r["semantic_case_count"] == 16
+          assert r["decision_count"] == 64
+          assert r["state_view_count"] == 32
+          assert r["k"] == 4
+          assert r["views_per_option"] == 2
+          assert r["a13_token_output_identity"] is True
+          assert r["a13_pooled_output_identity"] is True
+          assert r["s21_logit_identity_rate"] == 1.0
+          assert r["s21_choice_identity_rate"] == 1.0
+          assert r["lora_parameter_count"] == 16384
+          assert r["projection_parameter_count"] == 32768
+          assert r["candidate_parameter_count"] == 49152
+          assert r["runtime_trainable_parameter_count"] == 0
+          assert r["original_a13_trainable_parameter_count"] == 0
+          assert r["factorization_added_parameter_count"] == 0
+          assert r["canonicalizer_added_parameter_count"] == 0
+          assert r["fusion_added_parameter_count"] == 0
+          assert r["synthetic_role_content_court_passed"] is True
+          assert r["synthetic_question_a_selected"] == 0
+          assert r["synthetic_question_b_selected"] == 2
+          assert r["factorized_option_permutation_max_abs"] <= 1e-6
+          assert r["factorized_degenerate_finite"] is True
+          assert r["role_temperature"] == 0.10
+          assert r["role_weight"] == 0.50
+          assert r["content_weight"] == 0.50
+          assert r["primary_priority_conflict"] is True
+          assert r["primary_priority_pre_dot"] < 0.0
+          assert r["primary_priority_post_dot"] >= -1e-7
+          assert r["primary_priority_expected_direction_max_abs"] <= 1e-6
+          assert r["primary_priority_relation_direction_change_l1"] > 0.0
+          assert r["primary_priority_primary_direction_identity_max_abs"] == 0.0
+          assert r["primary_priority_no_conflict_matches_s17_max_abs"] <= 1e-7
+          assert r["primary_priority_no_conflict_s22_conflict"] is False
+          assert r["primary_priority_no_conflict_s17_conflict"] is False
+          assert r["primary_priority_joint_scale_max_abs"] <= 1e-5
+          p = r["shared_surface_gradient_probe"]
+          assert p["surface_parameter_count"] == 49152
+          assert p["semantic_case_count"] == 16
+          assert p["balance_epsilon"] == 1e-12
+          assert p["normalized_post_dot"] >= -1e-5
+          assert r["fusion_expert_swap_max_abs"] == 0.0
+          assert r["fusion_vs_s14_forward_max_abs"] == 0.0
+          assert r["fused_option_order_flip_rate"] == 0.0
+          assert r["fused_max_probability_mass_error"] <= 1e-6
+          assert r["option_order_flip_rate"] == 0.0
+          assert r["state_encode_calls"] == 32
+          assert r["max_probability_mass_error"] <= 1e-6
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Freeze S22-A0 integrity
+        run: |
+          (cd artifacts/s22-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s22-a0-primary-priority
+          path: artifacts/s22-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
