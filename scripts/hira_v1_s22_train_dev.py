@@ -715,7 +715,7 @@ def main() -> None:
     args = parser.parse_args()
 
     a0 = json.loads(args.a0_result.read_text(encoding="utf-8"))
-    if a0.get("outcome") != "HIRA_V1_S22_A0_ROLE_CONTENT_READY":
+    if a0.get("outcome") != "HIRA_V1_S22_A0_PRIMARY_PRIORITY_READY":
         raise RuntimeError("S22-A0 authority is not qualified")
     if a0.get("used_for_model_selection") is not False:
         raise RuntimeError("S22-A0 unexpectedly used for selection")
