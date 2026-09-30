@@ -39,7 +39,7 @@ from nmd.v1_s23_semantic_core import (
 
 
 SCHEMA_VERSION = "hira-v1-s23-a0-neutral-bisector-v1"
-OUTCOME = "HIRA_V1_S23_A0_PRIMARY_PRIORITY_READY"
+OUTCOME = "HIRA_V1_S23_A0_NEUTRAL_BISECTOR_READY"
 ROLE_TEMPERATURE = 0.10
 PAIR_TEMPERATURE = 0.10
 CONTRASTIVE_TEMPERATURE = 0.10
@@ -929,7 +929,7 @@ def main() -> None:
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
         "outcome": OUTCOME,
-        "scientific_authority": "S23_A0_PRIMARY_PRIORITY_ONLY",
+        "scientific_authority": "S23_A0_NEUTRAL_BISECTOR_ONLY",
         "semantic_case_count": len(suite),
         "decision_count": total_decisions,
         "state_view_count": len(suite) * 2,
@@ -976,7 +976,7 @@ def main() -> None:
         json.dumps(result, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    print("HIRA_V1_S23_A0_PRIMARY_PRIORITY_RECEIPT=" + json.dumps(result, sort_keys=True))
+    print("HIRA_V1_S23_A0_NEUTRAL_BISECTOR_RECEIPT=" + json.dumps(result, sort_keys=True))
 
 
 if __name__ == "__main__":
