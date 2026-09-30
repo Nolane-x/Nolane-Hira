@@ -279,6 +279,62 @@ def _signature_margin(
 
 
 @torch.inference_mode()
+def _collect_relation_records(runtime, suite: tuple[Case, ...]) -> dict[tuple[str, str, str], tuple[torch.Tensor, int]]:
+    scorer = runtime.projection_triadic_scorer
+    if scorer is None:
+        raise RuntimeError("S24-A0 projection scorer missing")
+
+    canonicalizer = CrossViewRelationCanonicalizer(
+        role_temperature=ROLE_TEMPERATURE,
+        pair_temperature=PAIR_TEMPERATURE,
+        contrastive_temperature=CONTRASTIVE_TEMPERATURE,
+    )
+    records: dict[tuple[str, str, str], tuple[torch.Tensor, int]] = {}
+
+    for case in suite:
+        options, _ga, _gb = case.option_pack()
+        for view, state, qa, qb in (
+            ("canonical", case.state_a, case.qa1, case.qb1),
+            ("paraphrase", case.state_b, case.qa2, case.qb2),
+        ):
+            memory = runtime.compile_state(state)
+            state_tokens = memory.content_token_embeddings
+            if state_tokens is None:
+                raise RuntimeError("S24-A0 state token artifacts missing")
+            st = state_tokens.unsqueeze(0)
+            sm = torch.ones(1, st.shape[1], dtype=torch.bool, device=st.device)
+
+            for qname, question in (("a", qa), ("b", qb)):
+                schema, _ = runtime.compile_schema(
+                    primitive="choice",
+                    question_text=question,
+                    options=options,
+                    include_token_artifacts=True,
+                    use_cache=False,
+                )
+                q = schema.question_token_embeddings
+                qm = schema.question_content_token_mask
+                ov = schema.option_view_token_embeddings
+                ovtm = schema.option_view_token_mask
+                ovm = schema.option_view_mask
+                if any(x is None for x in (q, qm, ov, ovtm, ovm)):
+                    raise RuntimeError("S24-A0 schema token artifacts missing")
+                relation, _signatures, _ = canonicalizer(
+                    projection=scorer.projection,
+                    state_tokens=st,
+                    state_mask=sm,
+                    question_tokens=q.unsqueeze(0),
+                    question_mask=qm.unsqueeze(0),
+                    option_view_tokens=ov.unsqueeze(0),
+                    option_view_token_mask=ovtm.unsqueeze(0),
+                    option_view_mask=ovm.unsqueeze(0),
+                )
+                logits = relation[0].detach().cpu()
+                records[(case.case_id, view, qname)] = (logits, int(logits.argmax().item()))
+    return records
+
+
+@torch.inference_mode()
 def _collect_fusion(runtime, suite: tuple[Case, ...]) -> dict:
     scorer = runtime.projection_triadic_scorer
     if scorer is None:
@@ -864,11 +920,24 @@ def main() -> None:
         s23_equal_logits += int(torch.equal(base_logits, logits))
         s23_equal_choices += int(base_choice == choice)
 
+    base_relation = _collect_relation_records(baseline, suite)
+    s24_relation = _collect_relation_records(runtime, suite)
+    s23_relation_equal_logits = 0
+    s23_relation_equal_choices = 0
+    for key, (base_logits, base_choice) in base_relation.items():
+        logits, choice = s24_relation[key]
+        s23_relation_equal_logits += int(torch.equal(base_logits, logits))
+        s23_relation_equal_choices += int(base_choice == choice)
+
     total_decisions = len(suite) * 4
     if s23_equal_logits != total_decisions:
-        raise RuntimeError("S24-A0 inference logits changed from S23")
+        raise RuntimeError("S24-A0 primary logits changed from S23")
     if s23_equal_choices != total_decisions:
-        raise RuntimeError("S24-A0 inference choices changed from S23")
+        raise RuntimeError("S24-A0 primary choices changed from S23")
+    if s23_relation_equal_logits != total_decisions:
+        raise RuntimeError("S24-A0 relation logits changed from S23")
+    if s23_relation_equal_choices != total_decisions:
+        raise RuntimeError("S24-A0 relation choices changed from S23")
 
     modules = iter_a13_lora_modules(runtime.encoder)
     lora_params = sum(
@@ -1006,6 +1075,8 @@ def main() -> None:
         "a13_pooled_output_identity": pooled_identity,
         "s23_logit_identity_rate": s23_equal_logits / total_decisions,
         "s23_choice_identity_rate": s23_equal_choices / total_decisions,
+        "s23_relation_logit_identity_rate": s23_relation_equal_logits / total_decisions,
+        "s23_relation_choice_identity_rate": s23_relation_equal_choices / total_decisions,
         "accuracy_all_views": observed["accuracy_all_views"],
         "primary_canonical_accuracy": fusion_result["raw_triadic_canonical_accuracy"],
         "canonical_paired_both_correct_rate": observed["canonical_paired_both_correct_rate"],
