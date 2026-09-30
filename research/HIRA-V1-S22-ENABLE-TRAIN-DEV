@@ -74,3 +74,36 @@ Exact fixed-head CI:
 - preflight PASS
 
 Authorize exactly one replacement fresh S22 TRAIN/DEV authority with the unchanged preregistered scientific configuration.
+
+
+## Second harness-only replacement authority
+
+Replacement run `36713186950` also terminated before scientific TRAIN exposure.
+
+Exact failure:
+- contracts PASS;
+- S22-A0 artifact verification PASS;
+- M4 integrity PASS;
+- corrected A0 outcome guard PASS;
+- TRAIN script then looked for stale S21-era fields `baseline_logit_identity_rate` / `baseline_choice_identity_rate`;
+- S22 optimizer-only A0 correctly publishes `s21_logit_identity_rate` / `s21_choice_identity_rate`, both **1.0**;
+- failure occurred before S22 case generation, before any epoch and before any DEV evaluation;
+- no TRAIN/DEV result or artifact was produced.
+
+Harness-only fix:
+- commit `7794af6b9438bde09acb876a7cf864843f8d07d3`
+- uses the exact S22 A0 identity fields and requires both to equal 1.0;
+- no scientific configuration changed.
+
+Additional audit confirmed:
+- S22 TRAIN/DEV uses `generate_s22_cases()`, not S21 cases;
+- S21 generator import is only for the freshness guard against prior exposed rows;
+- checkpoint schema/kind, candidate filename, receipt schema/outcomes, seed 38001 and optimizer labels are internally consistent.
+
+Exact fixed-head CI:
+- run `36713498524`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement fresh S22 TRAIN/DEV authority with the unchanged preregistered scientific configuration.
