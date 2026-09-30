@@ -47,3 +47,30 @@ Frozen scientific configuration:
 - no S18/S19/S20 interventions
 - no post-DEV retry/tuning
 - no Laya/Jev unless DEV_READY
+
+
+## Harness-only replacement authority
+
+Prior TRAIN/DEV run `36710305829` terminated before scientific TRAIN exposure.
+
+Exact failure:
+- contracts PASS;
+- S22-A0 artifact verification PASS;
+- M4 integrity PASS;
+- `scripts/hira_v1_s22_train_dev.py` then checked the stale outcome string `HIRA_V1_S22_A0_ROLE_CONTENT_READY`;
+- canonical A0 outcome is `HIRA_V1_S22_A0_PRIMARY_PRIORITY_READY`;
+- failure occurred before S22 case generation, before any epoch and before any DEV evaluation;
+- no TRAIN/DEV result or artifact was produced.
+
+Harness-only fix:
+- commit `0c3cb11a30562bd52598a03b063a7f60c2d76f2d`
+- changes only the expected A0 outcome string;
+- primary-priority optimizer, S21 model, role/content operator, seed, S22 fresh partitions, objective, selection and gates are unchanged.
+
+Exact fixed-head CI:
+- run `36712768283`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement fresh S22 TRAIN/DEV authority with the unchanged preregistered scientific configuration.
