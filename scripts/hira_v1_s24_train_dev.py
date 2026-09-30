@@ -734,9 +734,9 @@ def main() -> None:
     s23_logit_identity = float(a0.get("s23_logit_identity_rate", -1.0))
     s23_choice_identity = float(a0.get("s23_choice_identity_rate", -1.0))
     if s23_logit_identity != 1.0:
-        raise RuntimeError("S24-A0 S21 logit identity failed")
+        raise RuntimeError("S24-A0 S23 logit identity failed")
     if s23_choice_identity != 1.0:
-        raise RuntimeError("S24-A0 S21 choice identity failed")
+        raise RuntimeError("S24-A0 S23 choice identity failed")
 
     train_rows = generate_s24_cases("train")
     dev_rows = generate_s24_cases("dev")
