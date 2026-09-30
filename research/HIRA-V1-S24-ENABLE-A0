@@ -45,3 +45,29 @@ Required proofs include:
 - full-K/state-once/mechanics preserved
 
 S24 TRAIN/DEV remains CLOSED until A0 qualifies and interpretation is frozen.
+
+
+## Harness-only replacement A0 authorization
+
+Prior A0 run `36790788592` is preserved as a non-result harness abort.
+
+Exact failure:
+- unit/contracts PASS;
+- M4 integrity PASS;
+- scientific script began deterministic A0 computation;
+- it crashed before any preregistered invariant assertion, receipt verification or artifact upload because the harness read stale diagnostics field `diag.triadic_rms`;
+- S24 diagnostics expose the same quantity as `diag.primary_rms`;
+- no `result.json`, qualified receipt or model-selection evidence was produced.
+
+Harness-only fix:
+- commit `07955766297cf185e775a1eeead547781699c924`;
+- changes only the diagnostics field accessor;
+- reliability formula, epsilon, expert logits, A0 cases, identity checks, gates and all scientific settings are unchanged.
+
+Exact fixed-head CI:
+- run `36791443604`;
+- Python 3.10 PASS;
+- Python 3.12 PASS;
+- preflight PASS.
+
+Authorize exactly one replacement S24-A0 authority with the unchanged preregistered scientific configuration.
