@@ -1094,7 +1094,12 @@ def main() -> None:
             "fusion_equal_weight": 0.5,
             "raw_triadic_ce_used": False,
             "fused_primary_relation_logits_detached": True,
-            "inference_numerically_identical_to_s14": False,\n            "s21_primary_inference_change_preregistered": True,\n            "primary_operator": "role_gated_content_triadic",\n            "primary_role_temperature": 0.10,\n            "primary_role_weight": 0.50,\n            "primary_content_weight": 0.50,
+            "inference_numerically_identical_to_s14": False,
+            "s21_primary_inference_change_preregistered": True,
+            "primary_operator": "role_gated_content_triadic",
+            "primary_role_temperature": 0.10,
+            "primary_role_weight": 0.50,
+            "primary_content_weight": 0.50,
             "norm_balanced_gradient": "equal_direction_relation_priority_projection",
             "balance_epsilon": BALANCE_EPSILON,
             "balance_primary_block": "decision + 0.05*option_alignment + 0.25*fused_cross_view_js",
@@ -1130,7 +1135,8 @@ def main() -> None:
             ),
             "canonicalizer_added_parameters": 0,
             "fusion_added_parameters": 0,
-            "learned_downstream_scorer_parameters": 0,\n            "role_content_factorization_added_parameters": 0,
+            "learned_downstream_scorer_parameters": 0,
+            "role_content_factorization_added_parameters": 0,
         },
         "state_once": {
             "train_state_view_encodes_per_epoch": 2 * len(train_rows),
@@ -1189,7 +1195,8 @@ def main() -> None:
     }
 
     (args.out / "result.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "
+",
         encoding="utf-8",
     )
     (args.out / "train-manifest.json").write_text(
@@ -1198,7 +1205,8 @@ def main() -> None:
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
-        ) + "\n",
+        ) + "
+",
         encoding="utf-8",
     )
     (args.out / "dev-manifest.json").write_text(
@@ -1207,7 +1215,8 @@ def main() -> None:
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
-        ) + "\n",
+        ) + "
+",
         encoding="utf-8",
     )
 
