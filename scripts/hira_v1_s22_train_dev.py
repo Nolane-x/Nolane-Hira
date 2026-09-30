@@ -727,12 +727,12 @@ def main() -> None:
         raise RuntimeError("S22-A0 factorization added parameters")
     if a0.get("synthetic_role_content_court_passed") is not True:
         raise RuntimeError("S22-A0 structural court failed")
-    baseline_logit_identity = float(a0.get("baseline_logit_identity_rate", -1.0))
-    baseline_choice_identity = float(a0.get("baseline_choice_identity_rate", -1.0))
-    if not (0.0 <= baseline_logit_identity <= 1.0):
-        raise RuntimeError("S22-A0 baseline logit identity receipt invalid")
-    if not (0.0 <= baseline_choice_identity <= 1.0):
-        raise RuntimeError("S22-A0 baseline choice identity receipt invalid")
+    s21_logit_identity = float(a0.get("s21_logit_identity_rate", -1.0))
+    s21_choice_identity = float(a0.get("s21_choice_identity_rate", -1.0))
+    if s21_logit_identity != 1.0:
+        raise RuntimeError("S22-A0 S21 logit identity failed")
+    if s21_choice_identity != 1.0:
+        raise RuntimeError("S22-A0 S21 choice identity failed")
 
     train_rows = generate_s22_cases("train")
     dev_rows = generate_s22_cases("dev")
