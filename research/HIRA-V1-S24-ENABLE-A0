@@ -71,3 +71,32 @@ Exact fixed-head CI:
 - preflight PASS.
 
 Authorize exactly one replacement S24-A0 authority with the unchanged preregistered scientific configuration.
+
+
+## Second harness-only replacement A0 authorization
+
+Replacement run `36792147081` is also preserved as a non-result harness abort.
+
+Exact failure:
+- unit/contracts PASS;
+- M4 integrity PASS;
+- primary/relation identity collection completed;
+- reliability probe reached its gradient-routing diagnostic;
+- the probe attempted `.backward()` while inherited `main()` was under `torch.inference_mode()`;
+- it failed with `RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn`;
+- no reliability invariant assertion, qualified receipt, `result.json` verification or artifact upload completed.
+
+Harness-only fix:
+- commit `32835adc4816f83800c5d2e172ddf835cf115078`;
+- wraps only the synthetic gradient-routing subsection in `torch.inference_mode(False), torch.enable_grad()`;
+- fusion formula, epsilon, data, expert logits, gates and all scientific settings remain unchanged.
+
+Full A0 harness audit after the fix found no other stale diagnostics fields or backward calls lacking an explicit gradient context.
+
+Exact fixed-head CI:
+- run `36792628117`;
+- Python 3.10 PASS;
+- Python 3.12 PASS;
+- preflight PASS.
+
+Authorize exactly one final replacement S24-A0 authority with the unchanged preregistered scientific configuration.
