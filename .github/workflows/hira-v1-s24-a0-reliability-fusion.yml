@@ -80,6 +80,8 @@ jobs:
           assert r["a13_pooled_output_identity"] is True
           assert r["s23_logit_identity_rate"]==1.0
           assert r["s23_choice_identity_rate"]==1.0
+          assert r["s23_relation_logit_identity_rate"]==1.0
+          assert r["s23_relation_choice_identity_rate"]==1.0
           assert r["candidate_parameter_count"]==49152
           assert r["runtime_trainable_parameter_count"]==0
           assert r["factorization_added_parameter_count"]==0
