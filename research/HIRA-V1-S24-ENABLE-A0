@@ -1,0 +1,47 @@
+# HIRA V1 S24 — enable A0 reliability-fusion authority
+
+Issue: #231
+
+Base main:
+`f7228c1cff5440504644a6f03f76698fa79f7af9`
+
+Exact A0 staged head:
+`3cbc37bf101b960f7b770b7209a431d761690752`
+
+Exact-head generic CI:
+- run `36790421982`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one preregistered S24-A0 reliability-weighted fusion authority.
+
+Frozen:
+- S23 model / neutral-bisector optimizer / 49,152-param physical surface
+- role temperature 0.10
+- role/content weights 0.50 / 0.50
+- S13 relation expert
+- reliability fusion epsilon 1e-6
+- reliability = standardized top1-top2 gap + epsilon
+- expert weights = normalized reliabilities
+- no learned gate/head/router/calibrator/temperature
+- relation detached from fused-primary objective
+- 16 wholly fresh A0 cases
+- A0 diagnostic-only; no model selection
+
+Required proofs include:
+- S23 primary logit/choice identity 1.0/1.0
+- S23 relation logit/choice identity 1.0/1.0
+- expert-swap symmetry
+- option-permutation equivariance
+- equal reliability -> exact S14 equal fusion
+- flat/flat neutral equal fusion
+- flat/nonflat dominated by nonflat expert
+- independent positive affine invariance
+- finite nonnegative weights summing to one
+- primary gradient nonzero / relation direct fused-primary gradient zero
+- exact 49,152 physical surface
+- 0 fusion parameters/state
+- full-K/state-once/mechanics preserved
+
+S24 TRAIN/DEV remains CLOSED until A0 qualifies and interpretation is frozen.
