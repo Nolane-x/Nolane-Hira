@@ -1195,8 +1195,7 @@ def main() -> None:
     }
 
     (args.out / "result.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "
-",
+        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     (args.out / "train-manifest.json").write_text(
@@ -1205,8 +1204,7 @@ def main() -> None:
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
-        ) + "
-",
+        ) + "\n",
         encoding="utf-8",
     )
     (args.out / "dev-manifest.json").write_text(
@@ -1215,8 +1213,7 @@ def main() -> None:
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
-        ) + "
-",
+        ) + "\n",
         encoding="utf-8",
     )
 
