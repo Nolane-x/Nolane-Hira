@@ -49,3 +49,30 @@ Required:
 - probability mass error <= 1e-6
 
 TRAIN/DEV remains closed until A0 qualifies and its receipt + interpretation plan are frozen.
+
+
+## Harness-only retry authorization
+
+Prior A0 run `36692441039` terminated in the unit compile step before scientific execution:
+- `scripts/hira_v1_s21_train_dev.py` contained an unterminated string literal.
+- the A0 job itself was skipped;
+- no M4 scientific authority was executed;
+- no S21 A0 result/artifact was produced.
+
+The harness-only JSON newline literals were repaired at exact head:
+`62437daffeba831efa03470d273099735f3c4a29`
+
+Generic CI on that exact head:
+- run `36692741482`
+- Python 3.10 PASS
+- Python 3.12 PASS
+
+Scientific configuration is unchanged:
+- operator formula unchanged
+- role temperature 0.10 unchanged
+- role/content weights 0.50 / 0.50 unchanged
+- A0 cases unchanged
+- capacity unchanged
+- gates unchanged
+
+Authorize one replacement S21-A0 run.
