@@ -132,6 +132,8 @@ jobs:
           assert r["parameter_surface"]["relation_projection_trainable_parameters"]==32768
           assert r["parameter_surface"]["relation_operator_added_parameters"]==0
           assert r["parameter_surface"]["factorized_signature_dimension"]==256
+          assert r["gates"]["relation_operator_added_parameters_zero"] is True
+          assert r["gates"]["factorized_signature_dimension_exact_256"] is True
           assert r["parameter_surface"]["original_a13_trainable"]==0
           assert r["parameter_surface"]["hira_core_trainable"]==0
           assert r["loss"]["fusion_rule"]=="s14_equal_standardized_full_k"
