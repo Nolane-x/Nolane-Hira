@@ -79,42 +79,32 @@ def _replace_attr(
     setattr(parent, path[-1], value)
 
 
-def inject_a13_last_full_block_lora(
+def inject_a13_last_ffn_lora(
     encoder: HFAutoSemanticEncoder,
     *,
     rank: int = 8,
     alpha: float = 8.0,
     dropout: float = 0.0,
-) -> A13FullBlockLoRAReceipt:
-    """Inject zero-init LoRA into final A13 attention + FFN linears.
+) -> tuple[LoRALinear, LoRALinear]:
+    """Wrap only the final A13 FFN linears.
 
-    Existing S6 attention-only semantics are reused unchanged. S29 then wraps
-    exactly the two final-block feed-forward dense layers.
+    This is the S29 extension path used after the S17 builder has already
+    installed the four attention LoRA modules. It must not touch attention.
     """
-
-    attention = inject_a13_last_attention_lora(
-        encoder,
-        rank=rank,
-        alpha=alpha,
-        dropout=dropout,
-    )
-    if attention.trainable_parameters != ATTENTION_LORA_PARAMETER_COUNT:
-        raise RuntimeError("Hira v1 S29 inherited attention LoRA count changed")
+    attention = iter_a13_lora_modules(encoder)
+    if len(attention) != 4:
+        raise RuntimeError("Hira v1 S29 expected four inherited attention LoRA modules")
 
     final_layer = encoder.model.encoder.layer[-1]
-    wrapped = list(attention.wrapped_modules)
-    ffn_count = 0
-
+    ffn: list[LoRALinear] = []
+    count = 0
     for label, path, in_features, out_features in _FFN_TARGETS:
         base = _resolve_attr(final_layer, path)
         if isinstance(base, LoRALinear):
             raise RuntimeError(f"Hira v1 S29 FFN LoRA already injected: {label}")
         if not isinstance(base, nn.Linear):
             raise RuntimeError(f"Hira v1 S29 FFN target is not nn.Linear: {label}")
-        if (
-            base.in_features != in_features
-            or base.out_features != out_features
-        ):
+        if base.in_features != in_features or base.out_features != out_features:
             raise RuntimeError(
                 "Hira v1 S29 FFN target shape changed: "
                 f"{label}={base.in_features}->{base.out_features}"
@@ -131,14 +121,43 @@ def inject_a13_last_full_block_lora(
                 f"Hira v1 S29 FFN LoRA parameter count changed: {label}"
             )
         _replace_attr(final_layer, path, adapter)
-        ffn_count += adapter.lora_parameter_count
-        wrapped.append(label)
+        ffn.append(adapter)
+        count += adapter.lora_parameter_count
 
-    if ffn_count != FFN_LORA_PARAMETER_COUNT:
+    if count != FFN_LORA_PARAMETER_COUNT:
         raise RuntimeError(
             f"Hira v1 S29 FFN LoRA surface changed: "
-            f"{ffn_count} != {FFN_LORA_PARAMETER_COUNT}"
+            f"{count} != {FFN_LORA_PARAMETER_COUNT}"
         )
+    return tuple(ffn)  # type: ignore[return-value]
+
+
+def inject_a13_last_full_block_lora(
+    encoder: HFAutoSemanticEncoder,
+    *,
+    rank: int = 8,
+    alpha: float = 8.0,
+    dropout: float = 0.0,
+) -> A13FullBlockLoRAReceipt:
+    """Inject zero-init LoRA into final A13 attention + FFN linears."""
+
+    attention = inject_a13_last_attention_lora(
+        encoder,
+        rank=rank,
+        alpha=alpha,
+        dropout=dropout,
+    )
+    if attention.trainable_parameters != ATTENTION_LORA_PARAMETER_COUNT:
+        raise RuntimeError("Hira v1 S29 inherited attention LoRA count changed")
+
+    ffn = inject_a13_last_ffn_lora(
+        encoder,
+        rank=rank,
+        alpha=alpha,
+        dropout=dropout,
+    )
+    ffn_count = sum(module.lora_parameter_count for module in ffn)
+    wrapped = (*attention.wrapped_modules, *[label for label, *_ in _FFN_TARGETS])
 
     trainable = sum(
         p.numel()
@@ -167,8 +186,7 @@ def inject_a13_last_full_block_lora(
         dropout=float(dropout),
         layer_index=5,
         wrapped_modules=tuple(wrapped),
-        attention_trainable_parameters=
-            ATTENTION_LORA_PARAMETER_COUNT,
+        attention_trainable_parameters=ATTENTION_LORA_PARAMETER_COUNT,
         ffn_trainable_parameters=ffn_count,
         trainable_parameters=trainable,
         original_trainable_parameters=original_trainable,
@@ -269,6 +287,7 @@ __all__ = [
     "FULL_BLOCK_LORA_PARAMETER_COUNT",
     "A13FullBlockLoRAReceipt",
     "inject_a13_last_full_block_lora",
+    "inject_a13_last_ffn_lora",
     "iter_a13_full_block_lora_modules",
     "a13_full_block_lora_state_dict",
     "load_a13_full_block_lora_state_dict",
