@@ -1,0 +1,75 @@
+# HIRA V1 S26 — enable A0 factorized role-value relation authority
+
+Issue: #235
+PR: #236
+
+Parent S25:
+- main merge `749162d8280d272843e126b3c4d3c0b839139b09`
+- outcome `HIRA_V1_S25_DECOUPLED_PROJECTIONS_DEV_FAIL`
+
+Exact S26-A0 staged head:
+`9ebd15a25ec5910d7dfe15f9434075888c61d973`
+
+Exact-head generic CI:
+- run `36848268300`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one preregistered S26-A0 factorized role-value relation authority.
+
+Frozen intervention:
+- inherit S25 shared A13 + LoRA
+- shared LoRA surface **16,384**
+- primary-private projection **32,768**
+- relation-private projection **32,768**
+- exact physical trainable surface **81,920**
+- original A13 frozen
+- HIRACore frozen
+- primary S21 path unchanged
+- S14 equal standardized full-K fusion unchanged
+- relation detach unchanged
+- S25 shared/private gradient ownership unchanged
+- S26 relation operator adds **0 trainable params**
+- role temperature **0.10**
+- contrastive temperature **0.10**
+- fixed role/value score weights **0.50 / 0.50**
+- value anchors are extracted independently on state and option sides using normalized role-complement weights
+- signature = normalized concatenation of role-delta and value-delta blocks
+- no learned router/gate/calibrator/head
+- no option-specific state
+
+A0 authority:
+- **16 wholly fresh English S26-A0 cases**
+- K=4
+- two state views
+- two question views
+- two option views
+- semantic accuracy diagnostic only
+
+Required proofs:
+- shared encoder identity vs inherited S25 initialization
+- exact primary-path identity
+- S26 relation intervention numerically active
+- exact **81,920** inherited physical surface
+- S26 relation operator params **0**
+- primary/relation projection storage distinct
+- factorized signature dimension **256**
+- synthetic hard-negative margins all positive:
+  - correct vs same-role/wrong-value
+  - correct vs wrong-role/same-value
+  - correct vs wrong-role/wrong-value
+- primary -> relation-private gradient exactly zero
+- relation -> primary-private gradient exactly zero
+- own-private gradients nonzero
+- both objectives reach shared LoRA
+- neutral-bisector projection coefficient zero
+- primary/relation/signature option permutation <= **1e-6**
+- S14 mapped fused option-order flip **0**
+- probability mass <= **1e-6**
+- full-K/state-once preserved
+- production-ready claim false
+
+S26 TRAIN/DEV remains CLOSED until this A0 qualifies, its receipt is frozen, the fresh authority generator and interpretation plan are frozen, exact-head CI passes, and a separate one-shot TRAIN/DEV authorization is committed.
+
+No A0 replacement is authorized unless a failure is proven harness-only and produces no qualified scientific receipt.
