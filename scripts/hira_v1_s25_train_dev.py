@@ -816,6 +816,12 @@ def main() -> None:
     best_epoch = None
     best_state = None
     best_metrics = None
+    ownership_max_primary_to_relation = 0.0
+    ownership_max_relation_to_primary = 0.0
+    ownership_min_primary_private_l1 = float("inf")
+    ownership_min_relation_private_l1 = float("inf")
+    ownership_min_primary_shared_l1 = float("inf")
+    ownership_min_relation_shared_l1 = float("inf")
 
     print("HIRA_V1_S25_TRAIN_BEGIN", flush=True)
 
@@ -869,6 +875,30 @@ def main() -> None:
                 primary_private=primary_private,
                 relation_private=relation_private,
                 epsilon=BALANCE_EPSILON,
+            )
+            ownership_max_primary_to_relation = max(
+                ownership_max_primary_to_relation,
+                ownership.primary_to_relation_private_max_abs,
+            )
+            ownership_max_relation_to_primary = max(
+                ownership_max_relation_to_primary,
+                ownership.relation_to_primary_private_max_abs,
+            )
+            ownership_min_primary_private_l1 = min(
+                ownership_min_primary_private_l1,
+                ownership.primary_private_l1,
+            )
+            ownership_min_relation_private_l1 = min(
+                ownership_min_relation_private_l1,
+                ownership.relation_private_l1,
+            )
+            ownership_min_primary_shared_l1 = min(
+                ownership_min_primary_shared_l1,
+                ownership.primary_shared_l1,
+            )
+            ownership_min_relation_shared_l1 = min(
+                ownership_min_relation_shared_l1,
+                ownership.relation_shared_l1,
             )
             balance_diag = ownership.shared
             torch.nn.utils.clip_grad_norm_(trainable, GRAD_CLIP)
@@ -1079,6 +1109,12 @@ def main() -> None:
         "private_projection_storage_distinct": (
             scorer.projection.weight.data_ptr() != relation_projection.weight.data_ptr()
         ),
+        "primary_to_relation_private_zero_all_steps": (
+            ownership_max_primary_to_relation == 0.0
+        ),
+        "relation_to_primary_private_zero_all_steps": (
+            ownership_max_relation_to_primary == 0.0
+        ),
         "original_a13_frozen": _original_a13_trainable(runtime) == 0,
         "hira_core_frozen": not any(
             p.requires_grad for p in runtime.hira.parameters()
@@ -1217,6 +1253,28 @@ def main() -> None:
                 "relation_to_primary_private_max_abs"
             ],
             "fused_option_order_flip_rate": a0["fused_option_order_flip_rate"],
+        },
+        "gradient_ownership": {
+            "primary_to_relation_private_max_abs": (
+                ownership_max_primary_to_relation
+            ),
+            "relation_to_primary_private_max_abs": (
+                ownership_max_relation_to_primary
+            ),
+            "minimum_primary_private_gradient_l1": (
+                ownership_min_primary_private_l1
+            ),
+            "minimum_relation_private_gradient_l1": (
+                ownership_min_relation_private_l1
+            ),
+            "minimum_primary_shared_gradient_l1": (
+                ownership_min_primary_shared_l1
+            ),
+            "minimum_relation_shared_gradient_l1": (
+                ownership_min_relation_shared_l1
+            ),
+            "private_updates_direct": True,
+            "shared_only_neutral_bisector": True,
         },
         "history": history,
         "norm_balancing": {
