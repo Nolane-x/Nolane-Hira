@@ -26,10 +26,10 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile S25 modules
         run: |
-          python -m py_compile src/nmd/v1_s25_semantic_core.py src/nmd/v1_s25_gradient_ownership.py scripts/hira_v1_s25_a0_decoupled_projections.py
+          python -m py_compile src/nmd/v1_s25_semantic_core.py src/nmd/v1_s25_gradient_ownership.py src/nmd/v1_s25_checkpoint.py scripts/hira_v1_s25_a0_decoupled_projections.py
       - name: Run S25 and inherited contracts
         run: |
-          pytest -q tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+          pytest -q tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_s25_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
 
   a0:
     needs: unit
@@ -80,6 +80,8 @@ jobs:
           assert r["s14_equal_fusion_identity"] is True
           assert r["projection_initialization_identity"] is True
           assert r["projection_storage_distinct"] is True
+          assert r["checkpoint_state_identity"] is True
+          assert r["checkpoint_frozen_replay_passed"] is True
           assert r["shared_lora_parameter_count"]==16384
           assert r["primary_projection_parameter_count"]==32768
           assert r["relation_projection_parameter_count"]==32768
