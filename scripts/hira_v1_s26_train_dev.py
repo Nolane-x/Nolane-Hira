@@ -1150,6 +1150,8 @@ def main() -> None:
             "primary_projection_parameter_count": HIRA_V1_S26_PRIMARY_PROJECTION_PARAMETER_COUNT,
             "relation_projection_parameter_count": HIRA_V1_S26_RELATION_PROJECTION_PARAMETER_COUNT,
             "total_parameter_count": HIRA_V1_S26_TOTAL_PARAMETER_COUNT,
+            "relation_operator_added_parameter_count": 0,
+            "factorized_signature_dimension": 256,
             "lora_rank": HIRA_V1_S6_LORA_RANK,
             "selected_dev_epoch": best_epoch,
             "semantic_revision": str(manifest["semantic_revision"]),
