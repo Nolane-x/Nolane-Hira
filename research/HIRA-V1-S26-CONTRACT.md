@@ -46,8 +46,9 @@ S26 relation operator added trainable parameters: **0**.
 
 Frozen temperatures:
 - role **0.10**
-- pair **0.10**
 - contrastive **0.10**
+
+The inherited S13 pair temperature is not used by the S26 factorized value path. S26 deliberately removes cross-side pair-softmax from value extraction so an option cannot alter which value representation is extracted from the state.
 
 Frozen component weighting:
 - role compatibility **0.50**
@@ -59,9 +60,9 @@ For each query and option view:
 2. derive query-conditioned state and option role anchors;
 3. compute explicit role compatibility;
 4. remove each side's role direction from token content;
-5. score residual state↔option token pairs;
-6. use the fixed pair softmax to derive state-value and option-value anchors;
-7. compute explicit value/content compatibility;
+5. derive the **state value anchor independently from state tokens** using normalized `1 - state_role_weight`;
+6. derive each **option value anchor independently from that option** using normalized `1 - option_role_weight`;
+7. compute explicit value/content compatibility only after both anchors are independently fixed;
 8. build a factorized signature by concatenating:
    - normalized role delta;
    - normalized value delta;
