@@ -26,10 +26,10 @@ jobs:
           python -m pip install -e ".[dev]"
       - name: Compile S27 modules
         run: |
-          python -m py_compile src/nmd/v1_blockwise_factor_canonicalization.py src/nmd/v1_s27_semantic_core.py scripts/hira_v1_s27_a0_blockwise_canonicalization.py
+          python -m py_compile src/nmd/v1_blockwise_factor_canonicalization.py src/nmd/v1_s27_semantic_core.py src/nmd/v1_s27_authority.py src/nmd/v1_s27_checkpoint.py scripts/hira_v1_s27_a0_blockwise_canonicalization.py
       - name: Run S27 and inherited contracts
         run: |
-          pytest -q tests/test_v1_blockwise_factor_canonicalization.py tests/test_v1_s27_semantic_core.py tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+          pytest -q tests/test_v1_blockwise_factor_canonicalization.py tests/test_v1_s27_semantic_core.py tests/test_v1_s27_authority.py tests/test_v1_s27_checkpoint.py tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
 
   a0:
     needs: unit
