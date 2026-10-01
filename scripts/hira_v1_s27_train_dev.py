@@ -1076,7 +1076,7 @@ def main() -> None:
             rel_tol=0.0,
             abs_tol=1e-12,
         ):
-            raise RuntimeError(f"S26 selected DEV replay changed: {key}")
+            raise RuntimeError(f"S27 selected DEV replay changed: {key}")
 
     lora_trainable = sum(
         p.numel()
@@ -1172,6 +1172,9 @@ def main() -> None:
         "factorized_signature_dimension_exact_256": (
             2 * relation_projection.out_features == 256
         ),
+        "canonicalization_added_parameters_zero": True,
+        "role_block_dimension_exact_128": relation_projection.out_features == 128,
+        "value_block_dimension_exact_128": relation_projection.out_features == 128,
     }
     outcome = READY if all(gates.values()) else FAIL
 
