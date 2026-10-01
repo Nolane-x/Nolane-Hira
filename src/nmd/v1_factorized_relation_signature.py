@@ -15,7 +15,8 @@ class FactorizedRoleValueDiagnostics:
     state_role_max_weight: Tensor
     option_role_normalized_entropy: Tensor
     option_role_max_weight: Tensor
-    mean_pair_entropy: Tensor
+    state_content_normalized_entropy: Tensor
+    option_content_normalized_entropy: Tensor
     mean_role_compatibility: Tensor
     mean_value_compatibility: Tensor
 
@@ -33,7 +34,12 @@ class FactorizedRoleValueDiagnostics:
             "option_role_max_weight": float(
                 self.option_role_max_weight.detach().cpu()
             ),
-            "mean_pair_entropy": float(self.mean_pair_entropy.detach().cpu()),
+            "state_content_normalized_entropy": float(
+                self.state_content_normalized_entropy.detach().cpu()
+            ),
+            "option_content_normalized_entropy": float(
+                self.option_content_normalized_entropy.detach().cpu()
+            ),
             "mean_role_compatibility": float(
                 self.mean_role_compatibility.detach().cpu()
             ),
@@ -140,44 +146,42 @@ class FactorizedRoleValueRelationCanonicalizer(CrossViewRelationCanonicalizer):
         state_content = self._orthogonal_residual(state, state_anchor)
         option_content = self._orthogonal_residual(options, option_anchor)
 
-        content_pair_score = torch.einsum(
-            "bsd,bkvtd->bkvst",
-            state_content,
-            option_content,
+        # Value/content anchors are derived independently on each side.
+        # This prevents a wrong option from changing which state value is
+        # extracted, the collapse mode exposed by the S26 hard-negative court.
+        state_content_weight = (
+            (1.0 - state_role) * state_mask.to(state_role.dtype)
         )
-        pair_mask = (
-            state_mask[:, None, None, :, None]
-            & option_view_token_mask[:, :, :, None, :]
+        state_content_weight = state_content_weight / state_content_weight.sum(
+            -1, keepdim=True
+        ).clamp_min(1e-12)
+        option_content_weight = (
+            (1.0 - option_role)
+            * option_view_token_mask.to(option_role.dtype)
         )
-        content_pair_score = content_pair_score.masked_fill(~pair_mask, -1e4)
-
-        b, k, v, s, t = content_pair_score.shape
-        flat_score = content_pair_score.reshape(b, k, v, s * t)
-        flat_mask = pair_mask.reshape(b, k, v, s * t)
-        pair_weight = torch.softmax(flat_score / self.pair_temperature, dim=-1)
-        pair_weight = pair_weight * flat_mask.to(pair_weight.dtype)
-        pair_weight = pair_weight / pair_weight.sum(-1, keepdim=True).clamp_min(1e-12)
-        pair_weight_5d = pair_weight.reshape(b, k, v, s, t)
+        option_content_weight = option_content_weight / option_content_weight.sum(
+            -1, keepdim=True
+        ).clamp_min(1e-12)
 
         state_value = F.normalize(
             torch.einsum(
-                "bkvst,bsd->bkvd",
-                pair_weight_5d,
+                "bs,bsd->bd",
+                state_content_weight,
                 state_content,
             ),
             dim=-1,
         )
         option_value = F.normalize(
             torch.einsum(
-                "bkvst,bkvtd->bkvd",
-                pair_weight_5d,
+                "bkvt,bkvtd->bkvd",
+                option_content_weight,
                 option_content,
             ),
             dim=-1,
         )
 
         value_compatibility = torch.einsum(
-            "bkvd,bkvd->bkv",
+            "bd,bkvd->bkv",
             state_value,
             option_value,
         )
@@ -187,7 +191,7 @@ class FactorizedRoleValueRelationCanonicalizer(CrossViewRelationCanonicalizer):
             dim=-1,
         )
         value_delta = F.normalize(
-            option_value - state_value,
+            option_value - state_value[:, None, None, :],
             dim=-1,
         )
         view_signature = F.normalize(
@@ -225,18 +229,16 @@ class FactorizedRoleValueRelationCanonicalizer(CrossViewRelationCanonicalizer):
             option_role.max(-1).values * option_active
         ).sum() / option_active.sum().clamp_min(1.0)
 
-        pair_eps = torch.finfo(pair_weight.dtype).eps
-        pair_count = flat_mask.sum(-1).to(pair_weight.dtype)
-        pair_den = torch.where(
-            pair_count > 1,
-            pair_count.log(),
-            torch.ones_like(pair_count),
+        state_content_entropy = self._normalized_entropy(
+            state_content_weight,
+            state_mask,
         )
-        pair_entropy = -(
-            pair_weight.clamp_min(pair_eps).log() * pair_weight
-        ).sum(-1) / pair_den
-        pair_entropy_mean = (
-            pair_entropy * option_active
+        option_content_entropy = self._normalized_entropy(
+            option_content_weight,
+            option_view_token_mask,
+        )
+        option_content_entropy_mean = (
+            option_content_entropy * option_active
         ).sum() / option_active.sum().clamp_min(1.0)
 
         diagnostics = FactorizedRoleValueDiagnostics(
@@ -244,7 +246,8 @@ class FactorizedRoleValueRelationCanonicalizer(CrossViewRelationCanonicalizer):
             state_role_max_weight=state_role.max(-1).values.mean(),
             option_role_normalized_entropy=option_entropy_mean,
             option_role_max_weight=option_max_mean,
-            mean_pair_entropy=pair_entropy_mean,
+            state_content_normalized_entropy=state_content_entropy.mean(),
+            option_content_normalized_entropy=option_content_entropy_mean,
             mean_role_compatibility=(
                 role_compatibility * option_active
             ).sum() / option_active.sum().clamp_min(1.0),
