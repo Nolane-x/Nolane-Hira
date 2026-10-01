@@ -77,6 +77,9 @@ jobs:
           assert r["primary_projection_parameter_count"]==32768
           assert r["relation_projection_parameter_count"]==32768
           assert r["anchor_transport_added_parameter_count"]==0
+          assert r["signature_dimension"]==256
+          assert r["role_block_dimension"]==128
+          assert r["value_block_dimension"]==128
           assert r["runtime_trainable_parameter_count"]==0
           assert r["original_a13_trainable_parameter_count"]==0
           assert r["hira_core_trainable_parameter_count"]==0
