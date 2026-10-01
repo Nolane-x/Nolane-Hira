@@ -11,6 +11,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 from nmd.local_runtime import load_hira_v0_m4_bundle, read_runtime_bundle_manifest
+from nmd.semantic_core import load_rescued_projection_checkpoint
 from nmd.v1_a13_lora import a13_lora_state_dict, iter_a13_lora_modules
 from nmd.v1_evidence_fusion import SymmetricFullKEvidenceFusion
 from nmd.v1_invariance import symmetric_js_divergence
@@ -472,13 +473,25 @@ def main() -> None:
 
     primary_projection = candidate.projection_triadic_scorer.projection
     relation_projection = get_s25_relation_projection(candidate)
+    t0_weight = load_rescued_projection_checkpoint(
+        t0,
+        expected_sha256=t0_sha,
+    ).to(device=primary_projection.weight.device, dtype=primary_projection.weight.dtype)
     projection_initialization_identity = bool(
         torch.equal(primary_projection.weight, relation_projection.weight)
+    )
+    t0_projection_identity = bool(
+        torch.equal(primary_projection.weight, t0_weight)
+        and torch.equal(relation_projection.weight, t0_weight)
     )
     projection_storage_distinct = (
         primary_projection.weight.data_ptr() != relation_projection.weight.data_ptr()
     )
-    if not projection_initialization_identity or not projection_storage_distinct:
+    if (
+        not projection_initialization_identity
+        or not t0_projection_identity
+        or not projection_storage_distinct
+    ):
         raise RuntimeError("S25-A0 projection ownership initialization invalid")
 
     lora_params = sum(
@@ -505,7 +518,10 @@ def main() -> None:
         raise RuntimeError("S25-A0 total physical surface changed")
     if trainable != 0 or original_a13 != 0:
         raise RuntimeError("S25-A0 frozen inference runtime is not frozen")
-    if any(p.requires_grad for p in candidate.hira.parameters()):
+    hira_core_trainable = sum(
+        p.numel() for p in candidate.hira.parameters() if p.requires_grad
+    )
+    if hira_core_trainable != 0:
         raise RuntimeError("S25-A0 HIRACore became trainable")
 
     # A0 checkpoint ownership court: serialize the exact decoupled ownership
@@ -652,7 +668,9 @@ def main() -> None:
         "relation_initialization_identity": relation_identity,
         "s14_equal_fusion_identity": fusion_identity,
         "projection_initialization_identity": projection_initialization_identity,
+        "t0_projection_identity": t0_projection_identity,
         "projection_storage_distinct": projection_storage_distinct,
+        "hira_core_trainable_parameter_count": hira_core_trainable,
         "checkpoint_state_identity": checkpoint_state_identity,
         "checkpoint_frozen_replay_passed": checkpoint_frozen_replay_passed,
         "shared_lora_parameter_count": lora_params,
