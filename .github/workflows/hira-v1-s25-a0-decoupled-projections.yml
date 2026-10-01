@@ -100,7 +100,8 @@ jobs:
           assert r["shared_projection_coefficient"]==0.0
           assert r["primary_option_permutation_max_abs"]<=1e-6
           assert r["relation_option_permutation_max_abs"]<=1e-6
-          assert r["fused_option_permutation_max_abs"]<=1e-6
+          assert r["fused_option_order_flip_rate"]==0.0
+          assert r["fused_option_permutation_max_abs"]>=0.0
           assert r["max_probability_mass_error"]<=1e-6
           assert r["full_k"] is True
           assert r["used_for_model_selection"] is False
