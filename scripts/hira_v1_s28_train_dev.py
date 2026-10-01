@@ -773,6 +773,12 @@ def main() -> None:
         raise RuntimeError("S28-A0 relation-private surface changed")
     if int(a0.get("anchor_transport_added_parameter_count", -1)) != 0:
         raise RuntimeError("S28-A0 anchor transport added parameters")
+    if int(a0.get("signature_dimension", -1)) != 256:
+        raise RuntimeError("S28-A0 factorized signature dimension changed")
+    if int(a0.get("role_block_dimension", -1)) != 128:
+        raise RuntimeError("S28-A0 role block dimension changed")
+    if int(a0.get("value_block_dimension", -1)) != 128:
+        raise RuntimeError("S28-A0 value block dimension changed")
     if a0.get("shared_encoder_identity") is not True:
         raise RuntimeError("S28-A0 shared encoder identity failed")
     for key in (
@@ -1194,6 +1200,8 @@ def main() -> None:
             2 * relation_projection.out_features == 256
         ),
         "anchor_transport_added_parameters_zero": True,
+        "role_block_dimension_exact_128": relation_projection.out_features == 128,
+        "value_block_dimension_exact_128": relation_projection.out_features == 128,
     }
     outcome = READY if all(gates.values()) else FAIL
 
@@ -1210,6 +1218,8 @@ def main() -> None:
             "relation_operator_added_parameter_count": 0,
             "anchor_transport_added_parameter_count": 0,
             "factorized_signature_dimension": 256,
+            "role_block_dimension": 128,
+            "value_block_dimension": 128,
             "lora_rank": HIRA_V1_S6_LORA_RANK,
             "selected_dev_epoch": best_epoch,
             "semantic_revision": str(manifest["semantic_revision"]),
@@ -1305,6 +1315,8 @@ def main() -> None:
             "relation_operator_added_parameters": 0,
             "anchor_transport_added_parameters": 0,
             "factorized_signature_dimension": 256,
+            "role_block_dimension": 128,
+            "value_block_dimension": 128,
             "fusion_added_parameters": 0,
             "learned_downstream_scorer_parameters": 0,
             "role_content_factorization_added_parameters": 0,
@@ -1329,6 +1341,9 @@ def main() -> None:
             "anchor_transport_added_parameter_count": a0[
                 "anchor_transport_added_parameter_count"
             ],
+            "signature_dimension": a0["signature_dimension"],
+            "role_block_dimension": a0["role_block_dimension"],
+            "value_block_dimension": a0["value_block_dimension"],
             "role_anchor_reference_max_abs": a0[
                 "role_anchor_reference_max_abs"
             ],
