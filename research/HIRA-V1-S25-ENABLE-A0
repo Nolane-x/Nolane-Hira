@@ -91,3 +91,34 @@ Diagnostic-only harness change:
 Authorize exactly one replacement S25-A0 run for classification under the unchanged preregistered court.
 
 If any permutation error remains above `1e-6`, the replacement must fail and S25-A0 remains unqualified. No tolerance relaxation is authorized by this replacement.
+
+
+## Final harness-corrected replacement authorization
+
+Diagnostic replacement run `36840933785` is also preserved as a non-result abort.
+
+Observed exact permutation diagnostics:
+- primary logit permutation max abs: **0.0**
+- relation logit permutation max abs: **0.0**
+- frozen S14 fused logit permutation max abs: **4.291534423828125e-6**
+- prior harness threshold applied to fused logits: **1e-6**
+
+This isolates the failure to FP32 center/RMS reduction order inside the already-frozen S14 fusion. The two S25 expert implementations are exactly permutation-equivariant.
+
+Historical S14 authority does **not** require bit/logit permutation identity after center/RMS reduction. It authoritatively gates option permutation by mapped **selected-choice flip rate == 0.0**. S25 must inherit that frozen S14 semantic contract rather than introduce a stronger post-hoc numerical identity requirement that S14 itself never claimed.
+
+Harness correction at exact staged head `48d812a591cadba1ee89a633fc2b456f3a5e78d9`:
+- primary and relation logits still require max-abs <= **1e-6**;
+- fused max-abs remains recorded as a diagnostic and is not hidden;
+- frozen S14 fusion now gates permutation exactly as S14 did: **fused option-order choice flip rate == 0.0**;
+- fusion implementation, epsilon, logits, cases, parameter surfaces, gradient routing, and all scientific settings are unchanged.
+
+Exact-head generic CI:
+- run `36841480666`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one final replacement S25-A0 authority under this corrected historical S14 court.
+
+If expert permutation exceeds 1e-6, fused mapped choice flips are nonzero, or any other preregistered A0 invariant fails, S25-A0 remains unqualified. No further tolerance relaxation is authorized.
