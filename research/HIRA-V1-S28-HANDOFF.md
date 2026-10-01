@@ -44,40 +44,79 @@ Do not tune S28 transport strength, factor weights, margin, negative mining, see
 
 ## S29 target
 
-**Query-Explicit Role Binding**
+**Final-Block Attention+FFN LoRA Semantic Adaptation**
 
-Why:
-S28 proves wording-equivalent anchors can align strongly while different semantic queries remain insufficiently separated. The missing signal is explicit query identity in the relation score.
+### Why this is the next non-duplicative intervention
 
-Freeze before A0:
-- S21 primary unchanged
-- shared A13 LoRA + private projection ownership unchanged
-- exact physical trainable surface **81,920** unless separately preregistered otherwise
-- value/content relation component unchanged
-- S14 equal standardized full-K fusion unchanged
-- no learned router/gate/calibrator
+Do not reopen:
+- S11/S12 query-role / role-value binding;
+- S13/S26 relation-signature factorization;
+- S18-S20/S27-S28 consistency or transport-only losses;
+- S22-S23 optimizer-priority variants;
+- S24 fusion weighting;
+- W7 explicit conjunctive/smooth-AND factor scoring.
 
-Candidate structural intervention:
-1. derive a normalized query-role anchor from relation-projected question tokens;
-2. retain S26 state-role anchor and option-role anchor;
-3. role evidence becomes a fixed symmetric query-conditioned score, e.g. equal contribution from query↔state and query↔option compatibility;
-4. value/content evidence remains the S26 factorized pair evidence;
-5. final role/value combination is fixed before A0;
-6. relation signature must expose the query-role relation without option-specific parameters.
+Those families already have fresh negative evidence.
 
-A0 must include:
-- correct role + correct value
-- correct role + wrong value
-- wrong role + same value
-- wrong role + wrong value
-- direct question-swap response
-- paraphrase stability
-- option permutation
-- zero added learned state
-- full-K/state-once
-- S25 gradient ownership
-- checkpoint replay
+One important A13 surface remains untested in v1: the feed-forward transform of the final BERT layer.
 
-Use wholly fresh S29 authority.
-No S28 DEV rows may enter S29 TRAIN/DEV.
+S6 introduced LoRA only on:
+- `attention.self.query`
+- `attention.self.key`
+- `attention.self.value`
+- `attention.output.dense`
+
+Every S7-S28 descendant inherited that same attention-only A13 adaptation.
+
+### S29 controlled reset
+
+Return to the **S17 semantic frontier** rather than inheriting the degraded S26-S28 inference changes.
+
+Keep S17:
+- S13 relation expert;
+- S14 equal standardized full-K fusion;
+- S17 primary/relationship loss partition;
+- S17 relation-priority norm-balanced gradient handling;
+- shared 256→128 projection;
+- state-once/full-K/opaque IDs;
+- all original A13 weights frozen;
+- HIRACore frozen.
+
+Change only final-block A13 LoRA coverage.
+
+Existing final attention LoRA:
+- four 256→256 linears;
+- rank 8 / alpha 8 / dropout 0;
+- **16,384 params**.
+
+Add:
+- final `intermediate.dense`: 256→1024 rank-8 LoRA = **10,240 params**;
+- final FFN `output.dense`: 1024→256 rank-8 LoRA = **10,240 params**.
+
+Frozen S29 physical surface:
+- A13 LoRA total **36,864**;
+- shared projection **32,768**;
+- total trainable **69,632**.
+
+No learned downstream head/router/gate/calibrator.
+No additional encoder layer.
+No change to LoRA rank/alpha after A0.
+
+### Required A0
+
+Before any fresh DEV:
+- exact zero-init token/pooled/logit/choice identity vs S17/S14;
+- exact six LoRA module paths and shapes;
+- exact **36,864** A13 LoRA + **32,768** projection = **69,632**;
+- original A13/HIRACore frozen;
+- attention-LoRA gradient nonzero;
+- FFN intermediate-LoRA gradient nonzero;
+- FFN output-LoRA gradient nonzero;
+- shared projection gradient nonzero;
+- state-once/full-K/option permutation/mass;
+- S17 norm-balanced gradient mechanics unchanged;
+- complete six-module checkpoint roundtrip/replay.
+
+Fresh S29 authorities must exclude all exact S0-S28 rows, M5 final/confirmatory rows and W29-W34 sealed rows.
+
 No Laya/Jev benchmark until DEV_READY.
