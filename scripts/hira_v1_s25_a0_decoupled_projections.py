@@ -139,7 +139,9 @@ def _content_mask(batch) -> Tensor:
 
 
 def _encode(runtime, suite: tuple[Case, ...]) -> dict[str, Tensor]:
-    enforce_s25_eval(runtime)
+    # Works for both the S25 candidate and the frozen S21 initialization
+    # baseline.  S25-only ownership checks are performed separately.
+    runtime.eval()
     encoder = runtime.encoder
     n = len(suite)
     states = encoder.encode_texts(
