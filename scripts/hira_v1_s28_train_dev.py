@@ -556,6 +556,20 @@ def _option_order_flips(
 
 
 
+def _anchor_cross_view_metrics(canonical: Tensor, paraphrase: Tensor) -> tuple[Tensor, Tensor]:
+    canonical = F.normalize(canonical, dim=-1)
+    paraphrase = F.normalize(paraphrase, dim=-1)
+    cross = canonical @ paraphrase.transpose(0, 1)
+    same = cross.diagonal()
+    eye = torch.eye(
+        canonical.shape[0],
+        dtype=torch.bool,
+        device=canonical.device,
+    )
+    wrong = cross.masked_fill(eye, float("-inf")).amax(-1)
+    return same, same - wrong
+
+
 @torch.no_grad()
 def evaluate(runtime, rows: tuple[S28AnchorCase, ...]) -> dict:
     enforce_s28_eval(runtime)
@@ -572,6 +586,9 @@ def evaluate(runtime, rows: tuple[S28AnchorCase, ...]) -> dict:
     relation_c_margin_sum = relation_p_margin_sum = 0.0
     same_signature_sum = signature_margin_sum = 0.0
     signature_count = 0
+    role_anchor_cosine_sum = role_anchor_margin_sum = 0.0
+    value_anchor_cosine_sum = value_anchor_margin_sum = 0.0
+    anchor_count = 0
     canonical_decision_sum = paraphrase_decision_sum = 0.0
     option_align_sum = relation_c_loss_sum = relation_p_loss_sum = 0.0
     canonicalization_sum = 0.0
@@ -654,6 +671,35 @@ def evaluate(runtime, rows: tuple[S28AnchorCase, ...]) -> dict:
         signature_margin_sum += float(sig_margin.sum().cpu())
         signature_count += int(same.numel())
 
+        relation_projection = get_s25_relation_projection(runtime)
+        canonical_anchors = extract_state_factor_anchors(
+            projection=relation_projection,
+            state_tokens=encoded["state_a_tokens"].repeat_interleave(2, dim=0),
+            state_mask=encoded["state_a_mask"].repeat_interleave(2, dim=0),
+            question_tokens=encoded["question_canonical_tokens"],
+            question_mask=encoded["question_canonical_mask"],
+        )
+        paraphrase_anchors = extract_state_factor_anchors(
+            projection=relation_projection,
+            state_tokens=encoded["state_b_tokens"].repeat_interleave(2, dim=0),
+            state_mask=encoded["state_b_mask"].repeat_interleave(2, dim=0),
+            question_tokens=encoded["question_paraphrase_tokens"],
+            question_mask=encoded["question_paraphrase_mask"],
+        )
+        role_same, role_margin = _anchor_cross_view_metrics(
+            canonical_anchors.role,
+            paraphrase_anchors.role,
+        )
+        value_same, value_margin = _anchor_cross_view_metrics(
+            canonical_anchors.value,
+            paraphrase_anchors.value,
+        )
+        role_anchor_cosine_sum += float(role_same.sum().cpu())
+        role_anchor_margin_sum += float(role_margin.sum().cpu())
+        value_anchor_cosine_sum += float(value_same.sum().cpu())
+        value_anchor_margin_sum += float(value_margin.sum().cpu())
+        anchor_count += int(role_same.numel())
+
         order_flips += _option_order_flips(runtime, fused_c, encoded)
 
         for logits in (fused_c, fused_p):
@@ -702,6 +748,10 @@ def evaluate(runtime, rows: tuple[S28AnchorCase, ...]) -> dict:
         "paraphrase_relation_binding_mean_gold_margin": relation_p_margin_sum / queries,
         "mean_same_option_signature_cosine": same_signature_sum / signature_count,
         "mean_signature_same_vs_strongest_wrong_margin": signature_margin_sum / signature_count,
+        "mean_role_anchor_cross_view_cosine": role_anchor_cosine_sum / anchor_count,
+        "mean_role_anchor_same_vs_wrong_margin": role_anchor_margin_sum / anchor_count,
+        "mean_value_anchor_cross_view_cosine": value_anchor_cosine_sum / anchor_count,
+        "mean_value_anchor_same_vs_wrong_margin": value_anchor_margin_sum / anchor_count,
         "mean_canonical_decision_loss": canonical_decision_sum / len(rows),
         "mean_paraphrase_decision_loss": paraphrase_decision_sum / len(rows),
         "mean_option_alignment_loss": option_align_sum / len(rows),
