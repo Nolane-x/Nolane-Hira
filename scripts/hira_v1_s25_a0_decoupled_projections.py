@@ -625,6 +625,19 @@ def main() -> None:
     primary_perm_error = float((moved_raw - cand_raw_c[:, perm]).abs().max().cpu())
     relation_perm_error = float((moved_rel - cand_rel_c[:, perm]).abs().max().cpu())
     fused_perm_error = float((moved_fused - cand_fused_c[:, perm]).abs().max().cpu())
+    print(
+        "HIRA_V1_S25_A0_PERMUTATION_DIAGNOSTIC="
+        + json.dumps(
+            {
+                "primary_option_permutation_max_abs": primary_perm_error,
+                "relation_option_permutation_max_abs": relation_perm_error,
+                "fused_option_permutation_max_abs": fused_perm_error,
+                "frozen_tolerance": 1e-6,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
     if max(primary_perm_error, relation_perm_error, fused_perm_error) > 1e-6:
         raise RuntimeError("S25-A0 option permutation equivariance changed")
 
