@@ -1,0 +1,58 @@
+# HIRA V1 S29 — enable one A0 full-block LoRA authority
+
+Issue: #241
+PR: #242
+
+## Frozen hypothesis
+
+S29 changes only final A13 block LoRA coverage relative to the S17 semantic frontier:
+- inherited attention LoRA: **16,384**
+- FFN intermediate LoRA: **10,240**
+- FFN output LoRA: **10,240**
+- total A13 LoRA: **36,864**
+- shared projection: **32,768**
+- exact intended trainable surface: **69,632**
+
+Rank **8**, alpha **8.0**, dropout **0.0**.
+Original A13 and HIRACore remain frozen.
+S13/S14/S15/S17 inference/loss/fusion/gradient shell remains frozen.
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S29-CONTRACT.md`
+- `research/HIRA-V1-S29-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_a13_fullblock_lora.py`
+- `src/nmd/v1_s29_semantic_core.py`
+- `src/nmd/v1_s29_authority.py`
+- `src/nmd/v1_s29_checkpoint.py`
+- `scripts/hira_v1_s29_a0_fullblock_lora.py`
+- `scripts/hira_v1_s29_train_dev.py`
+- `.github/workflows/hira-v1-s29-a0-full-block-lora.yml`
+
+Exact staged head:
+`20edd211555bed711552dc261d5331214f4ae938`
+
+Exact-head generic CI:
+- run `36883098858`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S29-A0 authority
+
+Required court:
+- exact S17 token/pooled output identity
+- exact primary/relation/fused/signature identity
+- exact selected-choice identity
+- six-module capacity/checkpoint court
+- attention LoRA B gradient nonzero
+- FFN intermediate B gradient nonzero
+- FFN output B gradient nonzero
+- projection gradient nonzero
+- S17 primary/relation norm-balanced partition finite
+- full-K/state-once/option-order/mass PASS
+
+A0 semantics are diagnostic only.
+
+No replacement S29-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
