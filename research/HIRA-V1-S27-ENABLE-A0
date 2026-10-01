@@ -1,0 +1,106 @@
+# HIRA V1 S27 — enable A0 blockwise factor canonicalization authority
+
+Issue: #237
+PR: #238
+
+Base main:
+`68490a0d196b5503280c55847496e65da354e9c6`
+
+Parent S26:
+- outcome `HIRA_V1_S26_FACTORIZED_RELATION_DEV_FAIL`
+- canonical TRAIN/DEV run `36851831847`
+- selected checkpoint `ba99c7e4c40ccc85fd2577a1eec636138f1277556068945f296d5f09b0db88c5`
+
+Exact S27-A0 staged head:
+`560a042d35b733f352bd174a045215ee3fe23380`
+
+Exact-head generic CI:
+- run `36858176002`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one preregistered S27-A0 authority.
+
+Frozen intervention:
+- S27 inference must be exactly S26
+- exact physical trainable surface **81,920**
+- shared LoRA **16,384**
+- primary-private projection **32,768**
+- relation-private projection **32,768**
+- S27 canonicalization added learned params **0**
+- S26 factorized signature width **256**
+- role block **128**
+- value block **128**
+- blockwise role/value loss weights **0.50 / 0.50**
+- separation margin **0.20**
+- no inference parameter/state/path added
+
+Fresh A0:
+- 16 S27-only English cases
+- K=4
+- two state views
+- two question views
+- two option views
+- semantic accuracy diagnostic only
+
+Required identity:
+- shared encoder identity
+- primary inference max abs **0**
+- relation inference max abs **0**
+- factorized signature max abs **0**
+- fused inference max abs **0**
+
+Required localization:
+- identical well-separated blockwise loss <= **1e-7**
+- role-only mismatch activates role block and not value block
+- value-only mismatch activates value block and not role block
+- both-factor mismatch activates both
+- option permutation error <= **1e-7**
+
+Required mechanics:
+- primary/relation/signature option permutation <= **1e-6**
+- mapped fused option-order flip **0**
+- probability mass <= **1e-6**
+- full-K/state-once PASS
+- primary→relation-private leakage **0**
+- relation→primary-private leakage **0**
+- own-private gradients nonzero
+- both objectives reach shared LoRA
+
+S27 TRAIN/DEV remains CLOSED until A0 qualifies and its receipt is frozen.
+
+No A0 replacement is authorized unless a failure is independently proven harness-only and produced no qualified scientific receipt.
+
+
+## Harness-only replacement authorization after run 36858674182
+
+Original S27-A0 run `36858674182` is preserved as a **non-result harness abort**:
+- unit/compile/inherited contracts PASS;
+- frozen M4 integrity PASS;
+- authority script aborted immediately on import with `ModuleNotFoundError: No module named 'scripts'`;
+- no S27 case was encoded;
+- receipt verification was skipped;
+- integrity freeze was skipped;
+- artifact upload was skipped;
+- therefore no qualified S27-A0 scientific receipt exists from that run.
+
+Root cause:
+- the A0 runner was executed as `python scripts/hira_v1_s27_a0_blockwise_canonicalization.py`;
+- direct execution places the `scripts/` directory, not its parent package name, on the import path;
+- the harness incorrectly imported its frozen S26 helper as `scripts.hira_v1_s26_a0_factorized_relation`.
+
+Harness-only correction:
+- fixed head `e335f10ff74380bd82c72b46ce3ef2b5cb02479f`;
+- helper import changed only to the direct sibling module `hira_v1_s26_a0_factorized_relation`;
+- no architecture, row, seed, loss, threshold, capacity, gradient rule, inference path, or A0 gate changed.
+
+Exact-head generic CI after correction:
+- run `36859133629`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement S27-A0 authority under the unchanged preregistered court.
+
+If the replacement fails any actual identity/localization/gradient/invariance gate, S27-A0 remains unqualified. No scientific threshold relaxation is authorized.

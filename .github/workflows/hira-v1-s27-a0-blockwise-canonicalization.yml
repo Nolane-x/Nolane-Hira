@@ -1,0 +1,127 @@
+name: hira-v1-s27-a0-blockwise-canonicalization
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s27-blockwise-factor-canonicalization
+    paths:
+      - "research/HIRA-V1-S27-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S27 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S27 modules
+        run: |
+          python -m py_compile src/nmd/v1_blockwise_factor_canonicalization.py src/nmd/v1_s27_semantic_core.py src/nmd/v1_s27_authority.py src/nmd/v1_s27_checkpoint.py scripts/hira_v1_s27_a0_blockwise_canonicalization.py
+      - name: Run S27 and inherited contracts
+        run: |
+          pytest -q tests/test_v1_blockwise_factor_canonicalization.py tests/test_v1_s27_semantic_core.py tests/test_v1_s27_authority.py tests/test_v1_s27_checkpoint.py tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S27 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Verify exact frozen M4 bundle
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh S27-A0 authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s27_a0_blockwise_canonicalization.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s27-a0
+      - name: Verify S27-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s27-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s27-a0-blockwise-factor-canonicalization-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S27_A0_BLOCKWISE_CANONICALIZATION_READY"
+          assert r["scientific_authority"]=="S27_A0_BLOCKWISE_CANONICALIZATION_ONLY"
+          assert r["semantic_case_count"]==16
+          assert r["candidate_parameter_count"]==81920
+          assert r["shared_lora_parameter_count"]==16384
+          assert r["primary_projection_parameter_count"]==32768
+          assert r["relation_projection_parameter_count"]==32768
+          assert r["canonicalization_added_parameter_count"]==0
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["primary_inference_identity_max_abs"]==0.0
+          assert r["relation_inference_identity_max_abs"]==0.0
+          assert r["signature_inference_identity_max_abs"]==0.0
+          assert r["fused_inference_identity_max_abs"]==0.0
+          assert r["signature_dimension"]==256
+          assert r["role_block_dimension"]==128
+          assert r["value_block_dimension"]==128
+          assert r["identical_total"]<=1e-7
+          assert r["identical_role_total"]<=1e-7
+          assert r["identical_value_total"]<=1e-7
+          assert r["role_only_role_total"]>0.1
+          assert r["role_only_value_total"]<=1e-7
+          assert r["value_only_value_total"]>0.1
+          assert r["value_only_role_total"]<=1e-7
+          assert r["both_role_total"]>0.1
+          assert r["both_value_total"]>0.1
+          assert r["option_permutation_total_abs"]<=1e-7
+          assert r["option_permutation_role_abs"]<=1e-7
+          assert r["option_permutation_value_abs"]<=1e-7
+          assert r["primary_to_relation_private_max_abs"]==0.0
+          assert r["relation_to_primary_private_max_abs"]==0.0
+          assert r["primary_private_gradient_l1"]>0.0
+          assert r["relation_private_gradient_l1"]>0.0
+          assert r["primary_shared_gradient_l1"]>0.0
+          assert r["relation_shared_gradient_l1"]>0.0
+          assert r["primary_option_permutation_max_abs"]<=1e-6
+          assert r["relation_option_permutation_max_abs"]<=1e-6
+          assert r["signature_option_permutation_max_abs"]<=1e-6
+          assert r["fused_option_order_flip_rate"]==0.0
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["state_once_view_count"]==32
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Freeze S27-A0 integrity
+        run: |
+          (cd artifacts/s27-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s27-a0-blockwise-canonicalization
+          path: artifacts/s27-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
