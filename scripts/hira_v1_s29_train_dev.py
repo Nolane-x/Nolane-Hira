@@ -163,9 +163,9 @@ def _assert_fresh_against_prior(
     current_states = {text for row in current for text in _state_texts(row)}
     current_questions = {text for row in current for text in _question_texts(row)}
     if prior_states & current_states:
-        raise RuntimeError("S29 exact state overlap with exposed S0-S12 rows")
+        raise RuntimeError("S29 exact state overlap with exposed S0-S28 rows")
     if prior_questions & current_questions:
-        raise RuntimeError("S29 exact question overlap with exposed S0-S12 rows")
+        raise RuntimeError("S29 exact question overlap with exposed S0-S28 rows")
 
 
 def _content_mask(batch) -> Tensor:
@@ -1122,6 +1122,7 @@ def main() -> None:
             "balance_primary_block": "decision + 0.05*option_alignment + 0.25*fused_cross_view_js",
             "balance_relation_block": "0.10*relation_ce + 0.15*signature_canonicalization",
             "state_blind_question_option_infonce_used": False,
+            "encoder_adaptation_rule": "final_block_attention_plus_ffn_lora_rank8",
         },
         "partitions": {
             "train_semantic_cases": len(train_rows),
