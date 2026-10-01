@@ -625,6 +625,15 @@ def main() -> None:
     primary_perm_error = float((moved_raw - cand_raw_c[:, perm]).abs().max().cpu())
     relation_perm_error = float((moved_rel - cand_rel_c[:, perm]).abs().max().cpu())
     fused_perm_error = float((moved_fused - cand_fused_c[:, perm]).abs().max().cpu())
+    fused_option_order_flip_rate = float(
+        (
+            moved_fused.argmax(dim=-1)
+            != cand_fused_c[:, perm].argmax(dim=-1)
+        )
+        .to(torch.float32)
+        .mean()
+        .cpu()
+    )
     print(
         "HIRA_V1_S25_A0_PERMUTATION_DIAGNOSTIC="
         + json.dumps(
@@ -632,14 +641,18 @@ def main() -> None:
                 "primary_option_permutation_max_abs": primary_perm_error,
                 "relation_option_permutation_max_abs": relation_perm_error,
                 "fused_option_permutation_max_abs": fused_perm_error,
-                "frozen_tolerance": 1e-6,
+                "fused_option_order_flip_rate": fused_option_order_flip_rate,
+                "expert_logit_tolerance": 1e-6,
+                "fused_choice_gate": 0.0,
             },
             sort_keys=True,
         ),
         flush=True,
     )
-    if max(primary_perm_error, relation_perm_error, fused_perm_error) > 1e-6:
-        raise RuntimeError("S25-A0 option permutation equivariance changed")
+    if max(primary_perm_error, relation_perm_error) > 1e-6:
+        raise RuntimeError("S25-A0 expert option permutation equivariance changed")
+    if fused_option_order_flip_rate != 0.0:
+        raise RuntimeError("S25-A0 S14 fused option-order choice changed")
 
     gold, _other = _gold(suite, cand_fused_c.device)
     metrics = _semantic_metrics(
@@ -696,6 +709,7 @@ def main() -> None:
         "primary_option_permutation_max_abs": primary_perm_error,
         "relation_option_permutation_max_abs": relation_perm_error,
         "fused_option_permutation_max_abs": fused_perm_error,
+        "fused_option_order_flip_rate": fused_option_order_flip_rate,
         "full_k": True,
         "state_once_view_count": len(suite) * 2,
         "fusion_epsilon": FUSION_EPSILON,
