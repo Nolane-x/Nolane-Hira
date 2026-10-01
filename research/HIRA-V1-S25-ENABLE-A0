@@ -70,3 +70,24 @@ Required proofs:
 S25 TRAIN/DEV remains CLOSED until this A0 qualifies and the interpretation plan is frozen.
 
 No replacement A0 is authorized unless a failure is proven harness-only and produces no qualified scientific receipt.
+
+
+## Harness-only replacement authorization after run 36824997994
+
+Original authorized A0 run `36824997994` is preserved as a **non-result abort**:
+- unit/contracts PASS;
+- frozen M4 integrity PASS;
+- encoder/projection/checkpoint courts completed before the permutation court;
+- A0 aborted at `S25-A0 option permutation equivariance changed`;
+- receipt verification, integrity freeze, and artifact upload were skipped;
+- therefore no qualified S25-A0 scientific receipt exists from that run.
+
+The failure log did not expose the three preregistered permutation-error magnitudes, so the cause cannot yet be classified as numerical harness tolerance vs a real equivariance violation.
+
+Diagnostic-only harness change:
+- prints primary/relation/fused permutation max-abs values immediately before the **unchanged** frozen `1e-6` assertion;
+- does not change architecture, T0 initialization, cases, fusion, epsilon, gradients, tolerance, model-selection rules, or any scientific setting.
+
+Authorize exactly one replacement S25-A0 run for classification under the unchanged preregistered court.
+
+If any permutation error remains above `1e-6`, the replacement must fail and S25-A0 remains unqualified. No tolerance relaxation is authorized by this replacement.
