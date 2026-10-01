@@ -1,0 +1,165 @@
+name: hira-v1-s30-matched-adaptation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s30-matched-attention-vs-ffn
+    paths:
+      - "research/HIRA-V1-S30-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s30-a0-matched-adaptation
+          path: inputs/S30A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36940968046
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S30 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Compile and run S30 contracts
+        run: |
+          python -m py_compile src/nmd/v1_a13_ffn_lora.py src/nmd/v1_s30_semantic_core.py src/nmd/v1_s30_authority.py src/nmd/v1_s30_checkpoint.py scripts/hira_v1_s30_a0_matched_adaptation.py scripts/hira_v1_s30_train_dev.py
+          pytest -q tests/test_v1_a13_ffn_lora.py tests/test_v1_s30_semantic_core.py tests/test_v1_s30_authority.py tests/test_v1_s30_checkpoint.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_relation_canonicalization.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
+      - name: Verify canonical S30-A0 authority
+        run: |
+          (cd inputs/S30A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S30A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s30-a0-matched-adaptation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S30_A0_MATCHED_ADAPTATION_READY"
+          assert r["scientific_authority"]=="S30_A0_MATCHED_ATTENTION_VS_FFN_ONLY"
+          assert r["arm_token_output_identity_max_abs"]==0.0
+          assert r["arm_pooled_output_identity_max_abs"]==0.0
+          assert r["exact_logit_identity_rate"]==1.0
+          assert r["exact_choice_identity_rate"]==1.0
+          assert r["attention_arm"]["physical_parameter_count"]==49152
+          assert r["ffn_arm"]["physical_parameter_count"]==53248
+          assert all(v>0.0 for v in r["attention_arm"]["gradient"]["lora_b_gradient_l1"])
+          assert all(v>0.0 for v in r["ffn_arm"]["gradient"]["lora_b_gradient_l1"])
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run one fresh matched S30 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s30_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S30A0/result.json --out artifacts/s30-train-dev
+      - name: Verify S30 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/s30-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s30-matched-adaptation-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S30_MATCHED_ADAPTATION_DEV_COMPLETE",
+              "HIRA_V1_S30_MATCHED_ADAPTATION_ATTENTION_DEV_READY",
+              "HIRA_V1_S30_MATCHED_ADAPTATION_FFN_DEV_READY",
+              "HIRA_V1_S30_MATCHED_ADAPTATION_BOTH_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S30_FRESH_MATCHED_ATTENTION_VS_FFN_ONLY"
+          assert r["seed"]==51001
+          assert r["optimizer"]["epochs"]==24
+          assert r["optimizer"]["batch_size_semantic_cases"]==16
+          assert r["optimizer"]["lr"]==2e-4
+          assert r["optimizer"]["weight_decay"]==0.01
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["k"]==4
+          assert r["partitions"]["views_per_option"]==2
+          assert r["partitions"]["identical_rows_across_arms"] is True
+          assert r["partitions"]["identical_batch_order_across_arms"] is True
+          assert r["partitions"]["prior_track_exact_rows_used"] is False
+          assert r["partitions"]["s30_a0_rows_used"] is False
+          assert r["partitions"]["m5_final_rows_used"] is False
+          assert r["partitions"]["w29_w34_sealed_rows_used"] is False
+          a=r["attention_arm"]
+          f=r["ffn_arm"]
+          assert a["parameter_surface"]["total_trainable_parameters"]==49152
+          assert a["parameter_surface"]["lora_trainable_parameters"]==16384
+          assert a["parameter_surface"]["projection_trainable_parameters"]==32768
+          assert a["parameter_surface"]["original_a13_trainable"]==0
+          assert a["parameter_surface"]["hira_core_trainable"]==0
+          assert f["parameter_surface"]["total_trainable_parameters"]==53248
+          assert f["parameter_surface"]["lora_trainable_parameters"]==20480
+          assert f["parameter_surface"]["projection_trainable_parameters"]==32768
+          assert f["parameter_surface"]["original_a13_trainable"]==0
+          assert f["parameter_surface"]["hira_core_trainable"]==0
+          assert 1<=a["selected_dev_epoch"]<=24
+          assert 1<=f["selected_dev_epoch"]<=24
+          assert len(a["history"])==24
+          assert len(f["history"])==24
+          assert isinstance(r["matched_selected_dev_delta_ffn_minus_attention"],dict)
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert (root/"attention-only-candidate.pt").is_file()
+          assert (root/"ffn-only-candidate.pt").is_file()
+          PY
+      - name: Verify both frozen checkpoints
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_s30_checkpoint import load_hira_v1_s30_checkpoint
+          root=Path("artifacts/s30-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          for arm,filename in (
+              ("attention","attention-only-candidate.pt"),
+              ("ffn","ffn-only-candidate.pt"),
+          ):
+              _lora,_projection,meta=load_hira_v1_s30_checkpoint(
+                  root/filename,
+                  arm=arm,
+              )
+              receipt=r[f"{arm}_arm"]
+              assert meta["selected_dev_epoch"]==receipt["selected_dev_epoch"]
+              assert meta["sha256"]==receipt["checkpoint_sha256"]
+          PY
+      - name: Freeze S30 matched integrity
+        run: |
+          (cd artifacts/s30-train-dev && sha256sum result.json train-manifest.json dev-manifest.json attention-only-candidate.pt ffn-only-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s30-matched-adaptation-train-dev
+          path: artifacts/s30-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
