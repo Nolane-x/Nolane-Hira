@@ -79,7 +79,9 @@ jobs:
           assert r["relation_initialization_identity"] is True
           assert r["s14_equal_fusion_identity"] is True
           assert r["projection_initialization_identity"] is True
+          assert r["t0_projection_identity"] is True
           assert r["projection_storage_distinct"] is True
+          assert r["hira_core_trainable_parameter_count"]==0
           assert r["checkpoint_state_identity"] is True
           assert r["checkpoint_frozen_replay_passed"] is True
           assert r["shared_lora_parameter_count"]==16384
