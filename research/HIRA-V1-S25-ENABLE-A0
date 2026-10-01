@@ -1,0 +1,72 @@
+# HIRA V1 S25 — enable A0 decoupled expert projection authority
+
+Issue: #233
+PR: #234
+
+Base main:
+`ce78ef07f33d22cfd039ff6f7da71a14273e4250`
+
+S24 frozen:
+`HIRA_V1_S24_RELIABILITY_FUSION_DEV_FAIL`
+
+Exact S25-A0 staged head:
+`495972cf7659c4e80603fdb5fee156b77cc5f3f3`
+
+Exact-head generic CI:
+- run `36824357747`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one preregistered S25-A0 decoupled expert projection authority.
+
+Frozen intervention:
+- shared A13 encoder / original A13 frozen
+- shared LoRA trainable surface **16,384** in gradient court
+- private primary bias-free 256->128 projection **32,768**
+- private relation bias-free 256->128 projection **32,768**
+- exact trainable surface **81,920**
+- both private projections initialize bit-identically from frozen W28 T0
+- private projections must use distinct storage
+- S21 role-gated content primary unchanged
+- S13 relation canonicalizer unchanged except relation-private projection
+- restore S14 equal standardized full-K fusion **0.5 / 0.5**
+- fusion epsilon **1e-6**
+- relation logits detached from fused-primary objective
+- shared LoRA gradients combined by neutral-bisector only
+- neutral-bisector epsilon **1e-12**
+- primary-private receives only primary block
+- relation-private receives only relation block
+- no learned router/gate/calibrator/head
+- no S24 checkpoint initialization
+
+A0 authority:
+- **16 wholly fresh English S25-A0 cases**
+- K=4
+- two state views
+- two question views
+- two option views
+- A0 frozen inference runtime trainable params = **0**
+- A0 semantic accuracy is diagnostic only and MUST NOT be used for model selection
+
+Required proofs:
+- shared encoder identity at initialization
+- primary initialization identity
+- relation initialization identity
+- both private projections equal frozen W28 T0
+- private projection storage distinct
+- exact 16,384 + 32,768 + 32,768 = 81,920 capacity
+- original A13/HIRACore frozen
+- primary block -> relation-private gradient exactly zero
+- relation block -> primary-private gradient exactly zero
+- own-private gradients nonzero
+- both blocks produce nonzero shared-LoRA gradients
+- shared neutral-bisector court finite with projection coefficient zero
+- S14 equal fusion identity
+- full-K / option permutation / probability mass preserved
+- dual-projection checkpoint ownership schema roundtrip + frozen replay
+- zero hidden learned downstream state
+
+S25 TRAIN/DEV remains CLOSED until this A0 qualifies and the interpretation plan is frozen.
+
+No replacement A0 is authorized unless a failure is proven harness-only and produces no qualified scientific receipt.
