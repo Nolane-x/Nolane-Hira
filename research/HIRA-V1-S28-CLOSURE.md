@@ -212,36 +212,51 @@ Do not create S28b by:
 
 ## Next controlled direction
 
-S29 should make **query identity explicit in relation scoring**, not add another transport-only loss.
+S11/S12/S21 already exercised query-role localization / query-conditioned state-option role anchors, and the older W7 line already falsified an explicit smooth-AND/conjunctive factor branch against an equal-data free-form control. Those families must not be reopened under a new S29 label.
 
-Proposed track:
-**S29 — Query-Explicit Role Binding**
+S6-S28 share a more important limitation: every v1 track that adapts A13 has only adapted the **four attention linears of the final BERT block**. The block's feed-forward semantic transform remains frozen.
+
+S29 should therefore perform a controlled architectural reset to the strongest semantic frontier, S17:
+
+**S29 — Final-Block Attention+FFN LoRA Semantic Adaptation**
 
 Controlled hypothesis:
-- S26/S28 use question tokens to select a state role anchor, but relation role evidence is ultimately state-anchor ↔ option-anchor compatibility;
-- this permits different semantic queries to select anchors that align across wording while remaining insufficiently separated;
-- explicitly scoring compatibility of a query-role anchor with both state-role and option-role anchors may enforce query-specific relation identity.
+- S17 already establishes strong semantic discrimination with the existing attention-LoRA + shared projection surface;
+- S26-S28 show that downstream factor/canonicalization/transport rules can align evidence without producing enough semantic separation;
+- the missing capacity may therefore be inside the token-wise nonlinear semantic transform of the last A13 block, not another downstream scoring heuristic.
 
-S29 should:
-- preserve S21 primary;
-- preserve S25 private projection ownership;
-- preserve value/content relation evidence;
-- preserve S14 equal full-K fusion;
-- introduce zero-parameter query-role anchor extraction;
-- replace only the relation **role compatibility** component with an explicit symmetric query↔state/query↔option role score;
-- keep value/content compatibility unchanged;
-- add no learned router/gate/calibrator;
-- preregister fixed combination before A0.
+Freeze from S17:
+- S14 equal standardized full-K inference/fusion;
+- S13 relation expert;
+- S17 loss partition;
+- S17 relation-priority norm-balanced shared-gradient rule;
+- same state-once/full-K/opaque-option semantics;
+- same 32,768-parameter shared relation projection.
 
-Required A0:
-- parameter count unchanged;
-- primary path unchanged;
-- value/content component identity unchanged;
-- explicit query-role score responds to question swaps;
-- same wording paraphrases remain stable;
-- wrong-role/same-value hard negatives lose to correct-role/correct-value;
-- option permutation/full-K/state-once;
-- gradient ownership/checkpoint replay.
+Change only the final A13 adaptation surface:
+- retain rank-8 LoRA on final-block Q/K/V/attention-output: **16,384 params**;
+- add rank-8 LoRA on final-block `intermediate.dense` (256→1024): **10,240 params**;
+- add rank-8 LoRA on final-block FFN `output.dense` (1024→256): **10,240 params**;
+- total A13 LoRA: **36,864 params**;
+- shared projection: **32,768 params**;
+- exact physical trainable surface: **69,632 params**;
+- all original A13 weights remain frozen;
+- HIRACore frozen;
+- no new downstream scorer/router/gate/calibrator.
+
+A0 must prove:
+- zero-init exact S17 inference identity before training;
+- exact module paths/shapes and **69,632** trainable surface;
+- original A13/HIRACore frozen;
+- FFN LoRA receives nonzero gradients on a real semantic court;
+- existing attention LoRA and projection also receive gradients;
+- full-K/state-once/option permutation/probability mass;
+- S17 gradient-balancing contract remains valid;
+- checkpoint roundtrip/replay includes all six LoRA modules.
+
+Only a qualified A0 may open wholly fresh S29 TRAIN/DEV.
+
+This is an encoder-capacity intervention, not permission to widen ranks, adapt more layers, retry seeds, or tune against exposed S28/S17 DEV.
 
 Production-ready remains false.
 Laya/Jev parity remains unestablished.
