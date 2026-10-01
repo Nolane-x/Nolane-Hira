@@ -1137,6 +1137,17 @@ def main() -> None:
         "fusion_added_parameters_zero": (
             SymmetricFullKEvidenceFusion(epsilon=FUSION_EPSILON).parameter_count == 0
         ),
+        "relation_operator_added_parameters_zero": (
+            FactorizedRoleValueRelationCanonicalizer(
+                role_temperature=ROLE_TEMPERATURE,
+                pair_temperature=PAIR_TEMPERATURE,
+                contrastive_temperature=BINDING_CONTRASTIVE_TEMPERATURE,
+            ).factorization_added_parameter_count
+            == 0
+        ),
+        "factorized_signature_dimension_exact_256": (
+            2 * relation_projection.out_features == 256
+        ),
     }
     outcome = READY if all(gates.values()) else FAIL
 
