@@ -633,6 +633,9 @@ def main() -> None:
         "candidate_parameter_count": physical,
         "anchor_transport_added_parameter_count":
             anchor_transport_added_parameter_count(),
+        "signature_dimension": int(cand_sig_c.shape[-1]),
+        "role_block_dimension": 128,
+        "value_block_dimension": 128,
         "runtime_trainable_parameter_count": trainable,
         "original_a13_trainable_parameter_count": original_a13,
         "hira_core_trainable_parameter_count": hira_trainable,
