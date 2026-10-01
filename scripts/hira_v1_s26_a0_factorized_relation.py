@@ -315,7 +315,8 @@ def _synthetic_quadrant_court() -> dict[str, float]:
         "correct_vs_same_role_wrong_value_margin": float((logits[0,0]-logits[0,1]).cpu()),
         "correct_vs_wrong_role_same_value_margin": float((logits[0,0]-logits[0,2]).cpu()),
         "correct_vs_wrong_role_wrong_value_margin": float((logits[0,0]-logits[0,3]).cpu()),
-        "signature_dimension": int(signatures.shape[-1]),
+        "synthetic_projection_dimension": int(projection.out_features),
+        "synthetic_signature_dimension": int(signatures.shape[-1]),
     }
 
 
@@ -562,8 +563,12 @@ def main() -> None:
         or synthetic["correct_vs_wrong_role_wrong_value_margin"] <= 0.0
     ):
         raise RuntimeError("S26-A0 synthetic hard-negative quadrant court failed")
-    if synthetic["signature_dimension"] != 256:
-        raise RuntimeError("S26-A0 factorized signature dimension changed")
+    if synthetic["synthetic_signature_dimension"] != (
+        2 * synthetic["synthetic_projection_dimension"]
+    ):
+        raise RuntimeError("S26-A0 synthetic factorized signature dimension changed")
+    if int(sig_c.shape[-1]) != 256 or int(sig_p.shape[-1]) != 256:
+        raise RuntimeError("S26-A0 real factorized signature dimension changed")
 
     gradient = _gradient_court(bundle, manifest, suite)
     for key in (
