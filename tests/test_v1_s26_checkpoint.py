@@ -116,6 +116,8 @@ def _write_checkpoint(tmp_path, t0, t0_sha):
             "primary_projection_parameter_count": 32768,
             "relation_projection_parameter_count": 32768,
             "total_parameter_count": 81920,
+            "relation_operator_added_parameter_count": 0,
+            "factorized_signature_dimension": 256,
             "lora_rank": 8,
             "selected_dev_epoch": 11,
             "semantic_revision": "fake-revision",
