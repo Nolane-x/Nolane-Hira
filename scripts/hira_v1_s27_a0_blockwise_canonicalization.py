@@ -28,7 +28,7 @@ from nmd.v1_s27_semantic_core import (
     HIRA_V1_S27_TOTAL_PARAMETER_COUNT,
     build_hira_v1_s27_blockwise_canonicalization_core,
 )
-from scripts.hira_v1_s26_a0_factorized_relation import (
+from hira_v1_s26_a0_factorized_relation import (
     _encode,
     _gold,
     _option_alignment,
