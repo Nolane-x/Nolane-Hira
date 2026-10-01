@@ -25,7 +25,7 @@ from nmd.v1_evidence_fusion import (
     SymmetricFullKEvidenceFusion,
     fused_gold_vs_max_wrong_margin,
 )
-from nmd.v1_s26_gradient_ownership import apply_s26_decoupled_gradient_update
+from nmd.v1_s25_gradient_ownership import apply_s25_decoupled_gradient_update
 from nmd.v1_factorized_relation_signature import (
     FactorizedRoleValueRelationCanonicalizer,
 )
@@ -725,7 +725,7 @@ def main() -> None:
     args = parser.parse_args()
 
     a0 = json.loads(args.a0_result.read_text(encoding="utf-8"))
-    if a0.get("outcome") != "HIRA_V1_S26_A0_DECOUPLED_PROJECTIONS_READY":
+    if a0.get("outcome") != "HIRA_V1_S26_A0_FACTORIZED_RELATION_READY":
         raise RuntimeError("S26-A0 authority is not qualified")
     if a0.get("used_for_model_selection") is not False:
         raise RuntimeError("S26-A0 unexpectedly used for selection")
@@ -737,14 +737,25 @@ def main() -> None:
         raise RuntimeError("S26-A0 primary-private surface changed")
     if int(a0.get("relation_projection_parameter_count", -1)) != HIRA_V1_S26_RELATION_PROJECTION_PARAMETER_COUNT:
         raise RuntimeError("S26-A0 relation-private surface changed")
+    if int(a0.get("relation_operator_added_parameter_count", -1)) != 0:
+        raise RuntimeError("S26-A0 factorized relation operator added parameters")
     if a0.get("projection_storage_distinct") is not True:
         raise RuntimeError("S26-A0 private projections share storage")
-    if a0.get("primary_initialization_identity") is not True:
-        raise RuntimeError("S26-A0 primary initialization identity failed")
-    if a0.get("relation_initialization_identity") is not True:
-        raise RuntimeError("S26-A0 relation initialization identity failed")
-    if a0.get("s14_equal_fusion_identity") is not True:
-        raise RuntimeError("S26-A0 S14 fusion identity failed")
+    if a0.get("shared_encoder_identity") is not True:
+        raise RuntimeError("S26-A0 shared encoder identity failed")
+    if a0.get("primary_path_identity") is not True:
+        raise RuntimeError("S26-A0 primary path identity failed")
+    if float(a0.get("relation_intervention_max_abs", 0.0)) <= 1e-7:
+        raise RuntimeError("S26-A0 factorized relation intervention is inactive")
+    if int(a0.get("signature_dimension", -1)) != 256:
+        raise RuntimeError("S26-A0 factorized signature dimension changed")
+    for key in (
+        "correct_vs_same_role_wrong_value_margin",
+        "correct_vs_wrong_role_same_value_margin",
+        "correct_vs_wrong_role_wrong_value_margin",
+    ):
+        if float(a0.get(key, 0.0)) <= 0.0:
+            raise RuntimeError(f"S26-A0 hard-negative court failed: {key}")
     if float(a0.get("primary_to_relation_private_max_abs", -1.0)) != 0.0:
         raise RuntimeError("S26-A0 primary leaked into relation-private surface")
     if float(a0.get("relation_to_primary_private_max_abs", -1.0)) != 0.0:
@@ -872,7 +883,7 @@ def main() -> None:
                 *_rest,
             ) = _losses(runtime, rows)
 
-            ownership = apply_s26_decoupled_gradient_update(
+            ownership = apply_s25_decoupled_gradient_update(
                 primary_block=primary_block,
                 relation_block=relation_block,
                 shared=shared,
@@ -1133,8 +1144,8 @@ def main() -> None:
     checkpoint_path = args.out / "factorized-role-value-relation-candidate.pt"
     torch.save(
         {
-            "schema_version": "hira-v1-s26-decoupled-expert-projections-checkpoint-v1",
-            "kind": "decoupled-expert-projections-a13-w28",
+            "schema_version": "hira-v1-s26-factorized-role-value-relation-checkpoint-v1",
+            "kind": "factorized-role-value-relation-a13-w28",
             "lora_parameter_count": HIRA_V1_S26_SHARED_LORA_PARAMETER_COUNT,
             "primary_projection_parameter_count": HIRA_V1_S26_PRIMARY_PROJECTION_PARAMETER_COUNT,
             "relation_projection_parameter_count": HIRA_V1_S26_RELATION_PROJECTION_PARAMETER_COUNT,
@@ -1228,6 +1239,8 @@ def main() -> None:
                 p.numel() for p in runtime.hira.parameters() if p.requires_grad
             ),
             "canonicalizer_added_parameters": 0,
+            "relation_operator_added_parameters": 0,
+            "factorized_signature_dimension": 256,
             "fusion_added_parameters": 0,
             "learned_downstream_scorer_parameters": 0,
             "role_content_factorization_added_parameters": 0,
@@ -1249,7 +1262,21 @@ def main() -> None:
             "shared_lora_parameter_count": a0["shared_lora_parameter_count"],
             "primary_projection_parameter_count": a0["primary_projection_parameter_count"],
             "relation_projection_parameter_count": a0["relation_projection_parameter_count"],
+            "relation_operator_added_parameter_count": a0[
+                "relation_operator_added_parameter_count"
+            ],
             "projection_storage_distinct": a0["projection_storage_distinct"],
+            "signature_dimension": a0["signature_dimension"],
+            "relation_intervention_max_abs": a0["relation_intervention_max_abs"],
+            "correct_vs_same_role_wrong_value_margin": a0[
+                "correct_vs_same_role_wrong_value_margin"
+            ],
+            "correct_vs_wrong_role_same_value_margin": a0[
+                "correct_vs_wrong_role_same_value_margin"
+            ],
+            "correct_vs_wrong_role_wrong_value_margin": a0[
+                "correct_vs_wrong_role_wrong_value_margin"
+            ],
             "primary_to_relation_private_max_abs": a0[
                 "primary_to_relation_private_max_abs"
             ],
