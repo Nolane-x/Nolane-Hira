@@ -59,12 +59,16 @@ class _Layer(nn.Module):
         self.output = _Output()
 
 
+class _EncoderStack(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer = nn.ModuleList([_Layer() for _ in range(6)])
+
+
 class _Model(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encoder = SimpleNamespace(
-            layer=nn.ModuleList([_Layer() for _ in range(6)])
-        )
+        self.encoder = _EncoderStack()
         self.config = SimpleNamespace(
             model_type="bert",
             hidden_size=256,
