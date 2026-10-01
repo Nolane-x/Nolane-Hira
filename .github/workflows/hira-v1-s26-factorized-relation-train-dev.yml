@@ -41,8 +41,8 @@ jobs:
           python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
       - name: Compile and run S26 contracts
         run: |
-          python -m py_compile src/nmd/v1_factorized_relation_signature.py src/nmd/v1_s26_semantic_core.py src/nmd/v1_s26_authority.py scripts/hira_v1_s26_a0_factorized_relation.py scripts/hira_v1_s26_train_dev.py
-          pytest -q tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s26_authority.py tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_s25_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+          python -m py_compile src/nmd/v1_factorized_relation_signature.py src/nmd/v1_s26_semantic_core.py src/nmd/v1_s26_authority.py src/nmd/v1_s26_checkpoint.py scripts/hira_v1_s26_a0_factorized_relation.py scripts/hira_v1_s26_train_dev.py
+          pytest -q tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s26_authority.py tests/test_v1_s26_checkpoint.py tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_s25_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
       - name: Verify canonical S26-A0 authority
         run: |
           (cd inputs/S26A0 && sha256sum -c INTEGRITY.sha256)
