@@ -11,7 +11,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 from nmd.local_runtime import load_hira_v0_m4_bundle, read_runtime_bundle_manifest
-from nmd.v1_a13_lora import iter_a13_lora_modules
+from nmd.v1_a13_lora import a13_lora_state_dict, iter_a13_lora_modules
 from nmd.v1_evidence_fusion import SymmetricFullKEvidenceFusion
 from nmd.v1_invariance import symmetric_js_divergence
 from nmd.v1_relation_canonicalization import (
@@ -19,6 +19,12 @@ from nmd.v1_relation_canonicalization import (
     cross_view_relation_signature_loss,
 )
 from nmd.v1_s21_semantic_core import build_hira_v1_s21_role_content_core
+from nmd.v1_s25_checkpoint import (
+    S25_CHECKPOINT_KIND,
+    S25_CHECKPOINT_SCHEMA,
+    build_frozen_hira_v1_s25_candidate,
+    load_hira_v1_s25_checkpoint,
+)
 from nmd.v1_s25_gradient_ownership import apply_s25_decoupled_gradient_update
 from nmd.v1_s25_semantic_core import (
     HIRA_V1_S25_PRIMARY_PROJECTION_PARAMETER_COUNT,
@@ -502,6 +508,91 @@ def main() -> None:
     if any(p.requires_grad for p in candidate.hira.parameters()):
         raise RuntimeError("S25-A0 HIRACore became trainable")
 
+    # A0 checkpoint ownership court: serialize the exact decoupled ownership
+    # schema, reload it, and build a frozen replay from an independent encoder.
+    args.out.mkdir(parents=True, exist_ok=True)
+    checkpoint_probe_path = args.out / "s25-a0-checkpoint-roundtrip.pt"
+    torch.save(
+        {
+            "schema_version": S25_CHECKPOINT_SCHEMA,
+            "kind": S25_CHECKPOINT_KIND,
+            "lora_parameter_count": HIRA_V1_S25_SHARED_LORA_PARAMETER_COUNT,
+            "primary_projection_parameter_count": HIRA_V1_S25_PRIMARY_PROJECTION_PARAMETER_COUNT,
+            "relation_projection_parameter_count": HIRA_V1_S25_RELATION_PROJECTION_PARAMETER_COUNT,
+            "total_parameter_count": HIRA_V1_S25_TOTAL_PARAMETER_COUNT,
+            "lora_rank": 8,
+            "selected_dev_epoch": 1,
+            "semantic_revision": str(manifest["semantic_revision"]),
+            "initialization_t0_sha256": t0_sha,
+            "lora_state_dict": a13_lora_state_dict(candidate.encoder),
+            "primary_projection_state_dict": {
+                "projection.weight": primary_projection.weight.detach().cpu().clone(),
+            },
+            "relation_projection_state_dict": {
+                "projection.weight": relation_projection.weight.detach().cpu().clone(),
+            },
+        },
+        checkpoint_probe_path,
+    )
+    (
+        checkpoint_lora,
+        checkpoint_primary,
+        checkpoint_relation,
+        checkpoint_meta,
+    ) = load_hira_v1_s25_checkpoint(
+        checkpoint_probe_path,
+        initialization_t0_sha256=t0_sha,
+        semantic_revision=str(manifest["semantic_revision"]),
+    )
+    checkpoint_state_identity = (
+        all(
+            torch.equal(
+                checkpoint_lora[key],
+                a13_lora_state_dict(candidate.encoder)[key].detach().cpu(),
+            )
+            for key in checkpoint_lora
+        )
+        and torch.equal(
+            checkpoint_primary["projection.weight"],
+            primary_projection.weight.detach().cpu(),
+        )
+        and torch.equal(
+            checkpoint_relation["projection.weight"],
+            relation_projection.weight.detach().cpu(),
+        )
+    )
+    if not checkpoint_state_identity:
+        raise RuntimeError("S25-A0 checkpoint roundtrip changed owned state")
+
+    replay_bundle = load_hira_v0_m4_bundle(bundle)
+    replay, replay_meta = build_frozen_hira_v1_s25_candidate(
+        replay_bundle.runtime.encoder,
+        t0,
+        checkpoint_probe_path,
+        expected_t0_sha256=t0_sha,
+        expected_candidate_sha256=str(checkpoint_meta["sha256"]),
+        semantic_revision=str(manifest["semantic_revision"]),
+    )
+    del replay_bundle
+    replay_primary = replay.projection_triadic_scorer.projection
+    replay_relation = get_s25_relation_projection(replay)
+    checkpoint_frozen_replay_passed = (
+        sum(p.numel() for p in replay.parameters() if p.requires_grad) == 0
+        and replay_primary.weight.data_ptr() != replay_relation.weight.data_ptr()
+        and torch.equal(
+            replay_primary.weight.detach().cpu(),
+            checkpoint_primary["projection.weight"],
+        )
+        and torch.equal(
+            replay_relation.weight.detach().cpu(),
+            checkpoint_relation["projection.weight"],
+        )
+        and replay_meta["selected_dev_epoch"] == 1
+    )
+    if not checkpoint_frozen_replay_passed:
+        raise RuntimeError("S25-A0 frozen checkpoint replay failed")
+    checkpoint_probe_path.unlink()
+
     perm = torch.tensor([2, 0, 3, 1], device=cand_raw_c.device)
     moved = {
         **candidate_encoded,
@@ -562,6 +653,8 @@ def main() -> None:
         "s14_equal_fusion_identity": fusion_identity,
         "projection_initialization_identity": projection_initialization_identity,
         "projection_storage_distinct": projection_storage_distinct,
+        "checkpoint_state_identity": checkpoint_state_identity,
+        "checkpoint_frozen_replay_passed": checkpoint_frozen_replay_passed,
         "shared_lora_parameter_count": lora_params,
         "primary_projection_parameter_count": primary_params,
         "relation_projection_parameter_count": relation_params,
