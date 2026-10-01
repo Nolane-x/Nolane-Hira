@@ -1,0 +1,166 @@
+name: hira-v1-s26-factorized-relation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s26-factorized-role-value-signatures
+    paths:
+      - "research/HIRA-V1-S26-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s26-a0-factorized-relation
+          path: inputs/S26A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36849791728
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S26 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Compile and run S26 contracts
+        run: |
+          python -m py_compile src/nmd/v1_factorized_relation_signature.py src/nmd/v1_s26_semantic_core.py src/nmd/v1_s26_authority.py src/nmd/v1_s26_checkpoint.py scripts/hira_v1_s26_a0_factorized_relation.py scripts/hira_v1_s26_train_dev.py
+          pytest -q tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s26_authority.py tests/test_v1_s26_checkpoint.py tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_s25_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+      - name: Verify canonical S26-A0 authority
+        run: |
+          (cd inputs/S26A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S26A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s26-a0-factorized-role-value-relation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S26_A0_FACTORIZED_RELATION_READY"
+          assert r["scientific_authority"]=="S26_A0_FACTORIZED_ROLE_VALUE_ONLY"
+          assert r["semantic_case_count"]==16
+          assert r["candidate_parameter_count"]==81920
+          assert r["shared_lora_parameter_count"]==16384
+          assert r["primary_projection_parameter_count"]==32768
+          assert r["relation_projection_parameter_count"]==32768
+          assert r["relation_operator_added_parameter_count"]==0
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["shared_encoder_identity"] is True
+          assert r["primary_path_identity"] is True
+          assert r["relation_intervention_max_abs"]>1e-7
+          assert r["projection_storage_distinct"] is True
+          assert r["signature_dimension"]==256
+          assert r["correct_vs_same_role_wrong_value_margin"]>0.0
+          assert r["correct_vs_wrong_role_same_value_margin"]>0.0
+          assert r["correct_vs_wrong_role_wrong_value_margin"]>0.0
+          assert r["primary_to_relation_private_max_abs"]==0.0
+          assert r["relation_to_primary_private_max_abs"]==0.0
+          assert r["primary_private_gradient_l1"]>0.0
+          assert r["relation_private_gradient_l1"]>0.0
+          assert r["primary_shared_gradient_l1"]>0.0
+          assert r["relation_shared_gradient_l1"]>0.0
+          assert r["shared_projection_coefficient"]==0.0
+          assert r["primary_option_permutation_max_abs"]<=1e-6
+          assert r["relation_option_permutation_max_abs"]<=1e-6
+          assert r["signature_option_permutation_max_abs"]<=1e-6
+          assert r["fused_option_order_flip_rate"]==0.0
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run one fresh English S26 TRAIN DEV authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s26_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S26A0/result.json --out artifacts/s26-train-dev
+      - name: Verify S26 TRAIN DEV receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/s26-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s26-factorized-role-value-relation-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S26_FACTORIZED_RELATION_DEV_READY",
+              "HIRA_V1_S26_FACTORIZED_RELATION_DEV_FAIL",
+          }
+          assert r["scientific_authority"]=="V1_S26_FRESH_ENGLISH_FACTORIZED_ROLE_VALUE_RELATION"
+          assert r["seed"]==47001
+          assert r["optimizer"]["epochs"]==24
+          assert r["optimizer"]["batch_size_semantic_cases"]==16
+          assert r["optimizer"]["lr"]==2e-4
+          assert r["optimizer"]["weight_decay"]==0.01
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["k"]==4
+          assert r["partitions"]["views_per_option"]==2
+          assert r["partitions"]["prior_track_exact_rows_used"] is False
+          assert r["partitions"]["s26_a0_rows_used"] is False
+          assert r["partitions"]["m5_final_rows_used"] is False
+          assert r["partitions"]["w29_w34_sealed_rows_used"] is False
+          assert r["parameter_surface"]["total_trainable_parameters"]==81920
+          assert r["parameter_surface"]["lora_trainable_parameters"]==16384
+          assert r["parameter_surface"]["primary_projection_trainable_parameters"]==32768
+          assert r["parameter_surface"]["relation_projection_trainable_parameters"]==32768
+          assert r["parameter_surface"]["relation_operator_added_parameters"]==0
+          assert r["parameter_surface"]["factorized_signature_dimension"]==256
+          assert r["gates"]["relation_operator_added_parameters_zero"] is True
+          assert r["gates"]["factorized_signature_dimension_exact_256"] is True
+          assert r["parameter_surface"]["original_a13_trainable"]==0
+          assert r["parameter_surface"]["hira_core_trainable"]==0
+          assert r["loss"]["fusion_rule"]=="s14_equal_standardized_full_k"
+          assert r["loss"]["inference_uses_frozen_s14_equal_fusion"] is True
+          assert r["loss"]["s26_factorized_relation_change_preregistered"] is True
+          assert r["loss"]["fused_primary_relation_logits_detached"] is True
+          assert r["loss"]["shared_lora_gradient_rule"]=="equal_direction_neutral_bisector_no_projection"
+          assert r["loss"]["balance_epsilon"]==1e-12
+          assert r["gradient_ownership"]["primary_to_relation_private_max_abs"]==0.0
+          assert r["gradient_ownership"]["relation_to_primary_private_max_abs"]==0.0
+          assert r["gradient_ownership"]["private_updates_direct"] is True
+          assert r["gradient_ownership"]["shared_only_neutral_bisector"] is True
+          assert r["state_once"]["train_state_view_encodes_per_epoch"]==1536
+          assert r["state_once"]["dev_state_view_encodes_per_eval"]==384
+          assert r["post_dev_tuning_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          assert (root/"factorized-role-value-relation-candidate.pt").is_file()
+          PY
+      - name: Freeze S26 TRAIN DEV integrity
+        run: |
+          (cd artifacts/s26-train-dev && sha256sum result.json train-manifest.json dev-manifest.json factorized-role-value-relation-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s26-factorized-relation-train-dev
+          path: artifacts/s26-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

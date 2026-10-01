@@ -1,0 +1,118 @@
+name: hira-v1-s26-a0-factorized-relation
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s26-factorized-role-value-signatures
+    paths:
+      - "research/HIRA-V1-S26-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S26 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S26 modules
+        run: |
+          python -m py_compile src/nmd/v1_factorized_relation_signature.py src/nmd/v1_s26_semantic_core.py scripts/hira_v1_s26_a0_factorized_relation.py
+      - name: Run S26 and inherited contracts
+        run: |
+          pytest -q tests/test_v1_factorized_relation_signature.py tests/test_v1_s26_semantic_core.py tests/test_v1_s25_semantic_core.py tests/test_v1_s25_gradient_ownership.py tests/test_v1_s25_checkpoint.py tests/test_v1_role_gated_content_triadic.py tests/test_v1_relation_canonicalization.py tests/test_v1_evidence_fusion.py tests/test_v1_neutral_bisector_gradient.py tests/test_v1_a13_lora.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S26 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Verify exact frozen M4 bundle
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh S26-A0 factorized-relation authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s26_a0_factorized_relation.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s26-a0
+      - name: Verify S26-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s26-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s26-a0-factorized-role-value-relation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S26_A0_FACTORIZED_RELATION_READY"
+          assert r["scientific_authority"]=="S26_A0_FACTORIZED_ROLE_VALUE_ONLY"
+          assert r["semantic_case_count"]==16
+          assert r["decision_count"]==64
+          assert r["state_view_count"]==32
+          assert r["shared_encoder_identity"] is True
+          assert r["primary_path_identity"] is True
+          assert r["relation_intervention_max_abs"]>1e-7
+          assert r["shared_lora_parameter_count"]==16384
+          assert r["primary_projection_parameter_count"]==32768
+          assert r["relation_projection_parameter_count"]==32768
+          assert r["candidate_parameter_count"]==81920
+          assert r["relation_operator_added_parameter_count"]==0
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["projection_storage_distinct"] is True
+          assert r["signature_dimension"]==256
+          assert r["correct_vs_same_role_wrong_value_margin"]>0.0
+          assert r["correct_vs_wrong_role_same_value_margin"]>0.0
+          assert r["correct_vs_wrong_role_wrong_value_margin"]>0.0
+          assert r["primary_to_relation_private_max_abs"]==0.0
+          assert r["relation_to_primary_private_max_abs"]==0.0
+          assert r["primary_private_gradient_l1"]>0.0
+          assert r["relation_private_gradient_l1"]>0.0
+          assert r["primary_shared_gradient_l1"]>0.0
+          assert r["relation_shared_gradient_l1"]>0.0
+          assert r["shared_projection_coefficient"]==0.0
+          assert r["primary_option_permutation_max_abs"]<=1e-6
+          assert r["relation_option_permutation_max_abs"]<=1e-6
+          assert r["signature_option_permutation_max_abs"]<=1e-6
+          assert r["fused_option_order_flip_rate"]==0.0
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Freeze S26-A0 integrity
+        run: |
+          (cd artifacts/s26-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s26-a0-factorized-relation
+          path: artifacts/s26-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
