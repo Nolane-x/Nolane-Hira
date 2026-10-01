@@ -80,6 +80,10 @@ def load_hira_v1_s26_checkpoint(
         raise RuntimeError("Hira v1 S26 relation projection parameter count changed")
     if int(payload.get("total_parameter_count", -1)) != HIRA_V1_S26_TOTAL_PARAMETER_COUNT:
         raise RuntimeError("Hira v1 S26 total parameter count changed")
+    if int(payload.get("relation_operator_added_parameter_count", -1)) != 0:
+        raise RuntimeError("Hira v1 S26 relation operator parameter count changed")
+    if int(payload.get("factorized_signature_dimension", -1)) != 256:
+        raise RuntimeError("Hira v1 S26 factorized signature dimension changed")
     if int(payload.get("lora_rank", -1)) != HIRA_V1_S6_LORA_RANK:
         raise RuntimeError("Hira v1 S26 LoRA rank changed")
     if payload.get("initialization_t0_sha256") != initialization_t0_sha256:
