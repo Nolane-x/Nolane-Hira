@@ -242,11 +242,11 @@ def _encode_batch(runtime, rows: list[S28AnchorCase]) -> dict[str, Tensor]:
     option_batch = encoder.encode_texts(options)
 
     if state_batch.token_embeddings.shape[0] != 2 * n:
-        raise RuntimeError("S26 state-view packing changed")
+        raise RuntimeError("S28 state-view packing changed")
     if question_batch.token_embeddings.shape[0] != 4 * n:
-        raise RuntimeError("S26 question-view packing changed")
+        raise RuntimeError("S28 question-view packing changed")
     if option_batch.token_embeddings.shape[0] != n * 4 * 2:
-        raise RuntimeError("S26 option-view packing changed")
+        raise RuntimeError("S28 option-view packing changed")
 
     state_tokens = state_batch.token_embeddings
     state_mask = _content_mask(state_batch)
@@ -291,7 +291,7 @@ def _decision_logits(
 ) -> Tensor:
     scorer = runtime.projection_triadic_scorer
     if scorer is None:
-        raise RuntimeError("S26 projection triadic scorer missing")
+        raise RuntimeError("S28 projection triadic scorer missing")
     return scorer(
         state_tokens=state_tokens.repeat_interleave(2, dim=0),
         state_mask=state_mask.repeat_interleave(2, dim=0),
@@ -919,7 +919,7 @@ def main() -> None:
     if scorer.projection.weight.data_ptr() == relation_projection.weight.data_ptr():
         raise RuntimeError("S28 private projections share storage")
     if any(p.requires_grad for p in runtime.hira.parameters()):
-        raise RuntimeError("S26 HIRACore became trainable")
+        raise RuntimeError("S28 HIRACore became trainable")
 
     optimizer = torch.optim.AdamW(
         trainable,
@@ -939,7 +939,7 @@ def main() -> None:
     ownership_min_primary_shared_l1 = float("inf")
     ownership_min_relation_shared_l1 = float("inf")
 
-    print("HIRA_V1_S26_TRAIN_BEGIN", flush=True)
+    print("HIRA_V1_S28_TRAIN_BEGIN", flush=True)
 
     for epoch in range(1, EPOCHS + 1):
         order = list(range(len(train_rows)))
@@ -1037,11 +1037,11 @@ def main() -> None:
             state_view_encodes += 2 * n
 
         if state_view_encodes != 2 * len(train_rows):
-            raise RuntimeError("S26 TRAIN state-once changed")
+            raise RuntimeError("S28 TRAIN state-once changed")
 
         dev_metrics = evaluate(runtime, dev_rows)
         if int(dev_metrics["state_view_encodes"]) != 2 * len(dev_rows):
-            raise RuntimeError("S26 DEV state-once changed")
+            raise RuntimeError("S28 DEV state-once changed")
 
         record = {
             "epoch": epoch,
@@ -1110,12 +1110,12 @@ def main() -> None:
             best_metrics = dict(dev_metrics)
 
         print(
-            "HIRA_V1_S26_EPOCH=" + json.dumps(record, sort_keys=True),
+            "HIRA_V1_S28_EPOCH=" + json.dumps(record, sort_keys=True),
             flush=True,
         )
 
     if best_state is None or best_epoch is None or best_metrics is None:
-        raise RuntimeError("S26 DEV selection produced no checkpoint")
+        raise RuntimeError("S28 DEV selection produced no checkpoint")
 
     load_a13_lora_state_dict(runtime.encoder, best_state["lora"], freeze=False)
     scorer.load_projection_state_dict(best_state["primary_projection"], freeze=False)
