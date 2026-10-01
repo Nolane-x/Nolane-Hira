@@ -71,3 +71,36 @@ Required mechanics:
 S27 TRAIN/DEV remains CLOSED until A0 qualifies and its receipt is frozen.
 
 No A0 replacement is authorized unless a failure is independently proven harness-only and produced no qualified scientific receipt.
+
+
+## Harness-only replacement authorization after run 36858674182
+
+Original S27-A0 run `36858674182` is preserved as a **non-result harness abort**:
+- unit/compile/inherited contracts PASS;
+- frozen M4 integrity PASS;
+- authority script aborted immediately on import with `ModuleNotFoundError: No module named 'scripts'`;
+- no S27 case was encoded;
+- receipt verification was skipped;
+- integrity freeze was skipped;
+- artifact upload was skipped;
+- therefore no qualified S27-A0 scientific receipt exists from that run.
+
+Root cause:
+- the A0 runner was executed as `python scripts/hira_v1_s27_a0_blockwise_canonicalization.py`;
+- direct execution places the `scripts/` directory, not its parent package name, on the import path;
+- the harness incorrectly imported its frozen S26 helper as `scripts.hira_v1_s26_a0_factorized_relation`.
+
+Harness-only correction:
+- fixed head `e335f10ff74380bd82c72b46ce3ef2b5cb02479f`;
+- helper import changed only to the direct sibling module `hira_v1_s26_a0_factorized_relation`;
+- no architecture, row, seed, loss, threshold, capacity, gradient rule, inference path, or A0 gate changed.
+
+Exact-head generic CI after correction:
+- run `36859133629`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement S27-A0 authority under the unchanged preregistered court.
+
+If the replacement fails any actual identity/localization/gradient/invariance gate, S27-A0 remains unqualified. No scientific threshold relaxation is authorized.
