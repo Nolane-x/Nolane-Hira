@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from hashlib import sha256
 import json
+import math
 from pathlib import Path
 import random
 
@@ -351,7 +352,12 @@ def _train_arm(arm,bundle,manifest,train_rows,dev_rows,out_dir):
         "mean_canonical_decision_loss",
     )
     for key in replay_keys:
-        if float(selected[key])!=float(best_metrics[key]):
+        if not math.isclose(
+            float(selected[key]),
+            float(best_metrics[key]),
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
             raise RuntimeError(f"S30 {arm} selected DEV replay changed: {key}")
 
     lora_trainable=sum(
