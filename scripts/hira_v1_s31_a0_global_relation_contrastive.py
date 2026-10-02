@@ -279,17 +279,22 @@ def main():
     if not torch.allclose(good,swapped,atol=1e-7,rtol=0):
         raise RuntimeError("S31-A0 view-swap symmetry changed")
 
-    # Direct operator gradient court.
-    torch.manual_seed(991)
-    gc=torch.randn(8,4,32,requires_grad=True)
-    gp=torch.randn(8,4,32,requires_grad=True)
-    gg=torch.arange(8,dtype=torch.long)%4
-    gl,_,_=global_cross_case_relation_contrastive_loss(gc,gp,gg,temperature=TEMPERATURE)
-    gl.backward()
-    gc_grad=float(gc.grad.abs().sum()) if gc.grad is not None else 0.0
-    gp_grad=float(gp.grad.abs().sum()) if gp.grad is not None else 0.0
-    if gc_grad<=0 or gp_grad<=0:
-        raise RuntimeError("S31-A0 operator gradients vanished")
+    # Direct operator gradient court. main() is inference-mode by design for
+    # the identity/mechanics checks, so explicitly re-enable autograd only
+    # inside this diagnostic block.
+    with torch.inference_mode(False), torch.enable_grad():
+        torch.manual_seed(991)
+        gc=torch.randn(8,4,32,requires_grad=True)
+        gp=torch.randn(8,4,32,requires_grad=True)
+        gg=torch.arange(8,dtype=torch.long)%4
+        gl,_,_=global_cross_case_relation_contrastive_loss(
+            gc,gp,gg,temperature=TEMPERATURE
+        )
+        gl.backward()
+        gc_grad=float(gc.grad.abs().sum()) if gc.grad is not None else 0.0
+        gp_grad=float(gp.grad.abs().sum()) if gp.grad is not None else 0.0
+        if gc_grad<=0 or gp_grad<=0:
+            raise RuntimeError("S31-A0 operator gradients vanished")
 
     # Checkpoint roundtrip.
     state=a13_lora_state_dict(control.encoder)
