@@ -274,6 +274,43 @@ def _identity_algorithm_court():
     }
 
 
+def _primary_identity_court(bundle,manifest,rows,reference_raw_c,reference_raw_p):
+    fresh=load_hira_v0_m4_bundle(bundle)
+    runtime=build_hira_v1_s17_norm_balanced_core(
+        fresh.runtime.encoder,
+        bundle/str(manifest["t0_checkpoint"]),
+        expected_t0_sha256=str(manifest["t0_checkpoint_sha256"]),
+        train_lora=False,train_projection=False,
+    )
+    del fresh
+    runtime.clear_schema_cache()
+    runtime.eval()
+    encoded=_encode_batch(runtime,rows)
+    raw_c=_decision_logits(
+        runtime,
+        state_tokens=encoded["state_a_tokens"],
+        state_mask=encoded["state_a_mask"],
+        question_tokens=encoded["question_canonical_tokens"],
+        question_mask=encoded["question_canonical_mask"],
+        encoded=encoded,
+    )
+    raw_p=_decision_logits(
+        runtime,
+        state_tokens=encoded["state_b_tokens"],
+        state_mask=encoded["state_b_mask"],
+        question_tokens=encoded["question_paraphrase_tokens"],
+        question_mask=encoded["question_paraphrase_mask"],
+        encoded=encoded,
+    )
+    error=max(
+        float((raw_c-reference_raw_c).abs().max().cpu()),
+        float((raw_p-reference_raw_p).abs().max().cpu()),
+    )
+    if error!=0.0:
+        raise RuntimeError(f"S35-A0 independent primary runtime identity changed: {error}")
+    return error
+
+
 def _projection_perturbation_court(runtime,rows):
     encoded,c,p=_views(runtime,rows)
     cc,cs,_cd,nc,ns,_nd=c
@@ -298,8 +335,6 @@ def _projection_perturbation_court(runtime,rows):
         question_mask=encoded["question_paraphrase_mask"],
         encoded=encoded,
     )
-    primary_identity=0.0
-
     original=scorer.projection.weight.detach().clone()
     with torch.no_grad():
         rowscale=torch.linspace(0.2,3.0,steps=original.shape[0],device=original.device,dtype=original.dtype)[:,None]
@@ -345,7 +380,6 @@ def _projection_perturbation_court(runtime,rows):
         raise RuntimeError("S35-A0 primary failed projection sensitivity court")
 
     return {
-        "primary_logit_identity_max_abs":primary_identity,
         "control_projection_perturbation_logit_max_abs":control_logit,
         "control_projection_perturbation_signature_max_abs":control_sig,
         "native_projection_perturbation_logit_max_abs":native_logit,
@@ -525,6 +559,9 @@ def main():
         raise RuntimeError("S35-A0 checkpoint roundtrip changed")
 
     identity=_identity_algorithm_court()
+    primary_identity=_primary_identity_court(
+        bundle,manifest,rows,raw_c,raw_p
+    )
     perturb=_projection_perturbation_court(runtime,rows)
     gradient=_gradient_probe(bundle,manifest,rows)
 
@@ -561,6 +598,7 @@ def main():
         "state_once_expected_view_count":2*len(suite),
         "native_a0_relation_accuracy":native_accuracy,
         **identity,
+        "primary_logit_identity_max_abs":primary_identity,
         **perturb,
         **gradient,
         "used_for_model_selection":False,
