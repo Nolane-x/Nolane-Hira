@@ -25,6 +25,11 @@ from nmd.v1_s17_semantic_core import (
 from nmd.v1_s31_global_relation_contrastive import (
     global_cross_case_relation_contrastive_loss,
 )
+from nmd.v1_s31_training import (
+    S31_GLOBAL_CANONICALIZATION_COEFFICIENT,
+    S31_GLOBAL_TEMPERATURE,
+    s31_global_relation_block,
+)
 from hira_v1_s17_a0_identity import _collect_decisions,_collect_fusion,_text_bank
 from hira_v1_s17_train_dev import (
     BINDING_COEFFICIENT,
@@ -35,7 +40,7 @@ from hira_v1_s17_train_dev import (
 
 SCHEMA_VERSION="hira-v1-s31-a0-global-relation-contrastive-v1"
 OUTCOME="HIRA_V1_S31_A0_GLOBAL_RELATION_CONTRASTIVE_READY"
-TEMPERATURE=0.10
+TEMPERATURE=S31_GLOBAL_TEMPERATURE
 
 
 @dataclass(frozen=True)
@@ -144,17 +149,12 @@ def _treatment_parts(runtime,rows):
         signature_c,signature_p,encoded,
     )=_losses(runtime,rows)
     gold,_other=_gold_tensors(rows,device=relation_c.device)
-    relation_ce=0.5*(
-        F.cross_entropy(relation_c,gold)
-        +F.cross_entropy(relation_p,gold)
+    relation_block,global_pieces=s31_global_relation_block(
+        relation_c,relation_p,signature_c,signature_p,gold
     )
-    global_loss,c2p,p2c=global_cross_case_relation_contrastive_loss(
-        signature_c,signature_p,gold,temperature=TEMPERATURE
-    )
-    relation_block=(
-        BINDING_COEFFICIENT*relation_ce
-        +CANONICALIZATION_COEFFICIENT*global_loss
-    )
+    global_loss=global_pieces["global_contrastive"]
+    c2p=global_pieces["global_c2p"]
+    p2c=global_pieces["global_p2c"]
     return {
         "primary_block":primary_block,
         "relation_block":relation_block,
@@ -314,7 +314,7 @@ def main():
         "k":4,
         "views_per_option":2,
         "temperature":TEMPERATURE,
-        "outer_coefficient":CANONICALIZATION_COEFFICIENT,
+        "outer_coefficient":S31_GLOBAL_CANONICALIZATION_COEFFICIENT,
         "operator_parameter_count":0,
         "arm_token_output_identity_max_abs":token_error,
         "arm_pooled_output_identity_max_abs":pooled_error,
