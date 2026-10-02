@@ -1,0 +1,71 @@
+# HIRA V1 S30 — enable one matched A0 authority
+
+Issue: #243
+PR: #244
+
+## Frozen matched question
+
+Compare zero-init final-block adaptation surfaces under the same S17 semantic shell:
+
+Arm A — attention-only:
+- LoRA **16,384**
+- projection **32,768**
+- total **49,152**
+
+Arm B — FFN-only:
+- LoRA **20,480**
+- projection **32,768**
+- total **53,248**
+
+Both:
+- rank 8
+- alpha 8.0
+- dropout 0
+- original A13 frozen
+- HIRACore frozen
+- S13 relation expert
+- S14 equal fusion
+- S15 detach
+- S17 loss partition
+- S17 norm-balanced gradient rule
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S30-CONTRACT.md`
+- `research/HIRA-V1-S30-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_a13_ffn_lora.py`
+- `src/nmd/v1_s30_semantic_core.py`
+- `src/nmd/v1_s30_authority.py`
+- `src/nmd/v1_s30_checkpoint.py`
+- `scripts/hira_v1_s30_a0_matched_adaptation.py`
+- `scripts/hira_v1_s30_train_dev.py`
+- `.github/workflows/hira-v1-s30-a0-matched-adaptation.yml`
+
+Exact science head:
+`d270b07460e10f6e1a11e14c7a821d24cb04fba3`
+
+Exact-head generic CI:
+- run `36940611565`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S30-A0 authority
+
+Required:
+- exact token/pooled identity between arms
+- exact raw/relation/fused/signature identity
+- exact selected-choice identity
+- exact arm capacities
+- original A13/HIRACore frozen
+- attention LoRA B gradients nonzero in Arm A
+- FFN intermediate/output B gradients nonzero in Arm B
+- projection gradient nonzero in both
+- primary/relation gradient partitions finite in both
+- checkpoint roundtrip in both
+- full-K/state-once/option-order/mass PASS
+
+A0 semantics are diagnostic only.
+
+No replacement A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until A0 is qualified and separately authorized.
