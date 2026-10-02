@@ -1,0 +1,116 @@
+# HIRA V1 S35 — enable one fresh matched TRAIN/DEV authority
+
+Issue: #253
+PR: #254
+
+## Canonical S35-A0
+
+- run `37008578553`
+- artifact `11227286171`
+- digest `sha256:a32475c6b9278ea5feada4f4c002188089b1a2add17ae732f3a4b6ae1fa16a47`
+- authority head `72dca7b0a464d6083421d6a8c297740070a956ba`
+- outcome `HIRA_V1_S35_A0_NATIVE_RELATION_GEOMETRY_READY`
+
+A0 proves:
+- treatment learned params **0**
+- exact physical surface **49,152**
+- control signature **128D**
+- native signature **256D**
+- native == S13 exactly under 256D identity projection
+- primary control/treatment identity exact
+- control relation changes under shared-projection perturbation
+- native relation logits/signatures remain exactly invariant to that perturbation
+- native relation -> projection gradient **0**
+- native relation -> LoRA gradient nonzero
+- primary -> projection gradient nonzero
+- permutation/masking/degenerate/full-K/mass/checkpoint mechanics PASS
+
+## Harness correction before DEV
+
+Before any S35 DEV exposure, trainer freshness wiring was corrected:
+- removed self-import/self-recursion
+- inherited exact S0-S33 + S34-A0 checks via `_assert_s34_fresh`
+- explicitly excludes all S34 TRAIN/DEV rows via `generate_s34_cases`
+
+Correction did not change:
+- native operator
+- dimensions
+- temperatures
+- optimizer
+- selector
+- gates
+- A0 authority
+- fresh S35 data
+
+## Frozen staged head
+
+`0b3e6028cdd4782cad0936181273737196e8795a`
+
+Exact-head CI:
+- run `37013742586`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one fresh matched S35 TRAIN/DEV court
+
+Frozen authority:
+- seed **56001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S35 domains
+- K **4**
+- two state views
+- two question wording views per semantic query
+- two option semantic views
+- epochs **24**
+- batch **16**
+- AdamW lr **2e-4**
+- weight decay **0.01**
+- grad clip **1.0**
+
+Both arms:
+- exact S17 final-attention LoRA **16,384**
+- shared primary projection **32,768**
+- exact total **49,152**
+- original A13 frozen
+- HIRACore frozen
+- S14 equal standardized full-K fusion
+- S15 relation-logit detach
+- S17 primary/relation partition
+- S17 relation-priority norm-balanced gradients
+- local relation CE + local signature canonicalization
+- identical fresh rows and per-epoch batch order
+- independent runtime/optimizer state
+
+Control:
+- exact S13 projected **128D** relation operator
+
+Treatment:
+- exact S13-equivalent relation algorithm in native adapted A13 **256D**
+- no relation-path use of shared projection
+- role temperature **0.10**
+- pair temperature **0.10**
+- contrastive temperature **0.10**
+- zero added learned params/state
+- no projected/native mixing
+- no whitening
+- no learned native metric
+- no global loss
+- no transport operator
+
+Freshness:
+- exact S0-S34 exposed rows excluded
+- S35-A0 rows excluded
+- M5 final/confirmatory rows excluded
+- W29-W34 sealed rows excluded
+
+No second S35 DEV run.
+No projected/native mixing after exposure.
+No dimension / normalization / temperature tuning.
+No learned native metric.
+No seed/LR/epoch/batch retry.
+No selector/gate weakening.
+No Laya/Jev benchmark unless a later confirmed candidate reaches DEV_READY.
+
+Scientific FAIL or split evidence is a valid closure result.
