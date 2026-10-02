@@ -1,0 +1,67 @@
+# HIRA V1 S37 — enable one A0 query-gated readout authority
+
+Issue: #257
+PR: #258
+
+## Frozen hypothesis
+
+Control:
+- exact S35 native 256D relation logits/signatures.
+
+Treatment:
+- exact native logits/signatures;
+- native query summary = masked arithmetic mean of adapted A13 question tokens;
+- L2 normalization epsilon **1e-12**;
+- per-option feature = native signature * normalized query summary;
+- one shared zero-init 256D residual correctness vector;
+- no bias / nonlinearity / rank expansion / learned scale.
+
+Capacity:
+- control trainable surface **49,152**
+- treatment added params **256**
+- treatment total **49,408**
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S37-CONTRACT.md`
+- `research/HIRA-V1-S37-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_query_gated_signature_readout.py`
+- `src/nmd/v1_s37_authority.py`
+- `tests/test_v1_query_gated_signature_readout.py`
+- `tests/test_v1_s37_authority.py`
+- `scripts/hira_v1_s37_a0_query_gated_readout.py`
+- `.github/workflows/hira-v1-s37-a0-query-gated-readout.yml`
+
+Exact staged head:
+`7df3b1e1853b47d797793dc690b3a94ce815e3f4`
+
+Exact-head generic CI:
+- run `37077432151`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S37-A0 authority
+
+Required:
+- exact zero-init native relation/signature/primary/fused identity
+- selected-choice identity 1.0
+- readout params 256
+- control/treatment surfaces 49,152 / 49,408
+- relation -> readout gradient nonzero
+- primary -> readout gradient zero
+- native relation -> projection direct gradient zero
+- primary -> projection gradient nonzero
+- relation -> LoRA gradient nonzero
+- query-content intervention changes readout residual
+- question-token permutation invariance
+- masked query-padding invariance
+- logical-option permutation equivariance
+- arbitrary K=3 and K=7
+- native relation remains projection-independent
+- full-K / probability / checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement S37-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
