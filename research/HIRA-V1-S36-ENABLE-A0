@@ -1,0 +1,58 @@
+# HIRA V1 S36 — enable one A0 native signature readout authority
+
+Issue: #255
+PR: #256
+
+## Frozen hypothesis
+
+Control:
+- exact S35 native 256D relation logits/signatures.
+
+Treatment:
+- exact same native logits/signatures;
+- one shared zero-initialized readout vector in R^256;
+- residual `signature_k @ w`;
+- no bias, nonlinearity, learned scale, option/domain/K-specific parameter.
+
+Frozen capacities:
+- control trainable surface **49,152**
+- treatment added params **256**
+- treatment total trainable surface **49,408**
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S36-CONTRACT.md`
+- `research/HIRA-V1-S36-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_native_signature_readout.py`
+- `tests/test_v1_native_signature_readout.py`
+- `scripts/hira_v1_s36_a0_native_signature_readout.py`
+- `.github/workflows/hira-v1-s36-a0-native-signature-readout.yml`
+
+Exact staged head:
+`6a6368e10ababb6ac379ea22019a94044d31e256`
+
+Exact-head generic CI:
+- run `37024763689`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S36-A0 authority
+
+Required:
+- zero-init relation-logit/signature/primary/fused identity exact
+- selected-choice identity 1.0
+- readout params exactly 256
+- control/treatment surfaces 49,152 / 49,408
+- relation -> readout gradient nonzero
+- primary -> readout gradient zero
+- native relation -> shared projection direct gradient zero
+- primary -> projection gradient nonzero
+- relation -> LoRA gradient nonzero
+- native representation exactly projection-independent
+- logical-option permutation equivariance
+- arbitrary K at 3 and 7
+- full-K / state-once / probability / checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+Fresh matched TRAIN/DEV remains CLOSED until qualified A0 receipt + frozen trainer/workflow + exact-head CI + separate one-shot authorization.
