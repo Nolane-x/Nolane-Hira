@@ -1,0 +1,79 @@
+# HIRA V1 S34 — enable one A0 entropic relation transport authority
+
+Issue: #251
+PR: #252
+
+## Frozen hypothesis
+
+S34 tests a relation operator that preserves a many-to-many state↔option token correspondence plan until after matching.
+
+Control:
+- exact S13 CrossViewRelationCanonicalizer
+
+Treatment:
+- QueryConditionedEntropicRelationTransport
+- zero learned params/state
+- no S13 base-logit mixing
+- no fixed local positional window
+- no global cross-case contrastive loss
+
+Frozen transport:
+- state relevance temperature **0.10**
+- option relevance temperature **0.10**
+- state-option kernel temperature **0.10**
+- relation-logit temperature **0.10**
+- Sinkhorn iterations **12**
+- epsilon **1e-12**
+
+Shared surface:
+- final A13 attention LoRA **16,384**
+- shared projection **32,768**
+- exact physical trainable surface **49,152**
+- original A13 frozen
+- HIRACore frozen
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S34-CONTRACT.md`
+- `research/HIRA-V1-S34-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_entropic_relation_transport.py`
+- `src/nmd/v1_s34_authority.py`
+- `src/nmd/v1_s34_checkpoint.py`
+- `scripts/hira_v1_s34_a0_entropic_relation_transport.py`
+- `scripts/hira_v1_s34_train_dev.py`
+- `.github/workflows/hira-v1-s34-a0-entropic-relation-transport.yml`
+
+Exact staged head:
+`6f779d21c84001b547a0c13cda9823667dc1d290`
+
+Exact-head generic CI:
+- run `36998052329`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S34-A0 authority
+
+Required:
+- operator added params **0**
+- exact physical surface **49,152**
+- original A13/HIRACore frozen
+- controlled qA/qB change state marginals
+- controlled qA/qB change option marginals
+- controlled qA/qB change transport plan
+- qA selects intended option 0
+- qB selects intended option 1
+- state-token permutation error <= 1e-6
+- option-token permutation error <= 1e-6
+- logical-option permutation error <= 1e-6
+- masked-padding error <= 1e-6
+- controlled and real row/column marginal residual <= **1e-4**
+- finite one-token / duplicate-token geometry
+- real LoRA-B gradients nonzero
+- real projection gradient nonzero
+- full-K / state-once / probability-mass / checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
