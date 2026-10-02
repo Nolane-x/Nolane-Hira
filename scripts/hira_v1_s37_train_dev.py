@@ -57,7 +57,7 @@ def _option_texts(row):
 
 
 def _assert_s37_fresh(train_rows, dev_rows):
-    # Inherit the complete S0-S35 + S37-A0 exact-overlap checks.
+    # Inherit the complete S0-S35 plus S36-A0 exact-overlap checks, then add exposed S36 and S37-A0.
     s36._assert_s36_fresh(train_rows, dev_rows)
 
     current = (*train_rows, *dev_rows)
@@ -70,11 +70,11 @@ def _assert_s37_fresh(train_rows, dev_rows):
     prior36_questions = {x for r in prior36 for x in _question_texts(r)}
     prior36_options = {x for r in prior36 for x in _option_texts(r)}
     if current_states & prior36_states:
-        raise RuntimeError("S37 exact state overlap with exposed S37 rows")
+        raise RuntimeError("S37 exact state overlap with exposed S36 rows")
     if current_questions & prior36_questions:
-        raise RuntimeError("S37 exact question overlap with exposed S37 rows")
+        raise RuntimeError("S37 exact question overlap with exposed S36 rows")
     if current_options & prior36_options:
-        raise RuntimeError("S37 exact option overlap with exposed S37 rows")
+        raise RuntimeError("S37 exact option overlap with exposed S36 rows")
 
     a0 = s37_a0_cases()
     a0_states = {x for r in a0 for x in (r.state_a, r.state_b)}
