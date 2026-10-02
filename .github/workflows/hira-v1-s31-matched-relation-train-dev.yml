@@ -1,0 +1,206 @@
+name: hira-v1-s31-matched-relation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s31-global-relation-contrastive
+    paths:
+      - "research/HIRA-V1-S31-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s31-a0-global-relation-contrastive
+          path: inputs/S31A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36970587382
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S31 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S31 contracts
+        run: |
+          python -m py_compile             src/nmd/v1_s31_global_relation_contrastive.py             src/nmd/v1_s31_training.py             src/nmd/v1_s31_authority.py             scripts/hira_v1_s31_a0_global_relation_contrastive.py             scripts/hira_v1_s31_train_dev.py
+          pytest -q             tests/test_v1_s31_global_relation_contrastive.py             tests/test_v1_s31_training.py             tests/test_v1_s31_authority.py             tests/test_v1_a13_lora.py             tests/test_v1_evidence_fusion.py             tests/test_v1_gradient_isolated_fusion.py             tests/test_v1_norm_balanced_gradient.py             tests/test_v1_relation_canonicalization.py             tests/test_v1_invariance.py             tests/test_v1_triadic_semantic.py
+
+      - name: Verify canonical S31-A0 authority
+        run: |
+          (cd inputs/S31A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S31A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s31-a0-global-relation-contrastive-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S31_A0_GLOBAL_RELATION_CONTRASTIVE_READY"
+          assert r["scientific_authority"]=="S31_A0_MATCHED_LOCAL_VS_GLOBAL_RELATION"
+          assert r["arm_token_output_identity_max_abs"]==0.0
+          assert r["arm_pooled_output_identity_max_abs"]==0.0
+          assert r["exact_logit_identity_rate"]==1.0
+          assert r["exact_choice_identity_rate"]==1.0
+          assert r["control_physical_parameter_count"]==49152
+          assert r["treatment_physical_parameter_count"]==49152
+          assert r["operator_parameter_count"]==0
+          assert r["temperature"]==0.1
+          assert r["outer_coefficient"]==0.15
+          assert r["controlled_matched_permutation_error"]==0.0
+          assert r["controlled_view_swap_error"]==0.0
+          assert r["controlled_shuffled_loss"] > r["controlled_good_loss"]
+          assert r["controlled_shuffled_minus_good"] > 1.0
+          assert r["controlled_canonical_gradient_l1"] > 0.0
+          assert r["controlled_paraphrase_gradient_l1"] > 0.0
+          assert all(v > 0.0 for v in r["gradient"]["lora_b_gradient_l1"])
+          assert r["gradient"]["projection_gradient_l1"] > 0.0
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh matched S31 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s31_train_dev.py             --bundle inputs/M4/hira-v0-m4-runtime             --a0-result inputs/S31A0/result.json             --out artifacts/s31-train-dev
+
+      - name: Verify S31 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s31-train-dev")
+          r=json.loads((root/"result.json").read_text())
+
+          assert r["schema_version"]=="hira-v1-s31-matched-relation-canonicalization-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S31_MATCHED_RELATION_DEV_COMPLETE",
+              "HIRA_V1_S31_MATCHED_RELATION_LOCAL_DEV_READY",
+              "HIRA_V1_S31_MATCHED_RELATION_GLOBAL_DEV_READY",
+              "HIRA_V1_S31_MATCHED_RELATION_BOTH_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S31_FRESH_MATCHED_LOCAL_VS_GLOBAL_RELATION"
+          assert r["seed"]==52001
+
+          assert r["optimizer"]["epochs"]==24
+          assert r["optimizer"]["batch_size_semantic_cases"]==16
+          assert r["optimizer"]["lr"]==2e-4
+          assert r["optimizer"]["weight_decay"]==0.01
+          assert r["optimizer"]["grad_clip"]==1.0
+
+          assert r["loss"]["global_relation_temperature"]==0.1
+          assert r["loss"]["global_relation_outer_coefficient"]==0.15
+          assert r["loss"]["local_relation_regularizer"]=="cross_view_relation_signature_loss"
+          assert r["loss"]["global_relation_regularizer"]=="cross_case_gold_signature_infonce"
+          assert r["loss"]["fused_primary_relation_logits_detached"] is True
+          assert r["loss"]["norm_balanced_gradient"]=="equal_direction_relation_priority_projection"
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["identical_batch_order_across_arms"] is True
+          assert p["prior_track_exact_rows_used"] is False
+          assert p["s31_a0_rows_used"] is False
+          assert p["m5_final_rows_used"] is False
+          assert p["w29_w34_sealed_rows_used"] is False
+
+          for arm in ("local","global"):
+              a=r[f"{arm}_arm"]
+              assert 1 <= a["selected_dev_epoch"] <= 24
+              assert len(a["history"])==24
+              assert a["parameter_surface"]["total_trainable_parameters"]==49152
+              assert a["parameter_surface"]["lora_trainable_parameters"]==16384
+              assert a["parameter_surface"]["projection_trainable_parameters"]==32768
+              assert a["parameter_surface"]["original_a13_trainable"]==0
+              assert a["parameter_surface"]["hira_core_trainable"]==0
+              assert a["parameter_surface"]["fusion_added_parameters"]==0
+              assert a["parameter_surface"]["learned_downstream_scorer_parameters"]==0
+              assert a["selected_dev"]["full_k"] is True
+              assert a["selected_dev"]["fused_option_order_flip_rate"]==0.0
+              assert a["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          assert isinstance(r["matched_selected_dev_delta_global_minus_local"],dict)
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+
+          assert (root/"local-relation-candidate.pt").is_file()
+          assert (root/"global-relation-candidate.pt").is_file()
+          PY
+
+      - name: Verify S31 checkpoint payloads
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s31-train-dev")
+          r=json.loads((root/"result.json").read_text())
+
+          for arm in ("local","global"):
+              path=root/f"{arm}-relation-candidate.pt"
+              p=torch.load(path,map_location="cpu",weights_only=True)
+              assert p["schema_version"]==f"hira-v1-s31-{arm}-relation-checkpoint-v1"
+              assert p["kind"]==f"matched-{arm}-relation-s17-shell-a13-w28"
+              assert p["arm"]==arm
+              assert p["lora_parameter_count"]==16384
+              assert p["projection_parameter_count"]==32768
+              assert p["total_parameter_count"]==49152
+              assert p["lora_rank"]==8
+              assert p["selected_dev_epoch"]==r[f"{arm}_arm"]["selected_dev_epoch"]
+              assert len(p["lora_state_dict"])==8
+              assert set(p["projection_state_dict"])=={"projection.weight"}
+              assert tuple(p["projection_state_dict"]["projection.weight"].shape)==(128,256)
+          PY
+
+      - name: Freeze S31 matched integrity
+        run: |
+          (cd artifacts/s31-train-dev &&             sha256sum               result.json               train-manifest.json               dev-manifest.json               local-relation-candidate.pt               global-relation-candidate.pt               > INTEGRITY.sha256 &&             sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s31-matched-relation-train-dev
+          path: artifacts/s31-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
