@@ -1,0 +1,87 @@
+# HIRA V1 S31 — enable one replacement matched A0 authority
+
+Issue: #245
+PR: #246
+
+## Frozen hypothesis
+
+Compare:
+- local S17 K=4 relation-signature canonicalization;
+- global cross-case query-specific relation-signature InfoNCE.
+
+Both use exact S17 architecture/inference/optimizer shell.
+
+Global treatment:
+- gold relation signature per semantic query
+- canonical/paraphrase positive pair
+- every other semantic query in batch is a negative
+- symmetric InfoNCE
+- temperature **0.10**
+- outer coefficient **0.15**
+- zero added learned parameters/state
+
+## Prior A0 non-result
+
+Run `36969870003` is frozen as a **HARNESS-ONLY NON-RESULT**:
+- unit/compile PASS
+- M4 integrity PASS
+- artifact none
+- qualified receipt none
+- abort occurred because the synthetic direct-gradient check called `backward()` under outer `@torch.inference_mode()`
+- no S31 science setting changed
+
+Recorded in:
+`research/HIRA-V1-S31-A0-HARNESS-NONRESULT.md`
+
+Only correction:
+- locally re-enable autograd in the synthetic gradient diagnostic with
+  `torch.inference_mode(False), torch.enable_grad()`
+
+Fix commit:
+`4236dab3176ef4a69b6ff68a119cd4c41029acee`
+
+## Frozen before replacement A0 exposure
+
+Science remains frozen from the original authorization:
+- `research/HIRA-V1-S31-CONTRACT.md`
+- `research/HIRA-V1-S31-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_s31_global_relation_contrastive.py`
+- `src/nmd/v1_s31_training.py`
+- `src/nmd/v1_s31_authority.py`
+- `scripts/hira_v1_s31_train_dev.py`
+- `.github/workflows/hira-v1-s31-a0-global-relation-contrastive.yml`
+
+Corrected A0 harness:
+- `scripts/hira_v1_s31_a0_global_relation_contrastive.py`
+
+Corrected exact head before this authorization-only update:
+`e29cb3d6c87b9b40ae8de9d4b3b1a08c340d7027`
+
+Exact-head generic CI:
+- run `36970247744`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one replacement S31-A0 authority
+
+Required:
+- exact control/treatment token and pooled identity
+- exact raw/relation/fused/signature/logit/choice identity
+- exact **49,152** physical surface in both arms
+- original A13/HIRACore frozen
+- operator parameter count zero
+- matched query permutation invariance
+- view-swap symmetry
+- well-separated matched positives low loss
+- shuffled positives materially worse
+- nonzero finite operator gradients to both views
+- nonzero LoRA/projection gradients on real semantic rows
+- checkpoint roundtrip
+- full-K/state-once/option-order/mass PASS
+
+A0 semantics are diagnostic only.
+
+No further replacement A0 is authorized unless another strict harness-only abort occurs before any qualified receipt/artifact and the correction changes no scientific setting.
+
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
