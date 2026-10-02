@@ -1,0 +1,217 @@
+name: hira-v1-s35-matched-native-relation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s35-native-a13-relation-geometry
+    paths:
+      - "research/HIRA-V1-S35-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s35-a0-native-relation-geometry
+          path: inputs/S35A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37008578553
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S35 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S35 contracts
+        run: |
+          python -m py_compile             src/nmd/v1_native_relation_geometry.py             src/nmd/v1_s35_authority.py             src/nmd/v1_s35_checkpoint.py             scripts/hira_v1_s35_a0_native_relation_geometry.py             scripts/hira_v1_s35_train_dev.py
+          pytest -q             tests/test_v1_native_relation_geometry.py             tests/test_v1_s35_authority_checkpoint.py             tests/test_v1_relation_canonicalization.py             tests/test_v1_a13_lora.py             tests/test_v1_evidence_fusion.py             tests/test_v1_gradient_isolated_fusion.py             tests/test_v1_norm_balanced_gradient.py             tests/test_v1_invariance.py             tests/test_v1_triadic_semantic.py
+
+      - name: Verify canonical S35-A0 authority
+        run: |
+          (cd inputs/S35A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          r=json.loads(Path("inputs/S35A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s35-a0-native-relation-geometry-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S35_A0_NATIVE_RELATION_GEOMETRY_READY"
+          assert r["scientific_authority"]=="S35_A0_NATIVE_A13_RELATION_GEOMETRY_ONLY"
+          assert r["native_dimension"]==256
+          assert r["role_temperature"]==0.1
+          assert r["pair_temperature"]==0.1
+          assert r["contrastive_temperature"]==0.1
+          assert r["operator_added_parameter_count"]==0
+          assert r["physical_trainable_parameter_count"]==49152
+          assert r["lora_parameter_count"]==16384
+          assert r["projection_parameter_count"]==32768
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["control_signature_dimension"]==128
+          assert r["native_signature_dimension"]==256
+          assert r["identity_projection_logit_max_abs"]==0.0
+          assert r["identity_projection_signature_max_abs"]==0.0
+          assert r["primary_logit_identity_max_abs"]==0.0
+          assert r["native_projection_perturbation_logit_max_abs"]==0.0
+          assert r["native_projection_perturbation_signature_max_abs"]==0.0
+          assert r["control_projection_perturbation_logit_max_abs"]>1e-6
+          assert r["control_projection_perturbation_signature_max_abs"]>1e-6
+          assert r["primary_projection_perturbation_logit_max_abs"]>1e-6
+          assert r["relation_to_projection_gradient_l1"]==0.0
+          assert r["relation_to_lora_gradient_l1"]>0.0
+          assert r["primary_to_projection_gradient_l1"]>0.0
+          assert r["checkpoint_key_count"]==8
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["native_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh matched S35 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s35_train_dev.py             --bundle inputs/M4/hira-v0-m4-runtime             --a0-result inputs/S35A0/result.json             --out artifacts/s35-train-dev
+
+      - name: Verify S35 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s35-train-dev")
+          r=json.loads((root/"result.json").read_text())
+
+          assert r["schema_version"]=="hira-v1-s35-matched-native-relation-geometry-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S35_MATCHED_NATIVE_DEV_COMPLETE",
+              "HIRA_V1_S35_MATCHED_NATIVE_CONTROL_DEV_READY",
+              "HIRA_V1_S35_MATCHED_NATIVE_TREATMENT_DEV_READY",
+              "HIRA_V1_S35_MATCHED_NATIVE_BOTH_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S35_FRESH_MATCHED_PROJECTED_VS_NATIVE_RELATION"
+          assert r["seed"]==56001
+
+          assert r["optimizer"]["epochs"]==24
+          assert r["optimizer"]["batch_size_semantic_cases"]==16
+          assert r["optimizer"]["lr"]==2e-4
+          assert r["optimizer"]["weight_decay"]==0.01
+          assert r["optimizer"]["grad_clip"]==1.0
+
+          loss=r["loss"]
+          assert loss["control_relation_operator"]=="S13_CrossViewRelationCanonicalizer"
+          assert loss["treatment_relation_operator"]=="S35_NativeA13RelationCanonicalizer"
+          assert loss["native_relation_dimension"]==256
+          assert loss["treatment_uses_shared_projection"] is False
+          assert loss["treatment_added_parameters"]==0
+          assert loss["role_temperature"]==0.1
+          assert loss["pair_temperature"]==0.1
+          assert loss["native_contrastive_temperature"]==0.1
+          assert loss["fused_primary_relation_logits_detached"] is True
+          assert loss["norm_balanced_gradient"]=="equal_direction_relation_priority_projection"
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["identical_batch_order_across_arms"] is True
+          assert p["prior_track_exact_rows_used"] is False
+          assert p["s35_a0_rows_used"] is False
+          assert p["m5_final_rows_used"] is False
+          assert p["w29_w34_sealed_rows_used"] is False
+
+          for arm in ("control","native"):
+              a=r[f"{arm}_arm"]
+              assert 1<=a["selected_dev_epoch"]<=24
+              assert len(a["history"])==24
+              assert a["parameter_surface"]["total_trainable_parameters"]==49152
+              assert a["parameter_surface"]["lora_trainable_parameters"]==16384
+              assert a["parameter_surface"]["projection_trainable_parameters"]==32768
+              assert a["parameter_surface"]["original_a13_trainable"]==0
+              assert a["parameter_surface"]["hira_core_trainable"]==0
+              assert a["parameter_surface"]["fusion_added_parameters"]==0
+              assert a["parameter_surface"]["learned_downstream_scorer_parameters"]==0
+              assert a["selected_dev"]["full_k"] is True
+              assert a["selected_dev"]["fused_option_order_flip_rate"]==0.0
+              assert a["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          assert isinstance(r["matched_selected_dev_delta_native_minus_control"],dict)
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+
+          assert (root/"control-relation-candidate.pt").is_file()
+          assert (root/"native-relation-candidate.pt").is_file()
+          PY
+
+      - name: Verify S35 checkpoint schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_s35_checkpoint import load_hira_v1_s35_checkpoint
+
+          root=Path("artifacts/s35-train-dev")
+          r=json.loads((root/"result.json").read_text())
+
+          for arm in ("control","native"):
+              path=root/f"{arm}-relation-candidate.pt"
+              _lora,_projection,meta=load_hira_v1_s35_checkpoint(
+                  path,
+                  arm=arm,
+                  expected_sha256=r[f"{arm}_arm"]["checkpoint_sha256"],
+              )
+              assert meta["selected_dev_epoch"]==r[f"{arm}_arm"]["selected_dev_epoch"]
+              assert meta["total_parameter_count"]==49152
+          PY
+
+      - name: Freeze S35 matched integrity
+        run: |
+          (cd artifacts/s35-train-dev &&             sha256sum               result.json               train-manifest.json               dev-manifest.json               control-relation-candidate.pt               native-relation-candidate.pt               > INTEGRITY.sha256 &&             sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s35-matched-native-relation-train-dev
+          path: artifacts/s35-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

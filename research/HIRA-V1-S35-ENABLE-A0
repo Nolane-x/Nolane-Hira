@@ -1,0 +1,70 @@
+# HIRA V1 S35 — enable one A0 native relation geometry authority
+
+Issue: #253
+PR: #254
+
+## Frozen hypothesis
+
+Control:
+- exact S13 relation path in shared projected **128D** geometry.
+
+Treatment:
+- exact S13-equivalent relation algorithm directly in adapted A13 native **256D** token geometry;
+- no relation-path use of the shared projection;
+- zero added learned params/state.
+
+Shared:
+- exact S17 final-attention LoRA **16,384**
+- shared primary projection **32,768**
+- exact physical trainable surface **49,152**
+- original A13 frozen
+- HIRACore frozen
+- primary scorer/fusion/optimizer unchanged
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S35-CONTRACT.md`
+- `research/HIRA-V1-S35-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_native_relation_geometry.py`
+- `src/nmd/v1_s35_authority.py`
+- `src/nmd/v1_s35_checkpoint.py`
+- `tests/test_v1_native_relation_geometry.py`
+- `tests/test_v1_s35_authority_checkpoint.py`
+- `scripts/hira_v1_s35_a0_native_relation_geometry.py`
+- `scripts/hira_v1_s35_train_dev.py`
+- `.github/workflows/hira-v1-s35-a0-native-relation-geometry.yml`
+
+Exact staged head:
+`6f84d32096a21536abf6f71731651d28e428a70d`
+
+Exact-head generic CI:
+- run `37008056081`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S35-A0 authority
+
+Required:
+- treatment params **0**
+- exact physical surface **49,152**
+- control signature width **128**
+- native signature width **256**
+- independent primary runtime identity exact
+- native operator exact vs S13 under 256D identity projection
+- strong projection perturbation changes control relation logits/signatures
+- same perturbation changes native relation logits/signatures by **exactly 0**
+- primary logits remain projection-sensitive
+- state/question/option token permutation invariance
+- logical-option permutation equivariance
+- masked-padding invariance
+- finite degenerate geometry
+- native relation block -> projection direct gradient **0**
+- native relation block -> LoRA gradient nonzero
+- primary block -> projection gradient nonzero
+- full-K / probability / checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement S35-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
