@@ -74,7 +74,7 @@ For each semantic query and each option semantic view:
    masked softmax(`r_o / 0.10`);
 7. state-option kernel:
    `K = exp(cosine(state_s, option_o) / 0.10)`;
-8. run exactly **8 Sinkhorn iterations** against the two query-conditioned marginals;
+8. run exactly **12 Sinkhorn iterations** against the two query-conditioned marginals;
 9. option-view relation score:
    expected state-option cosine under the transport plan divided by **0.10**;
 10. option-view relation signature:
@@ -86,7 +86,7 @@ Frozen hyperparameters:
 - option relevance temperature **0.10**
 - kernel temperature **0.10**
 - relation-logit temperature **0.10**
-- Sinkhorn iterations **8**
+- Sinkhorn iterations **12**
 - numerical epsilon **1e-12**
 
 Forbidden:
