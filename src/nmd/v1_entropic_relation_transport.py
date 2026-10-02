@@ -42,7 +42,7 @@ class QueryConditionedEntropicRelationTransport(nn.Module):
         option_relevance_temperature: float=0.10,
         kernel_temperature: float=0.10,
         logit_temperature: float=0.10,
-        sinkhorn_iterations: int=8,
+        sinkhorn_iterations: int=12,
         epsilon: float=1e-12,
     ):
         super().__init__()
