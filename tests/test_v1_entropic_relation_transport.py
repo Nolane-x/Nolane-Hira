@@ -21,13 +21,10 @@ def _controlled(question_index=0):
     q=torch.zeros(1,1,d)
     q[0,0,question_index]=1.0
     qm=torch.tensor([[True]])
-    options=torch.tensor([[[[[
-        [1.,0.,0.,0.],
-        [0.,0.,1.,0.],
-    ]]],[[[
-        [0.,1.,0.,0.],
-        [0.,0.,0.,1.],
-    ]]]]])
+    options=torch.tensor([[
+        [[ [1.,0.,0.,0.],[0.,0.,1.,0.] ]],
+        [[ [0.,1.,0.,0.],[0.,0.,0.,1.] ]],
+    ]])
     om=torch.ones(1,2,1,2,dtype=torch.bool)
     ovm=torch.ones(1,2,1,dtype=torch.bool)
     return state,sm,q,qm,options,om,ovm
