@@ -88,8 +88,8 @@ def _question_texts(row):
 
 
 def _assert_s31_fresh(train_rows,dev_rows):
-    # S31 helper rejects exact S0-S29 and S31-A0 overlaps.
-    _assert_s31_fresh(train_rows,dev_rows)
+    # S30 helper rejects exact S0-S29 and S30-A0 overlaps.
+    _assert_s30_fresh(train_rows,dev_rows)
 
     current=(*train_rows,*dev_rows)
     current_states={x for r in current for x in _state_texts(r)}
@@ -99,9 +99,9 @@ def _assert_s31_fresh(train_rows,dev_rows):
     prior30_states={x for r in prior30 for x in _state_texts(r)}
     prior30_questions={x for r in prior30 for x in _question_texts(r)}
     if current_states & prior30_states:
-        raise RuntimeError("S31 exact state overlap with exposed S31 rows")
+        raise RuntimeError("S31 exact state overlap with exposed S30 rows")
     if current_questions & prior30_questions:
-        raise RuntimeError("S31 exact question overlap with exposed S31 rows")
+        raise RuntimeError("S31 exact question overlap with exposed S30 rows")
 
     a0=s31_a0_cases()
     a0_states={x for r in a0 for x in (r.state_a,r.state_b)}
@@ -476,7 +476,7 @@ def main():
     train_rows=generate_s31_cases("train")
     dev_rows=generate_s31_cases("dev")
     validate_s31_partitions(train_rows,dev_rows)
-    _assert_s30_fresh(train_rows,dev_rows)
+    _assert_s31_fresh(train_rows,dev_rows)
 
     bundle=args.bundle.resolve()
     manifest=read_runtime_bundle_manifest(bundle)
