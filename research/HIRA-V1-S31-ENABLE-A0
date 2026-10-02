@@ -1,4 +1,4 @@
-# HIRA V1 S31 — enable one matched A0 authority
+# HIRA V1 S31 — enable one replacement matched A0 authority
 
 Issue: #245
 PR: #246
@@ -20,27 +20,50 @@ Global treatment:
 - outer coefficient **0.15**
 - zero added learned parameters/state
 
-## Frozen before A0 exposure
+## Prior A0 non-result
 
+Run `36969870003` is frozen as a **HARNESS-ONLY NON-RESULT**:
+- unit/compile PASS
+- M4 integrity PASS
+- artifact none
+- qualified receipt none
+- abort occurred because the synthetic direct-gradient check called `backward()` under outer `@torch.inference_mode()`
+- no S31 science setting changed
+
+Recorded in:
+`research/HIRA-V1-S31-A0-HARNESS-NONRESULT.md`
+
+Only correction:
+- locally re-enable autograd in the synthetic gradient diagnostic with
+  `torch.inference_mode(False), torch.enable_grad()`
+
+Fix commit:
+`4236dab3176ef4a69b6ff68a119cd4c41029acee`
+
+## Frozen before replacement A0 exposure
+
+Science remains frozen from the original authorization:
 - `research/HIRA-V1-S31-CONTRACT.md`
 - `research/HIRA-V1-S31-INTERPRETATION-PLAN.md`
 - `src/nmd/v1_s31_global_relation_contrastive.py`
 - `src/nmd/v1_s31_training.py`
 - `src/nmd/v1_s31_authority.py`
-- `scripts/hira_v1_s31_a0_global_relation_contrastive.py`
 - `scripts/hira_v1_s31_train_dev.py`
 - `.github/workflows/hira-v1-s31-a0-global-relation-contrastive.yml`
 
-Exact science head:
-`364695ad901b601f5f6b5933f1f1254d9294fe0d`
+Corrected A0 harness:
+- `scripts/hira_v1_s31_a0_global_relation_contrastive.py`
+
+Corrected exact head before this authorization-only update:
+`e29cb3d6c87b9b40ae8de9d4b3b1a08c340d7027`
 
 Exact-head generic CI:
-- run `36969558983`
+- run `36970247744`
 - Python 3.10 PASS
 - Python 3.12 PASS
 - preflight PASS
 
-## Authorize exactly one S31-A0 authority
+## Authorize exactly one replacement S31-A0 authority
 
 Required:
 - exact control/treatment token and pooled identity
@@ -59,5 +82,6 @@ Required:
 
 A0 semantics are diagnostic only.
 
-No replacement A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+No further replacement A0 is authorized unless another strict harness-only abort occurs before any qualified receipt/artifact and the correction changes no scientific setting.
+
 Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
