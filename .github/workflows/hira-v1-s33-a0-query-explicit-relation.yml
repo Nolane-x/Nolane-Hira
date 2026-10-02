@@ -1,0 +1,120 @@
+name: hira-v1-s33-a0-query-explicit-relation
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s33-query-explicit-relation
+    paths:
+      - "research/HIRA-V1-S33-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S33 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S33 stack
+        run: |
+          python -m py_compile             src/nmd/v1_query_explicit_relation.py             src/nmd/v1_s33_authority.py             scripts/hira_v1_s33_a0_query_explicit_relation.py
+      - name: Run S33 and inherited contracts
+        run: |
+          pytest -q             tests/test_v1_query_explicit_relation.py             tests/test_v1_s33_authority.py             tests/test_v1_relation_canonicalization.py             tests/test_v1_a13_lora.py             tests/test_v1_evidence_fusion.py             tests/test_v1_gradient_isolated_fusion.py             tests/test_v1_norm_balanced_gradient.py             tests/test_v1_invariance.py             tests/test_v1_triadic_semantic.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S33 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Verify frozen M4 runtime
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh S33-A0 query-explicit court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s33_a0_query_explicit_relation.py             --bundle inputs/M4/hira-v0-m4-runtime             --out artifacts/s33-a0
+      - name: Verify S33-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s33-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s33-a0-query-explicit-relation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S33_A0_QUERY_EXPLICIT_RELATION_READY"
+          assert r["scientific_authority"]=="S33_A0_QUERY_EXPLICIT_RELATION_ONLY"
+          assert r["semantic_case_count"]==16
+          assert r["state_view_count"]==32
+          assert r["k"]==4
+          assert r["views_per_option"]==2
+          assert r["base_relation_logit_identity_max_abs"]==0.0
+          assert r["base_relation_signature_identity_max_abs"]==0.0
+          assert r["query_anchor_reference_max_abs"]==0.0
+          assert r["base_signature_dimension"]==128
+          assert r["query_option_block_dimension"]==128
+          assert r["treatment_signature_dimension"]==256
+          assert r["base_score_weight"]==0.5
+          assert r["query_option_score_weight"]==0.5
+          assert r["operator_added_parameter_count"]==0
+          assert r["physical_trainable_parameter_count"]==49152
+          assert r["lora_parameter_count"]==16384
+          assert r["projection_parameter_count"]==32768
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["checkpoint_key_count"]==8
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["treatment_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["state_once_expected_view_count"]==32
+          assert r["question_anchor_intervention_max_abs"]>0.0
+          assert r["query_option_signature_intervention_max_abs"]>0.0
+          assert r["query_option_logits_intervention_max_abs"]>0.0
+          assert r["q_a_option0_minus_option1"]>0.0
+          assert r["q_b_option1_minus_option0"]>0.0
+          assert r["option_permutation_logit_error"]==0.0
+          assert r["option_permutation_signature_error"]==0.0
+          assert all(v>0.0 for v in r["gradient"]["lora_b_gradient_l1"])
+          assert r["gradient"]["projection_gradient_l1"]>0.0
+          assert r["gradient"]["relation_block"]>0.0
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Freeze S33-A0 integrity
+        run: |
+          (cd artifacts/s33-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s33-a0-query-explicit-relation
+          path: artifacts/s33-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
