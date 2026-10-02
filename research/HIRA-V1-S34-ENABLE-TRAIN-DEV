@@ -1,0 +1,114 @@
+# HIRA V1 S34 — enable one fresh matched TRAIN/DEV authority
+
+Issue: #251
+PR: #252
+
+## Canonical S34-A0
+
+- run `36998495974`
+- artifact `11222861913`
+- digest `sha256:239c2c5964a30d4ed8ca67a04e6b9ed5f4aea90efb80609368d126487fe044d9`
+- authority head `de28e3f2cb51542970d07b761b85e8f36914e261`
+- outcome `HIRA_V1_S34_A0_ENTROPIC_RELATION_TRANSPORT_READY`
+
+A0 proves:
+- state relevance temperature **0.10**
+- option relevance temperature **0.10**
+- kernel temperature **0.10**
+- relation-logit temperature **0.10**
+- Sinkhorn iterations **12**
+- epsilon **1e-12**
+- added learned params **0**
+- exact physical surface **49,152**
+- qA selected option **0**
+- qB selected option **1**
+- state-marginal intervention max abs **0.9999091625**
+- option-marginal intervention max abs **0.4999546111**
+- transport-plan intervention max abs **0.9998811483**
+- controlled row/column marginal residual **5.9604645e-8 / 5.9604645e-8**
+- real row/column residual **4.3176115e-5 / 1.1920929e-7**
+- permutation/masking errors **0**
+- degenerate geometry finite
+- real LoRA-B / projection gradients nonzero
+- full-K / mass / checkpoint mechanics PASS
+
+## Frozen before fresh DEV exposure
+
+- `research/HIRA-V1-S34-CONTRACT.md`
+- `research/HIRA-V1-S34-INTERPRETATION-PLAN.md`
+- `research/HIRA-V1-S34-A0-RECEIPT.md`
+- `src/nmd/v1_entropic_relation_transport.py`
+- `src/nmd/v1_s34_authority.py`
+- `src/nmd/v1_s34_checkpoint.py`
+- `scripts/hira_v1_s34_a0_entropic_relation_transport.py`
+- `scripts/hira_v1_s34_train_dev.py`
+- `.github/workflows/hira-v1-s34-matched-entropic-transport-train-dev.yml`
+
+Exact staged head:
+`68569c35cb7c6c82ba2db16787b5be6b3d016627`
+
+Exact-head generic CI:
+- run `36999091835`
+- PASS
+
+## Authorize exactly one fresh matched S34 TRAIN/DEV court
+
+Frozen authority:
+- seed **55001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S34 domains
+- K **4**
+- two state views
+- two question wording views per semantic query
+- two option semantic views
+- epochs **24**
+- batch **16**
+- AdamW lr **2e-4**
+- weight decay **0.01**
+- grad clip **1.0**
+
+Both arms:
+- exact S17 attention LoRA **16,384**
+- shared projection **32,768**
+- exact total **49,152**
+- original A13 frozen
+- HIRACore frozen
+- S14 equal standardized full-K fusion
+- S15 relation-logit detach
+- S17 relation-priority norm-balanced gradients
+- local relation CE + local signature canonicalization
+- identical fresh rows and per-epoch batch order
+- independent runtime/optimizer state
+- no S31/S32 global contrastive objective
+
+Control:
+- exact S13 CrossViewRelationCanonicalizer
+
+Treatment:
+- QueryConditionedEntropicRelationTransport
+- state relevance temperature **0.10**
+- option relevance temperature **0.10**
+- kernel temperature **0.10**
+- relation-logit temperature **0.10**
+- exactly **12 Sinkhorn iterations**
+- epsilon **1e-12**
+- no S13 base-logit mixing
+- zero added learned params/state
+
+Freshness:
+- exact S0-S33 exposed rows excluded
+- S34-A0 rows excluded
+- M5 final/confirmatory rows excluded
+- W29-W34 sealed rows excluded
+
+No second S34 DEV run.
+No post-DEV temperature tuning.
+No Sinkhorn-iteration tuning.
+No epsilon/kernel/signature redesign.
+No seed/LR/epoch/batch retry.
+No local+global loss stacking.
+No selector/gate weakening.
+No Laya/Jev benchmark unless a later confirmed candidate reaches DEV_READY.
+
+Scientific FAIL or split evidence is a valid closure result.
