@@ -85,20 +85,20 @@ def _question_texts(row):
 
 
 def _assert_s34_fresh(train_rows,dev_rows):
-    # S34 helper rejects exact S0-S32 and S33-A0 overlaps.
-    _assert_s34_fresh(train_rows,dev_rows)
+    # S33 helper rejects exact S0-S32 and S33-A0 overlaps.
+    _assert_s33_fresh(train_rows,dev_rows)
 
     current=(*train_rows,*dev_rows)
     current_states={x for r in current for x in _state_texts(r)}
     current_questions={x for r in current for x in _question_texts(r)}
 
-    prior33=(*generate_s34_cases("train"),*generate_s34_cases("dev"))
+    prior33=(*generate_s33_cases("train"),*generate_s33_cases("dev"))
     prior33_states={x for r in prior33 for x in _state_texts(r)}
     prior33_questions={x for r in prior33 for x in _question_texts(r)}
     if current_states & prior33_states:
-        raise RuntimeError("S34 exact state overlap with exposed S34 rows")
+        raise RuntimeError("S34 exact state overlap with exposed S33 rows")
     if current_questions & prior33_questions:
-        raise RuntimeError("S34 exact question overlap with exposed S34 rows")
+        raise RuntimeError("S34 exact question overlap with exposed S33 rows")
 
     a0=s34_a0_cases()
     a0_states={x for r in a0 for x in (r.state_a,r.state_b)}
