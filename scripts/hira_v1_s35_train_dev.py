@@ -24,7 +24,7 @@ from nmd.v1_norm_balanced_gradient import (
     apply_gradient_update,
     norm_balanced_gradient_update,
 )
-from nmd.v1_s35_authority import generate_s35_cases
+from nmd.v1_s34_authority import generate_s34_cases
 from nmd.v1_s35_authority import generate_s35_cases, validate_s35_partitions
 from nmd.v1_s6_semantic_core import HIRA_V1_S6_LORA_PARAMETER_COUNT
 from nmd.v1_s17_semantic_core import (
@@ -60,7 +60,7 @@ from hira_v1_s17_train_dev import (
     evaluate,
 )
 import hira_v1_s17_train_dev as s17mod
-from hira_v1_s35_train_dev import _assert_s35_fresh
+from hira_v1_s34_train_dev import _assert_s34_fresh
 from hira_v1_s35_a0_native_relation_geometry import cases as s35_a0_cases
 
 
@@ -85,20 +85,20 @@ def _question_texts(row):
 
 
 def _assert_s35_fresh(train_rows,dev_rows):
-    # S35 helper rejects exact S0-S33 and S34-A0 overlaps.
-    _assert_s35_fresh(train_rows,dev_rows)
+    # S34 helper rejects exact S0-S33 and S34-A0 overlaps.
+    _assert_s34_fresh(train_rows,dev_rows)
 
     current=(*train_rows,*dev_rows)
     current_states={x for r in current for x in _state_texts(r)}
     current_questions={x for r in current for x in _question_texts(r)}
 
-    prior34=(*generate_s35_cases("train"),*generate_s35_cases("dev"))
+    prior34=(*generate_s34_cases("train"),*generate_s34_cases("dev"))
     prior34_states={x for r in prior34 for x in _state_texts(r)}
     prior34_questions={x for r in prior34 for x in _question_texts(r)}
     if current_states & prior34_states:
-        raise RuntimeError("S35 exact state overlap with exposed S35 rows")
+        raise RuntimeError("S35 exact state overlap with exposed S34 rows")
     if current_questions & prior34_questions:
-        raise RuntimeError("S35 exact question overlap with exposed S35 rows")
+        raise RuntimeError("S35 exact question overlap with exposed S34 rows")
 
     a0=s35_a0_cases()
     a0_states={x for r in a0 for x in (r.state_a,r.state_b)}
