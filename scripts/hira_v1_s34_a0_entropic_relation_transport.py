@@ -144,7 +144,7 @@ def _modules():
         option_relevance_temperature=0.10,
         kernel_temperature=0.10,
         logit_temperature=0.10,
-        sinkhorn_iterations=8,
+        sinkhorn_iterations=12,
         epsilon=1e-12,
     )
     return control,treatment
@@ -433,7 +433,7 @@ def main():
         "option_relevance_temperature":0.10,
         "kernel_temperature":0.10,
         "logit_temperature":0.10,
-        "sinkhorn_iterations":8,
+        "sinkhorn_iterations":12,
         "epsilon":1e-12,
         "operator_added_parameter_count":operator.parameter_count,
         "physical_trainable_parameter_count":physical,
