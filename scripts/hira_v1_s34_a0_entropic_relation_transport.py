@@ -191,8 +191,8 @@ def _controlled_transport_court():
     qb=torch.tensor([[[0.,1.,0.,0.]]])
     qm=torch.tensor([[True]])
     options=torch.tensor([[
-        [[[1.,0.,0.,0.],[0.,0.,1.,0.]]],
-        [[[0.,1.,0.,0.],[0.,0.,0.,1.]]],
+        [[ [1.,0.,0.,0.],[0.,0.,1.,0.] ]],
+        [[ [0.,1.,0.,0.],[0.,0.,0.,1.] ]],
     ]])
     otm=torch.ones(1,2,1,2,dtype=torch.bool)
     ovm=torch.ones(1,2,1,dtype=torch.bool)
