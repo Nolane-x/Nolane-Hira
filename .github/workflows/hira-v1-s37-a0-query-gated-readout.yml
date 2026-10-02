@@ -1,0 +1,126 @@
+name: hira-v1-s37-a0-query-gated-readout
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s37-query-gated-readout
+    paths:
+      - "research/HIRA-V1-S37-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install S37 source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile S37 stack
+        run: |
+          python -m py_compile src/nmd/v1_query_gated_signature_readout.py scripts/hira_v1_s37_a0_query_gated_readout.py
+      - name: Run S37 and inherited contracts
+        run: |
+          pytest -q tests/test_v1_query_gated_signature_readout.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
+
+  a0:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install exact S37 source and HF runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+      - name: Verify frozen M4 runtime
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+      - name: Run fresh S37-A0 query-gated readout court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          python scripts/hira_v1_s37_a0_query_gated_readout.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s37-a0
+      - name: Verify S37-A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s37-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s37-a0-query-gated-signature-readout-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S37_A0_QUERY_GATED_READOUT_READY"
+          assert r["scientific_authority"]=="S37_A0_QUERY_GATED_NATIVE_SIGNATURE_READOUT_ONLY"
+          assert r["semantic_case_count"]==16
+          assert r["state_view_count"]==32
+          assert r["k"]==4
+          assert r["views_per_option"]==2
+          assert r["native_dimension"]==256
+          assert r["residual_scale"]==1.0
+          assert r["query_norm_epsilon"]==1e-12
+          assert r["operator_added_parameter_count"]==256
+          assert r["control_trainable_parameter_count"]==49152
+          assert r["treatment_trainable_parameter_count"]==49408
+          assert r["lora_parameter_count"]==16384
+          assert r["projection_parameter_count"]==32768
+          assert r["runtime_trainable_parameter_count"]==0
+          assert r["original_a13_trainable_parameter_count"]==0
+          assert r["hira_core_trainable_parameter_count"]==0
+          assert r["zero_init_relation_logit_max_abs"]==0.0
+          assert r["zero_init_signature_max_abs"]==0.0
+          assert r["zero_init_primary_logit_max_abs"]==0.0
+          assert r["zero_init_fused_logit_max_abs"]==0.0
+          assert r["zero_init_selected_choice_identity_rate"]==1.0
+          assert r["readout_relation_gradient_l1"]>0.0
+          assert r["readout_primary_gradient_l1"]==0.0
+          assert r["relation_to_projection_gradient_l1"]==0.0
+          assert r["primary_to_projection_gradient_l1"]>0.0
+          assert r["relation_to_lora_gradient_l1"]>0.0
+          assert r["query_intervention_residual_max_abs"]>1e-6
+          assert r["question_token_permutation_logit_error"]<=2e-6
+          assert r["question_token_permutation_signature_error"]<=2e-6
+          assert r["masked_query_padding_logit_error"]<=2e-6
+          assert r["masked_query_padding_signature_error"]<=2e-6
+          assert r["logical_option_permutation_logit_error"]<=2e-6
+          assert r["logical_option_permutation_signature_error"]<=2e-6
+          assert set(r["arbitrary_k_shapes"])=={"3","7"}
+          assert r["native_projection_perturbation_logit_max_abs"]==0.0
+          assert r["native_projection_perturbation_signature_max_abs"]==0.0
+          assert r["primary_projection_perturbation_logit_max_abs"]>1e-6
+          assert r["checkpoint_key_count"]==1
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["native_probability_mass_error"]<=1e-6
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+      - name: Freeze S37-A0 integrity
+        run: |
+          (cd artifacts/s37-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s37-a0-query-gated-readout
+          path: artifacts/s37-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
