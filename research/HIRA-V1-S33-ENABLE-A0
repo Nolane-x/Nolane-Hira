@@ -1,0 +1,72 @@
+# HIRA V1 S33 — enable one A0 query-explicit authority
+
+Issue: #249
+PR: #250
+
+## Frozen hypothesis
+
+S33 changes only the final relation representation/inference relative to the S17/S13 control.
+
+Control:
+- exact S13 CrossViewRelationCanonicalizer
+- exact S17 training/fusion/optimizer shell
+
+Treatment:
+- retain exact S13 base relation logits/signature block
+- explicit pooled projected question anchor
+- query-option delta block
+- treatment signature width **256 = 128 base + 128 query-option**
+- treatment logits:
+  `0.50 * base_S13_logits + 0.50 * query_option_logits`
+- zero added learned parameters/state
+
+Shared trainable surface remains:
+- final attention LoRA **16,384**
+- projection **32,768**
+- exact total **49,152**
+- original A13 frozen
+- HIRACore frozen
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S33-CONTRACT.md`
+- `research/HIRA-V1-S33-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_query_explicit_relation.py`
+- `src/nmd/v1_s33_authority.py`
+- `src/nmd/v1_s33_checkpoint.py`
+- `scripts/hira_v1_s33_a0_query_explicit_relation.py`
+- `scripts/hira_v1_s33_train_dev.py`
+- `.github/workflows/hira-v1-s33-a0-query-explicit-relation.yml`
+
+Exact staged head:
+`3bcf0eafb0ee6f4b52df1e6efb5505ff62257148`
+
+Exact-head generic CI:
+- run `36988212285`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S33-A0 authority
+
+Required court:
+- exact inherited S13 base-logit identity
+- exact inherited S13 base-signature identity
+- exact masked projected query-anchor formula
+- exact treatment signature width 256
+- treatment added params 0
+- exact physical surface 49,152
+- original A13/HIRACore frozen
+- controlled question intervention changes query anchor / query-option block / query-option logits
+- qA prefers option A and qB prefers option B under controlled geometry
+- option-permutation equivariance
+- finite degenerate geometry
+- real LoRA-B gradients nonzero
+- real projection gradient nonzero
+- local relation/signature losses finite
+- full-K/state-once/probability-mass/checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement S33-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
