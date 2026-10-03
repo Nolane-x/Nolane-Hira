@@ -212,7 +212,7 @@ jobs:
           assert cf["reference_runtime_state_sha256"]==cf["treatment_runtime_state_sha256"]
           assert isinstance(cf["reference_native_dev_at_treatment_selected_epoch"],dict)
           assert isinstance(cf["delta_treatment_minus_same_epoch_reference"],dict)
-          assert cf["interpretation"]=="private correction representation evaluation effect on an identical native runtime epoch"
+          assert cf["interpretation"]=="cross-view consistent private correction evaluation effect on an identical native runtime epoch"
 
           expected={
               "reference":(49152,0,0,0,0,"reference-native-candidate.pt"),
@@ -235,6 +235,7 @@ jobs:
               assert a["selected_dev"]["full_k"] is True
               assert a["selected_dev"]["fused_option_order_flip_rate"]==0.0
               assert a["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+              assert "relation_cross_view_mean_js" in a["selected_dev"]
               if arm=="treatment":
                   assert a["gates"]["runtime_trajectory_identity"] is True
                   assert a["gates"]["correction_capacity_exact"] is True
@@ -254,6 +255,7 @@ jobs:
                   assert tuple(state["bilinear.weight"].shape)==(256,256)
 
           assert isinstance(r["matched_selected_dev_delta_treatment_minus_reference"],dict)
+          assert "relation_cross_view_mean_js" in r["matched_selected_dev_delta_treatment_minus_reference"]
           assert r["post_dev_tuning_performed"] is False
           assert r["second_dev_run_performed"] is False
           assert r["sealed_confirm_opened"] is False
