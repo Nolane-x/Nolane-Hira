@@ -1,0 +1,135 @@
+name: hira-v1-s44-a0-private-correction-fork
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s44-private-correction-fork
+    paths:
+      - "research/HIRA-V1-S44-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S44 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S44 contracts
+        run: |
+          python -m py_compile src/nmd/v1_private_correction_fork.py scripts/hira_v1_s44_a0_private_correction_fork.py
+          pytest -q tests/test_v1_private_correction_fork.py tests/test_v1_s44_a0_harness.py tests/test_v1_bilinear_signature_readout.py tests/test_v1_native_relation_geometry.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S44 A0 private correction court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s44_a0_private_correction_fork.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s44-a0
+
+      - name: Verify S44 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s44-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s44-a0-private-correction-representation-fork-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S44_A0_PRIVATE_CORRECTION_REPRESENTATION_READY"
+          assert r["scientific_authority"]=="S44_A0_PRIVATE_CORRECTION_REPRESENTATION_ONLY"
+
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["adapter_a_parameter_count"]==32768
+          assert r["adapter_b_parameter_count"]==16384
+          assert r["private_adapter_parameter_count"]==49152
+          assert r["bilinear_parameter_count"]==65536
+          assert r["correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["hidden_dimension"]==64
+          assert r["adapter_seed"]==65044
+          assert r["correction_objective"]=="s39_binding_ce_only"
+          assert r["binding_coefficient"]==0.10
+
+          assert r["zero_init_corrected_relation_max_abs"]==0.0
+          assert r["zero_init_private_residual_max_abs"]==0.0
+          assert r["zero_init_private_signature_max_abs"]<=2e-6
+          assert r["zero_init_fused_logit_max_abs"]==0.0
+          assert r["zero_init_selected_choice_identity_rate"]==1.0
+
+          assert r["zero_init_native_parameter_max_abs"]==0.0
+          assert r["zero_init_native_relation_max_abs"]==0.0
+          assert r["zero_init_native_signature_max_abs"]==0.0
+          assert r["zero_init_native_primary_max_abs"]==0.0
+          assert r["zero_init_correction_native_runtime_gradient_l1"]==0.0
+          assert r["zero_init_correction_reference_runtime_gradient_l1"]==0.0
+          assert r["native_objective_correction_gradient_l1"]==0.0
+          assert r["matched_native_gradient_max_abs"]==0.0
+          assert r["matched_native_one_step_parameter_max_abs"]==0.0
+          assert r["matched_native_one_step_output_max_abs"]==0.0
+
+          warm=r["warm_start"]
+          assert len(warm)==3
+          assert warm[0]["w_gradient_l1"]>0.0
+          assert warm[0]["adapter_a_gradient_l1"]==0.0
+          assert warm[0]["adapter_b_gradient_l1"]==0.0
+          assert warm[1]["w_gradient_l1"]>0.0
+          assert warm[1]["adapter_b_gradient_l1"]>0.0
+          assert warm[2]["w_gradient_l1"]>0.0
+          assert warm[2]["adapter_b_gradient_l1"]>0.0
+          assert warm[2]["adapter_a_gradient_l1"]>0.0
+
+          assert r["warm_correction_native_runtime_gradient_l1"]==0.0
+          assert r["warm_correction_lora_gradient_l1"]==0.0
+          assert r["warm_correction_projection_gradient_l1"]==0.0
+          assert r["private_vs_w_only_residual_max_abs"]>1e-7
+
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["logical_option_permutation_max_abs_error"]<=2e-6
+          assert r["question_permutation_max_abs_error"]<=2e-6
+          assert r["masked_padding_max_abs_error"]<=2e-6
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["full_k"] is True
+          assert r["native_probability_mass_error"]<=1e-6
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S44 A0 integrity
+        run: |
+          (cd artifacts/s44-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s44-a0-private-correction-fork
+          path: artifacts/s44-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

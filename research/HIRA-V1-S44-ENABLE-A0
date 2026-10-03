@@ -1,0 +1,61 @@
+# HIRA V1 S44 — one-shot A0 diagnostic authorization
+
+Status: **AUTHORIZED ONCE**
+
+Issue: #271
+PR: #272
+
+## Frozen scientific contract
+
+- `research/HIRA-V1-S44-CONTRACT.md`
+- `research/HIRA-V1-S44-INTERPRETATION-PLAN.md`
+
+## Frozen implementation before marker
+
+Exact staged head:
+`2c35ce0dd16988985402bced04906a2d33b5b298`
+
+Key files:
+- `src/nmd/v1_private_correction_fork.py`
+- `scripts/hira_v1_s44_a0_private_correction_fork.py`
+- `tests/test_v1_private_correction_fork.py`
+- `tests/test_v1_s44_a0_harness.py`
+- `.github/workflows/hira-v1-s44-a0-private-correction-fork.yml`
+
+Exact staged-head generic CI:
+- run `37119844271`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+A prior generic-CI failure was harness-text-only:
+- workflow used `warm=r["warm_start"]`;
+- test expected a literal direct indexing expression;
+- 1346 other tests passed;
+- no A0 workflow existed/reran from that failure;
+- repaired without changing operator, A0 semantics, data, capacity, or thresholds.
+
+## Authorized A0
+
+Authorize exactly one fresh S44-A0 diagnostic court from this stack.
+
+Frozen:
+- A deterministic seed 65044
+- A 32,768 params
+- B 16,384 params
+- private adapter 49,152
+- W 65,536
+- correction-only 114,688
+- native runtime 49,152
+- treatment total 163,840
+- B zero-init
+- W zero-init
+- GELU hidden width 64
+- exact S39 correction objective
+- BINDING_COEFFICIENT 0.10
+- correction AdamW lr 2e-4 / wd .01 / grad clip 1.0
+- native S35/S17 objective unchanged
+
+A0 semantic outputs are diagnostic only.
+No TRAIN/DEV is authorized by this marker.
+No replacement A0 after a qualified receipt.

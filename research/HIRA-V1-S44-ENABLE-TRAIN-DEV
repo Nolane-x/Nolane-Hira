@@ -1,0 +1,112 @@
+# HIRA V1 S44 — one-shot fresh matched TRAIN/DEV authorization
+
+Status: **RE-ARMED ONCE AFTER PRE-DEV MECHANICAL ABORT**
+
+Issue: #271
+PR: #272
+
+## Qualified A0
+
+- run `37120084360`
+- artifact `11272917607`
+- digest `sha256:90d77927a932c374e5cb2aadc64ce250827e1032c15a1dae36d8e06699f47deb`
+- authority head `9f7602d5c6456b43438d3c2f933d40f4db02bc4f`
+- outcome `HIRA_V1_S44_A0_PRIVATE_CORRECTION_REPRESENTATION_READY`
+- frozen receipt `research/HIRA-V1-S44-A0-RECEIPT.md`
+
+No replacement S44-A0 is authorized.
+
+## First authorization — mechanical abort only
+
+Original authorization head:
+`6810d6aa34c029e7e7eaf7e204f62b52bcc3cbcd`
+
+Run:
+`37122580868`
+
+The run passed:
+- install
+- contracts
+- canonical A0
+- M4 integrity
+
+Step 10 then exited at Python import with:
+`ModuleNotFoundError: nmd.v1_private_correction_representation_fusion`
+
+Exposure audit:
+- epoch lines **0**
+- S44 TRAIN/DEV receipt lines **0**
+- fresh DEV metrics **0**
+- selected DEV epoch **none**
+- artifact **none**
+
+Canonical receipt:
+`research/HIRA-V1-S44-PREDEV-MECHANICAL-ABORT.md`
+
+Therefore the scientific one-DEV budget was not consumed.
+
+## Mechanical repair
+
+Only:
+- restored canonical import `nmd.v1_gradient_isolated_fusion`;
+- added regression guard preventing the nonexistent transformed module.
+
+No architecture, data, objective, optimizer, seed, epoch, batch, selector, gate, or capacity changed.
+
+Repaired exact head:
+`616a7753f5e33317aee4bca59b24caf0e31f9639`
+
+Repaired exact-head CI:
+- run `37122759593`
+- conclusion **SUCCESS**
+- Python 3.10 / 3.12 unit tests + preflight all passed.
+
+## Frozen fresh authority
+
+Unchanged:
+- seed **65001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S44 domains
+- K=4
+- two state views
+- two question wording views
+- two option views
+- 24 epochs
+- batch 16
+
+Native reference/treatment:
+- identical initialization/rows/order;
+- exact S35/S17 native objective;
+- identical native optimizer configuration;
+- epoch-by-epoch native runtime trajectory identity required.
+
+Treatment correction only:
+- detached native signature/query/logits;
+- private GELU A/B + full W;
+- exact S39 binding CE objective;
+- coefficient **0.10**;
+- correction-only AdamW at same lr **2e-4**, weight decay **0.01**;
+- correction grad clip **1.0**;
+- no native-gradient leakage;
+- no second encoder pass.
+
+## Re-authorization
+
+Authorize **exactly one** fresh S44 matched TRAIN/DEV court from the repaired stack.
+
+After any semantic DEV exposure:
+- no hidden-width/activation/init sweep;
+- no bias/gate/layernorm;
+- no residual-scale tuning;
+- no objective/coefficient change;
+- no native-gradient leakage;
+- no second encoder path;
+- no native/private mixing;
+- no W-only scheduler;
+- no seed/LR/epoch/batch retry;
+- no gate weakening;
+- no second DEV.
+
+Interpret only by the frozen S44 A/B/C/D plan.
+No external Laya/Jev evaluation before a separately confirmed DEV_READY candidate.
