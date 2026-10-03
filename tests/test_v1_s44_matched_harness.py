@@ -10,6 +10,8 @@ def test_s44_matched_trainer_compiles_and_binds_private_fork():
     assert "generate_s44_cases" in source
     assert "validate_s44_partitions" in source
     assert "PrivateCorrectionRepresentationFork" in source
+    assert "from nmd.v1_gradient_isolated_fusion import GradientIsolatedFullKEvidenceFusion" in source
+    assert "v1_private_correction_representation_fusion" not in source
     assert "CORRECTION_PARAMETER_COUNT = 114_688" in source
     assert "TREATMENT_TOTAL = HIRA_V1_S17_TOTAL_PARAMETER_COUNT + CORRECTION_PARAMETER_COUNT" in source
     assert "correction_optimizer =" in source
