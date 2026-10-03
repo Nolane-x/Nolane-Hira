@@ -27,7 +27,7 @@ from nmd.v1_s17_semantic_core import (
 import hira_v1_s17_train_dev as s17mod
 import hira_v1_s35_train_dev as s35
 import hira_v1_s38_train_dev as s38
-from hira_v1_s39_a0_full_bilinear_readout import cases as s39_a0_cases
+from hira_v1_s39_a0_gradient_isolated_bilinear import cases as s39_a0_cases
 
 SCHEMA_VERSION = "hira-v1-s39-matched-gradient-isolated-bilinear-train-dev-v1"
 SEED = 60001
@@ -515,29 +515,36 @@ def _train_arm(arm, bundle, manifest, train_rows, dev_rows, out_dir):
     }
 
 
+_DELTA_KEYS = (
+    "fused_canonical_accuracy",
+    "fused_paraphrase_accuracy",
+    "fused_canonical_paired_both_correct_rate",
+    "fused_question_swap_choice_change_rate",
+    "fused_cross_view_selected_choice_agreement",
+    "fused_cross_view_mean_js",
+    "fused_canonical_mean_gold_margin",
+    "fused_paraphrase_mean_gold_margin",
+    "raw_triadic_canonical_accuracy",
+    "raw_triadic_paraphrase_accuracy",
+    "canonical_relation_binding_accuracy",
+    "paraphrase_relation_binding_accuracy",
+    "canonical_relation_binding_mean_gold_margin",
+    "paraphrase_relation_binding_mean_gold_margin",
+    "relation_cross_view_agreement",
+    "mean_same_option_signature_cosine",
+    "mean_signature_same_vs_strongest_wrong_margin",
+)
+
+
+def _metric_delta_values(control_metrics, treatment_metrics):
+    return {
+        key: float(treatment_metrics[key]) - float(control_metrics[key])
+        for key in _DELTA_KEYS
+    }
+
+
 def _metric_deltas(control, treatment):
-    keys = (
-        "fused_canonical_accuracy",
-        "fused_paraphrase_accuracy",
-        "fused_canonical_paired_both_correct_rate",
-        "fused_question_swap_choice_change_rate",
-        "fused_cross_view_selected_choice_agreement",
-        "fused_cross_view_mean_js",
-        "fused_canonical_mean_gold_margin",
-        "fused_paraphrase_mean_gold_margin",
-        "raw_triadic_canonical_accuracy",
-        "raw_triadic_paraphrase_accuracy",
-        "canonical_relation_binding_accuracy",
-        "paraphrase_relation_binding_accuracy",
-        "canonical_relation_binding_mean_gold_margin",
-        "paraphrase_relation_binding_mean_gold_margin",
-        "relation_cross_view_agreement",
-        "mean_same_option_signature_cosine",
-        "mean_signature_same_vs_strongest_wrong_margin",
-    )
-    a = control["selected_dev"]
-    b = treatment["selected_dev"]
-    return {key: float(b[key]) - float(a[key]) for key in keys}
+    return _metric_delta_values(control["selected_dev"], treatment["selected_dev"])
 
 
 def main():
@@ -613,6 +620,19 @@ def main():
         raise RuntimeError("S39 control/treatment native runtime trajectory diverged")
     treatment["gates"]["runtime_trajectory_identity"] = True
     treatment["dev_ready"] = all(treatment["gates"].values())
+
+    treatment_epoch = int(treatment["selected_dev_epoch"])
+    if not 1 <= treatment_epoch <= len(control["history"]):
+        raise RuntimeError("S39 treatment selected epoch outside matched control history")
+    same_epoch_control = dict(control["history"][treatment_epoch - 1]["dev"])
+    same_epoch_control_runtime_hash = control["history"][treatment_epoch - 1]["runtime_state_sha256"]
+    same_epoch_treatment_runtime_hash = treatment["history"][treatment_epoch - 1]["runtime_state_sha256"]
+    if same_epoch_control_runtime_hash != same_epoch_treatment_runtime_hash:
+        raise RuntimeError("S39 same-epoch native runtime fingerprint diverged")
+    same_epoch_delta = _metric_delta_values(
+        same_epoch_control,
+        treatment["selected_dev"],
+    )
 
     if control["dev_ready"] and treatment["dev_ready"]:
         outcome = "HIRA_V1_S39_MATCHED_GRADIENT_ISOLATED_BOTH_DEV_READY"
@@ -702,6 +722,15 @@ def main():
         "control_arm": control,
         "treatment_arm": treatment,
         "matched_selected_dev_delta_treatment_minus_control": _metric_deltas(control, treatment),
+        "same_epoch_counterfactual": {
+            "treatment_selected_epoch": treatment_epoch,
+            "control_runtime_state_sha256": same_epoch_control_runtime_hash,
+            "treatment_runtime_state_sha256": same_epoch_treatment_runtime_hash,
+            "runtime_state_sha256_equal": True,
+            "control_native_dev_at_treatment_selected_epoch": same_epoch_control,
+            "delta_treatment_minus_same_epoch_control": same_epoch_delta,
+            "interpretation": "pure W evaluation effect on an identical native runtime epoch",
+        },
         "post_dev_tuning_performed": False,
         "second_dev_run_performed": False,
         "sealed_confirm_opened": False,
@@ -710,18 +739,15 @@ def main():
     }
 
     (args.out / "result.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "
-",
+        json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     (args.out / "train-manifest.json").write_text(
-        json.dumps([r.to_dict() for r in train_rows], ensure_ascii=False, indent=2, sort_keys=True) + "
-",
+        json.dumps([r.to_dict() for r in train_rows], ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     (args.out / "dev-manifest.json").write_text(
-        json.dumps([r.to_dict() for r in dev_rows], ensure_ascii=False, indent=2, sort_keys=True) + "
-",
+        json.dumps([r.to_dict() for r in dev_rows], ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     print("HIRA_V1_S39_TRAIN_DEV_RECEIPT=" + json.dumps(result, sort_keys=True), flush=True)
