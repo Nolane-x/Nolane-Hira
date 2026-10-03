@@ -14,6 +14,7 @@ from nmd.contracts import LogicalOption
 from nmd.local_runtime import load_hira_v0_m4_bundle, read_runtime_bundle_manifest
 from nmd.v1_a13_lora import iter_a13_lora_modules
 from nmd.v1_gradient_isolated_fusion import GradientIsolatedFullKEvidenceFusion
+from nmd.v1_invariance import symmetric_js_divergence
 from nmd.v1_norm_balanced_gradient import apply_gradient_update, norm_balanced_gradient_update
 from nmd.v1_private_correction_fork import PrivateCorrectionRepresentationFork
 from nmd.v1_s17_authority import S17FusionCase
@@ -177,15 +178,7 @@ def _native_outputs(runtime, rows):
 
 
 def _js_divergence(logits_a, logits_b):
-    pa = F.softmax(logits_a, dim=-1)
-    pb = F.softmax(logits_b, dim=-1)
-    midpoint = 0.5 * (pa + pb)
-    log_pa = torch.log(pa.clamp_min(1e-12))
-    log_pb = torch.log(pb.clamp_min(1e-12))
-    log_mid = torch.log(midpoint.clamp_min(1e-12))
-    kl_a = (pa * (log_pa - log_mid)).sum(dim=-1)
-    kl_b = (pb * (log_pb - log_mid)).sum(dim=-1)
-    js = 0.5 * (kl_a + kl_b).mean()
+    js = symmetric_js_divergence(logits_a, logits_b)
     if not bool(torch.isfinite(js)):
         raise RuntimeError("S45-A0 correction JS became non-finite")
     return js
