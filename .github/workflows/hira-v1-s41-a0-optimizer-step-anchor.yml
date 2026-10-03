@@ -1,0 +1,133 @@
+name: hira-v1-s41-a0-optimizer-step-anchor
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s41-optimizer-step-anchor
+    paths:
+      - "research/HIRA-V1-S41-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S41 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S41 contracts
+        run: |
+          python -m py_compile src/nmd/v1_optimizer_step_anchor.py src/nmd/v1_s41_authority.py scripts/hira_v1_s41_a0_optimizer_step_anchor.py
+          pytest -q tests/test_v1_optimizer_step_anchor.py tests/test_v1_s41_authority.py tests/test_v1_s41_a0_harness.py tests/test_v1_bilinear_signature_readout.py tests/test_v1_native_relation_geometry.py tests/test_v1_reference_anchor_projection.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S41 A0 optimizer-step court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s41_a0_optimizer_step_anchor.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s41-a0
+
+      - name: Verify S41 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s41-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s41-a0-optimizer-step-anchored-coadaptation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S41_A0_OPTIMIZER_STEP_ANCHORED_COADAPTATION_READY"
+          assert r["scientific_authority"]=="S41_A0_OPTIMIZER_STEP_ANCHORED_FULL_BILINEAR_ONLY"
+          assert r["operator_added_parameter_count"]==65536
+          assert r["reference_trainable_parameter_count"]==49152
+          assert r["treatment_trainable_parameter_count"]==114688
+          assert r["anchor_coefficient"] is None
+          assert r["projection_epsilon"]==1e-12
+          assert r["optimizer"]["lr"]==2e-4
+          assert r["optimizer"]["betas"]==[0.9,0.999]
+          assert r["optimizer"]["eps"]==1e-8
+          assert r["optimizer"]["weight_decay"]==0.01
+          assert r["optimizer"]["grad_clip"]==1.0
+          assert r["optimizer"]["foreach"] is False
+          assert r["optimizer"]["fused"] is False
+
+          for key in (
+              "zero_init_relation_logit_max_abs",
+              "zero_init_signature_max_abs",
+              "zero_init_fused_logit_max_abs",
+              "zero_init_reference_treatment_relation_max_abs",
+              "zero_init_reference_treatment_signature_max_abs",
+              "anchor_reference_runtime_gradient_l1",
+              "anchor_w_gradient_l1",
+              "adamw_candidate_parameter_max_abs_error",
+              "adamw_exp_avg_max_abs_error",
+              "adamw_exp_avg_sq_max_abs_error",
+              "adamw_step_counter_max_abs_error",
+              "w_projection_max_abs",
+              "safe_actual_step_identity_max_abs",
+          ):
+              assert r[key]==0.0
+
+          assert r["applied_runtime_delta_max_abs_error"]<=r["applied_runtime_delta_rounding_bound"]
+          assert r["applied_w_delta_max_abs_error"]<=r["applied_w_delta_rounding_bound"]
+          assert r["applied_runtime_anchor_dot"]<=r["applied_runtime_anchor_dot_rounding_bound"]
+
+          assert r["zero_init_selected_choice_identity_rate"]==1.0
+          assert r["synthetic_signature_drift_max_abs"]>1e-7
+          assert r["synthetic_signature_anchor"]>1e-9
+          assert r["anchor_treatment_lora_gradient_l1"]>0.0
+          assert r["joint_correctness_w_gradient_l1"]>0.0
+          assert r["joint_correctness_w_offdiagonal_gradient_l1"]>0.0
+          assert r["joint_correctness_lora_gradient_l1"]>0.0
+          assert r["live_w_candidate_delta_l1"]>0.0
+
+          assert r["conflict_actual_step_projected"] is True
+          assert r["conflict_actual_step_pre_dot"]>0.0
+          assert abs(r["conflict_actual_step_post_dot"])<=2e-6
+          assert r["safe_actual_step_projected"] is False
+          assert r["conflict_adamw_next_step"]==1
+          assert r["synthetic_anchor_after_applied_step"]<=r["synthetic_anchor_before_applied_step"]+2e-7
+
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S41 A0 integrity
+        run: |
+          (cd artifacts/s41-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s41-a0-optimizer-step-anchor
+          path: artifacts/s41-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
