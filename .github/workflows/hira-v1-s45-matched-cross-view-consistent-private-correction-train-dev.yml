@@ -1,0 +1,267 @@
+name: hira-v1-s45-matched-cross-view-consistent-private-correction-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s45-cross-view-consistent-private-correction
+    paths:
+      - "research/HIRA-V1-S45-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s45-a0-cross-view-consistent-private-correction
+          path: inputs/S45A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37128007831
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S45 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S45 contracts
+        run: |
+          python -m py_compile src/nmd/v1_private_correction_fork.py src/nmd/v1_s45_authority.py scripts/hira_v1_s45_a0_private_correction_fork.py scripts/hira_v1_s45_train_dev.py
+          pytest -q tests/test_v1_private_correction_fork.py tests/test_v1_s45_authority.py tests/test_v1_s45_a0_harness.py tests/test_v1_s45_matched_harness.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
+
+      - name: Verify canonical S45-A0 authority
+        run: |
+          (cd inputs/S45A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S45A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s45-a0-cross-view-consistent-private-correction-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S45_A0_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_READY"
+          assert r["scientific_authority"]=="S45_A0_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_ONLY"
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["adapter_a_parameter_count"]==32768
+          assert r["adapter_b_parameter_count"]==16384
+          assert r["private_adapter_parameter_count"]==49152
+          assert r["bilinear_parameter_count"]==65536
+          assert r["correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["hidden_dimension"]==64
+          assert r["adapter_seed"]==65044
+          assert r["correction_objective"]=="s44_binding_ce_plus_cross_view_js"\n          assert r["cross_view_js_coefficient"]==0.25\n          assert r["identical_corrected_logit_js"]<=1e-12\n          assert r["nonidentical_probe_js"]>0.0\n          assert r["js_only_adapter_a_gradient_l1"]>0.0\n          assert r["js_only_adapter_b_gradient_l1"]>0.0\n          assert r["js_only_w_gradient_l1"]>0.0\n          assert r["js_only_native_runtime_gradient_l1"]==0.0
+          assert r["binding_coefficient"]==0.10
+          assert r["zero_init_corrected_relation_max_abs"]==0.0
+          assert r["zero_init_private_residual_max_abs"]==0.0
+          assert r["zero_init_private_signature_max_abs"]<=2e-6
+          assert r["zero_init_fused_logit_max_abs"]==0.0
+          assert r["zero_init_selected_choice_identity_rate"]==1.0
+          for key in (
+              "zero_init_native_parameter_max_abs",
+              "zero_init_native_relation_max_abs",
+              "zero_init_native_signature_max_abs",
+              "zero_init_native_primary_max_abs",
+              "zero_init_correction_native_runtime_gradient_l1",
+              "zero_init_correction_reference_runtime_gradient_l1",
+              "native_objective_correction_gradient_l1",
+              "matched_native_gradient_max_abs",
+              "matched_native_one_step_parameter_max_abs",
+              "matched_native_one_step_output_max_abs",
+              "warm_correction_native_runtime_gradient_l1",
+              "warm_correction_lora_gradient_l1",
+              "warm_correction_projection_gradient_l1",
+          ):
+              assert r[key]==0.0
+          warm=r["warm_start"]
+          assert len(warm)==3
+          assert warm[0]["w_gradient_l1"]>0.0
+          assert warm[0]["adapter_a_gradient_l1"]==0.0
+          assert warm[0]["adapter_b_gradient_l1"]==0.0
+          assert warm[1]["w_gradient_l1"]>0.0
+          assert warm[1]["adapter_b_gradient_l1"]>0.0
+          assert warm[2]["w_gradient_l1"]>0.0
+          assert warm[2]["adapter_b_gradient_l1"]>0.0
+          assert warm[2]["adapter_a_gradient_l1"]>0.0
+          assert r["private_vs_w_only_residual_max_abs"]>1e-7
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh matched S45 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s45_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S45A0/result.json --out artifacts/s45-train-dev
+
+      - name: Verify S45 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s45-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s45-matched-cross-view-consistent-private-correction-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S45_MATCHED_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_DEV_COMPLETE",
+              "HIRA_V1_S45_MATCHED_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_REFERENCE_DEV_READY",
+              "HIRA_V1_S45_MATCHED_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_TREATMENT_DEV_READY",
+              "HIRA_V1_S45_MATCHED_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_BOTH_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S45_FRESH_MATCHED_NATIVE_REFERENCE_VS_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION"
+          assert r["seed"]==66001
+
+          o=r["optimizer"]
+          assert o["epochs"]==24
+          assert o["batch_size_semantic_cases"]==16
+          assert o["lr"]==2e-4
+          assert o["weight_decay"]==0.01
+          assert o["grad_clip"]==1.0
+          assert o["correction_separate_lr"] is False
+
+          loss=r["loss"]
+          assert loss["reference_relation_operator"]=="S35_NativeA13RelationCanonicalizer"
+          assert loss["treatment_relation_operator"]=="S45_CrossViewConsistentPrivateCorrection"
+          assert loss["native_relation_dimension"]==256
+          assert loss["treatment_uses_shared_projection"] is False
+          assert loss["treatment_private_adapter_parameters"]==49152
+          assert loss["treatment_bilinear_parameters"]==65536
+          assert loss["treatment_correction_parameters"]==114688
+          assert loss["treatment_total_trainable_parameters"]==163840
+          assert loss["treatment_query_summary"]=="masked_mean_l2"
+          assert loss["treatment_bilinear_shape"]==[256,256]
+          assert loss["treatment_factorized"] is False
+          assert loss["treatment_query_norm_epsilon"]==1e-12
+          assert loss["treatment_residual_scale"]==1.0
+          assert loss["treatment_bias"] is False
+          assert loss["treatment_nonlinearity"]=="GELU_private_adapter"
+          assert loss["runtime_training_uses_native_relation_only"] is True
+          assert loss["correction_features_detached"] is True
+          assert loss["correction_coefficient"]==0.10
+          assert loss["correction_cross_view_js_coefficient"]==0.25
+          assert loss["runtime_grad_clip"]==1.0
+          assert loss["correction_grad_clip"]==1.0
+          assert loss["correction_optimizer_separate_from_native"] is True
+          assert loss["second_encoder_pass"] is False
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["identical_batch_order_across_arms"] is True
+          assert p["prior_track_exact_rows_used"] is False
+          assert p["s45_a0_rows_used"] is False
+          assert p["m5_final_rows_used"] is False
+          assert p["w29_w34_sealed_rows_used"] is False
+
+          t=r["trajectory_invariant"]
+          assert t["all_epoch_runtime_state_sha256_equal"] is True
+          assert t["epoch_count"]==24
+          assert t["lora_state_max_abs_reference_treatment"]==0.0
+          assert t["projection_state_max_abs_reference_treatment"]==0.0
+          assert t["native_pre_w_logit_max_abs_reference_treatment"]==0.0
+          assert t["native_signature_max_abs_reference_treatment"]==0.0
+          assert r["reference_arm"]["runtime_trajectory_sha256"]==r["treatment_arm"]["runtime_trajectory_sha256"]
+
+          cf=r["same_epoch_counterfactual"]
+          assert 1<=cf["treatment_selected_epoch"]<=24
+          assert cf["runtime_state_sha256_equal"] is True
+          assert cf["reference_runtime_state_sha256"]==cf["treatment_runtime_state_sha256"]
+          assert isinstance(cf["reference_native_dev_at_treatment_selected_epoch"],dict)
+          assert isinstance(cf["delta_treatment_minus_same_epoch_reference"],dict)
+          assert cf["interpretation"]=="private correction representation evaluation effect on an identical native runtime epoch"
+
+          expected={
+              "reference":(49152,0,0,0,0,"reference-native-candidate.pt"),
+              "treatment":(163840,114688,32768,16384,65536,"treatment-private-correction-candidate.pt"),
+          }
+          for arm,(total,corr,a_count,b_count,w_count,filename) in expected.items():
+              a=r[f"{arm}_arm"]
+              assert 1<=a["selected_dev_epoch"]<=24
+              assert len(a["history"])==24
+              ps=a["parameter_surface"]
+              assert ps["total_trainable_parameters"]==total
+              assert ps["lora_trainable_parameters"]==16384
+              assert ps["projection_trainable_parameters"]==32768
+              assert ps["correction_trainable_parameters"]==corr
+              assert ps["adapter_a_trainable_parameters"]==a_count
+              assert ps["adapter_b_trainable_parameters"]==b_count
+              assert ps["bilinear_trainable_parameters"]==w_count
+              assert ps["original_a13_trainable"]==0
+              assert ps["hira_core_trainable"]==0
+              assert a["selected_dev"]["full_k"] is True
+              assert a["selected_dev"]["fused_option_order_flip_rate"]==0.0
+              assert a["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+              if arm=="treatment":
+                  assert a["gates"]["runtime_trajectory_identity"] is True
+                  assert a["gates"]["correction_capacity_exact"] is True
+              path=root/filename
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              assert payload["arm"]==arm
+              assert payload["total_parameter_count"]==total
+              assert payload["correction_parameter_count"]==corr
+              if arm=="reference":
+                  assert payload["correction_state_dict"]=={}
+              else:
+                  state=payload["correction_state_dict"]
+                  assert set(state)=={"adapter.a","adapter.b","bilinear.weight"}
+                  assert tuple(state["adapter.a"].shape)==(64,512)
+                  assert tuple(state["adapter.b"].shape)==(256,64)
+                  assert tuple(state["bilinear.weight"].shape)==(256,256)
+
+          assert isinstance(r["matched_selected_dev_delta_treatment_minus_reference"],dict)
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S45 matched integrity
+        run: |
+          (cd artifacts/s45-train-dev && sha256sum result.json train-manifest.json dev-manifest.json reference-native-candidate.pt treatment-private-correction-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s45-matched-cross-view-consistent-private-correction-train-dev
+          path: artifacts/s45-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
