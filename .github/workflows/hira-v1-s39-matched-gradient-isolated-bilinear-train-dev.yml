@@ -3,7 +3,7 @@ name: hira-v1-s39-matched-gradient-isolated-bilinear-train-dev
 on:
   push:
     branches:
-      - feat/hira-v1-s39-full-bilinear-readout
+      - feat/hira-v1-s39-gradient-isolated-bilinear
     paths:
       - "research/HIRA-V1-S39-ENABLE-TRAIN-DEV"
 
