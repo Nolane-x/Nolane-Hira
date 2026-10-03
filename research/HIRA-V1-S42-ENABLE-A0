@@ -1,0 +1,93 @@
+# HIRA V1 S42 — one-shot A0 authorization
+
+Status: **AUTHORIZED ONCE / DIAGNOSTIC ONLY**
+
+Issue: #267
+PR: #268
+
+## Frozen preregistration
+
+Contract:
+`research/HIRA-V1-S42-CONTRACT.md`
+
+Interpretation:
+`research/HIRA-V1-S42-INTERPRETATION-PLAN.md`
+
+Parent main:
+`8b4d0cc886cf2ee971b0e19cabfc68341d14a21d`
+
+## Frozen A0 implementation
+
+Exact staged head before this marker:
+`b24a6925ce01afb1772c5d1536c177bbe819f42c`
+
+Files:
+- `src/nmd/v1_cross_view_relational_anchor.py`
+- `scripts/hira_v1_s42_a0_cross_view_relational_geometry.py`
+- `tests/test_v1_cross_view_relational_anchor.py`
+- `tests/test_v1_s42_a0_harness.py`
+- `.github/workflows/hira-v1-s42-a0-cross-view-relational-geometry.yml`
+
+Exact staged-head generic CI:
+- run `37105497370`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## A0 authority
+
+Authorize exactly one fresh S42-A0 court.
+
+A0 rows:
+- 16 wholly fresh S42 diagnostic semantic cases
+- domain `s42_a0_only`
+- no S41 DEV rows
+- not model-selection authority
+
+Frozen diagnostic seeds:
+- frozen mechanics seed **63001**
+- optimizer-step live probe seed **63141**
+
+## Frozen mechanism
+
+Anchor:
+`A_rel = mean((G_t - stopgrad(G_r))^2)`
+
+where:
+- `G_t = normalize(S_tc) @ normalize(S_tp)^T`
+- `G_r = normalize(S_rc) @ normalize(S_rp)^T`
+- full KxK matrix
+- epsilon 1e-12
+- no coefficient
+- no diagonal/off-diagonal weighting
+- no margin
+- no learned anchor params
+- no gold labels
+
+Optimizer:
+- exact qualified S41 standard PyTorch AdamW candidate/state engine
+- actual runtime candidate delta projection
+- W candidate delta unchanged
+- float-quantized target application
+- explicit rounding guards
+
+## Required diagnostic proof
+
+Must include:
+- full KxK shape
+- diagonal-only sensitivity
+- off-diagonal-only sensitivity
+- shared option-permutation scalar invariance
+- reference detach
+- W anchor gradient zero
+- treatment LoRA anchor gradient live
+- joint correctness W/off-diagonal-W/LoRA live
+- AdamW candidate/state parity
+- actual-step conflict/safe/W invariants
+- quantized movement guards
+- arbitrary K/invariance/checkpoint/full-K mechanics
+
+A0 semantic accuracy may not tune S42.
+
+No TRAIN/DEV is authorized by this marker.
+No replacement A0 after a qualified receipt.
