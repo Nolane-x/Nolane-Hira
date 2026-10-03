@@ -1,0 +1,104 @@
+# HIRA V1 S38 — enable one fresh matched TRAIN/DEV authority
+
+Issue: #259
+PR: #260
+
+## Canonical S38-A0
+
+- run `37084720616`
+- artifact `11259982918`
+- artifact digest `sha256:d6e6cfc05cdc65ab5486979a4bd69775a41fd6ff4c6debabdc35c0d0d528d03b`
+- authority head `2d0fc9bc26fe3610e9c40bc55dc2986f91a207a2`
+- outcome `HIRA_V1_S38_A0_FULL_BILINEAR_READOUT_READY`
+
+A0 proves:
+- exact zero-init relation/signature/primary/fused identity
+- selected-choice identity **1.0**
+- full bilinear matrix params **65,536**
+- control/treatment surfaces **49,152 / 114,688**
+- relation -> W gradient **0.3336779475**
+- off-diagonal W gradient **0.3323763907**
+- primary -> W gradient **0**
+- native relation -> projection direct gradient **0**
+- primary -> projection gradient nonzero
+- relation -> LoRA gradient nonzero
+- query intervention residual change **0.0210716370**
+- signature intervention residual change **0.0132539095**
+- question-token permutation invariance
+- masked query-padding invariance
+- logical-option permutation equivariance
+- arbitrary K=3/K=7
+- native relation remains projection-independent
+- full-K / probability / checkpoint mechanics PASS
+
+## Frozen staged head
+
+`8118cc5aa4b31d60aa97d4b7a852cfc21f2a63bb`
+
+Exact-head generic CI:
+- run `37085142804`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one fresh matched S38 TRAIN/DEV court
+
+Frozen authority:
+- seed **59001**
+- TRAIN **768**
+- DEV **192**
+- **12 wholly fresh S38 domains**
+- K **4**
+- two state views
+- two question wording views per semantic query
+- two option semantic views
+- epochs **24**
+- batch **16**
+- AdamW lr **2e-4**
+- weight decay **0.01**
+- grad clip **1.0**
+
+Both arms:
+- exact S35 native 256D relation representation
+- exact S17 final-attention LoRA **16,384**
+- shared primary projection **32,768**
+- original A13 frozen
+- HIRACore frozen
+- S14 equal standardized full-K fusion
+- S15 relation-logit detach
+- S17 primary/relation partition
+- S17 relation-priority norm-balanced gradients
+- identical fresh rows and per-epoch batch order
+- independent runtime/optimizer state
+
+Control:
+- exact S35 native relation logits/signatures
+- trainable surface **49,152**
+
+Treatment:
+- same native logits/signatures
+- exact S37 masked-mean + L2-normalized native query summary
+- full shared bilinear matrix `W in R^(256x256)`
+- residual `signature^T W query`
+- W zero initialized
+- no bias / nonlinearity / learned scale / factorization
+- same AdamW LR and weight decay
+- added params **65,536**
+- total trainable surface **114,688**
+
+Freshness:
+- exact S0-S37 exposed rows excluded
+- S38-A0 rows excluded
+- M5 final/confirmatory rows excluded
+- W29-W34 sealed rows excluded
+
+No second S38 DEV run.
+No W regularization/rank/factorization retry.
+No residual-scale/bias/nonlinearity retry.
+No W-only LR/scheduler.
+No projected/native mixing.
+No seed/LR/epoch/batch retry.
+No selector/gate weakening.
+No Laya/Jev benchmark unless a later separately confirmed candidate reaches DEV_READY.
+
+Scientific FAIL or split evidence is valid.
