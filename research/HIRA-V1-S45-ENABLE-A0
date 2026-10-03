@@ -1,0 +1,37 @@
+HIRA V1 S45 A0 ONE-SHOT AUTHORIZATION
+
+Issue: #273
+PR: #274
+Stage: S45 — Cross-View Consistent Private Correction
+
+Frozen staged head:
+f948022f507b8efd5cdb935866ca8bda345bda0e
+
+Exact staged-head generic CI:
+37127704304
+- Python 3.10: PASS
+- Python 3.12: PASS
+- unit tests: PASS
+- preflight: PASS
+
+Authorized:
+- exactly one S45-A0 diagnostic mechanics court
+- fresh S45-A0 semantic rows only
+- no TRAIN/DEV authority
+- no model selection
+- no coefficient selection
+- no post-exposure architecture tuning
+
+Frozen controlled variable:
+L_corr = 0.10 * CE_corr + 0.25 * symmetric_js_divergence(corrected_canonical, corrected_paraphrase)
+
+Architecture/capacity remain exact S44:
+- native 49,152
+- private adapter 49,152
+- W 65,536
+- correction-only 114,688
+- treatment total 163,840
+- one encoder pass
+- private inputs detached from native path
+
+This marker does not authorize S45 TRAIN/DEV.
