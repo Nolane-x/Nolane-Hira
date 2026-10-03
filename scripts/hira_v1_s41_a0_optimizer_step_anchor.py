@@ -352,7 +352,14 @@ def _optimizer_step_probe(bundle, manifest, rows):
         )
 
         standard_params, standard_opt = _standard_adamw_probe(treatment_all, clipped_joint)
+        # Compare the actual AdamW parameter *movement*. Reconstructing
+        # candidate parameters as old + delta can introduce a second float32
+        # rounding even when delta == (standard_candidate - old) exactly.
         candidate_param_error = max(
+            float((d-(q.detach()-p.detach())).abs().max().cpu())
+            for p, d, q in zip(treatment_all, candidate, standard_params)
+        )
+        candidate_reconstruction_error = max(
             float(((p.detach()+d)-q.detach()).abs().max().cpu())
             for p, d, q in zip(treatment_all, candidate, standard_params)
         )
@@ -456,6 +463,7 @@ def _optimizer_step_probe(bundle, manifest, rows):
             "joint_correctness_w_offdiagonal_gradient_l1": w_offdiag,
             "joint_correctness_lora_gradient_l1": lora_joint_l1,
             "adamw_candidate_parameter_max_abs_error": candidate_param_error,
+            "adamw_candidate_reconstruction_max_abs_error": candidate_reconstruction_error,
             "adamw_exp_avg_max_abs_error": exp_avg_error,
             "adamw_exp_avg_sq_max_abs_error": exp_avg_sq_error,
             "adamw_step_counter_max_abs_error": step_error,
