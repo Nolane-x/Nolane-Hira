@@ -1,0 +1,134 @@
+# HIRA V1 S42 — one-shot fresh matched TRAIN/DEV authorization
+
+Status: **AUTHORIZED ONCE**
+
+Issue: #267
+PR: #268
+
+## Qualified A0
+
+- run `37105795175`
+- artifact `11267578716`
+- digest `sha256:d87c03d7ec07c98cdf1922f6fa7eb210559a4929d962243848cf7bac65f12542`
+- authority head `6f12bdef22d09fa205e09dbb10f9f577be5b400d`
+- outcome `HIRA_V1_S42_A0_CROSS_VIEW_RELATIONAL_GEOMETRY_READY`
+- frozen receipt `research/HIRA-V1-S42-A0-RECEIPT.md`
+
+A0 proved:
+- full KxK cross-view signature geometry;
+- diagonal perturbation response;
+- off-diagonal-only perturbation response;
+- shared logical-option permutation invariance;
+- relational anchor -> reference runtime exactly 0;
+- relational anchor -> W exactly 0;
+- relational anchor -> treatment LoRA finite/nonzero;
+- joint correctness -> W/off-diagonal-W/LoRA finite/nonzero;
+- exact AdamW candidate/state parity;
+- actual-step conflict projection;
+- safe-step identity;
+- W candidate delta unchanged;
+- float-applied movement and anchor-dot rounding guards;
+- arbitrary K / invariance / checkpoint / full-K mechanics.
+
+No replacement S42-A0 is authorized.
+
+## Frozen matched implementation
+
+Exact staged head:
+`33b0cef7fdf7c5380ec0e7a1ea39d62d8de5c300`
+
+Frozen files:
+- `scripts/hira_v1_s42_train_dev.py`
+- `.github/workflows/hira-v1-s42-matched-cross-view-relational-geometry-train-dev.yml`
+- `tests/test_v1_s42_matched_harness.py`
+- `src/nmd/v1_s42_authority.py`
+
+Exact staged-head generic CI:
+- run `37106364663`
+- conclusion **SUCCESS**
+- Python 3.10/3.12 + preflight passed
+
+## Frozen fresh authority
+
+- seed **63001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S42 domains
+- K=4
+- two state views
+- two question wording views
+- two option views
+- epochs **24**
+- batch **16**
+
+AdamW:
+- lr **2e-4**
+- betas **(0.9, 0.999)**
+- eps **1e-8**
+- weight decay **0.01**
+- global grad clip **1.0**
+- foreach false
+- fused false
+- exact S41 optimizer-step semantics retained
+
+Reference/treatment:
+- identical semantic rows and batch order;
+- independent runtime/optimizer state;
+- reference exact native S35/S17;
+- treatment exact S38 full bilinear W 256x256 / 65,536 params;
+- treatment total 114,688 trainable params;
+- reference total 49,152.
+
+## Cross-view relational anchor
+
+For matched batch:
+- canonical/paraphrase treatment signatures -> full KxK cross-view cosine-similarity matrix;
+- detached matched-reference signatures -> full KxK reference matrix;
+- scalar anchor is mean squared error between those matrices;
+- no gold labels;
+- no anchor coefficient;
+- no diagonal/off-diagonal weighting;
+- no margin hyperparameter;
+- no learned anchor params.
+
+Actual treatment update:
+1. exact S38 joint raw gradient;
+2. global clip over runtime+W;
+3. exact stateful AdamW candidate delta/state;
+4. relational-anchor gradient on treatment runtime;
+5. project only anchor-increasing actual runtime delta;
+6. W candidate delta unchanged;
+7. float-representable parameter targets;
+8. quantized movement/anchor-dot guards;
+9. persist AdamW state from original clipped raw gradient.
+
+## Freshness
+
+Must exclude:
+- exact S0-S41 exposed rows;
+- exposed S41 matched TRAIN/DEV rows;
+- S42-A0 rows;
+- M5 final/confirmatory rows;
+- W29-W34 sealed rows.
+
+## One-shot rule
+
+Authorize **exactly one** fresh S42 matched TRAIN/DEV scientific court from this stack.
+
+After DEV exposure:
+- no anchor coefficient/slack;
+- no per-signature + relational mixing;
+- no diagonal/off-diagonal weighting;
+- no margin hyperparameter;
+- no optimizer reinterpretation;
+- no partial detach / gradient mixing;
+- no W-only LR/scheduler;
+- no rank/factorization;
+- no residual-scale/bias/nonlinearity retry;
+- no seed/LR/epoch/batch retry;
+- no selector/gate weakening;
+- no second DEV.
+
+Interpret only by the already-frozen S42 A/B/C/D plan.
+
+No external Laya/Jev evaluation from S42 alone unless a separately fresh confirmation later qualifies a DEV_READY candidate.

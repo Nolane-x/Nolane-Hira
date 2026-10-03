@@ -1,0 +1,228 @@
+name: hira-v1-s42-matched-cross-view-relational-geometry-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s42-cross-view-relational-geometry
+    paths:
+      - "research/HIRA-V1-S42-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s42-a0-cross-view-relational-geometry
+          path: inputs/S42A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37105795175
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S42 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S42 contracts
+        run: |
+          python -m py_compile src/nmd/v1_cross_view_relational_anchor.py src/nmd/v1_optimizer_step_anchor.py src/nmd/v1_s42_authority.py scripts/hira_v1_s42_a0_cross_view_relational_geometry.py scripts/hira_v1_s42_train_dev.py
+          pytest -q tests/test_v1_cross_view_relational_anchor.py tests/test_v1_optimizer_step_anchor.py tests/test_v1_s42_authority.py tests/test_v1_s42_a0_harness.py tests/test_v1_s42_matched_harness.py tests/test_v1_bilinear_signature_readout.py tests/test_v1_native_relation_geometry.py tests/test_v1_reference_anchor_projection.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S42-A0 authority
+        run: |
+          (cd inputs/S42A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S42A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s42-a0-cross-view-relational-geometry-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S42_A0_CROSS_VIEW_RELATIONAL_GEOMETRY_READY"
+          assert r["scientific_authority"]=="S42_A0_CROSS_VIEW_RELATIONAL_GEOMETRY_FULL_BILINEAR_ONLY"
+          assert r["operator_added_parameter_count"]==65536
+          assert r["reference_trainable_parameter_count"]==49152
+          assert r["treatment_trainable_parameter_count"]==114688
+          assert r["anchor"]=="full_cross_view_k_by_k_signature_similarity_mse_to_detached_matched_reference"
+          assert r["anchor_coefficient"] is None
+          assert r["projection_epsilon"]==1e-12
+          assert r["relational_geometry_shape"]==[3,4,4]
+          assert r["relational_diagonal_only_perturbation_loss"]>0.0
+          assert r["relational_offdiagonal_only_perturbation_loss"]>0.0
+          assert r["relational_shared_option_permutation_error"]<=1e-7
+          o=r["optimizer"]
+          assert o["name"]=="AdamW"
+          assert o["lr"]==2e-4
+          assert o["betas"]==[0.9,0.999]
+          assert o["eps"]==1e-8
+          assert o["weight_decay"]==0.01
+          assert o["grad_clip"]==1.0
+          assert o["foreach"] is False
+          assert o["fused"] is False
+          for key in (
+              "zero_init_relation_logit_max_abs",
+              "zero_init_signature_max_abs",
+              "zero_init_fused_logit_max_abs",
+              "zero_init_reference_treatment_relation_max_abs",
+              "zero_init_reference_treatment_signature_max_abs",
+              "anchor_reference_runtime_gradient_l1",
+              "anchor_w_gradient_l1",
+              "adamw_candidate_parameter_max_abs_error",
+              "adamw_exp_avg_max_abs_error",
+              "adamw_exp_avg_sq_max_abs_error",
+              "adamw_step_counter_max_abs_error",
+              "w_projection_max_abs",
+              "safe_actual_step_identity_max_abs",
+          ):
+              assert r[key]==0.0
+          assert r["anchor_treatment_lora_gradient_l1"]>0.0
+          assert r["joint_correctness_w_gradient_l1"]>0.0
+          assert r["joint_correctness_w_offdiagonal_gradient_l1"]>0.0
+          assert r["joint_correctness_lora_gradient_l1"]>0.0
+          assert r["live_w_candidate_delta_l1"]>0.0
+          assert r["conflict_actual_step_projected"] is True
+          assert r["conflict_actual_step_pre_dot"]>0.0
+          assert abs(r["conflict_actual_step_post_dot"])<=2e-6
+          assert r["safe_actual_step_projected"] is False
+          assert r["applied_runtime_delta_max_abs_error"]<=r["applied_runtime_delta_rounding_bound"]
+          assert r["applied_w_delta_max_abs_error"]<=r["applied_w_delta_rounding_bound"]
+          assert r["applied_runtime_anchor_dot"]<=r["applied_runtime_anchor_dot_rounding_bound"]
+          assert r["checkpoint_roundtrip_exact"] is True
+          assert r["full_k"] is True
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh matched S42 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s42_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S42A0/result.json --out artifacts/s42-train-dev
+
+      - name: Verify S42 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s42-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s42-matched-cross-view-relational-geometry-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S42_MATCHED_CROSS_VIEW_RELATIONAL_GEOMETRY_DEV_COMPLETE",
+              "HIRA_V1_S42_MATCHED_CROSS_VIEW_RELATIONAL_GEOMETRY_REFERENCE_DEV_READY",
+              "HIRA_V1_S42_MATCHED_CROSS_VIEW_RELATIONAL_GEOMETRY_TREATMENT_DEV_READY",
+              "HIRA_V1_S42_MATCHED_CROSS_VIEW_RELATIONAL_GEOMETRY_BOTH_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S42_FRESH_MATCHED_NATIVE_REFERENCE_VS_CROSS_VIEW_RELATIONAL_GEOMETRY_FULL_BILINEAR"
+          assert r["seed"]==63001
+
+          o=r["optimizer"]
+          assert o["epochs"]==24
+          assert o["batch_size_semantic_cases"]==16
+          assert o["lr"]==2e-4
+          assert o["betas"]==[0.9,0.999]
+          assert o["eps"]==1e-8
+          assert o["weight_decay"]==0.01
+          assert o["grad_clip"]==1.0
+          assert o["foreach"] is False
+          assert o["fused"] is False
+          assert o["w_separate_lr"] is False
+
+          a=r["anchor"]
+          assert a["kind"]=="full_cross_view_k_by_k_signature_similarity_mse_to_detached_matched_reference"
+          assert a["coefficient"] is None
+          assert a["projection_epsilon"]==1e-12
+          assert a["projection_space"]=="actual_stateful_adamw_runtime_parameter_delta"
+          assert a["w_gradient_projected"] is False
+          assert a["reference_gradient_detached"] is True
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["identical_batch_order_across_arms"] is True
+          assert p["prior_track_exact_rows_used"] is False
+          assert p["s42_a0_rows_used"] is False
+
+          expected={
+              "reference":(49152,0,"reference-native-candidate.pt"),
+              "treatment":(114688,65536,"treatment-relational-geometry-candidate.pt"),
+          }
+          for arm,(total,readout_count,filename) in expected.items():
+              x=r[f"{arm}_arm"]
+              assert 1<=x["selected_dev_epoch"]<=24
+              assert len(x["history"])==24
+              assert x["parameter_surface"]["total_trainable_parameters"]==total
+              assert x["parameter_surface"]["lora_trainable_parameters"]==16384
+              assert x["parameter_surface"]["projection_trainable_parameters"]==32768
+              assert x["parameter_surface"]["readout_trainable_parameters"]==readout_count
+              assert x["selected_dev"]["full_k"] is True
+              assert x["selected_dev"]["fused_option_order_flip_rate"]==0.0
+              assert x["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+              path=root/filename
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              assert payload["arm"]==arm
+              assert payload["total_parameter_count"]==total
+              assert payload["readout_parameter_count"]==readout_count
+
+          assert isinstance(r["matched_selected_dev_delta_treatment_minus_reference"],dict)
+          d=r["anchor_diagnostics"]
+          assert 0.0<=d["mean_conflict_rate"]<=1.0
+          assert d["mean_anchor"]>=0.0
+          assert d["mean_applied_anchor_dot"]<=d["mean_applied_anchor_rounding_bound"]
+          assert 0.0<=d["max_runtime_rounding_ratio"]<=1.0
+          assert 0.0<=d["max_w_rounding_ratio"]<=1.0
+          assert d["selected_epoch_w_norm"]>0.0
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["multilingual_probe_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S42 matched integrity
+        run: |
+          (cd artifacts/s42-train-dev && sha256sum result.json train-manifest.json dev-manifest.json reference-native-candidate.pt treatment-relational-geometry-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s42-matched-cross-view-relational-geometry-train-dev
+          path: artifacts/s42-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
