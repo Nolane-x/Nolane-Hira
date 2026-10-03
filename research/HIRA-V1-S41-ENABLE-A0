@@ -1,0 +1,81 @@
+# HIRA V1 S41 — enable one optimizer-step A0 authority
+
+Issue: #265
+PR: #266
+
+## Frozen preregistration
+
+Contract:
+`research/HIRA-V1-S41-CONTRACT.md`
+
+Interpretation:
+`research/HIRA-V1-S41-INTERPRETATION-PLAN.md`
+
+## Exact staged authority
+
+Staged head:
+`671cb49c42b7dd3bd4e20d50a028cd25ced0f9cf`
+
+Exact-head generic CI:
+- run `37098566653`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+The staged stack includes:
+- `src/nmd/v1_optimizer_step_anchor.py`
+- `src/nmd/v1_s41_authority.py`
+- `scripts/hira_v1_s41_a0_optimizer_step_anchor.py`
+- `.github/workflows/hira-v1-s41-a0-optimizer-step-anchor.yml`
+- optimizer-step parity tests
+- fresh-authority tests
+- A0 harness tests
+
+## Authorize exactly one S41-A0 court
+
+Scientific authority:
+`S41_A0_OPTIMIZER_STEP_ANCHORED_FULL_BILINEAR_ONLY`
+
+Frozen optimizer:
+- AdamW
+- lr **2e-4**
+- betas **(0.9, 0.999)**
+- eps **1e-8**
+- weight decay **0.01**
+- foreach **false**
+- fused **false**
+- grad clip **1.0**
+
+Frozen capacity:
+- reference runtime trainable **49,152**
+- treatment runtime **49,152**
+- full bilinear W **65,536**
+- treatment total **114,688**
+
+A0 must prove:
+- zero-init identity
+- matched reference detach
+- live correctness gradients into LoRA/W
+- candidate AdamW parameter/state parity with PyTorch
+- actual candidate step includes weight decay/stateful transform
+- anchor-increasing actual runtime delta is projected to post-dot approximately zero
+- anchor-safe actual delta is exact identity
+- W candidate delta remains unchanged
+- applied parameter movement equals projected candidate delta
+- optimizer-faithful projected step does not increase anchor
+- arbitrary-K/invariance/projection/checkpoint/full-K mechanics
+
+A0 semantics are diagnostic only and MUST NOT tune:
+- optimizer semantics
+- anchor target
+- projection equation/epsilon
+- W capacity
+- residual scale
+- selector/gates
+- future TRAIN/DEV seed/LR/epochs/batch
+
+Authorize one A0 run only.
+
+No TRAIN/DEV.
+No external Laya/Jev evaluation.
+No production-ready claim.
