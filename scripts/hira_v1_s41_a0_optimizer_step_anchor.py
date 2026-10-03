@@ -215,6 +215,20 @@ def _clip_gradient_list(params, grads):
     return clipped
 
 
+def _ulp_radius(x):
+    pos = torch.full_like(x, float("inf"))
+    neg = torch.full_like(x, float("-inf"))
+    up = torch.nextafter(x, pos)
+    down = torch.nextafter(x, neg)
+    return torch.maximum((up-x).abs(), (x-down).abs())
+
+
+def _movement_rounding_bound(old, intended, actual):
+    target = old + intended
+    # One rounded target addition plus one rounded movement subtraction.
+    return float((_ulp_radius(target)+_ulp_radius(actual)).max().cpu())
+
+
 def _standard_adamw_probe(params, grads):
     probe = [torch.nn.Parameter(p.detach().clone()) for p in params]
     opt = torch.optim.AdamW(
@@ -425,13 +439,41 @@ def _optimizer_step_probe(bundle, manifest, rows):
         apply_parameter_deltas(treatment_runtime, projected_runtime)
         apply_parameter_deltas([readout.bilinear_weight], [conflict_candidate[-1]])
 
+        actual_runtime = [
+            p.detach()-old for p, old in zip(treatment_runtime, before_runtime)
+        ]
+        actual_w = readout.bilinear_weight.detach()-before_w
+        runtime_residual = [
+            actual-d for actual, d in zip(actual_runtime, projected_runtime)
+        ]
+        w_residual = actual_w-conflict_candidate[-1]
+
         runtime_movement_error = max(
-            float(((p.detach()-old)-d).abs().max().cpu())
-            for p, old, d in zip(treatment_runtime, before_runtime, projected_runtime)
+            float(x.abs().max().cpu()) for x in runtime_residual
         )
-        w_movement_error = float(
-            ((readout.bilinear_weight.detach()-before_w)-conflict_candidate[-1]).abs().max().cpu()
+        runtime_rounding_bound = max(
+            _movement_rounding_bound(old, d, actual)
+            for old, d, actual in zip(before_runtime, projected_runtime, actual_runtime)
         )
+        w_movement_error = float(w_residual.abs().max().cpu())
+        w_rounding_bound = _movement_rounding_bound(
+            before_w, conflict_candidate[-1], actual_w
+        )
+
+        actual_anchor_dot_t = anchor_grad[0].new_zeros(())
+        anchor_rounding_dot_bound_t = anchor_grad[0].new_zeros(())
+        for a, actual, intended in zip(anchor_grad, actual_runtime, projected_runtime):
+            actual_anchor_dot_t = actual_anchor_dot_t + torch.sum(a*actual)
+            anchor_rounding_dot_bound_t = (
+                anchor_rounding_dot_bound_t
+                + torch.sum(a.abs()*(actual-intended).abs())
+            )
+        actual_anchor_dot = float(actual_anchor_dot_t.detach().cpu())
+        anchor_rounding_dot_bound = (
+            abs(float(pdiag.post_dot))
+            + float(anchor_rounding_dot_bound_t.detach().cpu())
+        )
+
         anchor_after, *_ = _anchor_pair(treatment, reference, rows)
         anchor_after_value = float(anchor_after.detach().cpu())
 
@@ -440,8 +482,12 @@ def _optimizer_step_probe(bundle, manifest, rows):
                 p.copy_(old)
             readout.bilinear_weight.copy_(before_w)
 
-        if runtime_movement_error != 0.0 or w_movement_error != 0.0:
-            raise RuntimeError("S41-A0 applied movement differs from projected AdamW candidate")
+        if runtime_movement_error > runtime_rounding_bound:
+            raise RuntimeError("S41-A0 runtime movement exceeds float rounding bound")
+        if w_movement_error > w_rounding_bound:
+            raise RuntimeError("S41-A0 W movement exceeds float rounding bound")
+        if actual_anchor_dot > anchor_rounding_dot_bound:
+            raise RuntimeError("S41-A0 quantized runtime movement became anchor-increasing")
         if anchor_after_value > anchor_before + 2e-7:
             raise RuntimeError("S41-A0 optimizer-faithful projected step increased anchor")
 
@@ -477,7 +523,11 @@ def _optimizer_step_probe(bundle, manifest, rows):
             "safe_actual_step_projected": safe_diag.projected,
             "safe_actual_step_identity_max_abs": safe_identity_error,
             "applied_runtime_delta_max_abs_error": runtime_movement_error,
+            "applied_runtime_delta_rounding_bound": runtime_rounding_bound,
             "applied_w_delta_max_abs_error": w_movement_error,
+            "applied_w_delta_rounding_bound": w_rounding_bound,
+            "applied_runtime_anchor_dot": actual_anchor_dot,
+            "applied_runtime_anchor_dot_rounding_bound": anchor_rounding_dot_bound,
             "synthetic_anchor_before_applied_step": anchor_before,
             "synthetic_anchor_after_applied_step": anchor_after_value,
             "conflict_adamw_next_step": conflict_next[0].step,
