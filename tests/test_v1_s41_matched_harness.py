@@ -55,3 +55,5 @@ def test_s41_matched_workflow_is_marker_gated_and_receipt_bound():
     assert 'assert r["seed"]==62001' in source
     assert "V1_S41_FRESH_MATCHED_NATIVE_REFERENCE_VS_OPTIMIZER_STEP_ANCHORED_FULL_BILINEAR" in source
     assert "treatment-optimizer-step-anchored-candidate.pt" in source
+    assert "hira-v1-s41-matched-optimizer-step-anchored-coadaptation-train-dev-v1" in source
+    assert "hira-v1-s41-matched-optimizer-step-anchored-train-dev-v1" not in source
