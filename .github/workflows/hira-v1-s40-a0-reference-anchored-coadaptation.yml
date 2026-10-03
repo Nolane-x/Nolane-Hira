@@ -75,7 +75,8 @@ jobs:
           assert r["zero_init_selected_choice_identity_rate"]==1.0
           assert r["zero_init_reference_treatment_relation_max_abs"]==0.0
           assert r["zero_init_reference_treatment_signature_max_abs"]==0.0
-          assert r["synthetic_signature_anchor"]>0.0
+          assert r["synthetic_signature_drift_max_abs"]>1e-7
+          assert r["synthetic_signature_anchor"]>1e-9
           assert r["anchor_treatment_lora_gradient_l1"]>0.0
           assert r["anchor_reference_runtime_gradient_l1"]==0.0
           assert r["anchor_w_gradient_l1"]==0.0
