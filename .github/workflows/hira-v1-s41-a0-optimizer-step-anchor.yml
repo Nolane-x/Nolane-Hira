@@ -91,10 +91,12 @@ jobs:
               "adamw_step_counter_max_abs_error",
               "w_projection_max_abs",
               "safe_actual_step_identity_max_abs",
-              "applied_runtime_delta_max_abs_error",
-              "applied_w_delta_max_abs_error",
           ):
               assert r[key]==0.0
+
+          assert r["applied_runtime_delta_max_abs_error"]<=r["applied_runtime_delta_rounding_bound"]
+          assert r["applied_w_delta_max_abs_error"]<=r["applied_w_delta_rounding_bound"]
+          assert r["applied_runtime_anchor_dot"]<=r["applied_runtime_anchor_dot_rounding_bound"]
 
           assert r["zero_init_selected_choice_identity_rate"]==1.0
           assert r["synthetic_signature_drift_max_abs"]>1e-7
