@@ -1,10 +1,27 @@
-HIRA V1 S46 one-shot TRAIN/DEV authorization
+HIRA V1 S46 one-shot TRAIN/DEV re-authorization
 
-Authorized final staging head:
-e9eb50514414f49e53eea9a401b64877a87c4981
+Prior attempted run:
+37135134289
+
+Prior authorization commit:
+9bcea5d64ef099d193ed541332529d647a5204e8
+
+Mechanical-abort receipt:
+research/HIRA-V1-S46-MECHANICAL-ABORT-37135134289.md
+
+Exposure audit:
+- TRAIN step was skipped
+- no epoch ran
+- no DEV metric was exposed
+- no selected checkpoint was produced
+- no scientific artifact was uploaded
+- S46 fresh DEV authority remains unconsumed
+
+Re-authorized repaired head:
+e65a0e8d02efe99d88641a24db8e97a9aec07821
 
 Exact-head generic CI:
-37134897361
+37135323627
 
 Required CI result:
 - Python 3.10: PASS (unit tests + preflight)
