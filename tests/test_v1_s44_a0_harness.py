@@ -58,5 +58,6 @@ def test_s44_a0_workflow_is_marker_gated_and_ownership_verified():
     assert 'assert r["correction_parameter_count"]==114688' in source
     assert 'assert r["treatment_total_trainable_parameter_count"]==163840' in source
     assert 'assert r["matched_native_one_step_parameter_max_abs"]==0.0' in source
-    assert 'assert r["warm_start"][2]["adapter_a_gradient_l1"]>0.0' in source
+    assert 'warm=r["warm_start"]' in source
+    assert 'assert warm[2]["adapter_a_gradient_l1"]>0.0' in source
     assert 'assert r["private_vs_w_only_residual_max_abs"]>1e-7' in source
