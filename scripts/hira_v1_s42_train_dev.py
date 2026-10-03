@@ -35,6 +35,7 @@ import hira_v1_s35_train_dev as s35
 import hira_v1_s38_train_dev as s38
 import hira_v1_s39_train_dev as s39
 import hira_v1_s40_train_dev as s40
+import hira_v1_s41_train_dev as s41
 from hira_v1_s42_a0_cross_view_relational_geometry import cases as s42_a0_cases
 
 SCHEMA_VERSION = "hira-v1-s42-matched-cross-view-relational-geometry-train-dev-v1"
