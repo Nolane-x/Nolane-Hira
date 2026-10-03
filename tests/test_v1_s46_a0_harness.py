@@ -55,4 +55,4 @@ def test_s46_a0_workflow_is_marker_gated():
     assert 'assert r["fusion_parameter_count"]==0' in source
     assert 'assert r["arbitrary_k255_pass"] is True' in source
     assert 'assert r["one_extreme_outlier_max_abs_error"]<=3e-6' in source
-    assert 'assert r["ownership"]["js_only_native_runtime_gradient_l1"]==0.0' in source
+    assert 'assert o["js_only_native_runtime_gradient_l1"]==0.0' in source
