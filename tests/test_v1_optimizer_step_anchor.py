@@ -73,11 +73,13 @@ def test_s41_adamw_candidate_matches_pytorch_multistep():
 
 
 def test_s41_adamw_candidate_includes_decoupled_weight_decay():
-    p = torch.nn.Parameter(torch.tensor([2.0, -3.0], dtype=torch.float32))
-    grad = torch.zeros_like(p)
-    states = initialize_adamw_state([p])
-    deltas, _ = adamw_candidate_deltas(
-        [p],
+    custom = torch.nn.Parameter(torch.tensor([2.0, -3.0], dtype=torch.float32))
+    standard = torch.nn.Parameter(custom.detach().clone())
+    grad = torch.zeros_like(custom)
+
+    states = initialize_adamw_state([custom])
+    deltas, next_states = adamw_candidate_deltas(
+        [custom],
         [grad],
         states,
         lr=2e-4,
@@ -85,8 +87,17 @@ def test_s41_adamw_candidate_includes_decoupled_weight_decay():
         eps=1e-8,
         weight_decay=0.01,
     )
-    expected = p.detach() * (-2e-4 * 0.01)
-    assert torch.equal(deltas[0], expected)
+    before = custom.detach().clone()
+    apply_parameter_deltas([custom], deltas)
+
+    opt = _std_optimizer([standard])
+    standard.grad = grad.clone()
+    opt.step()
+
+    assert torch.equal(custom.detach(), standard.detach())
+    assert bool((deltas[0] != 0).any())
+    assert torch.all(deltas[0] * before <= 0)
+    _assert_state_matches(next_states, opt, [standard])
 
 
 def test_s41_actual_step_projection_removes_anchor_increasing_component():
