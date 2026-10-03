@@ -9,11 +9,18 @@ PR: #262
 
 The first S39 TRAIN/DEV authorization marker was committed before the matched workflow branch trigger was corrected.
 
-No S39 matched scientific workflow ran from that authorization.
-No S39 TRAIN/DEV artifact exists.
-No S39 DEV metric, selected epoch, checkpoint, or treatment/control comparison was exposed.
+A later mechanical re-arm created workflow run `37091887607` on head `67ceca865ac67f59bdf4ca5e3cc395d5e064e4f8`.
 
-Therefore these repairs occur **before scientific DEV exposure** and do not constitute a retry or post-DEV tuning.
+That run:
+- completed setup/download/install;
+- failed at **step 7 — Compile and run S39 contracts**;
+- failed specifically in `py_compile` with an unterminated string literal in `scripts/hira_v1_s39_train_dev.py`;
+- skipped canonical A0 verification;
+- skipped M4 integrity;
+- skipped **step 10 — Run one fresh matched S39 TRAIN DEV court**;
+- produced no S39 TRAIN/DEV artifact.
+
+Therefore no S39 DEV row was evaluated, no selected epoch/checkpoint/metric was exposed, and the repair remains **pre-scientific-exposure**. This is a mechanical abort, not a DEV retry or post-DEV tuning.
 
 ## Mechanical defects found
 
