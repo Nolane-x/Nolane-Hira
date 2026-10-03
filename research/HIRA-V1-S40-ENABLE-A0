@@ -60,3 +60,40 @@ Required authority outcome:
 `HIRA_V1_S40_A0_REFERENCE_ANCHORED_PROJECTED_COADAPTATION_READY`
 
 No replacement A0 is authorized after qualified semantic exposure.
+
+
+## Pre-qualified-A0 mechanical re-arm
+
+Prior attempted A0:
+- run `37095497741`
+- head `0ef70c08fadb2c16842d4f5f8388ae266e4987a6`
+- install PASS
+- compile/contracts PASS
+- M4 integrity PASS
+- A0 failed inside synthetic drift discriminator
+- exact failure: `S40-A0 synthetic signature drift failed`
+- no A0 receipt emitted
+- no A0 semantic accuracy calculated
+- receipt verification skipped
+- artifact upload skipped
+
+Mechanical repair:
+- deterministic synthetic perturbation now covers all LoRA-B tensors;
+- fixed synthetic amplitude **0.02**;
+- discriminator requires signature max-abs drift > **1e-7** and anchor > **1e-9**;
+- this synthetic perturbation is A0-only and is never used in TRAIN/DEV.
+
+Repaired pre-rearm head:
+`d5ab4e39d4cca42ce6e303a2519330f8fe076c92`
+
+Exact repaired-head generic CI:
+- run `37095687818`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize one replacement S40-A0 from this repaired stack.
+
+This is not post-result tuning because the prior court emitted no qualified receipt, semantic score, checkpoint, or artifact.
+
+All scientific settings remain exactly frozen.
