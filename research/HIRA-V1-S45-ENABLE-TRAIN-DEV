@@ -1,0 +1,31 @@
+HIRA V1 S45 one-shot TRAIN/DEV authorization
+
+Authorized staging head:
+db346035c2967c387ae370be25bb7d0ad7871f91
+
+Exact-head generic CI:
+37128689437
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S45-A0:
+- run 37128007831
+- artifact 11275950524
+- digest sha256:90ece8fe112a14c44b29e03d217efa372f857b47d1bfa52cd58a208e75ed924e
+- outcome HIRA_V1_S45_A0_CROSS_VIEW_CONSISTENT_PRIVATE_CORRECTION_READY
+
+This marker authorizes exactly one preregistered fresh S45 matched TRAIN/DEV court:
+- seed 66001
+- TRAIN 768
+- DEV 192
+- 12 fresh S45 domains
+- K=4
+- 24 epochs
+- batch 16
+- one DEV only
+
+No retry for scientific weakness.
+No post-DEV coefficient/temperature/divergence/capacity/fusion tuning.
+No second S45 DEV.
