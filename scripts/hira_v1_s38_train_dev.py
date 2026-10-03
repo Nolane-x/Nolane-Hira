@@ -26,7 +26,7 @@ from nmd.v1_s17_semantic_core import (
 import hira_v1_s17_train_dev as s17mod
 import hira_v1_s35_train_dev as s35
 import hira_v1_s37_train_dev as s37
-from hira_v1_s38_a0_query_gated_readout import cases as s38_a0_cases
+from hira_v1_s38_a0_full_bilinear_readout import cases as s38_a0_cases
 
 SCHEMA_VERSION = "hira-v1-s38-matched-full-bilinear-readout-train-dev-v1"
 SEED = 59001
