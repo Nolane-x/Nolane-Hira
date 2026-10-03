@@ -63,3 +63,32 @@ A replacement S41-A0 run is allowed only after:
 - the A0 marker is updated with this mechanical-abort provenance.
 
 A qualified replacement A0 will again be one diagnostic court, not a post-result retry.
+
+
+## Second pre-qualified abort
+
+Replacement A0:
+- run `37100063234`
+- head `90a67a80aff7848a7c1d97fffe2df5aa6b4442b1`
+- compile/contracts PASS
+- M4 integrity PASS
+- failed at A0 AdamW parity guard
+- no receipt/integrity/artifact
+
+The shadow AdamW transition itself was not shown wrong by this failure.
+
+The A0 guard reconstructed candidate parameters as:
+
+`old + (candidate - old)`
+
+and demanded bitwise equality with the standard PyTorch candidate tensor.
+
+That is not a valid bitwise movement-parity test in finite precision: the subtraction and subsequent addition introduce a second rounding operation.
+
+The repaired guard now compares directly:
+
+`custom_delta == (standard_candidate - old)`
+
+and separately reports the reconstruction error as a diagnostic only.
+
+This is a harness correction to measure the preregistered quantity — the actual optimizer parameter delta — and does not change the S41 scientific mechanism.
