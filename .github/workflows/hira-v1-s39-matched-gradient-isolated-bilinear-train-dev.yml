@@ -123,7 +123,7 @@ jobs:
               "HIRA_V1_S39_MATCHED_GRADIENT_ISOLATED_BOTH_DEV_READY",
           }
           assert r["scientific_authority"]=="V1_S39_FRESH_MATCHED_NATIVE_CONTROL_VS_GRADIENT_ISOLATED_BILINEAR"
-          assert r["seed"]==59001
+          assert r["seed"]==60001
           assert r["optimizer"]["epochs"]==24
           assert r["optimizer"]["batch_size_semantic_cases"]==16
           assert r["optimizer"]["lr"]==2e-4
@@ -169,6 +169,14 @@ jobs:
           assert t["native_pre_w_logit_max_abs_control_treatment"]==0.0
           assert t["native_signature_max_abs_control_treatment"]==0.0
           assert r["control_arm"]["runtime_trajectory_sha256"]==r["treatment_arm"]["runtime_trajectory_sha256"]
+
+          cf=r["same_epoch_counterfactual"]
+          assert 1<=cf["treatment_selected_epoch"]<=24
+          assert cf["runtime_state_sha256_equal"] is True
+          assert cf["control_runtime_state_sha256"]==cf["treatment_runtime_state_sha256"]
+          assert isinstance(cf["control_native_dev_at_treatment_selected_epoch"],dict)
+          assert isinstance(cf["delta_treatment_minus_same_epoch_control"],dict)
+          assert cf["interpretation"]=="pure W evaluation effect on an identical native runtime epoch"
 
           expected={"control":(49152,0,"control-native-candidate.pt"),"treatment":(114688,65536,"treatment-readout-candidate.pt")}
           for arm,(total,readout_count,filename) in expected.items():
