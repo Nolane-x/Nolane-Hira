@@ -307,7 +307,7 @@ def _private_mechanics_court():
 def _ownership_warmstart_court(bundle, manifest, rows):
     with torch.inference_mode(False), torch.enable_grad():
         reference = _runtime(bundle=bundle, manifest=manifest, seed=66141, train=True)
-        treatment = _runtime(bundle=bundle, manifest=manifest, seed=65141, train=True)
+        treatment = _runtime(bundle=bundle, manifest=manifest, seed=66141, train=True)
         op = PrivateCorrectionRepresentationFork(train_correction=True)
 
         reference_params = [p for p in reference.parameters() if p.requires_grad]
