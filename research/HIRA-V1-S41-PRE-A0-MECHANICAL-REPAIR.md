@@ -92,3 +92,30 @@ The repaired guard now compares directly:
 and separately reports the reconstruction error as a diagnostic only.
 
 This is a harness correction to measure the preregistered quantity — the actual optimizer parameter delta — and does not change the S41 scientific mechanism.
+
+
+## Third pre-qualified abort — applied movement quantization
+
+Attempted A0:
+- run `37100675331`
+- head `9e8c60b8d283c52e4151d75834ddaf4d9827ebf6`
+- compile/contracts PASS
+- M4 integrity PASS
+- direct AdamW movement/state parity passed far enough to reach the applied-step guard
+- failed at `S41-A0 applied movement differs from projected AdamW candidate`
+- no receipt/integrity/artifact
+
+Cause:
+- projected movement is a floating tensor `delta`;
+- applying it to a float32 parameter quantizes the target `old + delta`;
+- re-observing movement as `new - old` introduces finite-precision residual;
+- demanding bitwise `new-old == delta` is not a valid real-parameter update contract.
+
+Repair:
+- projected update is defined by an explicit quantized target;
+- A0 computes the actual observed movement after application;
+- movement residual must fit a ULP-derived bound from the target/subtraction rounding;
+- actual anchor dot is checked against the maximum dot perturbation implied by that measured rounding residual;
+- the end-to-end anchor value must still not increase beyond the already frozen numerical A0 tolerance.
+
+No data, seed, capacity, optimizer hyperparameter, anchor target, projection equation, or semantic gate changed.
