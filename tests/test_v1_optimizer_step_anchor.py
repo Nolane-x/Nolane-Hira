@@ -141,3 +141,28 @@ def test_s41_w_delta_can_be_kept_bitwise_outside_runtime_projection():
     assert diag.projected is True
     assert torch.equal(w_delta, before)
     assert not torch.equal(out[0], runtime_delta[0])
+
+
+def test_s41_adamw_candidate_delta_parity_is_direct_movement_parity():
+    # Mixed scales expose why old + (candidate-old) is not a valid bitwise
+    # parity test in float32. S41's contract is on the optimizer movement.
+    custom = torch.nn.Parameter(torch.tensor(
+        [1.0e8, -1.0e8, 1.0, -1.0, 1.0e-7, -1.0e-7],
+        dtype=torch.float32,
+    ))
+    standard = torch.nn.Parameter(custom.detach().clone())
+    grad = torch.tensor([0.3, -0.2, 0.7, -0.9, 0.4, -0.5], dtype=torch.float32)
+
+    states = initialize_adamw_state([custom])
+    deltas, next_states = adamw_candidate_deltas(
+        [custom], [grad], states,
+        lr=2e-4, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.01,
+    )
+
+    opt = _std_optimizer([standard])
+    standard.grad = grad.clone()
+    opt.step()
+
+    standard_delta = standard.detach() - custom.detach()
+    assert torch.equal(deltas[0], standard_delta)
+    _assert_state_matches(next_states, opt, [standard])
