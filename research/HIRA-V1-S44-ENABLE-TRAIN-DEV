@@ -1,0 +1,108 @@
+# HIRA V1 S44 — one-shot fresh matched TRAIN/DEV authorization
+
+Status: **AUTHORIZED ONCE**
+
+Issue: #271
+PR: #272
+
+## Qualified A0
+
+- run `37120084360`
+- artifact `11272917607`
+- digest `sha256:90d77927a932c374e5cb2aadc64ce250827e1032c15a1dae36d8e06699f47deb`
+- authority head `9f7602d5c6456b43438d3c2f933d40f4db02bc4f`
+- outcome `HIRA_V1_S44_A0_PRIVATE_CORRECTION_REPRESENTATION_READY`
+- frozen receipt `research/HIRA-V1-S44-A0-RECEIPT.md`
+
+A0 qualified:
+- native reference/treatment zero-init identity;
+- exact native gradient/update/output identity;
+- correction -> native/reference gradients exactly zero;
+- native objective -> A/B/W exactly zero;
+- A/B/W capacities 32,768 / 16,384 / 65,536;
+- correction-only 114,688;
+- treatment total 163,840;
+- deterministic W -> B -> A warm-start liveness;
+- private branch differs from W-only family;
+- arbitrary-K/invariance/checkpoint/full-K/state-once mechanics.
+
+No replacement S44-A0 is authorized.
+
+## Frozen matched implementation
+
+Exact staged head:
+`028c2432e863432433fc94386abecf2e62c6e616`
+
+Frozen files:
+- `scripts/hira_v1_s44_train_dev.py`
+- `.github/workflows/hira-v1-s44-matched-private-correction-fork-train-dev.yml`
+- `tests/test_v1_s44_matched_harness.py`
+- `src/nmd/v1_s44_authority.py`
+- `tests/test_v1_s44_authority.py`
+
+Exact staged-head generic CI:
+- run `37120879389`
+- conclusion **SUCCESS**
+- Python 3.10 / 3.12 + preflight passed.
+
+## Frozen fresh authority
+
+- seed **65001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S44 domains
+- K=4
+- 2 state views
+- 2 question wording views
+- 2 option views
+- 24 epochs
+- batch 16
+
+Native reference/treatment:
+- exact same initialization;
+- exact same semantic rows/order;
+- exact S35/S17 native objective;
+- separate but identically configured AdamW;
+- native runtime trajectory must match at every epoch.
+
+Correction treatment only:
+- detached native signatures/query/native logits;
+- private GELU adapter A/B + full bilinear W;
+- exact S39 binding CE objective;
+- coefficient **0.10**;
+- separate AdamW at same lr **2e-4**, weight decay **0.01**;
+- correction grad clip **1.0**;
+- no gradient to native runtime;
+- no second encoder pass.
+
+## Freshness
+
+Must exclude:
+- exact S0-S43 exposed rows;
+- exposed S43 TRAIN/DEV rows;
+- S44-A0 rows;
+- M5 final/confirmatory rows;
+- W29-W34 sealed rows.
+
+## One-shot rule
+
+Authorize **exactly one** fresh S44 matched TRAIN/DEV scientific court.
+
+After DEV exposure:
+- no hidden-width sweep;
+- no activation/init sweep;
+- no bias/gate/layernorm;
+- no residual-scale tuning;
+- no correction-objective/coefficient change;
+- no native-gradient leakage;
+- no second encoder path;
+- no native/private mixing coefficient;
+- no W-only LR/scheduler;
+- no seed/LR/epoch/batch retry;
+- no gate weakening;
+- no second DEV.
+
+Interpret only by the already-frozen S44 A/B/C/D plan.
+
+If treatment becomes DEV_READY:
+freeze immediately and require a separate wholly fresh confirmation before any external Laya/Jev evaluation.
