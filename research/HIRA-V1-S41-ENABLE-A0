@@ -115,3 +115,39 @@ Authorize exactly one replacement S41-A0 mechanical court from this repaired sta
 
 This replacement remains pre-model-selection diagnostic authority.
 No TRAIN/DEV is authorized by this marker.
+
+
+## Second pre-qualified parity repair and re-arm
+
+Second attempted A0:
+- run `37100063234`
+- head `90a67a80aff7848a7c1d97fffe2df5aa6b4442b1`
+- compile/contracts PASS
+- M4 integrity PASS
+- failed at AdamW parity guard
+- no receipt
+- no integrity freeze
+- no artifact upload
+
+Root cause:
+- A0 reconstructed `old + (candidate-old)` and required bitwise equality with the standard candidate tensor;
+- this is not a valid bitwise movement-parity check under float32 because the subtraction and re-addition introduce an extra rounding.
+
+Repair:
+- compare custom candidate delta directly against `standard_candidate - old`;
+- retain state/moment/step exact parity guards;
+- report candidate reconstruction difference as diagnostic only;
+- add mixed-scale regression test proving direct movement parity.
+
+Exact repaired head before this marker:
+`42da4fc79284805b5123cf5c160998a15d9858bc`
+
+Exact repaired-head generic CI:
+- run `37100273975`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement S41-A0 diagnostic court from this repaired stack.
+
+No TRAIN/DEV is authorized.
