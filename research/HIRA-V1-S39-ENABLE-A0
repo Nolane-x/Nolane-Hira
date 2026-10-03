@@ -1,0 +1,75 @@
+# HIRA V1 S39 — enable one A0 gradient-isolated bilinear authority
+
+Issue: #261
+PR: #262
+
+## Frozen hypothesis
+
+S38 showed full bilinear correctness gain but Case-B transport/fusion regression.
+
+S39 keeps the exact S38 full bilinear capacity:
+- `W in R^(256x256)`
+- added params **65,536**
+- treatment total **114,688**
+- no bias / nonlinearity / factorization / learned scale
+
+The change is hard gradient ownership:
+- treatment runtime trains on exact control native primary/relation losses
+- correction CE consumes detached native logits/signatures/query features
+- correction CE updates W only
+- W excluded from runtime norm-balancing
+- runtime excluded from correction gradients
+- runtime and W clipped separately at **1.0**
+- same AdamW LR/WD
+- no W-only LR/scheduler
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S39-CONTRACT.md`
+- `research/HIRA-V1-S39-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_gradient_isolated_bilinear_readout.py`
+- `src/nmd/v1_s39_authority.py`
+- `tests/test_v1_gradient_isolated_bilinear_readout.py`
+- `tests/test_v1_s39_authority.py`
+- `scripts/hira_v1_s39_a0_gradient_isolated_bilinear.py`
+- `.github/workflows/hira-v1-s39-a0-gradient-isolated-bilinear.yml`
+
+Exact staged head:
+`fd410f3a55654d8494ae82f0b9b96dd2666fb289`
+
+Exact-head generic CI:
+- run `37089388877`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S39-A0 authority
+
+Required:
+- zero-init relation/signature/primary/fused identity
+- selected-choice identity 1.0
+- W params 65,536
+- control/treatment surfaces 49,152 / 114,688
+- correction -> W gradient nonzero
+- correction -> off-diagonal W gradient nonzero
+- correction -> projection gradient 0
+- correction -> LoRA gradient 0
+- correction -> HIRACore gradient 0
+- primary -> W gradient 0
+- native relation -> W gradient 0
+- native relation -> LoRA gradient nonzero
+- primary -> projection gradient nonzero
+- matched runtime gradient max abs **0**
+- matched runtime optimizer update max abs **0**
+- W update > 0
+- query/signature interventions live
+- question permutation / masked-padding invariance
+- option permutation equivariance
+- arbitrary K=3/K=7
+- projection independence
+- checkpoint/probability/full-K mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement S39-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
