@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 from nmd.local_runtime import A13_REVISION, load_hira_v0_m4_bundle, read_runtime_bundle_manifest
 from nmd.v1_a13_lora import a13_lora_state_dict, iter_a13_lora_modules, load_a13_lora_state_dict
-from nmd.v1_private_correction_representation_fusion import GradientIsolatedFullKEvidenceFusion
+from nmd.v1_gradient_isolated_fusion import GradientIsolatedFullKEvidenceFusion
 from nmd.v1_private_correction_fork import PrivateCorrectionRepresentationFork
 from nmd.v1_norm_balanced_gradient import apply_gradient_update, norm_balanced_gradient_update
 from nmd.v1_s43_authority import generate_s43_cases
