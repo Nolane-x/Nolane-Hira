@@ -46,8 +46,8 @@ jobs:
 
       - name: Compile and run S45 contracts
         run: |
-          python -m py_compile src/nmd/v1_private_correction_fork.py src/nmd/v1_s45_authority.py scripts/hira_v1_s45_a0_private_correction_fork.py scripts/hira_v1_s45_train_dev.py
-          pytest -q tests/test_v1_private_correction_fork.py tests/test_v1_s45_authority.py tests/test_v1_s45_a0_harness.py tests/test_v1_s45_matched_harness.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
+          python -m py_compile src/nmd/v1_private_correction_fork.py src/nmd/v1_cross_view_private_correction.py src/nmd/v1_s45_authority.py scripts/hira_v1_s45_a0_cross_view_consistent_private_correction.py scripts/hira_v1_s45_train_dev.py
+          pytest -q tests/test_v1_private_correction_fork.py tests/test_v1_cross_view_private_correction.py tests/test_v1_s45_cross_view_consistency.py tests/test_v1_s45_authority.py tests/test_v1_s45_a0_harness.py tests/test_v1_s45_matched_harness.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
 
       - name: Verify canonical S45-A0 authority
         run: |
@@ -69,7 +69,14 @@ jobs:
           assert r["treatment_total_trainable_parameter_count"]==163840
           assert r["hidden_dimension"]==64
           assert r["adapter_seed"]==65044
-          assert r["correction_objective"]=="s44_binding_ce_plus_cross_view_js"\n          assert r["cross_view_js_coefficient"]==0.25\n          assert r["identical_corrected_logit_js"]<=1e-12\n          assert r["nonidentical_probe_js"]>0.0\n          assert r["js_only_adapter_a_gradient_l1"]>0.0\n          assert r["js_only_adapter_b_gradient_l1"]>0.0\n          assert r["js_only_w_gradient_l1"]>0.0\n          assert r["js_only_native_runtime_gradient_l1"]==0.0
+          assert r["correction_objective"]=="s44_binding_ce_plus_cross_view_js"
+          assert r["cross_view_js_coefficient"]==0.25
+          assert r["identical_corrected_logit_js"]<=1e-12
+          assert r["nonidentical_probe_js"]>0.0
+          assert r["js_only_adapter_a_gradient_l1"]>0.0
+          assert r["js_only_adapter_b_gradient_l1"]>0.0
+          assert r["js_only_w_gradient_l1"]>0.0
+          assert r["js_only_native_runtime_gradient_l1"]==0.0
           assert r["binding_coefficient"]==0.10
           assert r["zero_init_corrected_relation_max_abs"]==0.0
           assert r["zero_init_private_residual_max_abs"]==0.0
