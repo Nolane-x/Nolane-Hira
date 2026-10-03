@@ -1,0 +1,79 @@
+# HIRA V1 S43 — one-shot A0 diagnostic authorization
+
+Status: **AUTHORIZED ONCE / PRE-MODEL-SELECTION**
+
+Issue: #269
+PR: #270
+
+## Frozen mechanism
+
+Contract:
+`research/HIRA-V1-S43-CONTRACT.md`
+
+Interpretation:
+`research/HIRA-V1-S43-INTERPRETATION-PLAN.md`
+
+Anchor:
+`R[b,i,j] = G[b,i,i] - G[b,i,j]`, `j != i`
+
+`A_gap = mean((R_treatment - stopgrad(R_reference))^2)`
+
+No:
+- gold labels
+- strongest-wrong max
+- numeric target margin
+- gap weighting
+- coefficient/slack
+- learned anchor params
+
+Optimizer-step semantics are exact S41/S42:
+- standard PyTorch AdamW candidate/state transition
+- lr 2e-4
+- betas (0.9, 0.999)
+- eps 1e-8
+- weight decay .01
+- grad clip 1.0
+- actual runtime-delta projection
+- W delta unchanged
+- float-target application / rounding guards
+
+## Staged diagnostic stack
+
+Exact pre-marker head:
+`579f6e027f2f96abac44fb8b5f97446636c55022`
+
+Files:
+- `src/nmd/v1_cross_view_relative_gap_anchor.py`
+- `tests/test_v1_cross_view_relative_gap_anchor.py`
+- `scripts/hira_v1_s43_a0_cross_view_relative_gap_geometry.py`
+- `tests/test_v1_s43_a0_harness.py`
+- `.github/workflows/hira-v1-s43-a0-cross-view-relative-gap-geometry.yml`
+- `src/nmd/v1_s43_authority.py`
+- `tests/test_v1_s43_authority.py`
+
+Exact pre-marker generic CI:
+- run `37111900685`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+A0 script earlier also passed generic CI at head:
+`e615538eb0c8b70e1febf8d7d03cd8567a638f96`
+
+## A0 freshness
+
+A0 uses 16 wholly new S43 diagnostic semantic cases:
+- namespace `S43-A0`
+- domain `s43_a0_only`
+- new nouns/fields/values/options
+- no S42-A0 semantic rows
+
+A0 semantic accuracy is diagnostic only and MUST NOT tune S43.
+
+## Authorization
+
+Authorize exactly **one S43-A0 relative-gap mechanical/diagnostic court**.
+
+A qualified receipt must prove the preregistered mechanics before any S43 fresh TRAIN/DEV authorization.
+
+This marker does **not** authorize TRAIN/DEV.
