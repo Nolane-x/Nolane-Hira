@@ -1,4 +1,10 @@
-from scripts.hira_v1_s42_a0_cross_view_relational_geometry import cases as s42_a0_cases
+from pathlib import Path
+import sys
+
+SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+from hira_v1_s42_a0_cross_view_relational_geometry import cases as s42_a0_cases
 from nmd.v1_s41_authority import generate_s41_cases
 from nmd.v1_s42_authority import generate_s42_cases, validate_s42_partitions
 
