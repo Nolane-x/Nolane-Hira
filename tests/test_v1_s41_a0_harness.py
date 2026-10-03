@@ -23,8 +23,9 @@ def test_s41_a0_workflow_is_marker_gated_and_verifies_optimizer_faithfulness():
     assert "feat/hira-v1-s41-optimizer-step-anchor" in source
     assert "research/HIRA-V1-S41-ENABLE-A0" in source
     assert "scripts/hira_v1_s41_a0_optimizer_step_anchor.py" in source
-    assert 'r["adamw_candidate_parameter_max_abs_error"]==0.0' in source
-    assert 'r["adamw_exp_avg_max_abs_error"]==0.0' in source
+    assert '"adamw_candidate_parameter_max_abs_error"' in source
+    assert '"adamw_exp_avg_max_abs_error"' in source
+    assert 'assert r[key]==0.0' in source
     assert 'r["conflict_actual_step_pre_dot"]>0.0' in source
     assert 'r["conflict_actual_step_projected"] is True' in source
     assert 'r["applied_runtime_delta_max_abs_error"]==0.0' in source
