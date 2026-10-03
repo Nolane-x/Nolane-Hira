@@ -106,3 +106,47 @@ No selector/gate weakening.
 No Laya/Jev benchmark unless a separately confirmed DEV_READY candidate later exists.
 
 Scientific FAIL is valid.
+
+
+## Pre-exposure mechanical re-arm authority
+
+Prior attempted workflow:
+- run `37091887607`
+- head `67ceca865ac67f59bdf4ca5e3cc395d5e064e4f8`
+- result: **MECHANICAL ABORT BEFORE DEV**
+- failure step: **7 — Compile and run S39 contracts**
+- cause: trainer syntax/import/verifier harness defects
+- canonical A0 verification: skipped
+- M4 integrity: skipped
+- fresh TRAIN/DEV step 10: **skipped**
+- artifact upload: skipped
+- S39 DEV metrics exposed: **none**
+
+Repairs are frozen in:
+- `scripts/hira_v1_s39_train_dev.py`
+- `.github/workflows/hira-v1-s39-matched-gradient-isolated-bilinear-train-dev.yml`
+- `tests/test_v1_s39_matched_harness.py`
+- `research/HIRA-V1-S39-PRE-DEV-HARNESS-REPAIR.md`
+
+Exact repaired pre-rearm head:
+`b3d78d03be62e629187280e522ca696e02041c8b`
+
+Exact repaired-head generic CI:
+- run `37092044550`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+- matched harness regression PASS
+
+Additional pre-DEV reporting clarification:
+- independent frozen selectors remain unchanged;
+- treatment-selected epoch additionally receives a same-epoch native-control counterfactual;
+- runtime fingerprints at that same epoch must match;
+- the same-epoch delta is the pure W evaluation effect.
+
+Authorize **one** fresh S39 matched scientific court from this repaired stack.
+
+This is not a second DEV:
+the prior attempted workflow never entered step 10 and exposed no DEV result.
+
+All original S39 stop rules and frozen scientific settings remain unchanged.
