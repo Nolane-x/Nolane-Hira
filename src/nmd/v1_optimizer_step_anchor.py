@@ -205,7 +205,10 @@ def apply_parameter_deltas(params: Sequence[Tensor], deltas: Sequence[Tensor]) -
     _validate_pair(params, deltas, label="parameter/delta")
     with torch.no_grad():
         for param, delta in zip(params, deltas):
-            param.add_(delta)
+            # Define the applied projected step by its quantized parameter
+            # target. This makes finite-precision movement semantics explicit.
+            target = param.detach() + delta
+            param.copy_(target)
 
 
 __all__ = [
