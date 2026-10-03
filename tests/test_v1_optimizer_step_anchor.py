@@ -166,3 +166,14 @@ def test_s41_adamw_candidate_delta_parity_is_direct_movement_parity():
     standard_delta = standard.detach() - custom.detach()
     assert torch.equal(deltas[0], standard_delta)
     _assert_state_matches(next_states, opt, [standard])
+
+
+def test_s41_apply_parameter_deltas_uses_explicit_quantized_target():
+    param = torch.nn.Parameter(torch.tensor(
+        [1.0e8, 1.0, 1.0e-7], dtype=torch.float32
+    ))
+    delta = torch.tensor([-3.0, 2.0e-4, -3.0e-8], dtype=torch.float32)
+    before = param.detach().clone()
+    expected = before + delta
+    apply_parameter_deltas([param], [delta])
+    assert torch.equal(param.detach(), expected)
