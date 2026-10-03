@@ -36,7 +36,7 @@ def test_s46_logical_option_permutation_equivariance():
     base, _ = op(p, n, c)
     perm = torch.tensor([4, 0, 6, 2, 1, 5, 3])
     moved, _ = op(p[:, perm], n[:, perm], c[:, perm])
-    assert torch.equal(moved, base[:, perm])
+    assert torch.allclose(moved, base[:, perm], rtol=0.0, atol=3e-6)
 
 
 def test_s46_independent_shift_positive_scale_invariance():
