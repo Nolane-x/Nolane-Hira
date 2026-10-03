@@ -1,0 +1,62 @@
+# HIRA V1 S40 — enable one A0 authority
+
+Issue: #263
+PR: #264
+
+## Frozen preregistration
+
+Base main:
+`e197256fdc5dd74fc789cdfdf77ff2f1c7863042`
+
+S40 mechanism:
+- matched native S35/S17 reference runtime
+- exact S38 full bilinear treatment co-adaptation
+- W shape **256x256**
+- W params **65,536**
+- treatment total **114,688**
+- native signature anchor:
+  `mean(1 - cosine(treatment_signature, stopgrad(reference_signature)))`
+- no anchor coefficient
+- parameter-free conflicting-gradient projection
+- W gradient unchanged by anchor projection
+- no partial detach
+- no learned anchor parameters
+
+Frozen contract:
+`research/HIRA-V1-S40-CONTRACT.md`
+
+Frozen interpretation:
+`research/HIRA-V1-S40-INTERPRETATION-PLAN.md`
+
+## Exact staged head
+
+`3b8f56bd89c8cc62bf3084439511d6818344f49e`
+
+Exact-head generic CI:
+- run `37095228813`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S40-A0 court
+
+A0 is mechanics/gradient ownership only.
+
+It may use only the frozen 16-case S40-A0 suite embedded in:
+`scripts/hira_v1_s40_a0_reference_anchored_coadaptation.py`
+
+A0 semantics are diagnostic and MUST NOT tune:
+- anchor definition
+- projection rule
+- projection epsilon
+- W capacity
+- residual scale
+- rank/factorization
+- optimizer
+- selector/gates
+- future seed/LR/epochs/batch
+
+Required authority outcome:
+`HIRA_V1_S40_A0_REFERENCE_ANCHORED_PROJECTED_COADAPTATION_READY`
+
+No replacement A0 is authorized after qualified semantic exposure.
