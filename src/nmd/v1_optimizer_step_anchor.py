@@ -84,6 +84,13 @@ def adamw_candidate_deltas(
     eps: float = 1e-8,
     weight_decay: float = 0.01,
 ) -> tuple[list[Tensor], list[AdamWParameterState]]:
+    """Return the exact candidate delta/state of standard PyTorch AdamW.
+
+    S41 constrains the *actual optimizer step*, so this helper deliberately
+    delegates the stateful AdamW transition to torch.optim.AdamW itself on
+    lightweight shadow copies of the trainable tensors. The real treatment
+    parameters are never mutated here.
+    """
     if lr <= 0:
         raise ValueError("S41 AdamW lr must be positive")
     if eps <= 0:
@@ -97,10 +104,25 @@ def adamw_candidate_deltas(
         raise ValueError("S41 AdamW state length mismatch")
     _validate_pair(params, grads, label="parameter/gradient")
 
-    deltas: list[Tensor] = []
-    next_states: list[AdamWParameterState] = []
+    shadow = [
+        torch.nn.Parameter(p.detach().clone(memory_format=torch.preserve_format))
+        for p in params
+    ]
+    optimizer = torch.optim.AdamW(
+        shadow,
+        lr=lr,
+        betas=betas,
+        eps=eps,
+        weight_decay=weight_decay,
+        foreach=False,
+        fused=False,
+        amsgrad=False,
+        maximize=False,
+        capturable=False,
+        differentiable=False,
+    )
 
-    for i, (param, grad, state) in enumerate(zip(params, grads, states)):
+    for i, (probe, grad, state, param) in enumerate(zip(shadow, grads, states, params)):
         if state.step < 0:
             raise ValueError(f"S41 AdamW negative step at {i}")
         if (
@@ -115,40 +137,33 @@ def adamw_candidate_deltas(
         if not bool(torch.isfinite(state.exp_avg).all() and torch.isfinite(state.exp_avg_sq).all()):
             raise ValueError(f"S41 non-finite AdamW state at {i}")
 
-        step = int(state.step) + 1
-        exp_avg = state.exp_avg.detach().clone()
-        exp_avg_sq = state.exp_avg_sq.detach().clone()
+        probe.grad = grad.detach().clone(memory_format=torch.preserve_format)
+        if state.step > 0:
+            optimizer.state[probe] = {
+                "step": torch.tensor(float(state.step), dtype=torch.float32),
+                "exp_avg": state.exp_avg.detach().clone(memory_format=torch.preserve_format),
+                "exp_avg_sq": state.exp_avg_sq.detach().clone(memory_format=torch.preserve_format),
+            }
 
-        # Match PyTorch single-tensor AdamW semantics for a real-valued parameter.
-        exp_avg.lerp_(grad, 1.0 - beta1)
-        exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1.0 - beta2)
+    optimizer.step()
 
-        candidate = param.detach().clone()
-        candidate.mul_(1.0 - lr * weight_decay)
-
-        bias_correction1 = 1.0 - beta1**step
-        bias_correction2 = 1.0 - beta2**step
-        step_size = lr / bias_correction1
-        bias_correction2_sqrt = bias_correction2**0.5
-
-        denom = exp_avg_sq.sqrt().div_(bias_correction2_sqrt).add_(eps)
-        candidate.addcdiv_(exp_avg, denom, value=-step_size)
-
-        delta = candidate - param.detach()
+    deltas: list[Tensor] = []
+    next_states: list[AdamWParameterState] = []
+    for i, (param, probe) in enumerate(zip(params, shadow)):
+        delta = probe.detach() - param.detach()
         if not bool(torch.isfinite(delta).all()):
             raise RuntimeError(f"S41 AdamW candidate delta non-finite at {i}")
-
-        deltas.append(delta)
+        state = optimizer.state[probe]
+        deltas.append(delta.detach().clone(memory_format=torch.preserve_format))
         next_states.append(
             AdamWParameterState(
-                step=step,
-                exp_avg=exp_avg,
-                exp_avg_sq=exp_avg_sq,
+                step=int(state["step"].item()),
+                exp_avg=state["exp_avg"].detach().clone(memory_format=torch.preserve_format),
+                exp_avg_sq=state["exp_avg_sq"].detach().clone(memory_format=torch.preserve_format),
             )
         )
 
     return deltas, next_states
-
 
 def project_adamw_runtime_delta_against_anchor(
     candidate_delta: Sequence[Tensor],
