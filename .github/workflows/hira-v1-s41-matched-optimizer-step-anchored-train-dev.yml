@@ -130,7 +130,7 @@ jobs:
 
           root=Path("artifacts/s41-train-dev")
           r=json.loads((root/"result.json").read_text())
-          assert r["schema_version"]=="hira-v1-s41-matched-optimizer-step-anchored-train-dev-v1"
+          assert r["schema_version"]=="hira-v1-s41-matched-optimizer-step-anchored-coadaptation-train-dev-v1"
           assert r["status"]=="PASS"
           assert r["outcome"] in {
               "HIRA_V1_S41_MATCHED_OPTIMIZER_STEP_ANCHORED_DEV_COMPLETE",
