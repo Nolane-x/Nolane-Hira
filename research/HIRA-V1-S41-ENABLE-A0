@@ -151,3 +151,38 @@ Exact repaired-head generic CI:
 Authorize exactly one replacement S41-A0 diagnostic court from this repaired stack.
 
 No TRAIN/DEV is authorized.
+
+
+## Third pre-qualified applied-step repair and re-arm
+
+Third attempted A0:
+- run `37100675331`
+- head `9e8c60b8d283c52e4151d75834ddaf4d9827ebf6`
+- compile/contracts PASS
+- M4 integrity PASS
+- direct AdamW candidate/state parity advanced past the prior guard
+- failed at applied projected-movement bitwise equality
+- no receipt
+- no integrity freeze
+- no artifact upload
+
+Repair:
+- projected movement is applied through an explicit quantized parameter target;
+- actual observed float movement is measured after application;
+- movement residual must remain within a ULP-derived bound;
+- actual anchor dot must remain within the maximum perturbation implied by the measured rounding residual;
+- end-to-end anchor must still not increase beyond the frozen A0 numerical tolerance;
+- workflow verifier and regression tests enforce these finite-precision semantics.
+
+Exact repaired head before this marker:
+`79cc846a34a03609996cb3432f66f5241fd2a019`
+
+Exact repaired-head generic CI:
+- run `37100993227`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+Authorize exactly one replacement S41-A0 diagnostic court from this repaired stack.
+
+No TRAIN/DEV is authorized.
