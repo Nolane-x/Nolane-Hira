@@ -1,0 +1,152 @@
+# HIRA V1 S39 — enable one fresh matched TRAIN/DEV authority
+
+Issue: #261
+PR: #262
+
+## Canonical S39-A0
+
+- run `37089648986`
+- artifact `11261657743`
+- artifact digest `sha256:afc20e60cabac8de5db33eeee15574207d7e0592547a1787e4980cc0b81f6e20`
+- authority head `6f1eb465cfcefc7bc368218378fc144ea3f6c347`
+- outcome `HIRA_V1_S39_A0_GRADIENT_ISOLATED_BILINEAR_READY`
+
+A0 proves:
+- exact zero-init relation/signature/primary/fused identity
+- selected-choice identity **1.0**
+- W params **65,536**
+- control/treatment surfaces **49,152 / 114,688**
+- correction -> W gradient L1 **0.3294754326**
+- correction -> off-diagonal W gradient L1 **0.3281979561**
+- correction -> LoRA/projection/HIRACore gradients **0**
+- primary/native relation -> W gradients **0**
+- matched runtime gradient max abs **0**
+- matched synthetic runtime update max abs **0**
+- W update max abs **0.0001999941**
+- query/signature interventions live
+- option/question/padding invariances PASS
+- arbitrary K=3/K=7 PASS
+- native projection independence PASS
+- checkpoint/probability/full-K/state-once mechanics PASS
+
+## Harness-only recovery before DEV exposure
+
+The first marker commit did not start a scientific workflow because the staged workflow was bound to the obsolete branch name `feat/hira-v1-s39-full-bilinear-readout`. No S39 TRAIN/DEV job was created and no DEV metric was exposed.
+
+The branch trigger was corrected without changing the S39 scientific design, trainer, data authority, optimizer, selector, gates, or A0 evidence.
+
+## Frozen corrected staged head
+
+`ce122c9ef2a216a09a68ac37c22b6b1709ea9659`
+
+Exact-head generic CI after the harness-only correction:
+- run `37091652578`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one fresh matched S39 TRAIN/DEV court
+
+Frozen authority:
+- seed **60001**
+- TRAIN **768**
+- DEV **192**
+- **12 wholly fresh S39 domains**
+- K **4**
+- two state views
+- two question wording views per semantic query
+- two option semantic views
+- epochs **24**
+- batch **16**
+- AdamW lr **2e-4**
+- weight decay **0.01**
+- runtime grad clip **1.0**
+- W grad clip **1.0**
+- identical fresh rows and per-epoch batch order
+- independent runtime/optimizer state
+
+Control:
+- exact S35/S17 native runtime training
+- trainable surface **49,152**
+
+Treatment evaluation:
+- same native logits/signatures/query summary
+- full shared W `256x256`
+- residual `signature^T W query`
+- added params **65,536**
+- total surface **114,688**
+
+Treatment training:
+- runtime primary/native relation losses numerically identical to control
+- W correction CE uses detached native logits/signatures/query features
+- correction coefficient **0.10**
+- correction gradient updates W only
+- runtime and W clipped separately
+- same AdamW LR/WD
+- no W-only schedule
+
+Strong invariant:
+- runtime trajectory fingerprint must match control at every one of 24 epochs
+- any mismatch invalidates the court
+
+Freshness:
+- exact S0-S38 exposed rows excluded
+- S39-A0 rows excluded
+- M5 final/confirmatory rows excluded
+- W29-W34 sealed rows excluded
+
+No second S39 DEV.
+No partial detach / gradient-mixing coefficient.
+No W-only LR/scheduler.
+No rank/factorization retry.
+No residual-scale/bias/nonlinearity retry.
+No projected/native mixing.
+No seed/LR/epoch/batch retry.
+No selector/gate weakening.
+No Laya/Jev benchmark unless a separately confirmed DEV_READY candidate later exists.
+
+Scientific FAIL is valid.
+
+
+## Pre-exposure mechanical re-arm authority
+
+Prior attempted workflow:
+- run `37091887607`
+- head `67ceca865ac67f59bdf4ca5e3cc395d5e064e4f8`
+- result: **MECHANICAL ABORT BEFORE DEV**
+- failure step: **7 — Compile and run S39 contracts**
+- cause: trainer syntax/import/verifier harness defects
+- canonical A0 verification: skipped
+- M4 integrity: skipped
+- fresh TRAIN/DEV step 10: **skipped**
+- artifact upload: skipped
+- S39 DEV metrics exposed: **none**
+
+Repairs are frozen in:
+- `scripts/hira_v1_s39_train_dev.py`
+- `.github/workflows/hira-v1-s39-matched-gradient-isolated-bilinear-train-dev.yml`
+- `tests/test_v1_s39_matched_harness.py`
+- `research/HIRA-V1-S39-PRE-DEV-HARNESS-REPAIR.md`
+
+Exact repaired pre-rearm head:
+`b3d78d03be62e629187280e522ca696e02041c8b`
+
+Exact repaired-head generic CI:
+- run `37092044550`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+- matched harness regression PASS
+
+Additional pre-DEV reporting clarification:
+- independent frozen selectors remain unchanged;
+- treatment-selected epoch additionally receives a same-epoch native-control counterfactual;
+- runtime fingerprints at that same epoch must match;
+- the same-epoch delta is the pure W evaluation effect.
+
+Authorize **one** fresh S39 matched scientific court from this repaired stack.
+
+This is not a second DEV:
+the prior attempted workflow never entered step 10 and exposed no DEV result.
+
+All original S39 stop rules and frozen scientific settings remain unchanged.
