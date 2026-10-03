@@ -1,0 +1,71 @@
+# HIRA V1 S38 — enable one A0 full bilinear readout authority
+
+Issue: #259
+PR: #260
+
+## Frozen hypothesis
+
+Control:
+- exact S35 native 256D relation logits/signatures.
+
+Treatment:
+- exact native logits/signatures;
+- native query summary = masked arithmetic mean of adapted A13 question tokens;
+- L2 normalization epsilon **1e-12**;
+- one shared full bilinear matrix `W in R^(256x256)`;
+- residual `signature^T W query_summary`;
+- W initialized exactly zero;
+- no bias / nonlinearity / factorization / learned scale;
+- residual scale **1.0**.
+
+Capacity:
+- control trainable surface **49,152**
+- treatment added params **65,536**
+- treatment total **114,688**
+
+## Frozen before A0 exposure
+
+- `research/HIRA-V1-S38-CONTRACT.md`
+- `research/HIRA-V1-S38-INTERPRETATION-PLAN.md`
+- `src/nmd/v1_bilinear_signature_readout.py`
+- `src/nmd/v1_s38_authority.py`
+- `tests/test_v1_bilinear_signature_readout.py`
+- `tests/test_v1_s38_authority.py`
+- `scripts/hira_v1_s38_a0_full_bilinear_readout.py`
+- `.github/workflows/hira-v1-s38-a0-full-bilinear-readout.yml`
+
+Exact staged head:
+`b2171b54fbc8e21b527c9ae6051aa3e858b11d40`
+
+Exact-head generic CI:
+- run `37083752050`
+- Python 3.10 PASS
+- Python 3.12 PASS
+- preflight PASS
+
+## Authorize exactly one S38-A0 authority
+
+Required:
+- exact zero-init relation/signature/primary/fused identity
+- selected-choice identity 1.0
+- bilinear params 65,536
+- control/treatment surfaces 49,152 / 114,688
+- relation -> W gradient nonzero
+- off-diagonal W relation gradient nonzero
+- primary -> W gradient zero
+- native relation -> projection direct gradient zero
+- primary -> projection gradient nonzero
+- relation -> LoRA gradient nonzero
+- query intervention changes residual
+- signature intervention changes residual
+- question-token permutation invariance
+- masked query-padding invariance
+- logical-option permutation equivariance
+- arbitrary K=3/K=7
+- native relation remains projection-independent
+- full-K / probability / checkpoint mechanics PASS
+
+A0 semantic accuracy is diagnostic only.
+
+No replacement S38-A0 is authorized except a strict harness-only abort before qualified semantic evidence.
+Fresh matched TRAIN/DEV remains CLOSED until a qualified A0 receipt is frozen and separately authorized.
