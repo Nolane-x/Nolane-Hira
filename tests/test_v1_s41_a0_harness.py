@@ -29,4 +29,8 @@ def test_s41_a0_workflow_is_marker_gated_and_verifies_optimizer_faithfulness():
     assert 'r["conflict_actual_step_pre_dot"]>0.0' in source
     assert 'r["conflict_actual_step_projected"] is True' in source
     assert '"applied_runtime_delta_max_abs_error"' in source
+    assert '"applied_runtime_delta_rounding_bound"' in source
     assert '"applied_w_delta_max_abs_error"' in source
+    assert '"applied_w_delta_rounding_bound"' in source
+    assert '"applied_runtime_anchor_dot"' in source
+    assert '"applied_runtime_anchor_dot_rounding_bound"' in source
