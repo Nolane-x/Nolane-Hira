@@ -102,22 +102,22 @@ class Case:
 
 def cases():
     return (
-        Case("PF11","quantum polariton recorder","cavity","GaAs microdisk","linewidth","7 ueV","Si ring","28 ueV",77101),
-        Case("PF22","picosecond strain camera","probe","Brillouin comb","resolution","4 pm","fiber grating","16 pm",77102),
-        Case("PF33","spin-orbit current mapper","sensor","Pt/W bilayer","floor","0.06 uA","Cu strip","0.24 uA",77103),
-        Case("PF44","molecular chirality radar","analyzer","microwave triple-resonance","contrast","38 dB","single-tone cell","9.5 dB",77104),
-        Case("PF55","quantum capacitance imager","island","graphene dot","noise","11 aF","metal pad","44 aF",77105),
-        Case("PF66","coherent ion recoil camera","detector","MCP delayline","timing","5 ps","phosphor plate","20 ps",77106),
-        Case("PF77","magnon phase telescope","guide","YIG nanostrip","phase error","0.7 deg","NiFe bar","2.8 deg",77107),
-        Case("PF88","nanomechanical torque array","resonator","diamond paddle","floor","6 yNm","silicon lever","24 yNm",77108),
-        Case("PG11","rydberg pressure mapper","probe","Cs circular state","noise","8 nPa","MEMS diaphragm","32 nPa",77109),
-        Case("PG22","xuv coherence monitor","optic","multilayer interferometer","visibility","0.88","foil pair","0.52",77110),
-        Case("PG33","phononic heat camera","sensor","SiN defect cell","floor","3 aW","bulk quartz","12 aW",77111),
-        Case("PG44","ultracold rotation tile","species","Sr87 lattice","precision","5 nrad/s","Rb85 cloud","20 nrad/s",77112),
-        Case("PG55","plasmonic field microscope","tip","Ag nanogap","gain","57 dB","Au sphere","14 dB",77113),
-        Case("PG66","neutron spin holograph","analyzer","He3 cell","contrast","43 dB","Gd foil","10.75 dB",77114),
-        Case("PG77","quantum acoustic clock","mode","LiNbO3 overtone","jitter","12 fs","AlN bar","48 fs",77115),
-        Case("PG88","attosecond charge router","gate","graphene streaker","spread","4 as","MOS gate","16 as",77116),
+        Case("CV11","quantum Hall velocimeter","channel","graphene edge","drift floor","0.13 mm/s","copper trace","0.52 mm/s",88101),
+        Case("CV22","femtosecond magnetostriction camera","probe","xray nanobeam","strain noise","6 peps","optical fiber","24 peps",88102),
+        Case("CV33","exciton dipole compass","sensor","moire WSe2 pair","angle floor","0.11 deg","silicon diode","0.44 deg",88103),
+        Case("CV44","cryogenic phonon gyroscope","resonator","quartz whispering ring","bias drift","3 nrad/s","MEMS disk","12 nrad/s",88104),
+        Case("CV55","Rydberg microwave holograph","cell","Cs vapor lattice","field noise","9 nV/cm","metal antenna","36 nV/cm",88105),
+        Case("CV66","neutrino recoil chronograph","target","cryogenic Ge array","timing spread","7 ns","plastic scintillator","28 ns",88106),
+        Case("CV77","spin-wave curvature mapper","guide","CoFeB nanoribbon","curvature error","0.08 1/um","Ni wire","0.32 1/um",88107),
+        Case("CV88","Casimir torque microscope","plate","patterned Au rotor","torque floor","5 zNm","polymer vane","20 zNm",88108),
+        Case("CW11","polariton lifetime raster","cavity","perovskite microcavity","lifetime jitter","14 fs","glass etalon","56 fs",88109),
+        Case("CW22","topological acoustic compass","waveguide","valley-Hall Si membrane","heading noise","0.16 deg","bulk ceramic","0.64 deg",88110),
+        Case("CW33","molecular Stark tomography","species","trapped CaF packet","field resolution","4 mV/cm","thermal gas cell","16 mV/cm",88111),
+        Case("CW44","superfluid vortex chronometer","fluid","He3 microchannel","period noise","8 us","water channel","32 us",88112),
+        Case("CW55","plasma wake phase camera","probe","electron witness bunch","phase jitter","0.6 mrad","photodiode pulse","2.4 mrad",88113),
+        Case("CW66","xray orbital compass","optic","diamond Laue lens","axis error","0.09 mrad","polymer lens","0.36 mrad",88114),
+        Case("CW77","atomic parity vectormeter","ensemble","Yb optical lattice","vector floor","2 fT","Hall sensor","8 fT",88115),
+        Case("CW88","nanophotonic recoil balance","mirror","SiN metasurface","force floor","7 aN","glass plate","28 aN",88116),
     )
 
 
