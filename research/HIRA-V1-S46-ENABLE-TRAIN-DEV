@@ -1,0 +1,36 @@
+HIRA V1 S46 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+e9eb50514414f49e53eea9a401b64877a87c4981
+
+Exact-head generic CI:
+37134897361
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S46-A0:
+- run 37134236894
+- artifact 11278770039
+- digest sha256:076a4aa432d3ace98cac0e1836ceaa547bc76e6b377af01812e6f32d2d7a54a3
+- outcome HIRA_V1_S46_A0_ROBUST_THREE_EXPERT_CONSENSUS_READY
+
+This marker authorizes exactly one preregistered fresh S46 court:
+- seed 67001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S46 domains
+- K=4
+- 24 epochs
+- batch 16
+- exact S45 training mechanics
+- checkpoint selected before robust-shell comparison
+- same-checkpoint legacy S45 shell vs robust S46 median shell
+- one DEV authority only
+
+No alternate aggregator.
+No post-DEV shell tuning.
+No threshold/temperature/gate sweep.
+No retry for scientific weakness.
+No second S46 DEV.
