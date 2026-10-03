@@ -47,7 +47,7 @@ jobs:
       - name: Compile and run S39 contracts
         run: |
           python -m py_compile src/nmd/v1_gradient_isolated_bilinear_readout.py src/nmd/v1_s39_authority.py scripts/hira_v1_s39_a0_gradient_isolated_bilinear.py scripts/hira_v1_s39_train_dev.py
-          pytest -q tests/test_v1_gradient_isolated_bilinear_readout.py tests/test_v1_s39_authority.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
+          pytest -q tests/test_v1_gradient_isolated_bilinear_readout.py tests/test_v1_s39_authority.py tests/test_v1_s39_matched_harness.py tests/test_v1_native_relation_geometry.py tests/test_v1_relation_canonicalization.py tests/test_v1_a13_lora.py tests/test_v1_evidence_fusion.py tests/test_v1_gradient_isolated_fusion.py tests/test_v1_norm_balanced_gradient.py tests/test_v1_invariance.py tests/test_v1_triadic_semantic.py
 
       - name: Verify canonical S39-A0 authority
         run: |
