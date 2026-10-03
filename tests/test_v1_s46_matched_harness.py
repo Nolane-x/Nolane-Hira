@@ -28,8 +28,17 @@ def test_s46_trainer_same_checkpoint_shell_has_zero_new_parameters():
     assert '"threshold": None' in source
 
 
-def test_s46_train_dev_marker_not_armed_during_staging():
-    assert not Path("research/HIRA-V1-S46-ENABLE-TRAIN-DEV").exists()
+def test_s46_train_dev_marker_is_well_formed_when_authorized():
+    marker=Path("research/HIRA-V1-S46-ENABLE-TRAIN-DEV")
+    if not marker.exists():
+        return
+    source=marker.read_text(encoding="utf-8")
+    assert "seed 67001" in source
+    assert "TRAIN 768" in source
+    assert "DEV 192" in source
+    assert "exact S45 training mechanics" in source
+    assert "same-checkpoint legacy S45 shell vs robust S46 median shell" in source
+    assert "No second S46 DEV." in source
 
 
 def test_s46_matched_workflow_is_one_shot_a0_bound_and_same_checkpoint():
