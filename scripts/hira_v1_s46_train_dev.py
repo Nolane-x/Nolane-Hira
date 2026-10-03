@@ -10,10 +10,8 @@ import torch.nn.functional as F
 
 from nmd.local_runtime import A13_REVISION, load_hira_v0_m4_bundle, read_runtime_bundle_manifest
 from nmd.v1_a13_lora import load_a13_lora_state_dict
-from nmd.v1_evidence_fusion import (
-    GradientIsolatedFullKEvidenceFusion,
-    fused_gold_vs_max_wrong_margin,
-)
+from nmd.v1_evidence_fusion import fused_gold_vs_max_wrong_margin
+from nmd.v1_gradient_isolated_fusion import GradientIsolatedFullKEvidenceFusion
 from nmd.v1_invariance import selected_choice_agreement, symmetric_js_divergence
 from nmd.v1_robust_three_expert_consensus import RobustThreeExpertMedianFusion
 from nmd.v1_s17_semantic_core import build_hira_v1_s17_norm_balanced_core, enforce_s17_eval
