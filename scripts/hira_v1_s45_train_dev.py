@@ -966,7 +966,7 @@ def main():
             "runtime_state_sha256_equal": True,
             "reference_native_dev_at_treatment_selected_epoch": same_epoch_reference,
             "delta_treatment_minus_same_epoch_reference": same_epoch_delta,
-            "interpretation": "private correction representation evaluation effect on an identical native runtime epoch",
+            "interpretation": "cross-view consistent private correction evaluation effect on an identical native runtime epoch",
         },
         "post_dev_tuning_performed": False,
         "second_dev_run_performed": False,
