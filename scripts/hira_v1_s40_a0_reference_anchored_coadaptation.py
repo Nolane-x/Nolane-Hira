@@ -271,15 +271,24 @@ def _gradient_projection_probe(bundle, manifest, rows):
         if not modules:
             raise RuntimeError("S40-A0 treatment LoRA missing")
         with torch.no_grad():
-            target = modules[0].lora_b
-            perturb = torch.linspace(
-                -2e-3, 2e-3, target.numel(), device=target.device, dtype=target.dtype
-            ).reshape_as(target)
-            target.add_(perturb)
+            for module_index, module in enumerate(modules):
+                target = module.lora_b
+                perturb = torch.linspace(
+                    -2e-2, 2e-2, target.numel(), device=target.device, dtype=target.dtype
+                ).reshape_as(target)
+                if module_index % 2:
+                    perturb = perturb.flip(0)
+                target.add_(perturb)
 
-        anchor, _tsc, _tsp, _rsc, _rsp = _anchor_pair(treatment, reference, rows)
+        anchor, tsc_drift, tsp_drift, rsc_drift, rsp_drift = _anchor_pair(
+            treatment, reference, rows
+        )
+        signature_drift_max_abs = max(
+            float((tsc_drift - rsc_drift).abs().max().detach().cpu()),
+            float((tsp_drift - rsp_drift).abs().max().detach().cpu()),
+        )
         anchor_value = float(anchor.detach().cpu())
-        if anchor_value <= 0.0:
+        if signature_drift_max_abs <= 1e-7 or anchor_value <= 1e-9:
             raise RuntimeError("S40-A0 synthetic signature drift failed")
 
         anchor_t_raw = torch.autograd.grad(
@@ -388,6 +397,7 @@ def _gradient_projection_probe(bundle, manifest, rows):
         return {
             "zero_init_reference_treatment_relation_max_abs": native_relation_identity,
             "zero_init_reference_treatment_signature_max_abs": native_signature_identity,
+            "synthetic_signature_drift_max_abs": signature_drift_max_abs,
             "synthetic_signature_anchor": anchor_value,
             "anchor_treatment_runtime_gradient_l1": anchor_l1,
             "anchor_treatment_lora_gradient_l1": anchor_lora_l1,
