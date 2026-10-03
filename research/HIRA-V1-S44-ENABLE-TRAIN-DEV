@@ -1,6 +1,6 @@
 # HIRA V1 S44 — one-shot fresh matched TRAIN/DEV authorization
 
-Status: **AUTHORIZED ONCE**
+Status: **RE-ARMED ONCE AFTER PRE-DEV MECHANICAL ABORT**
 
 Issue: #271
 PR: #272
@@ -14,95 +14,99 @@ PR: #272
 - outcome `HIRA_V1_S44_A0_PRIVATE_CORRECTION_REPRESENTATION_READY`
 - frozen receipt `research/HIRA-V1-S44-A0-RECEIPT.md`
 
-A0 qualified:
-- native reference/treatment zero-init identity;
-- exact native gradient/update/output identity;
-- correction -> native/reference gradients exactly zero;
-- native objective -> A/B/W exactly zero;
-- A/B/W capacities 32,768 / 16,384 / 65,536;
-- correction-only 114,688;
-- treatment total 163,840;
-- deterministic W -> B -> A warm-start liveness;
-- private branch differs from W-only family;
-- arbitrary-K/invariance/checkpoint/full-K/state-once mechanics.
-
 No replacement S44-A0 is authorized.
 
-## Frozen matched implementation
+## First authorization — mechanical abort only
 
-Exact staged head:
-`028c2432e863432433fc94386abecf2e62c6e616`
+Original authorization head:
+`6810d6aa34c029e7e7eaf7e204f62b52bcc3cbcd`
 
-Frozen files:
-- `scripts/hira_v1_s44_train_dev.py`
-- `.github/workflows/hira-v1-s44-matched-private-correction-fork-train-dev.yml`
-- `tests/test_v1_s44_matched_harness.py`
-- `src/nmd/v1_s44_authority.py`
-- `tests/test_v1_s44_authority.py`
+Run:
+`37122580868`
 
-Exact staged-head generic CI:
-- run `37120879389`
+The run passed:
+- install
+- contracts
+- canonical A0
+- M4 integrity
+
+Step 10 then exited at Python import with:
+`ModuleNotFoundError: nmd.v1_private_correction_representation_fusion`
+
+Exposure audit:
+- epoch lines **0**
+- S44 TRAIN/DEV receipt lines **0**
+- fresh DEV metrics **0**
+- selected DEV epoch **none**
+- artifact **none**
+
+Canonical receipt:
+`research/HIRA-V1-S44-PREDEV-MECHANICAL-ABORT.md`
+
+Therefore the scientific one-DEV budget was not consumed.
+
+## Mechanical repair
+
+Only:
+- restored canonical import `nmd.v1_gradient_isolated_fusion`;
+- added regression guard preventing the nonexistent transformed module.
+
+No architecture, data, objective, optimizer, seed, epoch, batch, selector, gate, or capacity changed.
+
+Repaired exact head:
+`616a7753f5e33317aee4bca59b24caf0e31f9639`
+
+Repaired exact-head CI:
+- run `37122759593`
 - conclusion **SUCCESS**
-- Python 3.10 / 3.12 + preflight passed.
+- Python 3.10 / 3.12 unit tests + preflight all passed.
 
 ## Frozen fresh authority
 
+Unchanged:
 - seed **65001**
 - TRAIN **768**
 - DEV **192**
 - 12 wholly fresh S44 domains
 - K=4
-- 2 state views
-- 2 question wording views
-- 2 option views
+- two state views
+- two question wording views
+- two option views
 - 24 epochs
 - batch 16
 
 Native reference/treatment:
-- exact same initialization;
-- exact same semantic rows/order;
+- identical initialization/rows/order;
 - exact S35/S17 native objective;
-- separate but identically configured AdamW;
-- native runtime trajectory must match at every epoch.
+- identical native optimizer configuration;
+- epoch-by-epoch native runtime trajectory identity required.
 
-Correction treatment only:
-- detached native signatures/query/native logits;
-- private GELU adapter A/B + full bilinear W;
+Treatment correction only:
+- detached native signature/query/logits;
+- private GELU A/B + full W;
 - exact S39 binding CE objective;
 - coefficient **0.10**;
-- separate AdamW at same lr **2e-4**, weight decay **0.01**;
+- correction-only AdamW at same lr **2e-4**, weight decay **0.01**;
 - correction grad clip **1.0**;
-- no gradient to native runtime;
+- no native-gradient leakage;
 - no second encoder pass.
 
-## Freshness
+## Re-authorization
 
-Must exclude:
-- exact S0-S43 exposed rows;
-- exposed S43 TRAIN/DEV rows;
-- S44-A0 rows;
-- M5 final/confirmatory rows;
-- W29-W34 sealed rows.
+Authorize **exactly one** fresh S44 matched TRAIN/DEV court from the repaired stack.
 
-## One-shot rule
-
-Authorize **exactly one** fresh S44 matched TRAIN/DEV scientific court.
-
-After DEV exposure:
-- no hidden-width sweep;
-- no activation/init sweep;
+After any semantic DEV exposure:
+- no hidden-width/activation/init sweep;
 - no bias/gate/layernorm;
 - no residual-scale tuning;
-- no correction-objective/coefficient change;
+- no objective/coefficient change;
 - no native-gradient leakage;
 - no second encoder path;
-- no native/private mixing coefficient;
-- no W-only LR/scheduler;
+- no native/private mixing;
+- no W-only scheduler;
 - no seed/LR/epoch/batch retry;
 - no gate weakening;
 - no second DEV.
 
-Interpret only by the already-frozen S44 A/B/C/D plan.
-
-If treatment becomes DEV_READY:
-freeze immediately and require a separate wholly fresh confirmation before any external Laya/Jev evaluation.
+Interpret only by the frozen S44 A/B/C/D plan.
+No external Laya/Jev evaluation before a separately confirmed DEV_READY candidate.
