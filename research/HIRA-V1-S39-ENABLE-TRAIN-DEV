@@ -29,12 +29,18 @@ A0 proves:
 - native projection independence PASS
 - checkpoint/probability/full-K/state-once mechanics PASS
 
-## Frozen staged head
+## Harness-only recovery before DEV exposure
 
-`51339d95d3e0596437e9a85c445c9680296e014b`
+The first marker commit did not start a scientific workflow because the staged workflow was bound to the obsolete branch name `feat/hira-v1-s39-full-bilinear-readout`. No S39 TRAIN/DEV job was created and no DEV metric was exposed.
 
-Exact-head generic CI:
-- run `37091313904`
+The branch trigger was corrected without changing the S39 scientific design, trainer, data authority, optimizer, selector, gates, or A0 evidence.
+
+## Frozen corrected staged head
+
+`ce122c9ef2a216a09a68ac37c22b6b1709ea9659`
+
+Exact-head generic CI after the harness-only correction:
+- run `37091652578`
 - Python 3.10 PASS
 - Python 3.12 PASS
 - preflight PASS
