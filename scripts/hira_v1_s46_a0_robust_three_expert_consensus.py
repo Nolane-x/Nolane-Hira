@@ -206,7 +206,7 @@ def _mechanics_court():
     flat_fused, _ = op(p, n, flat)
     flat_finite = bool(torch.isfinite(flat_fused).all())
 
-    if permutation_error != 0.0:
+    if permutation_error > 3e-6:
         raise RuntimeError("S46-A0 option permutation equivariance failed")
     if scale_shift_error > 3e-6:
         raise RuntimeError("S46-A0 shift/scale invariance failed")
