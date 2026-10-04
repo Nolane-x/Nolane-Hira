@@ -1,0 +1,63 @@
+HIRA V1 S56 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+807d89b261c8f527f0540f6a04a1507d2f75b3f1
+
+Exact-head generic CI:
+37215142541
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Pre-A0 numerical repair:
+- failed core CI 37214624878
+- identical-logit JS observed -2.02685e-8 from floating roundoff
+- repaired by clamping mathematically non-negative JS at zero
+- no scientific variable changed
+- no A0/TRAIN/DEV exposure occurred before this authorization
+
+Parent S55:
+- merged main 4457d70b419364931f95d15e726c8179ebc6b4e9
+- scientific run 37212962160
+- artifact 11307227880
+- verdict Case C
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S56-A0 decision-consistency mechanics court.
+
+Frozen A0 scope:
+- both arms use identical S54 joint backbone
+- private params 114,688 each arm
+- added trainable params 0
+- bit-identical initialization
+- reference coefficients 0.0 / 0.0
+- treatment decision coefficient 0.10
+- treatment ordering coefficient 0.05
+- standardization epsilon 1e-6
+- ordering threshold 0.25
+- ordering margin floor 0.05
+- exact-zero identical decision consistency
+- disagreement sensitivity
+- shared-offset invariance
+- positive-scale invariance
+- flat-logit finiteness
+- ordering sign-flip sensitivity
+- inactive low-confidence path
+- matched option-permutation invariance
+- treatment auxiliary gradients live
+- native/cache isolation
+- anti-collapse uniform diagnostics
+- K=3/7/255
+- full-K probability mass
+- no second encoder
+
+A0 is mechanical only.
+No fresh S56 TRAIN/DEV exposure.
+No model selection.
+No external Laya/Jev evaluation.
