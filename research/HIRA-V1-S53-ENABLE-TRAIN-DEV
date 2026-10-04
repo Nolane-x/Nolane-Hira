@@ -1,0 +1,55 @@
+HIRA V1 S53 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+1758a6ae8cd780c0639a13aa09a75e52530eadb5
+
+Exact-head generic CI:
+37205549437
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S53-A0:
+- run 37205099128
+- artifact 11304188134
+- digest sha256:08dbedcf29c7c71646c0c17a7e079de7df4d763ea0888db01282887867dbc841
+- outcome HIRA_V1_S53_A0_TOKEN_QUERY_OPTION_LATE_INTERACTION_READY
+
+Pinned parent native authority:
+- S51 run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+- native retraining forbidden
+
+This marker authorizes exactly one fresh S53 matched court:
+- seed 74001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S53 domains
+- K=4
+- private epochs 24
+- reference pooled global query context
+- treatment option-conditioned token-level query context
+- correction params 114,688 each
+- identity params 0
+- treatment late-interaction params 0
+- bit-identical correction initialization
+- one immutable shared cache
+- same CE + relation-JS objective
+- same optimizer/grad clip/selector
+- token temperature 0.10
+- one DEV authority only
+
+No temperature sweep.
+No aggregation-family switch.
+No trainable token projection.
+No pooled-query bypass in treatment.
+No native retraining.
+No identity variant.
+No correction capacity change.
+No selector change.
+No retry for scientific weakness.
+No second S53 DEV.
+No external Laya/Jev evaluation.

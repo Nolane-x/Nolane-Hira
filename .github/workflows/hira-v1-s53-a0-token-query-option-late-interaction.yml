@@ -1,0 +1,137 @@
+name: hira-v1-s53-a0-token-query-option-late-interaction
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s53-token-query-option-late-interaction
+    paths:
+      - "research/HIRA-V1-S53-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S53 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S53 contracts
+        run: |
+          python -m py_compile src/nmd/v1_token_query_option_late_interaction.py scripts/hira_v1_s53_a0_token_query_option_late_interaction.py
+          pytest -q tests/test_v1_token_query_option_late_interaction.py tests/test_v1_s53_a0_harness.py tests/test_v1_query_free_option_identity.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["seed"]==72001
+          assert receipt["epoch"]==24
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["native_tensor_digest"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S53 A0 late-interaction court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s53_a0_token_query_option_late_interaction.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --out artifacts/s53-a0
+
+      - name: Verify S53 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s53-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s53-a0-token-query-option-late-interaction-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S53_A0_TOKEN_QUERY_OPTION_LATE_INTERACTION_READY"
+          assert r["scientific_authority"]=="S53_A0_TOKEN_QUERY_OPTION_LATE_INTERACTION_ONLY"
+          assert r["seed"]==74001
+          assert r["parent_native_runtime_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["parent_native_checkpoint_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert r["native_trainable_parameter_count"]==0
+          assert r["semantic_case_count"]==16
+          assert r["cache_inference_tensor_count"]==0
+          assert r["cache_requires_grad_tensor_count"]==0
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["reference_private_trainable_parameter_count"]==114688
+          assert r["treatment_private_trainable_parameter_count"]==114688
+          assert r["identity_parameter_count"]==0
+          assert r["late_interaction_parameter_count"]==0
+          assert r["initialization_bit_identical"] is True
+          assert r["actual_cache_context_norm_max_error"]<=1e-5
+          assert r["actual_cache_attention_mass_max_error"]<=1e-6
+          assert r["actual_cache_option_context_diversity_max_abs"]>0.0
+          assert r["pooled_query_bypass_absent"] is True
+          assert r["informative_token_context_sensitivity_max_abs"]>0.0
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["max_context_norm_error"]<=1e-5
+          assert r["second_encoder_pass"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S53 A0 integrity
+        run: |
+          (cd artifacts/s53-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s53-a0-token-query-option-late-interaction
+          path: artifacts/s53-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

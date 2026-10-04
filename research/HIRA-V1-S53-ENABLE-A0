@@ -1,0 +1,50 @@
+HIRA V1 S53 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+db1f5cd8380ed9d7197fbbbc2685e40d671799a3
+
+Exact-head generic CI:
+37204860186
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Parent S52:
+- merged main 4b9ac7e3613c86bbb897421d6d00d9b800b5ae50
+- closed Case D
+- fresh run 37204041655
+- artifact 11303604910
+
+Pinned S51 native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S53-A0 mechanics court.
+
+A0 scope:
+- reference correction params 114,688
+- treatment correction params 114,688
+- treatment late-interaction params 0
+- identity params 0
+- bit-identical correction initialization
+- K=3/7/255
+- full-K probability mass
+- context unit norm
+- attention mass
+- query padding/mask invariance
+- query-token permutation invariance
+- option permutation equivariance
+- all-masked query rejection
+- per-option context diversity
+- no pooled query_summary bypass
+- informative-token context/logit sensitivity
+- native/cache ownership isolation
+- one encoder/state-once
+
+A0 is diagnostic/mechanical only.
+No model selection.
+No S53 TRAIN/DEV exposure.
+No external Laya/Jev evaluation.
