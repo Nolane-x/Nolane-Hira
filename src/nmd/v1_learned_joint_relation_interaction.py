@@ -165,6 +165,59 @@ class LearnedJointRelationPrivateCorrectionFork(
     def private_parameters(self)->list[nn.Parameter]:
         return self.correction_parameters()+self.learned_joint_parameters()
 
+    def learned_joint_state_dict(self)->dict[str, Tensor]:
+        return {
+            "joint.adapter.a": self.learned_joint_transform.adapter_a.detach().cpu().clone(),
+            "joint.adapter.b": self.learned_joint_transform.adapter_b.detach().cpu().clone(),
+        }
+
+    def load_learned_joint_state_dict(
+        self,
+        state_dict: dict[str, Tensor],
+        *,
+        freeze: bool = True,
+    )->None:
+        expected={"joint.adapter.a","joint.adapter.b"}
+        if set(state_dict)!=expected:
+            raise ValueError("S55 learned-joint checkpoint keys changed")
+        shapes={
+            "joint.adapter.a":(64,3*self.native_dimension),
+            "joint.adapter.b":(self.native_dimension,64),
+        }
+        targets={
+            "joint.adapter.a":self.learned_joint_transform.adapter_a,
+            "joint.adapter.b":self.learned_joint_transform.adapter_b,
+        }
+        with torch.no_grad():
+            for key in sorted(expected):
+                value=state_dict[key]
+                if tuple(value.shape)!=shapes[key]:
+                    raise ValueError(f"S55 learned-joint shape changed: {key}")
+                if not bool(torch.isfinite(value).all()):
+                    raise ValueError(f"S55 learned-joint tensor non-finite: {key}")
+                targets[key].copy_(
+                    value.to(device=targets[key].device,dtype=targets[key].dtype)
+                )
+        for p in self.learned_joint_parameters():
+            p.requires_grad_(not freeze)
+
+    def private_state_dict(self)->dict[str,dict[str,Tensor]]:
+        return {
+            "correction":self.correction_state_dict(),
+            "learned_joint":self.learned_joint_state_dict(),
+        }
+
+    def load_private_state_dict(
+        self,
+        state_dict: dict[str,dict[str,Tensor]],
+        *,
+        freeze: bool = True,
+    )->None:
+        if set(state_dict)!={"correction","learned_joint"}:
+            raise ValueError("S55 private checkpoint sections changed")
+        self.load_correction_state_dict(state_dict["correction"],freeze=freeze)
+        self.load_learned_joint_state_dict(state_dict["learned_joint"],freeze=freeze)
+
     def learned_relation_code(
         self,
         *,
