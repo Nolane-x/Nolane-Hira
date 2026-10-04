@@ -159,10 +159,27 @@ class QueryFreeIdentityPrivateCorrectionFork(PrivateCorrectionRepresentationFork
     def __init__(
         self,
         *,
+        native_dimension: int = 256,
+        hidden_dimension: int = 64,
+        query_norm_epsilon: float = 1e-12,
+        private_norm_epsilon: float = 1e-12,
+        residual_scale: float = 1.0,
+        adapter_seed: int = 65044,
         train_correction: bool = False,
         pair_temperature: float = 0.10,
     ):
-        super().__init__(train_correction=train_correction)
+        # S49 intentionally preserves the complete S44/S45 correction
+        # constructor contract. These arguments are not a new tuning surface:
+        # the parent class rejects any value outside the frozen S44 constants.
+        super().__init__(
+            native_dimension=native_dimension,
+            hidden_dimension=hidden_dimension,
+            query_norm_epsilon=query_norm_epsilon,
+            private_norm_epsilon=private_norm_epsilon,
+            residual_scale=residual_scale,
+            adapter_seed=adapter_seed,
+            train_correction=train_correction,
+        )
         self.identity = QueryFreeStateOptionIdentity(
             pair_temperature=pair_temperature,
             native_dimension=self.native_dimension,
