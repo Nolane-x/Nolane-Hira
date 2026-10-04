@@ -1,0 +1,219 @@
+name: hira-v1-s52-query-relation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s52-query-relation-canonicalization
+    paths:
+      - "research/HIRA-V1-S52-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s52-a0-query-relation-canonicalization
+          path: inputs/S52A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37199183308
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S52 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S52 contracts
+        run: |
+          python -m py_compile src/nmd/v1_query_relation_canonicalization.py src/nmd/v1_s52_authority.py scripts/hira_v1_s52_train_dev.py
+          pytest -q tests/test_v1_query_relation_canonicalization.py tests/test_v1_s52_authority.py tests/test_v1_s52_matched_harness.py tests/test_v1_query_free_option_identity.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify canonical S52-A0 authority
+        run: |
+          (cd inputs/S52A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S52A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s52-a0-query-relation-canonicalization-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S52_A0_QUERY_RELATION_CANONICALIZATION_READY"
+          assert r["seed"]==73001
+          assert r["reference_private_trainable_parameter_count"]==147456
+          assert r["treatment_private_trainable_parameter_count"]==147456
+          assert r["auxiliary"]["canonicalizer_gradient_l1"]>0.0
+          assert r["auxiliary"]["correction_gradient_l1"]==0.0
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          r=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert r["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["seed"]==72001
+          assert r["epoch"]==24
+          assert r["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["native_tensor_digest"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==r["checkpoint_file_sha256"]
+          assert r["dev_encoded"] is False
+          assert r["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S52 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s52_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S52A0/result.json \
+            --out artifacts/s52-train-dev
+
+      - name: Verify S52 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s52-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s52-query-relation-canonicalization-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S52_QUERY_RELATION_CANONICALIZATION_DEV_COMPLETE",
+              "HIRA_V1_S52_QUERY_RELATION_CANONICALIZATION_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S52_FRESH_PAIRED_VIEW_QUERY_RELATION_CANONICALIZATION"
+          assert r["seed"]==73001
+
+          p=r["parent_native_authority"]
+          assert p["run"]==37192490832
+          assert p["artifact_id"]==11299783210
+          assert p["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert p["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert p["native_trainable_parameters"]==0
+          assert p["native_optimizer_constructed"] is False
+          assert p["native_training_performed"] is False
+
+          a=r["a0_authority"]
+          assert a["run"]==37199183308
+          assert a["artifact_id"]==11302402275
+          assert a["artifact_digest"]=="sha256:b99bb216580bbd7092126fc028c9581519ca23bfa72a0a8e174c7175daa76b5a"
+
+          cache=r["shared_cache"]
+          assert cache["reference_treatment_same_cache_bytes"] is True
+          assert cache["private_state_view_encodes"]==0
+          assert cache["cache_regenerated_after_dev"] is False
+          assert len(cache["train_digest"])==64
+          assert len(cache["dev_digest"])==64
+
+          cv=r["controlled_variable"]
+          assert cv["reference_auxiliary_coefficient"]==0.0
+          assert cv["treatment_auxiliary_coefficient"]==0.10
+          assert cv["separation_ceiling"]==0.25
+          assert cv["reference_private_trainable_parameters"]==147456
+          assert cv["treatment_private_trainable_parameters"]==147456
+          assert cv["initialization_bit_identical"] is True
+
+          for name,coefficient in (("reference_branch",0.0),("treatment_branch",0.10)):
+              b=r[name]
+              assert b["auxiliary_coefficient"]==coefficient
+              assert len(b["history"])==24
+              assert 1<=b["selected_dev_epoch"]<=24
+              assert b["parameter_surface"]["private_trainable_parameters"]==147456
+              assert b["parameter_surface"]["correction_trainable_parameters"]==114688
+              assert b["parameter_surface"]["canonicalizer_trainable_parameters"]==32768
+              assert b["parameter_surface"]["native_trainable_parameters"]==0
+              assert b["parameter_surface"]["identity_trainable_parameters"]==0
+              assert b["selected_dev"]["state_view_encodes"]==0
+              assert b["selected_dev"]["full_k"] is True
+              assert b["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+              q=b["selected_query_code_diagnostics"]
+              assert -1.0<=q["mean_same_relation_cosine"]<=1.0
+              assert -1.0<=q["relation_centroid_cross_cosine"]<=1.0
+              assert -2.0<=q["relation_separation_margin"]<=2.0
+              assert -1.0<=q["raw_vs_canonicalized_query_cosine"]<=1.0
+              assert q["canonicalizer_residual_norm"]>=0.0
+
+          for filename,branch_name,coefficient in (
+              ("reference-private-candidate.pt","reference",0.0),
+              ("treatment-private-candidate.pt","treatment",0.10),
+          ):
+              payload=torch.load(root/filename,map_location="cpu",weights_only=True)
+              assert payload["schema_version"]=="hira-v1-s52-private-candidate-v1"
+              assert payload["branch"]==branch_name
+              assert payload["seed"]==73001
+              assert payload["auxiliary_coefficient"]==coefficient
+              assert payload["private_trainable_parameter_count"]==147456
+              assert payload["correction_parameter_count"]==114688
+              assert payload["canonicalizer_parameter_count"]==32768
+              assert payload["native_parameter_count_in_optimizer"]==0
+
+          part=r["partitions"]
+          assert part["train_semantic_cases"]==768
+          assert part["dev_semantic_cases"]==192
+          assert len(part["domains"])==12
+          assert part["k"]==4
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S52 integrity
+        run: |
+          (cd artifacts/s52-train-dev && sha256sum result.json reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s52-query-relation-canonicalization
+          path: artifacts/s52-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
