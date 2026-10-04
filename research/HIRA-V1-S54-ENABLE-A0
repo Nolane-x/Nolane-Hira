@@ -1,0 +1,42 @@
+HIRA V1 S54 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+33432fa051dc80d52ef7613f9eb3dcaf3c802edd
+
+Exact-head generic CI:
+37207928643
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Parent S53:
+- merged main 6e4a61c7740e64f7f62d2fd0963fd48ad5913482
+- fresh run 37205794717
+- artifact 11304553484
+- interpretation Case C
+
+Pinned parent native authority:
+- S51 Phase-A run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+- native trainable params 0
+- native retraining forbidden
+
+This marker authorizes exactly one S54-A0 mechanical court:
+- seed 75001
+- reference = S53 option-conditioned token query context
+- treatment = joint state+query+option context
+- correction params 114,688 each
+- identity params 0
+- interaction trainable params 0
+- temperature 0.10
+- bit-identical correction initialization
+- K=3/7/255
+- state/query/option path sensitivity
+- no model selection
+
+A0 is diagnostic only.
+No S54 TRAIN/DEV exposure.
+No external Laya/Jev evaluation.
