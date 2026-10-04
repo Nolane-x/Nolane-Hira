@@ -106,3 +106,20 @@ Marker:
 `research/HIRA-V1-S54-ENABLE-A0`
 
 The marker MUST remain absent until the exact final staging head passes generic CI on Python 3.10 and 3.12.
+
+
+## Fresh S54 authority staged
+
+- `src/nmd/v1_s54_authority.py`
+- `tests/test_v1_s54_authority.py`
+
+Frozen future court:
+- seed **75001**
+- TRAIN **768**
+- DEV **192**
+- 12 wholly fresh S54 domains
+- K=4
+- no exact overlap with S53 TRAIN/DEV
+- no exact overlap with S54-A0.
+
+Fresh authority is data definition only. No S54 TRAIN/DEV workflow or DEV exposure is authorized by its presence.
