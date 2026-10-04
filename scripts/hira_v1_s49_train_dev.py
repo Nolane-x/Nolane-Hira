@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from nmd.local_runtime import A13_REVISION, load_hira_v0_m4_bundle, read_runtime_bundle_manifest
 from nmd.v1_a13_lora import load_a13_lora_state_dict
 from nmd.v1_query_free_option_identity import QueryFreeIdentityPrivateCorrectionFork
+from nmd.v1_invariance import symmetric_js_divergence
 from nmd.v1_private_correction_fork import PrivateCorrectionRepresentationFork
 from nmd.v1_s17_semantic_core import build_hira_v1_s17_norm_balanced_core, enforce_s17_eval
 from nmd.v1_s48_authority import generate_s48_cases
@@ -85,7 +86,7 @@ def _s49_correction_block(correction,relation_c,relation_p,_signature_c,_signatu
         question_mask=encoded["question_paraphrase_mask"],
     )
     ce=0.5*(F.cross_entropy(cc,gold)+F.cross_entropy(cp,gold))
-    js=s17mod.symmetric_js_divergence(cc,cp)
+    js=symmetric_js_divergence(cc,cp)
     return s35.BINDING_COEFFICIENT*ce+s35.INVARIANCE_COEFFICIENT*js,ce,js
 
 
