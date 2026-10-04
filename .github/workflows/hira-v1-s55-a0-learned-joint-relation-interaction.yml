@@ -1,0 +1,136 @@
+name: hira-v1-s55-a0-learned-joint-relation-interaction
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s55-learned-joint-relation-interaction
+    paths:
+      - "research/HIRA-V1-S55-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S55 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S55 contracts
+        run: |
+          python -m py_compile src/nmd/v1_learned_joint_relation_interaction.py scripts/hira_v1_s55_a0_learned_joint_relation_interaction.py
+          pytest -q tests/test_v1_learned_joint_relation_interaction.py tests/test_v1_s55_a0_harness.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_token_query_option_late_interaction.py tests/test_v1_query_free_option_identity.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          r=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert r["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["seed"]==72001
+          assert r["epoch"]==24
+          assert r["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==r["checkpoint_file_sha256"]
+          assert r["dev_encoded"] is False
+          assert r["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S55 A0 learned-joint court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s55_a0_learned_joint_relation_interaction.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --out artifacts/s55-a0
+
+      - name: Verify S55 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s55-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s55-a0-learned-joint-relation-interaction-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S55_A0_LEARNED_JOINT_RELATION_INTERACTION_READY"
+          assert r["scientific_authority"]=="S55_A0_LEARNED_JOINT_RELATION_INTERACTION_ONLY"
+          assert r["seed"]==76001
+          assert r["native_trainable_parameter_count"]==0
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["reference_learned_joint_parameter_count"]==65536
+          assert r["treatment_learned_joint_parameter_count"]==65536
+          assert r["reference_private_trainable_parameter_count"]==180224
+          assert r["treatment_private_trainable_parameter_count"]==180224
+          assert r["identity_parameter_count"]==0
+          assert r["initialization_bit_identical"] is True
+          assert r["reference_zero_init_warm_start_max_abs"]<=1e-7
+          assert r["treatment_zero_init_warm_start_max_abs"]<=1e-7
+          assert r["reference_zero_state_channel_invariant_error"]==0.0
+          assert r["treatment_state_channel_sensitivity"]>0.0
+          assert r["correction_gradient_l1"]>0.0
+          assert r["learned_joint_gradient_l1"]>0.0
+          assert r["cache_inference_tensor_count"]==0
+          assert r["cache_requires_grad_tensor_count"]==0
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["max_relation_code_norm_error"]<=1e-6
+          assert r["direct_s54_context_bypass_absent"] is True
+          assert r["second_encoder_pass"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S55 A0 integrity
+        run: |
+          (cd artifacts/s55-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s55-a0-learned-joint-relation-interaction
+          path: artifacts/s55-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

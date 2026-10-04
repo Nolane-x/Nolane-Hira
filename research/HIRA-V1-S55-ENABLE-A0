@@ -1,0 +1,52 @@
+HIRA V1 S55 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+4dce143d7af856e2dbc43511035157993f6fc7da
+
+Exact-head generic CI:
+37210813640
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Parent S54:
+- merged main b95e4b8d1e510f9fa938685a915f92e894627110
+- scientific run 37209555118
+- artifact 11305929426
+- verdict Case C
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S55-A0 learned-joint mechanics court.
+
+A0 scope only:
+- correction params 114,688 each arm
+- learned joint transform params 65,536 each arm
+- total private trainable 180,224 each arm
+- identity params 0
+- bit-identical correction initialization
+- bit-identical learned-transform initialization
+- zero-init warm start preserves query context
+- K=3/7/255
+- option permutation equivariance
+- state/query/option token permutation invariance
+- mask/padding invariance
+- full-K probability mass
+- normalized relation-code behavior
+- no second encoder
+- native/cache gradient isolation
+- learned transform gradients live
+- correction gradients live
+- explicit state-channel isolation
+- no direct S54 context bypass
+- deterministic replay
+
+A0 is mechanical only.
+No fresh S55 TRAIN/DEV exposure.
+No model selection.
+No external Laya/Jev evaluation.

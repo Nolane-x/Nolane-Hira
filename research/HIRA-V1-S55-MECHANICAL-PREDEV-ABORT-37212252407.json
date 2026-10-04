@@ -1,0 +1,21 @@
+{
+  "schema_version": "hira-v1-s55-mechanical-predev-abort-v1",
+  "status": "MECHANICAL_PREDEV_ABORT",
+  "failed_run": 37212252407,
+  "failed_job": 111465642356,
+  "scientific_head": "9fd608bd43af3c05a3a1992fda0f44f021da8fe2",
+  "pre_court_gates_passed": true,
+  "reference_train_begin_logged": true,
+  "reference_completed_epoch_records": 0,
+  "treatment_train_begin_logged": false,
+  "private_dev_scored": false,
+  "private_model_selection_performed": false,
+  "failure_phase": "reference epoch 1 first batch after backward",
+  "failure": "RuntimeError: S55 reference learned-joint gradient vanished",
+  "cause": "over-strict per-batch gradient guard incompatible with zero-init learned transform warm start",
+  "scientific_variable_changed": false,
+  "mechanical_repair": "allow zero learned-joint gradient on initial warm-start batches; require learned-joint gradient to become live within the TRAIN epoch before any DEV evaluation",
+  "one_mechanical_replay_authorized": true,
+  "scientific_retry_authorized": false,
+  "second_s55_dev_authorized": false
+}
