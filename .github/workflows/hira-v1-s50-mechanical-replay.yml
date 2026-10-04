@@ -1,0 +1,194 @@
+name: hira-v1-s50-mechanical-replay
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s50-shared-native-forked-readouts
+    paths:
+      - "research/HIRA-V1-S50-ENABLE-MECHANICAL-REPLAY"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s50-a0-shared-native-forked-readouts
+          path: inputs/S50A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37183981097
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S50 replay stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S50 replay contracts
+        run: |
+          python -m py_compile src/nmd/v1_shared_native_private_readouts.py scripts/hira_v1_s50_train_dev.py
+          pytest -q tests/test_v1_shared_native_private_readouts.py tests/test_v1_s50_matched_harness.py tests/test_v1_s50_authority.py tests/test_v1_query_free_option_identity.py tests/test_v1_private_correction_fork.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S50-A0 authority
+        run: |
+          (cd inputs/S50A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S50A0/result.json").read_text())
+          assert r["outcome"]=="HIRA_V1_S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_READY"
+          assert r["seed"]==71001
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["identity_parameter_count"]==0
+          assert r["private_optimizer_native_parameter_count"]==0
+          assert r["branch_order_replay_max_abs_error"]==0.0
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify recovered native mechanical-abort authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S50-RECOVERED-NATIVE.json").read_text())
+          assert r["schema_version"]=="hira-v1-s50-recovered-native-preprivate-abort-v1"
+          assert r["status"]=="MECHANICAL_PREPRIVATE_ABORT"
+          assert r["failed_run"]==37185080959
+          assert r["scientific_head"]=="68df39904b620f1bc9aa5ce74072457a165eae20"
+          assert r["native_phase_completed"] is True
+          assert r["native_epoch_records"]==24
+          assert r["native_fixed_epoch"]==24
+          assert len(r["native_runtime_trajectory_sha256"])==24
+          assert r["final_native_runtime_sha256"]=="29c29fc34624f9096c16d54115e2db1047ccd477939780738c66bcd1f9f23913"
+          assert r["reference_private_epoch_records"]==0
+          assert r["treatment_private_train_begin_logged"] is False
+          assert r["private_dev_scored"] is False
+          assert r["private_model_selection_performed"] is False
+          assert r["governance"]["mechanical_cache_tensor_ownership_fix_authorized"] is True
+          assert r["governance"]["native_replay_requires_exact_24_hash_match"] is True
+          assert r["governance"]["one_mechanical_replay_authorized"] is True
+          assert r["governance"]["scientific_retry_authorized"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one hash-locked S50 mechanical replay
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s50_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --a0-result inputs/S50A0/result.json \
+            --recovered-native research/HIRA-V1-S50-RECOVERED-NATIVE.json \
+            --out artifacts/s50-mechanical-replay
+
+      - name: Verify S50 replay scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s50-mechanical-replay")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s50-shared-native-forked-private-readouts-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S50_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_DEV_COMPLETE",
+              "HIRA_V1_S50_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S50_FRESH_SHARED_NATIVE_FORKED_PRIVATE_READOUTS"
+          assert r["seed"]==71001
+
+          replay=r["mechanical_replay"]
+          assert replay["enabled"] is True
+          assert replay["source_failed_run"]==37185080959
+          assert replay["source_scientific_head"]=="68df39904b620f1bc9aa5ce74072457a165eae20"
+          assert replay["native_24_hashes_exact"] is True
+          assert replay["scientific_variable_changed"] is False
+          assert replay["failed_run_private_dev_scored"] is False
+
+          n=r["native_phase"]
+          assert n["fixed_epoch"]==24
+          assert len(n["history"])==24
+          assert n["runtime_state_sha256"]=="29c29fc34624f9096c16d54115e2db1047ccd477939780738c66bcd1f9f23913"
+          assert n["dev_scored_before_private_phase"] is False
+          assert n["dev_encoded_before_private_phase"] is False
+          assert n["trainable_parameter_count_after_freeze"]==0
+
+          c=r["shared_cache"]
+          assert c["reference_treatment_same_cache_bytes"] is True
+          assert c["cache_tensors_require_grad"] is False
+          assert c["fused_replay_from_cache_only"] is True
+
+          for branch in ("reference_branch","treatment_branch"):
+              b=r[branch]
+              assert len(b["history"])==24
+              assert 1<=b["selected_dev_epoch"]<=24
+              assert b["parameter_surface"]["private_trainable_parameters"]==114688
+              assert b["parameter_surface"]["native_trainable_parameters"]==0
+              assert b["selected_dev"]["state_view_encodes"]==0
+              assert b["selected_dev"]["full_k"] is True
+              assert b["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          for filename,kind in (
+              ("shared-native-epoch24.pt","native"),
+              ("reference-private-candidate.pt","reference"),
+              ("treatment-private-candidate.pt","treatment"),
+          ):
+              path=root/filename
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              if kind=="native":
+                  assert payload["epoch"]==24
+                  assert payload["runtime_state_sha256"]=="29c29fc34624f9096c16d54115e2db1047ccd477939780738c66bcd1f9f23913"
+              else:
+                  assert payload["branch"]==kind
+                  assert payload["correction_parameter_count"]==114688
+                  assert payload["native_parameter_count_in_optimizer"]==0
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["cache_regenerated_after_dev"] is False
+          assert r["native_retrained_per_branch"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S50 replay integrity
+        run: |
+          (cd artifacts/s50-mechanical-replay && sha256sum result.json train-manifest.json dev-manifest.json shared-cache-manifest.json shared-native-epoch24.pt reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s50-mechanical-replay
+          path: artifacts/s50-mechanical-replay
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
