@@ -172,9 +172,9 @@ def test_s52_private_state_roundtrip_includes_canonicalizer():
 
     state=src.private_state_dict()
     assert set(state)=={
-        "adapter_a",
-        "adapter_b",
-        "bilinear_weight",
+        "adapter.a",
+        "adapter.b",
+        "bilinear.weight",
         "query_canonicalizer.adapter_a",
         "query_canonicalizer.adapter_b",
     }
