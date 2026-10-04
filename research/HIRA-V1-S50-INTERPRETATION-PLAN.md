@@ -18,14 +18,15 @@ Everything else in the private phase is matched.
 
 ## Evidence hierarchy
 
-1. cache identity and immutable native evidence;
-2. bit-identical correction initialization;
-3. absence of native optimizer/live native graph in private phase;
-4. corrected relation selected-choice behavior;
-5. fused correctness/stability;
-6. query-free identity A0 invariants.
+1. fixed-epoch shared native authority with **zero S50 DEV exposure before the private phase**;
+2. cache identity and immutable native evidence;
+3. bit-identical correction initialization;
+4. absence of native optimizer/live native graph in private phase;
+5. corrected relation selected-choice behavior;
+6. fused correctness/stability;
+7. query-free identity A0 invariants.
 
-If evidence items 1–3 fail, the court is invalid and cannot receive A/B/C/D/E.
+If evidence items 1–4 fail, the court is invalid and cannot receive A/B/C/D/E.
 
 ## Primary DEV reporting
 
