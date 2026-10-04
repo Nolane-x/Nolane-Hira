@@ -118,6 +118,51 @@ class CanonicalizedQueryFreeIdentityPrivateCorrectionFork(
     def private_parameters(self)->list[nn.Parameter]:
         return self.correction_parameters()+self.canonicalizer_parameters()
 
+    def private_state_dict(self)->dict[str,Tensor]:
+        state=self.correction_state_dict()
+        state["query_canonicalizer.adapter_a"]=self.query_canonicalizer.adapter_a.detach().cpu().clone()
+        state["query_canonicalizer.adapter_b"]=self.query_canonicalizer.adapter_b.detach().cpu().clone()
+        return state
+
+    def load_private_state_dict(
+        self,
+        state: dict[str,Tensor],
+        *,
+        freeze: bool = False,
+    )->None:
+        required={
+            "adapter_a",
+            "adapter_b",
+            "bilinear_weight",
+            "query_canonicalizer.adapter_a",
+            "query_canonicalizer.adapter_b",
+        }
+        if set(state)!=required:
+            raise ValueError("S52 private state keys changed")
+        self.load_correction_state_dict(
+            {
+                "adapter_a":state["adapter_a"],
+                "adapter_b":state["adapter_b"],
+                "bilinear_weight":state["bilinear_weight"],
+            },
+            freeze=freeze,
+        )
+        with torch.no_grad():
+            self.query_canonicalizer.adapter_a.copy_(
+                state["query_canonicalizer.adapter_a"].to(
+                    device=self.query_canonicalizer.adapter_a.device,
+                    dtype=self.query_canonicalizer.adapter_a.dtype,
+                )
+            )
+            self.query_canonicalizer.adapter_b.copy_(
+                state["query_canonicalizer.adapter_b"].to(
+                    device=self.query_canonicalizer.adapter_b.device,
+                    dtype=self.query_canonicalizer.adapter_b.dtype,
+                )
+            )
+        for p in self.query_canonicalizer.parameters():
+            p.requires_grad_(not freeze)
+
     def raw_query_summary(
         self,
         *,
