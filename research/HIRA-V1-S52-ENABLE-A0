@@ -1,0 +1,54 @@
+HIRA V1 S52 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+03485c0b17afdd3ad28de1b251b02c25600404e8
+
+Exact-head generic CI:
+37198874028
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Parent S51:
+- merged main a7f9fb501c9f5e08ee59f1dd2e9d6c02be97cef9
+- fresh run 37197889785
+- artifact 11301721375
+- interpretation Case C
+
+Sealed native authority reused by S52:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S52-A0 mechanics court.
+
+Frozen private surface per arm:
+- query-free identity params 0
+- correction params 114,688
+- query canonicalizer params 32,768
+- total private trainable 147,456
+- identical initialization
+
+Controlled future variable:
+- reference relation auxiliary coefficient 0.0
+- treatment coefficient 0.10
+- frozen separation ceiling 0.25
+
+A0 scope only:
+- parent artifact binding
+- zero native trainability
+- zero-init canonicalizer identity
+- no raw-query bypass mechanics
+- equal capacity/init
+- K=3/7/255
+- probability mass
+- treatment auxiliary signal
+- auxiliary gradient reaches canonicalizer only
+- reference auxiliary exactly zero
+
+No S52 model selection.
+No S52 TRAIN/DEV.
+No native retraining.
+No external Laya/Jev evaluation.
