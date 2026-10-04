@@ -63,12 +63,13 @@ A0 uses 16 wholly new S50-A0 cases and the frozen M4 runtime.
 
 Actual-runtime court requires:
 - one native output authority
-- shared cache digests
+- shared cache digests including triadic + native relation evidence
 - deterministic cache replay
 - no live gradient graph in cache
 - no native parameters in private optimizer
 - bit-identical correction initialization
 - exact branch-order replay
+- fused replay from cached triadic evidence only
 - live raw-query correction path
 - treatment identity diagnostics
 - probability mass validity.
