@@ -26,3 +26,18 @@ def test_s55_module_supports_full_private_checkpoint_roundtrip():
     assert "def load_learned_joint_state_dict" in source
     assert "def private_state_dict" in source
     assert "def load_private_state_dict" in source
+
+
+def test_s55_zero_init_warm_start_guard_is_epoch_scoped_before_dev():
+    source=Path("scripts/hira_v1_s55_train_dev.py").read_text(encoding="utf-8")
+    assert "learned_gradient_live=False" in source
+    assert "learned_gradient_live=True" in source
+    assert "learned-joint gradient never became live in epoch" in source
+    assert source.index("learned-joint gradient never became live in epoch") < source.index('metrics=s50._private_metrics(op,"treatment",dev_cache)')
+    assert "S55 {name} learned-joint gradient vanished" not in source
+
+
+def test_s55_mechanical_replay_has_separate_marker():
+    source=Path(".github/workflows/hira-v1-s55-learned-joint-relation-train-dev.yml").read_text(encoding="utf-8")
+    assert "research/HIRA-V1-S55-ENABLE-TRAIN-DEV" in source
+    assert "research/HIRA-V1-S55-ENABLE-MECHANICAL-REPLAY" in source
