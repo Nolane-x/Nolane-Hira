@@ -1,0 +1,28 @@
+HIRA V1 S49 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+e1b4a6f71f06211c55b9f4bcb30c8b04210adf04
+
+Exact-head generic CI:
+37177961417
+
+Required result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+This marker authorizes exactly one S49-A0 Private Query-Free State–Option Identity mechanics court.
+
+Frozen treatment:
+- native trainable 49,152
+- correction parameters 114,688
+- total treatment 163,840
+- identity parameters 0
+- identity API accepts no question tensor
+- raw query remains available only to private A/B/W readout
+- one encoder batch / no second encoder
+
+A0 is diagnostic only:
+- no model selection
+- no S49 TRAIN/DEV exposure
+- no external Laya/Jev evaluation
+- only a pre-semantic mechanical abort may authorize a mechanical A0 repair

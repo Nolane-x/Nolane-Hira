@@ -1,0 +1,43 @@
+HIRA V1 S49 treatment-only mechanical continuation authorization
+
+Authorized final continuation staging head:
+14c0d63de7dbd345c251bcf72cb59be83f336d35
+
+Exact-head generic CI:
+37180944335
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Prior partial scientific run:
+- run 37178974852
+- head 7ece9b16fd5ccfd5b93d9ff9eb1cb73ff15105ab
+- reference arm: 24/24 epochs completed, DEV exposed
+- frozen selected reference epoch: 6
+- treatment arm: never reached TRAIN_BEGIN
+- treatment DEV exposure: 0
+
+Frozen recovered reference:
+research/HIRA-V1-S49-RECOVERED-REFERENCE.json
+
+Mechanical repair:
+QueryFreeIdentityPrivateCorrectionFork now accepts the exact frozen S44/S45 constructor contract. No identity equation, parameter shape, initialization seed, loss, optimizer, data, selection rule, or pair temperature changed.
+
+This marker authorizes exactly one treatment-only continuation:
+- seed 70001
+- exact frozen S49 TRAIN 768 / DEV 192
+- query-free identity treatment only
+- no reference rerun
+- treatment correction 114,688
+- total treatment trainable 163,840
+- identity trainable parameters 0
+- all 24 treatment native runtime hashes MUST exactly equal frozen reference hashes
+- treatment selected DEV compared only against frozen recovered reference selected DEV
+
+No semantic edits.
+No reference rerun.
+No full S49 rerun.
+No retry for scientific weakness.
+No second treatment continuation after treatment TRAIN_BEGIN.
+No external Laya/Jev evaluation.
