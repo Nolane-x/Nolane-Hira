@@ -42,6 +42,7 @@ After checkpoint selection, native runtime is frozen.
 For each query row, cache:
 - case/row identity
 - gold index
+- raw/triadic logits
 - native relation logits
 - native relation signature
 - adapted state tokens/mask
@@ -91,7 +92,8 @@ Cache:
 - source mutation isolation;
 - cache tensors require_grad false;
 - branch-order replay exact;
-- row/gold/native-logit/query bytes shared exactly.
+- row/gold/triadic/native-relation/query bytes shared exactly;
+- final fused replay is reconstructable from cached triadic + private relation logits only.
 
 Ownership:
 - native parameters absent from private optimizer by construction;
