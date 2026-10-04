@@ -1,0 +1,225 @@
+name: hira-v1-s55-learned-joint-relation-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s55-learned-joint-relation-interaction
+    paths:
+      - "research/HIRA-V1-S55-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s55-a0-learned-joint-relation-interaction
+          path: inputs/S55A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37211474503
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S55 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S55 contracts
+        run: |
+          python -m py_compile src/nmd/v1_learned_joint_relation_interaction.py src/nmd/v1_s55_authority.py scripts/hira_v1_s55_train_dev.py
+          pytest -q tests/test_v1_learned_joint_relation_interaction.py tests/test_v1_s55_authority.py tests/test_v1_s55_a0_harness.py tests/test_v1_s55_matched_harness.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_token_query_option_late_interaction.py tests/test_v1_query_free_option_identity.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify canonical S55-A0 authority
+        run: |
+          (cd inputs/S55A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S55A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s55-a0-learned-joint-relation-interaction-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S55_A0_LEARNED_JOINT_RELATION_INTERACTION_READY"
+          assert r["scientific_authority"]=="S55_A0_LEARNED_JOINT_RELATION_INTERACTION_ONLY"
+          assert r["seed"]==76001
+          assert r["parent_native_runtime_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["parent_native_checkpoint_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert r["native_trainable_parameter_count"]==0
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["reference_learned_joint_parameter_count"]==65536
+          assert r["treatment_learned_joint_parameter_count"]==65536
+          assert r["reference_private_trainable_parameter_count"]==180224
+          assert r["treatment_private_trainable_parameter_count"]==180224
+          assert r["identity_parameter_count"]==0
+          assert r["initialization_bit_identical"] is True
+          assert r["reference_zero_state_channel_invariant_error"]==0.0
+          assert r["treatment_state_channel_sensitivity"]>0.0
+          assert r["correction_gradient_l1"]>0.0
+          assert r["learned_joint_gradient_l1"]>0.0
+          assert r["direct_s54_context_bypass_absent"] is True
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["seed"]==72001
+          assert receipt["epoch"]==24
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["native_tensor_digest"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S55 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s55_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S55A0/result.json \
+            --out artifacts/s55-train-dev
+
+      - name: Verify S55 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s55-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s55-learned-joint-relation-interaction-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S55_LEARNED_JOINT_RELATION_INTERACTION_DEV_COMPLETE",
+              "HIRA_V1_S55_LEARNED_JOINT_RELATION_INTERACTION_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S55_FRESH_LEARNED_JOINT_RELATION_INTERACTION"
+          assert r["seed"]==76001
+
+          parent=r["parent_native_authority"]
+          assert parent["run"]==37192490832
+          assert parent["artifact_id"]==11299783210
+          assert parent["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert parent["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert parent["native_trainable_parameters"]==0
+          assert parent["native_optimizer_constructed"] is False
+          assert parent["native_training_performed"] is False
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37211474503
+          assert a0["artifact_id"]==11306837784
+          assert a0["artifact_digest"]=="sha256:66ad8bbc2a2046ba00fdc17b60bef991dc246cd2182268edf3965ea91e29b812"
+
+          cache=r["shared_cache"]
+          assert cache["reference_treatment_same_cache_bytes"] is True
+          assert cache["private_state_view_encodes"]==0
+          assert cache["cache_regenerated_after_dev"] is False
+          assert len(cache["train_digest"])==64
+          assert len(cache["dev_digest"])==64
+
+          for name in ("reference_branch","treatment_branch"):
+              branch=r[name]
+              assert len(branch["history"])==24
+              assert 1<=branch["selected_dev_epoch"]<=24
+              assert branch["parameter_surface"]["private_trainable_parameters"]==180224
+              assert branch["parameter_surface"]["correction_trainable_parameters"]==114688
+              assert branch["parameter_surface"]["learned_joint_trainable_parameters"]==65536
+              assert branch["parameter_surface"]["native_trainable_parameters"]==0
+              assert branch["parameter_surface"]["identity_trainable_parameters"]==0
+              assert branch["selected_dev"]["state_view_encodes"]==0
+              assert branch["selected_dev"]["full_k"] is True
+              assert branch["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          cv=r["controlled_variable"]
+          assert cv["reference_state_channel"]=="zeros"
+          assert cv["treatment_state_channel"]=="s54_joint_state_query_option_context"
+          assert cv["reference_private_trainable_parameters"]==180224
+          assert cv["treatment_private_trainable_parameters"]==180224
+          assert cv["correction_parameters_each"]==114688
+          assert cv["learned_joint_parameters_each"]==65536
+          assert cv["initialization_bit_identical"] is True
+
+          assert r["reference_learned_diagnostics"]["reference_zero_state_channel_max_abs"]==0.0
+          assert r["treatment_learned_diagnostics"]["treatment_mean_explicit_joint_channel_norm"]>0.0
+          assert r["treatment_learned_diagnostics"]["treatment_relation_code_joint_channel_sensitivity"]>0.0
+
+          for filename,branch_name in (
+              ("reference-private-candidate.pt","reference"),
+              ("treatment-private-candidate.pt","treatment"),
+          ):
+              payload=torch.load(root/filename,map_location="cpu",weights_only=True)
+              assert payload["schema_version"]=="hira-v1-s55-private-candidate-v1"
+              assert payload["branch"]==branch_name
+              assert payload["seed"]==76001
+              assert 1<=payload["selected_dev_epoch"]<=24
+              assert payload["private_trainable_parameter_count"]==180224
+              assert payload["correction_parameter_count"]==114688
+              assert payload["learned_joint_parameter_count"]==65536
+              assert payload["native_parameter_count_in_optimizer"]==0
+              assert set(payload["private_state_dict"])=={"correction","learned_joint"}
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S55 integrity
+        run: |
+          (cd artifacts/s55-train-dev && sha256sum result.json reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s55-learned-joint-relation-interaction
+          path: artifacts/s55-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
