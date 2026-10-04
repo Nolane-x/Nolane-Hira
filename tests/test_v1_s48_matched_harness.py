@@ -57,3 +57,9 @@ def test_s48_matched_workflow_is_one_shot_a0_bound_and_capacity_matched():
     assert "reference-raw-query" in source
     assert "treatment-query-quotient" in source
     assert 'assert r["second_dev_run_performed"] is False' in source
+
+
+def test_s48_diagnostic_counts_both_query_views_without_authorizing_rerun():
+    source=Path("scripts/hira_v1_s48_train_dev.py").read_text(encoding="utf-8")
+    assert "if count!=4*len(rows):" in source
+    assert "if count!=2*len(rows):" not in source
