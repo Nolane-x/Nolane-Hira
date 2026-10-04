@@ -1,0 +1,179 @@
+name: hira-v1-s49-treatment-only-continuation
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s49-private-query-free-option-identity
+    paths:
+      - "research/HIRA-V1-S49-ENABLE-TREATMENT-CONTINUATION"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  treatment-continuation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s49-a0-query-free-option-identity
+          path: inputs/S49A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37178164136
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S49 continuation stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S49 continuation contracts
+        run: |
+          python -m py_compile src/nmd/v1_query_free_option_identity.py scripts/hira_v1_s49_train_dev.py scripts/hira_v1_s49_treatment_continuation.py
+          pytest -q tests/test_v1_query_free_option_identity.py tests/test_v1_s49_a0_harness.py tests/test_v1_s49_authority.py tests/test_v1_s49_matched_harness.py tests/test_v1_s49_treatment_continuation.py tests/test_v1_private_correction_fork.py tests/test_v1_s45_cross_view_consistency.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S49-A0 authority
+        run: |
+          (cd inputs/S49A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S49A0/result.json").read_text())
+          assert r["outcome"]=="HIRA_V1_S49_A0_PRIVATE_QUERY_FREE_OPTION_IDENTITY_READY"
+          assert r["seed"]==70001
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["identity_parameter_count"]==0
+          assert r["identity_api_question_inputs_absent"] is True
+          assert r["second_encoder_pass"] is False
+          PY
+
+      - name: Verify frozen recovered reference authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S49-RECOVERED-REFERENCE.json").read_text())
+          assert r["schema_version"]=="hira-v1-s49-recovered-reference-arm-v1"
+          assert r["status"]=="RECOVERED_FROM_PARTIAL_SCIENTIFIC_RUN"
+          assert r["scientific_run"]==37178974852
+          assert r["scientific_head"]=="7ece9b16fd5ccfd5b93d9ff9eb1cb73ff15105ab"
+          assert r["reference_arm_completed"] is True
+          assert r["reference_epoch_records"]==24
+          assert r["reference_selected_epoch"]==6
+          assert len(r["reference_runtime_trajectory_sha256"])==24
+          assert r["treatment_arm_started"] is False
+          assert r["treatment_dev_exposed"] is False
+          assert r["governance"]["reference_rerun_authorized"] is False
+          assert r["governance"]["treatment_only_mechanical_continuation_authorized"] is True
+          assert r["governance"]["semantic_changes_authorized"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S49 treatment-only continuation
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s49_treatment_continuation.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S49A0/result.json --recovered-reference research/HIRA-V1-S49-RECOVERED-REFERENCE.json --out artifacts/s49-treatment-continuation
+
+      - name: Verify S49 continuation receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s49-treatment-continuation")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s49-treatment-only-mechanical-continuation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S49_PRIVATE_QUERY_FREE_OPTION_IDENTITY_DEV_COMPLETE",
+              "HIRA_V1_S49_PRIVATE_QUERY_FREE_OPTION_IDENTITY_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S49_TREATMENT_ONLY_CONTINUATION_AGAINST_FROZEN_REFERENCE_37178974852"
+          assert r["seed"]==70001
+          assert r["reference_rerun_performed"] is False
+          assert r["reference_source"]["scientific_run"]==37178974852
+          assert r["reference_source"]["selected_epoch"]==6
+          assert len(r["reference_source"]["runtime_trajectory_sha256"])==24
+
+          trt=r["treatment_arm"]
+          assert trt["parameter_surface"]["total_trainable_parameters"]==163840
+          assert trt["parameter_surface"]["correction_trainable_parameters"]==114688
+          assert 1<=trt["selected_dev_epoch"]<=24
+
+          traj=r["trajectory_invariant"]
+          assert traj["all_24_epoch_runtime_state_sha256_equal"] is True
+          assert traj["reference_runtime_trajectory_sha256"]==traj["treatment_runtime_trajectory_sha256"]
+          assert traj["epoch_count"]==24
+
+          v=r["controlled_variable"]
+          assert v["reference_private_signature"]=="question_conditioned_native_relation_signature"
+          assert v["treatment_private_signature"]=="query_free_state_option_identity"
+          assert v["raw_query_readout_matched"] is True
+          assert v["reference_correction_parameters"]==114688
+          assert v["treatment_correction_parameters"]==114688
+          assert v["identity_trainable_parameters"]==0
+          assert v["semantic_change_after_reference_exposure"] is False
+          assert v["constructor_compatibility_fix_only"] is True
+
+          cp=r["selected_treatment_checkpoint"]
+          assert 1<=cp["epoch"]<=24
+          assert cp["total_parameter_count"]==163840
+          assert cp["correction_parameter_count"]==114688
+
+          diag=r["treatment_identity_diagnostics"]
+          assert "identity_cross_state_view_same_option_cosine" in diag
+          assert "identity_same_vs_strongest_wrong_margin" in diag
+          assert "fixed_identity_raw_query_swap_mean_abs_logit_delta" in diag
+
+          path=root/"treatment-query-free-identity-private-candidate.pt"
+          assert path.is_file()
+          payload=torch.load(path,map_location="cpu",weights_only=True)
+          assert payload["arm"]=="treatment"
+          assert payload["total_parameter_count"]==163840
+          assert payload["correction_parameter_count"]==114688
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_full_s49_run_performed"] is False
+          assert r["second_treatment_continuation_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S49 continuation integrity
+        run: |
+          (cd artifacts/s49-treatment-continuation && sha256sum result.json train-manifest.json dev-manifest.json treatment-query-free-identity-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s49-treatment-only-continuation
+          path: artifacts/s49-treatment-continuation
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
