@@ -156,3 +156,26 @@ def test_s50_fused_replay_uses_cached_triadic_logits_only():
     assert tuple(a.shape)==(2,7)
     probs=torch.softmax(a,dim=-1)
     assert float((probs.sum(-1)-1.0).abs().max())<=1e-6
+
+
+def test_s50_cache_created_inside_inference_mode_is_normal_autograd_compatible_tensor():
+    # Reproduce the production cache-materialization path exactly: native
+    # evidence is generated while inference mode is active.
+    with torch.inference_mode():
+        src=_inputs(batch=2,k=4)
+        # _inputs creates tensors while inference mode is active, matching the
+        # runtime evidence path rather than the ordinary unit-test path.
+        cache=freeze_shared_native_evidence(**src)
+
+    assert all(not torch.is_inference(x) for x in cache.tensors())
+    assert all(not x.requires_grad for x in cache.tensors())
+
+    ref=PrivateCorrectionRepresentationFork(train_correction=True)
+    with torch.no_grad():
+        ref.adapter_b.normal_(generator=torch.Generator().manual_seed(50501),std=0.01)
+        ref.bilinear_weight.normal_(generator=torch.Generator().manual_seed(50502),std=0.01)
+
+    relation=reference_private_logits(ref,cache)
+    loss=torch.nn.functional.cross_entropy(relation,cache.gold)
+    grads=torch.autograd.grad(loss,ref.correction_parameters(),allow_unused=False)
+    assert all(g is not None and bool(torch.isfinite(g).all()) for g in grads)
