@@ -131,9 +131,9 @@ class CanonicalizedQueryFreeIdentityPrivateCorrectionFork(
         freeze: bool = False,
     )->None:
         required={
-            "adapter_a",
-            "adapter_b",
-            "bilinear_weight",
+            "adapter.a",
+            "adapter.b",
+            "bilinear.weight",
             "query_canonicalizer.adapter_a",
             "query_canonicalizer.adapter_b",
         }
@@ -141,9 +141,9 @@ class CanonicalizedQueryFreeIdentityPrivateCorrectionFork(
             raise ValueError("S52 private state keys changed")
         self.load_correction_state_dict(
             {
-                "adapter_a":state["adapter_a"],
-                "adapter_b":state["adapter_b"],
-                "bilinear_weight":state["bilinear_weight"],
+                "adapter.a":state["adapter.a"],
+                "adapter.b":state["adapter.b"],
+                "bilinear.weight":state["bilinear.weight"],
             },
             freeze=freeze,
         )
