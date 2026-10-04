@@ -18,6 +18,7 @@ from nmd.v1_s17_authority import S17FusionCase
 from nmd.v1_shared_native_private_readouts import (
     correction_initialization_exact,
     freeze_shared_native_evidence,
+    fused_private_logits,
     reference_private_logits,
     treatment_private_logits,
 )
@@ -133,7 +134,7 @@ def _expanded_ids(rows,view):
     )
 
 
-def _make_cache(*,rows,native_logits,native_signatures,state_tokens,state_mask,encoded,view):
+def _make_cache(*,rows,triadic_logits,native_logits,native_signatures,state_tokens,state_mask,encoded,view):
     gold,_=s35._gold_tensors(rows,device=native_logits.device)
     opt=encoded["option_tokens"].repeat_interleave(2,dim=0)
     om=encoded["option_mask"].repeat_interleave(2,dim=0)
@@ -149,6 +150,7 @@ def _make_cache(*,rows,native_logits,native_signatures,state_tokens,state_mask,e
     return freeze_shared_native_evidence(
         case_ids=_expanded_ids(rows,view),
         gold=gold,
+        triadic_logits=triadic_logits,
         native_logits=native_logits,
         native_signatures=native_signatures,
         state_tokens=state_tokens.repeat_interleave(2,dim=0),
@@ -172,21 +174,21 @@ def _warm_identically(reference,treatment):
 
 def _actual_runtime_court(bundle,manifest,rows):
     runtime=s45a0._runtime(bundle=bundle,manifest=manifest,seed=SEED,train=False)
-    _rawc,_rawp,native_c,native_p,sig_c,sig_p,encoded=s45a0._native_outputs(runtime,rows)
+    raw_c,raw_p,native_c,native_p,sig_c,sig_p,encoded=s45a0._native_outputs(runtime,rows)
 
     canonical=_make_cache(
-        rows=rows,native_logits=native_c,native_signatures=sig_c,
+        rows=rows,triadic_logits=raw_c,native_logits=native_c,native_signatures=sig_c,
         state_tokens=encoded["state_a_tokens"],state_mask=encoded["state_a_mask"],
         encoded=encoded,view="canonical",
     )
     paraphrase=_make_cache(
-        rows=rows,native_logits=native_p,native_signatures=sig_p,
+        rows=rows,triadic_logits=raw_p,native_logits=native_p,native_signatures=sig_p,
         state_tokens=encoded["state_b_tokens"],state_mask=encoded["state_b_mask"],
         encoded=encoded,view="paraphrase",
     )
 
     canonical_replay=_make_cache(
-        rows=rows,native_logits=native_c,native_signatures=sig_c,
+        rows=rows,triadic_logits=raw_c,native_logits=native_c,native_signatures=sig_c,
         state_tokens=encoded["state_a_tokens"],state_mask=encoded["state_a_mask"],
         encoded=encoded,view="canonical",
     )
@@ -211,12 +213,20 @@ def _actual_runtime_court(bundle,manifest,rows):
     rp1=reference_private_logits(reference,paraphrase)
     tc1,idc1=treatment_private_logits(treatment,canonical)
     tp1,idp1=treatment_private_logits(treatment,paraphrase)
+    frc1=fused_private_logits(canonical,rc1)
+    frp1=fused_private_logits(paraphrase,rp1)
+    ftc1=fused_private_logits(canonical,tc1)
+    ftp1=fused_private_logits(paraphrase,tp1)
 
     # Treatment then reference: replay order must have zero effect.
     tc2,idc2=treatment_private_logits(treatment,canonical)
     tp2,idp2=treatment_private_logits(treatment,paraphrase)
     rc2=reference_private_logits(reference,canonical)
     rp2=reference_private_logits(reference,paraphrase)
+    frc2=fused_private_logits(canonical,rc2)
+    frp2=fused_private_logits(paraphrase,rp2)
+    ftc2=fused_private_logits(canonical,tc2)
+    ftp2=fused_private_logits(paraphrase,tp2)
 
     branch_order_error=max(
         float((rc1-rc2).abs().max()),
@@ -225,6 +235,10 @@ def _actual_runtime_court(bundle,manifest,rows):
         float((tp1-tp2).abs().max()),
         float((idc1-idc2).abs().max()),
         float((idp1-idp2).abs().max()),
+        float((frc1-frc2).abs().max()),
+        float((frp1-frp2).abs().max()),
+        float((ftc1-ftc2).abs().max()),
+        float((ftp1-ftp2).abs().max()),
     )
     if branch_order_error!=0.0:
         raise RuntimeError("S50 branch replay order changed outputs")
@@ -272,7 +286,7 @@ def _actual_runtime_court(bundle,manifest,rows):
     margin=same-wrong
 
     mass=0.0
-    for logits in (rc1,rp1,tc1,tp1):
+    for logits in (rc1,rp1,tc1,tp1,frc1,frp1,ftc1,ftp1):
         mass=max(mass,float((torch.softmax(logits,dim=-1).sum(-1)-1.0).abs().max()))
     if mass>1e-6:
         raise RuntimeError("S50 probability mass failed")
@@ -289,8 +303,10 @@ def _actual_runtime_court(bundle,manifest,rows):
         "treatment_correction_parameter_count":treatment.correction_parameter_count,
         "identity_parameter_count":treatment.identity_parameter_count,
         "private_optimizer_native_parameter_count":0,
+        "shared_triadic_logits_exact":True,
         "shared_native_logits_exact":shared_native_logits_exact,
         "shared_question_tensor_exact":shared_question_exact,
+        "fused_replay_from_cache_only":True,
         "branch_order_replay_max_abs_error":branch_order_error,
         "raw_query_live_treatment_max_abs":raw_query_live,
         "identity_cross_state_view_same_option_cosine":float(same.mean()),
