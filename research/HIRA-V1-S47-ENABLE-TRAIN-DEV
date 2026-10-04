@@ -1,0 +1,38 @@
+HIRA V1 S47 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+48cdafb315b2b3e47152dfd16f2f8bea964332f3
+
+Exact-head generic CI:
+37168085782
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S47-A0:
+- run 37167755900
+- artifact 11290671268
+- digest sha256:b2505aeac631498e606025ceb5848ea7dd0faf738387d9920fc672230de671c3
+- outcome HIRA_V1_S47_A0_ORDINAL_PAIRWISE_CONSENSUS_READY
+
+This marker authorizes exactly one preregistered fresh S47 court:
+- seed 68001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S47 domains
+- K=4
+- 24 epochs
+- batch 16
+- exact S45 training mechanics
+- checkpoint selected before ordinal-shell comparison
+- same-checkpoint legacy S45 shell vs ordinal S47 shell
+- one DEV authority only
+
+No Borda/Copeland sweep.
+No alternate pairwise rule.
+No tie-break expert sweep.
+No rank temperature or scalar weighting.
+No post-DEV tuning.
+No retry for scientific weakness.
+No second S47 DEV.

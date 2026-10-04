@@ -1,0 +1,22 @@
+HIRA V1 S47 one-shot A0 authorization
+
+Authorized staging head:
+31d1a07f49790b3c78b1afbda113435b4ec2dcb2
+
+Exact-head generic CI:
+37166795757
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+This marker authorizes exactly one S47-A0 ordinal pairwise consensus mechanics court.
+
+A0 is diagnostic only:
+- no model selection
+- no fresh TRAIN/DEV exposure
+- no external Laya/Jev evaluation
+- no post-A0 semantic tuning except mechanical repair if the court aborts before semantic outputs
+
+Frozen S47 decision family:
+pairwise majority -> Copeland -> corrected-private ordinal tie-break with K-derived base 2K-1.
