@@ -13,7 +13,14 @@ from .v1_evidence_fusion import SymmetricFullKEvidenceFusion
 
 
 def _clone_frozen(tensor: Tensor) -> Tensor:
-    out=tensor.detach().clone().contiguous()
+    # Production S50 cache materialization runs under torch.inference_mode()
+    # because native evidence generation must not retain a live graph. A plain
+    # clone inside inference mode remains an inference tensor, which cannot be
+    # saved by autograd when the private correction branch later trains against
+    # the frozen evidence. Explicitly leave inference mode for the ownership
+    # transfer so the cache is a normal detached tensor with requires_grad=False.
+    with torch.inference_mode(False):
+        out=tensor.detach().clone().contiguous()
     out.requires_grad_(False)
     return out
 
