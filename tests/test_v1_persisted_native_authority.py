@@ -20,7 +20,7 @@ def _payload():
     for i in range(4):
         lora[f"lora.{i}.a"]=torch.randn(8,256,generator=g)
         lora[f"lora.{i}.b"]=torch.randn(256,8,generator=g)
-    projection=torch.randn(64,256,generator=g)
+    projection=torch.randn(128,256,generator=g)
     digest=native_tensor_digest(lora,projection)
     return {
         "schema_version":S51_NATIVE_AUTHORITY_SCHEMA,
@@ -33,7 +33,7 @@ def _payload():
         "initialization_t0_sha256":"a"*64,
         "train_manifest_sha256":"b"*64,
         "native_trainable_parameter_count":49152,
-        "projection_parameter_count":16384,
+        "projection_parameter_count":32768,
         "lora_state_dict":lora,
         "projection_state_dict":{"projection.weight":projection},
         "native_tensor_digest":digest,
@@ -85,7 +85,7 @@ def test_s51_payload_rejects_missing_lora_key_projection_shape_and_nonfinite():
         validate_native_authority_payload(bad)
 
     bad=copy.deepcopy(payload)
-    bad["projection_state_dict"]["projection.weight"]=torch.zeros(63,256)
+    bad["projection_state_dict"]["projection.weight"]=torch.zeros(127,256)
     with pytest.raises(RuntimeError,match="projection shape"):
         validate_native_authority_payload(bad)
 
