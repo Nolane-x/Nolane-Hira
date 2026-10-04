@@ -83,3 +83,25 @@ def test_s50_matched_workflow_is_one_shot_a0_bound():
     assert 'assert p["native_optimizer_parameter_count"]==0' in source
     assert 'assert c["reference_treatment_same_cache_bytes"] is True' in source
     assert 'assert r["second_dev_run_performed"] is False' in source
+
+
+def test_s50_mechanical_replay_is_hash_locked_and_private_dev_unexposed():
+    source=Path("scripts/hira_v1_s50_train_dev.py").read_text(encoding="utf-8")
+    assert '--recovered-native' in source
+    assert "hira-v1-s50-recovered-native-preprivate-abort-v1" in source
+    assert "37185080959" in source
+    assert "observed!=frozen" in source
+    assert "mechanical replay native trajectory mismatch" in source
+    assert '"native_24_hashes_exact":True' in source
+    assert '"failed_run_private_dev_scored":False' in source
+
+
+def test_s50_mechanical_replay_workflow_is_separately_marker_gated():
+    path=Path(".github/workflows/hira-v1-s50-mechanical-replay.yml")
+    source=path.read_text(encoding="utf-8")
+    assert "research/HIRA-V1-S50-ENABLE-MECHANICAL-REPLAY" in source
+    assert "--recovered-native research/HIRA-V1-S50-RECOVERED-NATIVE.json" in source
+    assert "run-id: 37183981097" in source
+    assert 'assert r["mechanical_replay"]["native_24_hashes_exact"] is True' in source
+    assert 'assert r["mechanical_replay"]["failed_run_private_dev_scored"] is False' in source
+    assert 'assert r["second_dev_run_performed"] is False' in source
