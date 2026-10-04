@@ -1,0 +1,40 @@
+{
+  "schema_version": "hira-v1-s49-recovered-treatment-continuation-v1",
+  "status": "RECOVERED_FROM_FAILED_TRAJECTORY_GUARD",
+  "continuation_run": 37181138393,
+  "continuation_head": "f6119ef02063af7201dbc8f608e541d1b6410a53",
+  "treatment_epoch_records": 24,
+  "treatment_selected_epoch": 5,
+  "trajectory_identity": false,
+  "trajectory_mismatch_epochs": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+  "reference_selected_epoch": 6,
+  "reference_selected_dev": {
+    "fused_canonical_accuracy": 0.5182291666666666,
+    "fused_paraphrase_accuracy": 0.4505208333333333,
+    "fused_canonical_paired_both_correct_rate": 0.15104166666666666,
+    "fused_cross_view_selected_choice_agreement": 0.7265625,
+    "fused_cross_view_mean_js": 0.02367013997475927,
+    "fused_canonical_mean_gold_margin": -0.04615776939317584,
+    "fused_paraphrase_mean_gold_margin": -0.17182254263510308,
+    "canonical_relation_binding_accuracy": 0.4609375,
+    "paraphrase_relation_binding_accuracy": 0.4244791666666667,
+    "relation_cross_view_agreement": 0.7447916666666666,
+    "relation_cross_view_mean_js": 0.006237854637826483
+  },
+  "treatment_selected_dev": {
+    "fused_canonical_accuracy": 0.515625,
+    "fused_paraphrase_accuracy": 0.4427083333333333,
+    "fused_canonical_paired_both_correct_rate": 0.15104166666666666,
+    "fused_cross_view_selected_choice_agreement": 0.6536458333333334,
+    "fused_cross_view_mean_js": 0.03721580165438354,
+    "fused_canonical_mean_gold_margin": 0.10468895236651103,
+    "fused_paraphrase_mean_gold_margin": -0.24805203538077572,
+    "canonical_relation_binding_accuracy": 0.4791666666666667,
+    "paraphrase_relation_binding_accuracy": 0.4140625,
+    "relation_cross_view_agreement": 0.7526041666666666,
+    "relation_cross_view_mean_js": 0.0033750696554003903
+  },
+  "scientific_classification": "INVALID_MATCHED_COURT_INCONCLUSIVE",
+  "a_to_e_classification_permitted": false,
+  "second_s49_dev_authorized": false
+}
