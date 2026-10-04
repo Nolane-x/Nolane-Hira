@@ -5,6 +5,7 @@ from nmd.v1_query_free_option_identity import QueryFreeIdentityPrivateCorrection
 from nmd.v1_shared_native_private_readouts import (
     correction_initialization_exact,
     freeze_shared_native_evidence,
+    fused_private_logits,
     reference_private_logits,
     treatment_private_logits,
 )
@@ -14,6 +15,7 @@ def _inputs(*,batch=3,k=7):
     g=torch.Generator().manual_seed(50000+k)
     case_ids=tuple(f"s50-{i}" for i in range(batch))
     gold=torch.arange(batch,dtype=torch.long)%k
+    triadic_logits=torch.randn(batch,k,generator=g,requires_grad=True)
     native_logits=torch.randn(batch,k,generator=g,requires_grad=True)
     native_signatures=torch.randn(batch,k,256,generator=g,requires_grad=True)
     state_tokens=torch.randn(batch,5,256,generator=g,requires_grad=True)
@@ -26,6 +28,7 @@ def _inputs(*,batch=3,k=7):
     return dict(
         case_ids=case_ids,
         gold=gold,
+        triadic_logits=triadic_logits,
         native_logits=native_logits,
         native_signatures=native_signatures,
         state_tokens=state_tokens,
@@ -47,6 +50,7 @@ def test_s50_cache_is_detached_contiguous_and_digest_stable():
     assert all(x.is_contiguous() for x in cache.tensors())
 
     with torch.no_grad():
+        src["triadic_logits"].sub_(900)
         src["native_logits"].add_(1000)
         src["native_signatures"].mul_(0)
         src["state_tokens"].add_(500)
@@ -137,3 +141,18 @@ def test_s50_arbitrary_k_three_seven_255_and_probability_mass():
             assert bool(torch.isfinite(logits).all())
             probs=torch.softmax(logits,dim=-1)
             assert float((probs.sum(-1)-1.0).abs().max())<=1e-6
+
+
+def test_s50_fused_replay_uses_cached_triadic_logits_only():
+    cache=freeze_shared_native_evidence(**_inputs(batch=2,k=7))
+    ref=PrivateCorrectionRepresentationFork(train_correction=True)
+    with torch.no_grad():
+        ref.adapter_b.normal_(generator=torch.Generator().manual_seed(50401),std=0.01)
+        ref.bilinear_weight.normal_(generator=torch.Generator().manual_seed(50402),std=0.01)
+    relation=reference_private_logits(ref,cache)
+    a=fused_private_logits(cache,relation)
+    b=fused_private_logits(cache,relation)
+    assert torch.equal(a,b)
+    assert tuple(a.shape)==(2,7)
+    probs=torch.softmax(a,dim=-1)
+    assert float((probs.sum(-1)-1.0).abs().max())<=1e-6
