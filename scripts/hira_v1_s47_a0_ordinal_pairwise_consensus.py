@@ -1,0 +1,372 @@
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+import json
+from pathlib import Path
+import random
+
+import torch
+import torch.nn.functional as F
+
+from nmd.contracts import LogicalOption
+from nmd.v1_gradient_isolated_fusion import GradientIsolatedFullKEvidenceFusion
+from nmd.v1_ordinal_pairwise_consensus import OrdinalPairwiseConsensus
+from nmd.v1_private_correction_fork import PrivateCorrectionRepresentationFork
+from nmd.v1_s17_authority import S17FusionCase
+from nmd.v1_s17_semantic_core import HIRA_V1_S17_TOTAL_PARAMETER_COUNT
+import hira_v1_s35_train_dev as s35
+from hira_v1_s46_a0_robust_three_expert_consensus import (
+    _native_outputs,
+    _ownership_warmstart_court,
+    _runtime,
+)
+
+SCHEMA_VERSION = "hira-v1-s47-a0-ordinal-pairwise-consensus-v1"
+OUTCOME = "HIRA_V1_S47_A0_ORDINAL_PAIRWISE_CONSENSUS_READY"
+
+NATIVE_TRAINABLE = 49_152
+CORRECTION = 114_688
+TREATMENT_TOTAL = 163_840
+DECISION_PARAMETER_COUNT = 0
+SEED = 68_001
+
+
+@dataclass(frozen=True)
+class Case:
+    case_id: str
+    noun: str
+    field_a: str
+    first: str
+    field_b: str
+    second: str
+    wrong_a: str
+    wrong_b: str
+    seed: int
+
+    @property
+    def state_a(self):
+        return (
+            f"S47-A0 {self.noun} record {self.case_id}: "
+            f"{self.field_a} {self.first}; {self.field_b} {self.second}."
+        )
+
+    @property
+    def state_b(self):
+        return (
+            f"Audit {self.case_id} stores {self.second} for {self.field_b}; "
+            f"the same S47-A0 {self.noun} stores {self.first} for {self.field_a}."
+        )
+
+    @property
+    def qa1(self):
+        return f"For S47-A0 {self.case_id}, identify {self.field_a}."
+
+    @property
+    def qa2(self):
+        return f"Which entry is tagged {self.field_a} in S47-A0 {self.case_id}?"
+
+    @property
+    def qb1(self):
+        return f"For S47-A0 {self.case_id}, identify {self.field_b}."
+
+    @property
+    def qb2(self):
+        return f"Which entry is tagged {self.field_b} in S47-A0 {self.case_id}?"
+
+    def option_pack(self):
+        rows = [
+            ("a", self.field_a, self.first),
+            ("b", self.field_b, self.second),
+            ("x", self.field_a, self.wrong_a),
+            ("y", self.field_b, self.wrong_b),
+        ]
+        random.Random(self.seed).shuffle(rows)
+        options = tuple(
+            LogicalOption(
+                option_id=f"{self.case_id}__opaque_{i:02d}",
+                criterion_text=f"for this {self.noun}, {field} is {value}",
+                aliases=(
+                    f"{value} is the S47 ordinal-audit {field} entry for this {self.noun}",
+                ),
+            )
+            for i, (_kind, field, value) in enumerate(rows)
+        )
+        ga = next(i for i, (kind, _f, _v) in enumerate(rows) if kind == "a")
+        gb = next(i for i, (kind, _f, _v) in enumerate(rows) if kind == "b")
+        return options, ga, gb
+
+
+def cases():
+    return (
+        Case("OP11","axion phase compass","pickup","nested toroid","phase floor","2.7 urad","plain loop","10.8 urad",77101),
+        Case("OP22","magnon chirality camera","guide","domain YIG strip","leakage","-44 dB","Ni bar","-16 dB",77102),
+        Case("OP33","Rydberg Stark lens","ensemble","dressed Cs cloud","field blur","4.8 uV/cm","thermal vapor","19.2 uV/cm",77103),
+        Case("OP44","quantum acoustic clock","mode","slow Lamb A0","delay noise","7 ps","bulk mode","28 ps",77104),
+        Case("OP55","spin orbit mapper","channel","ballistic InSb wire","phase spread","0.07 rad","diffusive wire","0.28 rad",77105),
+        Case("OP66","optomechanical recoil meter","oscillator","soft-clamped SiN","jitter","2.1 fm","metal cantilever","8.4 fm",77106),
+        Case("OP77","topological photon compass","lattice","valley-Hall lattice","backscatter","-49 dB","plain square lattice","-21 dB",77107),
+        Case("OP88","neutron phase camera","sample","perfect-Si grating","noise","0.19 mrad","polymer grating","0.76 mrad",77108),
+        Case("OQ11","molecular rotation clock","species","state-selected OCS","linewidth","16 kHz","thermal SO2","64 kHz",77109),
+        Case("OQ22","plasmon momentum lens","surface","single-crystal Au","blur","0.019 um-1","rough Cu","0.076 um-1",77110),
+        Case("OQ33","atomic gravity compass","species","delta-kicked Rb87","floor","2.9 E","thermal K39","11.6 E",77111),
+        Case("OQ44","ferroelectric domain camera","crystal","strained BaTiO3","jitter","1.1 nm","ceramic PZT","4.4 nm",77112),
+        Case("OQ55","spin-wave phase radar","guide","low-loss YIG","phase floor","0.12 mrad","Ni strip","0.48 mrad",77113),
+        Case("OQ66","quantum Hall field imager","channel","fractional edge","noise","3 nV","metal wire","12 nV",77114),
+        Case("OQ77","molecular recoil camera","beam","Stark-decelerated CO","spread","5 mm/s","thermal beam","20 mm/s",77115),
+        Case("OQ88","phonon parity compass","mode","chiral edge mode","leakage","-51 dB","bulk mode","-23 dB",77116),
+    )
+
+
+def _rows(suite):
+    out=[]
+    for case in suite:
+        options,ga,gb=case.option_pack()
+        out.append(
+            S17FusionCase(
+                case_id=f"a0-s47-{case.case_id}",
+                split="train",
+                domain="s47_a0_only",
+                language="en",
+                state_a=case.state_a,
+                state_b=case.state_b,
+                question_a1=case.qa1,
+                question_a2=case.qa2,
+                question_b1=case.qb1,
+                question_b2=case.qb2,
+                option_texts=tuple(x.criterion_text for x in options),
+                option_aliases=tuple(x.aliases[0] for x in options),
+                option_ids=tuple(x.option_id for x in options),
+                gold_a=ga,
+                gold_b=gb,
+            )
+        )
+    return out
+
+
+def _mechanics_court():
+    op=OrdinalPairwiseConsensus()
+    if op.parameter_count != 0:
+        raise RuntimeError("S47-A0 decision shell gained parameters")
+
+    g=torch.Generator().manual_seed(68470)
+    arbitrary={}
+    max_mass_error=0.0
+    for k in (3,7,255):
+        p=torch.randn(4,k,generator=g)
+        n=torch.randn(4,k,generator=g)
+        c=torch.randn(4,k,generator=g)
+        fused,_=op(p,n,c)
+        if tuple(fused.shape)!=(4,k):
+            raise RuntimeError("S47-A0 arbitrary-K shape changed")
+        if not bool(torch.isfinite(fused).all()):
+            raise RuntimeError("S47-A0 arbitrary-K non-finite")
+        mass=float((torch.softmax(fused,dim=-1).sum(-1)-1.0).abs().max())
+        max_mass_error=max(max_mass_error,mass)
+        arbitrary[f"k{k}_pass"]=True
+
+    p=torch.randn(5,7,generator=g)
+    n=torch.randn(5,7,generator=g)
+    c=torch.randn(5,7,generator=g)
+    base,_=op(p,n,c)
+
+    perm=torch.tensor([4,0,6,2,1,5,3])
+    moved,_=op(p[:,perm],n[:,perm],c[:,perm])
+    permutation_error=float((moved-base[:,perm]).abs().max())
+
+    affine,_=op(3.5*p+11.0,0.75*n-13.0,8.0*c+97.0)
+    affine_error=float((affine-base).abs().max())
+
+    nonlinear,_=op(p.pow(3),n.pow(3),c.pow(3))
+    nonlinear_error=float((nonlinear-base).abs().max())
+
+    extreme,_=op(p,n*1e20,c)
+    extreme_error=float((extreme-base).abs().max())
+
+    agreed=torch.tensor([[7.,6.,5.,4.,3.,2.,1.]])
+    adversarial=-agreed
+    dominant,_=op(agreed,agreed,adversarial)
+    dominance_top=int(dominant.argmax(-1).item())
+
+    copeland,private,_=op.components(p,n,c)
+    fused,_=op(p,n,c)
+    dominance_violations=0
+    k=7
+    for b in range(fused.shape[0]):
+        for i in range(k):
+            for j in range(k):
+                if float(copeland[b,i]-copeland[b,j])>=1.0:
+                    if not float(fused[b,i]-fused[b,j])>0.0:
+                        dominance_violations+=1
+
+    # Rock-paper-scissors majority cycle: Copeland is tied, corrected ordinal
+    # rank becomes the deterministic lexicographic tie-break.
+    cp=torch.tensor([[3.,2.,1.]])
+    cn=torch.tensor([[1.,3.,2.]])
+    cc=torch.tensor([[2.,1.,3.]])
+    cycle_copeland,cycle_private,_=op.components(cp,cn,cc)
+    cycle_fused,cycle_diag=op(cp,cn,cc)
+    cycle_tied=bool((cycle_copeland==cycle_copeland[:,0:1]).all())
+    cycle_private_match=int(cycle_fused.argmax(-1).item())==int(cycle_private.argmax(-1).item())
+    tiebreak_fraction=cycle_diag.to_dict()["private_tiebreak_topset_fraction"]
+
+    if permutation_error != 0.0:
+        raise RuntimeError("S47-A0 option permutation equivariance failed")
+    if affine_error != 0.0:
+        raise RuntimeError("S47-A0 positive-affine invariance failed")
+    if nonlinear_error != 0.0:
+        raise RuntimeError("S47-A0 monotonic nonlinear invariance failed")
+    if extreme_error != 0.0:
+        raise RuntimeError("S47-A0 magnitude blow-up invariance failed")
+    if dominance_top != 0:
+        raise RuntimeError("S47-A0 two-expert dominance failed")
+    if dominance_violations != 0:
+        raise RuntimeError("S47-A0 private tie-break overturned Copeland")
+    if not cycle_tied or not cycle_private_match or tiebreak_fraction <= 0.0:
+        raise RuntimeError("S47-A0 deterministic private tie-break failed")
+    if max_mass_error > 1e-6:
+        raise RuntimeError("S47-A0 probability mass failed")
+
+    return {
+        "decision_parameter_count": op.parameter_count,
+        "arbitrary_k3_pass": arbitrary["k3_pass"],
+        "arbitrary_k7_pass": arbitrary["k7_pass"],
+        "arbitrary_k255_pass": arbitrary["k255_pass"],
+        "logical_option_permutation_max_abs_error": permutation_error,
+        "independent_positive_affine_max_abs_error": affine_error,
+        "strictly_increasing_nonlinear_max_abs_error": nonlinear_error,
+        "extreme_magnitude_blowup_max_abs_error": extreme_error,
+        "two_identical_expert_dominance_top_index": dominance_top,
+        "strict_copeland_dominance_violations": dominance_violations,
+        "cycle_copeland_tied": cycle_tied,
+        "cycle_private_tiebreak_matches": cycle_private_match,
+        "cycle_private_tiebreak_topset_fraction": tiebreak_fraction,
+        "max_probability_mass_error": max_mass_error,
+    }
+
+
+def _actual_shell_court(bundle,manifest,rows):
+    runtime=_runtime(bundle=bundle,manifest=manifest,seed=SEED,train=False)
+    raw_c,raw_p,native_c,native_p,sig_c,sig_p,encoded=_native_outputs(runtime,rows)
+
+    correction=PrivateCorrectionRepresentationFork(train_correction=True)
+    g=torch.Generator().manual_seed(68471)
+    with torch.no_grad():
+        correction.adapter_b.copy_(torch.randn(256,64,generator=g)*0.01)
+        correction.bilinear_weight.copy_(torch.randn(256,256,generator=g)*0.01)
+
+    corrected_c=correction.correction_logits(
+        native_logits=native_c,
+        signatures=sig_c,
+        question_tokens=encoded["question_canonical_tokens"],
+        question_mask=encoded["question_canonical_mask"],
+    )
+    corrected_p=correction.correction_logits(
+        native_logits=native_p,
+        signatures=sig_p,
+        question_tokens=encoded["question_paraphrase_tokens"],
+        question_mask=encoded["question_paraphrase_mask"],
+    )
+
+    legacy=GradientIsolatedFullKEvidenceFusion(epsilon=s35.FUSION_EPSILON)
+    ordinal=OrdinalPairwiseConsensus()
+    legacy_c,_=legacy(raw_c,corrected_c)
+    legacy_p,_=legacy(raw_p,corrected_p)
+    ordinal_c,diag_c=ordinal(raw_c,native_c,corrected_c)
+    ordinal_p,diag_p=ordinal(raw_p,native_p,corrected_p)
+
+    shell_delta=max(
+        float((ordinal_c-legacy_c).abs().max().cpu()),
+        float((ordinal_p-legacy_p).abs().max().cpu()),
+    )
+    if shell_delta<=1e-7:
+        raise RuntimeError("S47-A0 ordinal shell collapsed to legacy shell")
+
+    mass=max(
+        float((torch.softmax(ordinal_c,dim=-1).sum(-1)-1.0).abs().max().cpu()),
+        float((torch.softmax(ordinal_p,dim=-1).sum(-1)-1.0).abs().max().cpu()),
+    )
+    if mass>1e-6:
+        raise RuntimeError("S47-A0 actual shell probability mass failed")
+    if ordinal.parameter_count!=0:
+        raise RuntimeError("S47-A0 actual shell gained parameters")
+    if correction.correction_parameter_count!=CORRECTION:
+        raise RuntimeError("S47-A0 correction capacity changed")
+    if HIRA_V1_S17_TOTAL_PARAMETER_COUNT!=NATIVE_TRAINABLE:
+        raise RuntimeError("S47-A0 native parameter surface changed")
+
+    return {
+        "actual_shell_legacy_vs_ordinal_max_abs": shell_delta,
+        "actual_shell_probability_mass_error": mass,
+        "actual_shell_state_view_encodes": 2*len(rows),
+        "actual_shell_one_encoder_batch": True,
+        "actual_shell_decision_parameter_count": ordinal.parameter_count,
+        "actual_shell_canonical_diagnostics": diag_c.to_dict(),
+        "actual_shell_paraphrase_diagnostics": diag_p.to_dict(),
+        "correction_parameter_count": correction.correction_parameter_count,
+        "treatment_total_trainable_parameter_count": (
+            HIRA_V1_S17_TOTAL_PARAMETER_COUNT+correction.correction_parameter_count
+        ),
+    }
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--bundle",type=Path,required=True)
+    parser.add_argument("--out",type=Path,required=True)
+    args=parser.parse_args()
+
+    suite=cases()
+    if len(suite)!=16:
+        raise RuntimeError("S47-A0 suite size changed")
+    rows=_rows(suite)
+
+    bundle=args.bundle.resolve()
+    from nmd.local_runtime import read_runtime_bundle_manifest
+    manifest=read_runtime_bundle_manifest(bundle)
+
+    mechanics=_mechanics_court()
+    shell=_actual_shell_court(bundle,manifest,rows)
+    ownership=_ownership_warmstart_court(bundle,manifest,rows)
+
+    if ownership["js_only_native_runtime_gradient_l1"]!=0.0:
+        raise RuntimeError("S47-A0 inherited correction JS leaked into native runtime")
+    if ownership["native_objective_correction_gradient_l1"]!=0.0:
+        raise RuntimeError("S47-A0 inherited native objective leaked into correction")
+    if ownership["matched_native_one_step_parameter_max_abs"]!=0.0:
+        raise RuntimeError("S47-A0 inherited native trajectory identity changed")
+
+    result={
+        "schema_version":SCHEMA_VERSION,
+        "status":"PASS",
+        "outcome":OUTCOME,
+        "scientific_authority":"S47_A0_ORDINAL_PAIRWISE_CONSENSUS_ONLY",
+        "semantic_case_count":len(suite),
+        "state_view_count":2*len(suite),
+        "k":4,
+        "views_per_option":2,
+        "seed":SEED,
+        "native_trainable_parameter_count":NATIVE_TRAINABLE,
+        "correction_parameter_count":CORRECTION,
+        "treatment_total_trainable_parameter_count":TREATMENT_TOTAL,
+        "decision_family":"pairwise_majority_copeland_private_ordinal_tiebreak",
+        "lexicographic_base_rule":"2K-1",
+        "training_mechanics":"exact_s45",
+        "second_encoder_pass":False,
+        **mechanics,
+        **shell,
+        "ownership":ownership,
+        "used_for_model_selection":False,
+        "production_ready_claimed":False,
+    }
+
+    args.out.mkdir(parents=True,exist_ok=True)
+    (args.out/"result.json").write_text(
+        json.dumps(result,indent=2,sort_keys=True)+"\n",
+        encoding="utf-8",
+    )
+    print("HIRA_V1_S47_A0_ORDINAL_CONSENSUS_RECEIPT="+json.dumps(result,sort_keys=True),flush=True)
+
+
+if __name__=="__main__":
+    main()
