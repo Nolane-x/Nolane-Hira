@@ -1,0 +1,46 @@
+HIRA V1 S55 one-shot mechanical replay authorization
+
+Authorized repaired staging head:
+a07856ba4b2edc7046a7f808b53223936d631758
+
+Exact-head generic CI:
+37212665648
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Failed first court:
+- run 37212252407
+- job 111465642356
+- scientific head 9fd608bd43af3c05a3a1992fda0f44f021da8fe2
+- pre-court gates PASS
+- reference TRAIN_BEGIN reached
+- reference completed epochs 0
+- treatment TRAIN_BEGIN not reached
+- private DEV score 0
+- model selection 0
+- verdict none
+
+Mechanical repair only:
+- preserve zero-init learned transform
+- correction gradient still required every batch
+- learned-joint gradient may be zero on initial warm-start batches
+- learned-joint gradient must become live within each TRAIN epoch before DEV evaluation
+- no scientific variable changed
+
+This marker authorizes exactly one repaired S55 replay:
+- seed 76001
+- same TRAIN 768 / DEV 192 / 12 domains
+- same parent native artifact
+- same A0 authority
+- same 180,224 private params per arm
+- same initialization
+- same optimizer/loss/selector
+- same one-DEV policy
+
+After repaired private DEV is reached:
+- no further mechanical replay
+- no scientific retry
+- no second S55 DEV
+- no tuning or capacity change
