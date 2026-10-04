@@ -57,7 +57,9 @@ def symmetric_js_from_standardized_logits(
     )
     if not bool(torch.isfinite(js_explicit).all()):
         raise ValueError("S56 JS is non-finite")
-    return js_explicit.mean()
+    # Jensen-Shannon divergence is mathematically non-negative. Clamp only
+    # sub-ulp floating-point underflow so identical distributions are exact 0.
+    return js_explicit.clamp_min(0.0).mean()
 
 
 def pairwise_ordering_consistency(
