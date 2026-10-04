@@ -341,9 +341,9 @@ def main():
             "native_training_performed":False,
         },
         "a0_authority":{
-            "run":None,
-            "artifact_id":None,
-            "artifact_digest":None,
+            "run":37208186642,
+            "artifact_id":11305528035,
+            "artifact_digest":"sha256:b83d5a8a11ed656fa67ad3b3c9d0b0bbb8a4e858a4ba2300555d932a168effde",
         },
         "shared_cache":{
             "train_digest":train_digest,
