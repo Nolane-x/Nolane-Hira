@@ -6,6 +6,7 @@ on:
       - feat/hira-v1-s55-learned-joint-relation-interaction
     paths:
       - "research/HIRA-V1-S55-ENABLE-TRAIN-DEV"
+      - "research/HIRA-V1-S55-ENABLE-MECHANICAL-REPLAY"
 
 permissions:
   contents: read
