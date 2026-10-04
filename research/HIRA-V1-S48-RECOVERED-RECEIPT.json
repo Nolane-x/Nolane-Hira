@@ -1,0 +1,84 @@
+{
+  "schema_version": "hira-v1-s48-recovered-postdev-receipt-v1",
+  "status": "RECOVERED_FROM_SEALED_RUN_LOG",
+  "scientific_run": 37172187841,
+  "scientific_head": "dbfea4876d9592e69777eebb906f5f18b14272fe",
+  "dev_authority_consumed": true,
+  "epoch_records": 48,
+  "reference_arm": {
+    "label": "reference_raw_query",
+    "selected_epoch": 13,
+    "selected_dev": {
+      "fused_canonical_accuracy": 0.5208333333333334,
+      "fused_paraphrase_accuracy": 0.5677083333333334,
+      "fused_canonical_paired_both_correct_rate": 0.2552083333333333,
+      "fused_question_swap_choice_change_rate": 0.6302083333333334,
+      "fused_cross_view_selected_choice_agreement": 0.5885416666666666,
+      "fused_cross_view_mean_js": 0.04634252943408986,
+      "fused_canonical_mean_gold_margin": -0.006131952783713738,
+      "fused_paraphrase_mean_gold_margin": 0.15760995571811995,
+      "canonical_relation_binding_accuracy": 0.359375,
+      "paraphrase_relation_binding_accuracy": 0.4895833333333333,
+      "canonical_relation_binding_mean_gold_margin": -0.30633338292439777,
+      "paraphrase_relation_binding_mean_gold_margin": -0.009444701174894968,
+      "relation_cross_view_agreement": 0.515625,
+      "relation_cross_view_mean_js": 0.024755361994418006,
+      "mean_same_option_signature_cosine": 0.9286423871914545,
+      "mean_signature_same_vs_strongest_wrong_margin": 0.10402843449264765
+    }
+  },
+  "treatment_arm": {
+    "label": "treatment_query_quotient",
+    "selected_epoch": 23,
+    "selected_dev": {
+      "fused_canonical_accuracy": 0.4114583333333333,
+      "fused_paraphrase_accuracy": 0.3958333333333333,
+      "fused_canonical_paired_both_correct_rate": 0.19270833333333334,
+      "fused_question_swap_choice_change_rate": 0.578125,
+      "fused_cross_view_selected_choice_agreement": 0.4869791666666667,
+      "fused_cross_view_mean_js": 0.049040937097743154,
+      "fused_canonical_mean_gold_margin": -0.10850508177342515,
+      "fused_paraphrase_mean_gold_margin": -0.2135798865929246,
+      "canonical_relation_binding_accuracy": 0.3020833333333333,
+      "paraphrase_relation_binding_accuracy": 0.2890625,
+      "canonical_relation_binding_mean_gold_margin": -0.195329366872708,
+      "paraphrase_relation_binding_mean_gold_margin": -0.20111795514822006,
+      "relation_cross_view_agreement": 0.3854166666666667,
+      "relation_cross_view_mean_js": 0.009339564673913022,
+      "mean_same_option_signature_cosine": 0.8959390024344126,
+      "mean_signature_same_vs_strongest_wrong_margin": 0.14545562335600457
+    }
+  },
+  "delta_treatment_minus_reference": {
+    "fused_canonical_accuracy": -0.10937500000000006,
+    "fused_paraphrase_accuracy": -0.17187500000000006,
+    "fused_canonical_paired_both_correct_rate": -0.06249999999999997,
+    "fused_question_swap_choice_change_rate": -0.05208333333333337,
+    "fused_cross_view_selected_choice_agreement": -0.10156249999999994,
+    "fused_cross_view_mean_js": 0.002698407663653292,
+    "fused_canonical_mean_gold_margin": -0.1023731289897114,
+    "fused_paraphrase_mean_gold_margin": -0.37118984231104457,
+    "canonical_relation_binding_accuracy": -0.057291666666666685,
+    "paraphrase_relation_binding_accuracy": -0.20052083333333331,
+    "canonical_relation_binding_mean_gold_margin": 0.11100401605168977,
+    "paraphrase_relation_binding_mean_gold_margin": -0.1916732539733251,
+    "relation_cross_view_agreement": -0.13020833333333331,
+    "relation_cross_view_mean_js": -0.015415797320504984,
+    "mean_same_option_signature_cosine": -0.03270338475704193,
+    "mean_signature_same_vs_strongest_wrong_margin": 0.04142718886335692
+  },
+  "trajectory_invariant": {
+    "all_24_epoch_runtime_hashes_equal": true,
+    "reference_final_hash": "a35da2cf72b1377c414e0024bcfa63c5ce60bc4f38de946e5157efbf528e4f0e",
+    "treatment_final_hash": "a35da2cf72b1377c414e0024bcfa63c5ce60bc4f38de946e5157efbf528e4f0e"
+  },
+  "postdev_failure": {
+    "phase": "treatment quotient diagnostics after both 24-epoch arms completed",
+    "error": "RuntimeError: S48 quotient diagnostic count changed",
+    "scientific_metrics_already_exposed": true,
+    "scientific_retry_authorized": false
+  },
+  "frozen_interpretation": "DOMINATED_NEGATIVE_OUTSIDE_A_B_C_D",
+  "second_dev_run_performed": false,
+  "post_dev_tuning_performed": false
+}
