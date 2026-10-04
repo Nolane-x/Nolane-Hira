@@ -1,0 +1,39 @@
+HIRA V1 S51 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+5f9c02bb49d213a9c52f3d4a37c27f06a1378850
+
+Exact-head generic CI:
+37191867462
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Parent S50:
+- merged main 61f0d596ef277a1469b78f2db90c393c7c859321
+- closed INVALID REPRODUCIBILITY COURT / INCONCLUSIVE
+- no accepted private DEV result
+
+This marker authorizes exactly one S51-A0 persisted-native mechanics court.
+
+A0 scope only:
+- native checkpoint save/load runtime-hash identity
+- logical native tensor digest identity
+- file tamper rejection
+- semantic revision / T0 binding
+- loaded native parameters frozen
+- loaded native optimizer surface 0
+- normal non-inference immutable cache
+- branch-order replay identity
+- bit-identical correction initialization
+- Phase-A TRAIN-only isolation
+- Phase-B no-native-training isolation
+- correction params 114,688 each
+- identity params 0
+
+A0 is diagnostic/mechanical only.
+No model selection.
+No Phase-A native authority exposure.
+No S51 DEV exposure.
+No external Laya/Jev evaluation.
