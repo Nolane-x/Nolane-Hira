@@ -1,0 +1,28 @@
+HIRA V1 S48 one-shot A0 authorization
+
+Authorized staging head:
+c60a5e9c844d19a4bc072403c7a5d22f217c120c
+
+Exact-head generic CI:
+37171147537
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+This marker authorizes exactly one S48-A0 Query-Quotient Option Evidence mechanics court.
+
+Frozen treatment:
+- same native surface 49,152
+- same correction capacity 114,688
+- same total treatment 163,840
+- zero learned quotient parameters
+- one encoder pass
+- raw query cannot bypass quotient
+- quotient is option-difference-covariance direction normalized
+
+A0 is diagnostic only:
+- no model selection
+- no fresh S48 TRAIN/DEV exposure
+- no external Laya/Jev evaluation
+- no semantic tuning after A0 except mechanical repair if execution aborts before usable semantic outputs
