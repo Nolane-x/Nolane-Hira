@@ -82,8 +82,10 @@ jobs:
           assert r["treatment_correction_parameter_count"]==114688
           assert r["identity_parameter_count"]==0
           assert r["private_optimizer_native_parameter_count"]==0
+          assert r["shared_triadic_logits_exact"] is True
           assert r["shared_native_logits_exact"] is True
           assert r["shared_question_tensor_exact"] is True
+          assert r["fused_replay_from_cache_only"] is True
           assert r["branch_order_replay_max_abs_error"]==0.0
           assert r["raw_query_live_treatment_max_abs"]>1e-7
           assert r["actual_probability_mass_error"]<=1e-6
