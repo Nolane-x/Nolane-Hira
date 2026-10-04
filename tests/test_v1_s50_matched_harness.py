@@ -102,6 +102,7 @@ def test_s50_mechanical_replay_workflow_is_separately_marker_gated():
     assert "research/HIRA-V1-S50-ENABLE-MECHANICAL-REPLAY" in source
     assert "--recovered-native research/HIRA-V1-S50-RECOVERED-NATIVE.json" in source
     assert "run-id: 37183981097" in source
-    assert 'assert r["mechanical_replay"]["native_24_hashes_exact"] is True' in source
-    assert 'assert r["mechanical_replay"]["failed_run_private_dev_scored"] is False' in source
+    assert 'replay=r["mechanical_replay"]' in source
+    assert 'assert replay["native_24_hashes_exact"] is True' in source
+    assert 'assert replay["failed_run_private_dev_scored"] is False' in source
     assert 'assert r["second_dev_run_performed"] is False' in source
