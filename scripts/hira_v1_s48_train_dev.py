@@ -218,7 +218,7 @@ def _quotient_diagnostics(runtime,correction,rows):
         corrected_agree_sum+=float(selected_choice_agreement(cc,cp))*cc.shape[0]
         state_view_encodes+=2*len(batch)
 
-    if count!=2*len(rows):
+    if count!=4*len(rows):
         raise RuntimeError("S48 quotient diagnostic count changed")
     if state_view_encodes!=2*len(rows):
         raise RuntimeError("S48 quotient diagnostic state-once changed")
