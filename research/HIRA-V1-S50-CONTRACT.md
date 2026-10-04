@@ -30,12 +30,14 @@ Use the frozen S45/S49 native mechanics once:
 - M4 base bundle
 - existing native LoRA/projection trainable surface
 - existing native losses
-- existing optimizer/LR/weight decay/grad clip
-- existing native checkpoint-selection rule.
+- existing optimizer/LR/weight decay/grad clip.
 
 No private correction module participates in this phase.
 
-After checkpoint selection, native runtime is frozen.
+Native authority is **fixed epoch 24**.
+S50 DEV MUST NOT be encoded, scored, or used for checkpoint selection during this phase.
+
+After epoch 24, native runtime is frozen.
 
 ## Shared evidence cache
 
