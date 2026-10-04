@@ -1,0 +1,104 @@
+name: hira-v1-s50-a0-shared-native-forked-readouts
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s50-shared-native-forked-readouts
+    paths:
+      - "research/HIRA-V1-S50-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S50 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S50 contracts
+        run: |
+          python -m py_compile src/nmd/v1_shared_native_private_readouts.py scripts/hira_v1_s50_a0_shared_native_forked_readouts.py
+          pytest -q tests/test_v1_shared_native_private_readouts.py tests/test_v1_query_free_option_identity.py tests/test_v1_s50_a0_harness.py tests/test_v1_private_correction_fork.py tests/test_v1_invariance.py
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S50 A0 shared-native fork court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s50_a0_shared_native_forked_readouts.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s50-a0
+
+      - name: Verify S50 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s50-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s50-a0-shared-native-forked-private-readouts-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_READY"
+          assert r["scientific_authority"]=="S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_ONLY"
+          assert r["seed"]==71001
+          assert r["semantic_case_count"]==16
+          assert r["query_row_count"]==32
+          assert r["k"]==4
+          assert r["native_training_arms_in_private_phase"]==0
+          assert r["second_encoder_pass_in_private_phase"] is False
+          assert r["identity_api_question_inputs_absent"] is True
+          assert r["actual_shell_one_native_output_authority"] is True
+          assert r["actual_shell_state_view_encodes"]==32
+          assert len(r["canonical_cache_digest"])==64
+          assert len(r["paraphrase_cache_digest"])==64
+          assert r["canonical_cache_replay_digest_exact"] is True
+          assert r["cache_tensors_require_grad_count"]==0
+          assert r["reference_treatment_correction_initialization_exact"] is True
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["identity_parameter_count"]==0
+          assert r["private_optimizer_native_parameter_count"]==0
+          assert r["shared_native_logits_exact"] is True
+          assert r["shared_question_tensor_exact"] is True
+          assert r["branch_order_replay_max_abs_error"]==0.0
+          assert r["raw_query_live_treatment_max_abs"]>1e-7
+          assert r["actual_probability_mass_error"]<=1e-6
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S50 A0 integrity
+        run: |
+          (cd artifacts/s50-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s50-a0-shared-native-forked-readouts
+          path: artifacts/s50-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
