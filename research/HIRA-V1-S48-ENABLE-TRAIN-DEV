@@ -1,0 +1,42 @@
+HIRA V1 S48 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+9d9b1754de857a34b87939e91ed8ed691ff74fbd
+
+Exact-head generic CI:
+37171965584
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S48-A0:
+- run 37171579714
+- artifact 11291393129
+- digest sha256:de5ae3d7c936539c19d4b1a9a695fbd27a44fbeac7d1f5d46f26d5ab959090e7
+- outcome HIRA_V1_S48_A0_QUERY_QUOTIENT_OPTION_EVIDENCE_READY
+
+This marker authorizes exactly one preregistered fresh S48 matched court:
+- seed 69001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S48 domains
+- K=4
+- 24 epochs
+- batch 16
+- raw-query correction vs query-quotient correction
+- identical 114,688 correction parameters per arm
+- identical 163,840 total trainable parameters per arm
+- identical correction initialization
+- identical native training mechanics
+- exact S35 checkpoint-selection rule per arm
+- one DEV authority only
+
+No quotient blend or covariance-power sweep.
+No raw-query bypass.
+No learned projector.
+No quotient rank/dimension/epsilon sweep.
+No checkpoint-selection change.
+No loss-weight/capacity/optimizer change.
+No retry for scientific weakness.
+No second S48 DEV.

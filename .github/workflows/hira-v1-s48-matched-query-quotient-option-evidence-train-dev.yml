@@ -1,0 +1,230 @@
+name: hira-v1-s48-matched-query-quotient-option-evidence-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s48-query-quotient-option-evidence
+    paths:
+      - "research/HIRA-V1-S48-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s48-a0-query-quotient-option-evidence
+          path: inputs/S48A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37171579714
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S48 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S48 contracts
+        run: |
+          python -m py_compile src/nmd/v1_query_quotient_private_correction.py src/nmd/v1_s48_authority.py scripts/hira_v1_s48_a0_query_quotient_option_evidence.py scripts/hira_v1_s48_train_dev.py
+          pytest -q tests/test_v1_query_quotient_private_correction.py tests/test_v1_s48_a0_harness.py tests/test_v1_s48_authority.py tests/test_v1_s48_matched_harness.py tests/test_v1_private_correction_fork.py tests/test_v1_s45_cross_view_consistency.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S48-A0 authority
+        run: |
+          (cd inputs/S48A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S48A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s48-a0-query-quotient-option-evidence-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S48_A0_QUERY_QUOTIENT_OPTION_EVIDENCE_READY"
+          assert r["scientific_authority"]=="S48_A0_QUERY_QUOTIENT_OPTION_EVIDENCE_ONLY"
+          assert r["seed"]==69001
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["quotient_trainable_parameter_count"]==0
+          assert r["raw_query_bypass"] is False
+          assert r["second_encoder_pass"] is False
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["orthogonal_nuisance_quotient_max_abs_error"]<=2e-6
+          assert r["orthogonal_nuisance_corrected_logit_max_abs_error"]<=2e-6
+          assert r["relation_relevant_quotient_norm"]>=0.99
+          assert r["distinct_relation_direction_abs_cosine"]<0.99
+          assert r["logical_option_permutation_quotient_max_abs_error"]<=2e-6
+          assert r["logical_option_permutation_corrected_logit_max_abs_error"]<=2e-6
+          assert r["zero_subspace_quotient_max_abs"]==0.0
+          assert r["zero_subspace_corrected_logit_max_abs_error"]==0.0
+          assert r["actual_shell_one_encoder_batch"] is True
+          o=r["ownership"]
+          assert o["matched_native_one_step_parameter_max_abs"]==0.0
+          assert o["matched_native_one_step_output_max_abs"]==0.0
+          assert o["zero_init_correction_native_runtime_gradient_l1"]==0.0
+          assert o["native_objective_correction_gradient_l1"]==0.0
+          assert o["js_only_native_runtime_gradient_l1"]==0.0
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S48 matched TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s48_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S48A0/result.json --out artifacts/s48-train-dev
+
+      - name: Verify S48 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s48-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s48-matched-query-quotient-option-evidence-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S48_QUERY_QUOTIENT_OPTION_EVIDENCE_DEV_COMPLETE",
+              "HIRA_V1_S48_QUERY_QUOTIENT_OPTION_EVIDENCE_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S48_FRESH_MATCHED_RAW_QUERY_VS_QUERY_QUOTIENT_CORRECTION"
+          assert r["seed"]==69001
+
+          t=r["training_mechanics"]
+          assert t["family"]=="matched_private_correction_query_interface"
+          assert t["reference"]=="S45_raw_normalized_mean_query"
+          assert t["treatment"]=="S48_option_difference_covariance_direction_quotient"
+          assert t["epochs"]==24
+          assert t["batch_size_semantic_cases"]==16
+          assert t["lr"]==2e-4
+          assert t["weight_decay"]==0.01
+          assert t["grad_clip"]==1.0
+          assert t["correction_ce_coefficient"]==0.10
+          assert t["correction_cross_view_js_coefficient"]==0.25
+          assert t["checkpoint_selection_rule"]=="exact_s35_selection_key_per_arm"
+          assert t["correction_initialization_identical"] is True
+          assert t["second_encoder_pass"] is False
+
+          s=r["parameter_surface"]
+          assert s["native_trainable_parameters"]==49152
+          assert s["reference_correction_parameters"]==114688
+          assert s["treatment_correction_parameters"]==114688
+          assert s["reference_total_trainable_parameters"]==163840
+          assert s["treatment_total_trainable_parameters"]==163840
+          assert s["quotient_trainable_parameters"]==0
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["prior_track_exact_rows_used"] is False
+          assert p["s47_train_dev_rows_used"] is False
+          assert p["s48_a0_rows_used"] is False
+
+          ref=r["reference_arm"]
+          trt=r["treatment_arm"]
+          assert ref["scientific_arm"]=="reference_raw_query"
+          assert trt["scientific_arm"]=="treatment_query_quotient"
+          assert ref["query_interface"]=="raw_normalized_mean_query"
+          assert trt["query_interface"]=="option_difference_covariance_direction_quotient"
+          assert ref["parameter_surface"]["total_trainable_parameters"]==163840
+          assert trt["parameter_surface"]["total_trainable_parameters"]==163840
+          assert ref["parameter_surface"]["correction_trainable_parameters"]==114688
+          assert trt["parameter_surface"]["correction_trainable_parameters"]==114688
+
+          tr=r["trajectory_invariant"]
+          assert tr["all_epoch_runtime_state_sha256_equal"] is True
+          assert tr["reference_runtime_trajectory_sha256"]==tr["treatment_runtime_trajectory_sha256"]
+          assert tr["epoch_count"]==24
+
+          m=r["matched_dev"]
+          assert isinstance(m["delta_treatment_minus_reference"],dict)
+          for key in (
+              "fused_canonical_accuracy",
+              "fused_paraphrase_accuracy",
+              "fused_canonical_paired_both_correct_rate",
+              "fused_question_swap_choice_change_rate",
+              "fused_cross_view_selected_choice_agreement",
+              "fused_cross_view_mean_js",
+              "canonical_relation_binding_accuracy",
+              "paraphrase_relation_binding_accuracy",
+              "relation_cross_view_agreement",
+              "relation_cross_view_mean_js",
+          ):
+              assert key in m["delta_treatment_minus_reference"]
+          q=m["treatment_quotient_diagnostics"]
+          assert q["state_view_encodes"]==384
+          assert 0.0<=q["quotient_zero_fraction"]<=1.0
+          assert -1.0<=q["raw_query_vs_quotient_mean_cosine"]<=1.0
+          assert -1.0<=q["quotient_cross_view_mean_cosine"]<=1.0
+          assert 0.0<=q["corrected_option_ranking_cross_view_agreement"]<=1.0
+          assert m["treatment_dev_ready"]==trt["dev_ready"]
+
+          cp=r["selected_treatment_checkpoint"]
+          assert 1<=cp["epoch"]<=24
+          assert cp["total_parameter_count"]==163840
+          assert cp["correction_parameter_count"]==114688
+
+          for path in (
+              root/"reference-raw-query"/"treatment-private-correction-candidate.pt",
+              root/"treatment-query-quotient"/"treatment-private-correction-candidate.pt",
+          ):
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              assert payload["arm"]=="treatment"
+              assert payload["total_parameter_count"]==163840
+              assert payload["correction_parameter_count"]==114688
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S48 matched integrity
+        run: |
+          cd artifacts/s48-train-dev
+          sha256sum result.json train-manifest.json dev-manifest.json reference-raw-query/treatment-private-correction-candidate.pt treatment-query-quotient/treatment-private-correction-candidate.pt > INTEGRITY.sha256
+          sha256sum -c INTEGRITY.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s48-matched-query-quotient-option-evidence-train-dev
+          path: artifacts/s48-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
