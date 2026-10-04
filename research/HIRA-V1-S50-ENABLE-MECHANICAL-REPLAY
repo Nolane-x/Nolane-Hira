@@ -1,0 +1,47 @@
+HIRA V1 S50 one-shot hash-locked mechanical replay authorization
+
+Authorized final replay staging head:
+6bee77820d18d280a03354f150ec1cf02bd1da42
+
+Exact-head generic CI:
+37188412137
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Prior failed scientific run:
+- run 37185080959
+- scientific head 68df39904b620f1bc9aa5ce74072457a165eae20
+- shared native completed 24/24 epochs
+- reference private epoch records 0
+- treatment private TRAIN_BEGIN not reached
+- private DEV scoring 0
+- private model selection 0
+
+Frozen recovered native:
+research/HIRA-V1-S50-RECOVERED-NATIVE.json
+
+Mechanical fix only:
+- frozen cache ownership clone exits torch.inference_mode()
+- cache remains detached, contiguous, requires_grad=False
+- no scientific variable changes
+
+This marker authorizes exactly one mechanical replay:
+- seed 71001
+- exact frozen S50 TRAIN 768 / DEV 192
+- same one shared native TRAIN-only phase
+- all 24 replay native hashes MUST exactly match run 37185080959
+- final native hash MUST equal 29c29fc34624f9096c16d54115e2db1047ccd477939780738c66bcd1f9f23913
+- only after hash lock passes may corrected cache/private training proceed
+- reference/treatment correction params 114,688 each
+- identity params 0
+- no branch-specific native optimizer
+- one private DEV authority only
+
+No scientific tuning.
+No cache/operator/identity change.
+No alternate selector.
+No retry for scientific weakness.
+No second S50 private DEV.
+No external Laya/Jev evaluation.

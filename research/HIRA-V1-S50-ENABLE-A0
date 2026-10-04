@@ -1,0 +1,33 @@
+HIRA V1 S50 one-shot A0 authorization
+
+Authorized final staging head:
+96e9b9c067ae58d5f8e9ef2f2092c5a78a5f0f0f
+
+Exact-head generic CI:
+37183763438
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+This marker authorizes exactly one S50-A0 Shared-Native Forked Private Readouts mechanics court.
+
+Frozen design:
+- one native output authority
+- immutable shared cache
+- cached triadic logits + native relation logits/signatures + state/option/query tensors
+- fused replay reconstructable from cache only
+- reference/treatment correction initialization bit-identical
+- correction params 114,688 per branch
+- treatment identity trainable params 0
+- no native optimizer/live native graph in private phase
+- branch-order replay exact
+- raw query remains live only at private readout
+- no S50 DEV exposure before private comparison
+- shared native production court, when later authorized, is fixed epoch 24 on TRAIN-only
+
+A0 is diagnostic only:
+- no model selection
+- no S50 TRAIN/DEV exposure
+- no external Laya/Jev evaluation
+- no semantic tuning after A0 except documented pre-semantic mechanical repair.

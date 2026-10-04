@@ -1,0 +1,224 @@
+name: hira-v1-s50-shared-native-forked-private-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s50-shared-native-forked-readouts
+    paths:
+      - "research/HIRA-V1-S50-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s50-a0-shared-native-forked-readouts
+          path: inputs/S50A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37183981097
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S50 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S50 contracts
+        run: |
+          python -m py_compile src/nmd/v1_s50_authority.py src/nmd/v1_shared_native_private_readouts.py scripts/hira_v1_s50_train_dev.py
+          pytest -q tests/test_v1_s50_authority.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_s50_matched_harness.py tests/test_v1_query_free_option_identity.py tests/test_v1_private_correction_fork.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S50-A0 authority
+        run: |
+          (cd inputs/S50A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S50A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s50-a0-shared-native-forked-private-readouts-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_READY"
+          assert r["scientific_authority"]=="S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_ONLY"
+          assert r["seed"]==71001
+          assert r["cache_tensors_require_grad_count"]==0
+          assert r["private_optimizer_native_parameter_count"]==0
+          assert r["native_training_arms_in_private_phase"]==0
+          assert r["reference_treatment_correction_initialization_exact"] is True
+          assert r["reference_correction_parameter_count"]==114688
+          assert r["treatment_correction_parameter_count"]==114688
+          assert r["identity_parameter_count"]==0
+          assert r["branch_order_replay_max_abs_error"]==0.0
+          assert r["fused_replay_from_cache_only"] is True
+          assert r["shared_triadic_logits_exact"] is True
+          assert r["shared_native_logits_exact"] is True
+          assert r["shared_question_tensor_exact"] is True
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S50 shared-native private court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s50_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S50A0/result.json --out artifacts/s50-train-dev
+
+      - name: Verify S50 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s50-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s50-shared-native-forked-private-readouts-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S50_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_DEV_COMPLETE",
+              "HIRA_V1_S50_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S50_FRESH_SHARED_NATIVE_FORKED_PRIVATE_READOUTS"
+          assert r["seed"]==71001
+
+          n=r["native_phase"]
+          assert n["fixed_epoch"]==24
+          assert n["train_semantic_cases"]==768
+          assert n["dev_scored_before_private_phase"] is False
+          assert n["dev_encoded_before_private_phase"] is False
+          assert len(n["history"])==24
+          assert n["history"][-1]["epoch"]==24
+          assert n["trainable_parameter_count_during_native_phase"]==49152
+          assert n["trainable_parameter_count_after_freeze"]==0
+
+          p=r["private_training_mechanics"]
+          assert p["epochs"]==24
+          assert p["batch_size_semantic_cases"]==16
+          assert p["cache_batch_count_train"]==48
+          assert p["cache_batch_count_dev"]==12
+          assert p["lr"]==2e-4
+          assert p["weight_decay"]==0.01
+          assert p["grad_clip"]==1.0
+          assert p["correction_ce_coefficient"]==0.10
+          assert p["correction_cross_view_js_coefficient"]==0.25
+          assert p["native_optimizer_parameter_count"]==0
+          assert p["native_runtime_live_graph"] is False
+          assert p["dev_scored_before_private_phase"] is False
+          assert p["dev_materialized_at_private_phase_start"] is True
+          assert p["second_encoder_pass_during_private_training"] is False
+
+          c=r["shared_cache"]
+          assert len(c["train_digest"])==64
+          assert len(c["dev_digest"])==64
+          assert c["train_batches"]==48
+          assert c["dev_batches"]==12
+          assert c["reference_treatment_same_cache_bytes"] is True
+          assert c["triadic_logits_cached"] is True
+          assert c["native_relation_logits_cached"] is True
+          assert c["native_relation_signatures_cached"] is True
+          assert c["state_option_query_tensors_cached"] is True
+          assert c["cache_tensors_require_grad"] is False
+          assert c["fused_replay_from_cache_only"] is True
+
+          v=r["controlled_variable"]
+          assert v["reference_private_signature"]=="question_conditioned_native_relation_signature"
+          assert v["treatment_private_signature"]=="query_free_state_option_identity"
+          assert v["raw_query_readout_matched"] is True
+          assert v["reference_correction_parameters"]==114688
+          assert v["treatment_correction_parameters"]==114688
+          assert v["identity_trainable_parameters"]==0
+          assert v["correction_initialization_exact"] is True
+          assert v["shared_native_authority_by_construction"] is True
+
+          parts=r["partitions"]
+          assert parts["train_semantic_cases"]==768
+          assert parts["dev_semantic_cases"]==192
+          assert len(parts["domains"])==12
+          assert parts["k"]==4
+          assert parts["views_per_option"]==2
+          assert parts["s49_train_dev_rows_used"] is False
+          assert parts["s50_a0_rows_used"] is False
+
+          for branch in ("reference_branch","treatment_branch"):
+              b=r[branch]
+              assert 1<=b["selected_dev_epoch"]<=24
+              assert len(b["history"])==24
+              assert b["parameter_surface"]["private_trainable_parameters"]==114688
+              assert b["parameter_surface"]["native_trainable_parameters"]==0
+              assert b["selected_dev"]["state_view_encodes"]==0
+              assert b["selected_dev"]["fused_option_order_flip_rate"]<=0.02
+              assert b["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+              assert b["selected_dev"]["full_k"] is True
+
+          assert r["reference_branch"]["parameter_surface"]["identity_trainable_parameters"]==0
+          assert r["treatment_branch"]["parameter_surface"]["identity_trainable_parameters"]==0
+
+          assert isinstance(r["matched_selected_dev_delta_treatment_minus_reference"],dict)
+          diag=r["treatment_identity_diagnostics"]
+          assert "identity_cross_state_view_same_option_cosine" in diag
+          assert "identity_same_vs_strongest_wrong_margin" in diag
+          assert "fixed_identity_raw_query_swap_mean_abs_logit_delta" in diag
+
+          for filename,kind in (
+              ("shared-native-epoch24.pt","native"),
+              ("reference-private-candidate.pt","reference"),
+              ("treatment-private-candidate.pt","treatment"),
+          ):
+              path=root/filename
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              if kind=="native":
+                  assert payload["epoch"]==24
+                  assert payload["dev_scored_before_private_phase"] is False
+                  assert payload["dev_encoded_before_private_phase"] is False
+                  assert payload["total_parameter_count"]==49152
+              else:
+                  assert payload["branch"]==kind
+                  assert payload["correction_parameter_count"]==114688
+                  assert payload["native_parameter_count_in_optimizer"]==0
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["cache_regenerated_after_dev"] is False
+          assert r["native_retrained_per_branch"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S50 scientific integrity
+        run: |
+          (cd artifacts/s50-train-dev && sha256sum result.json train-manifest.json dev-manifest.json shared-cache-manifest.json shared-native-epoch24.pt reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s50-shared-native-forked-private-train-dev
+          path: artifacts/s50-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
