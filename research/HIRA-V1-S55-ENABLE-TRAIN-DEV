@@ -1,0 +1,58 @@
+HIRA V1 S55 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+0f4353a9dd876f9d85f0b1742fc0b3b4f71ba9f8
+
+Exact-head generic CI:
+37211977934
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S55-A0:
+- run 37211474503
+- artifact 11306837784
+- digest sha256:66ad8bbc2a2046ba00fdc17b60bef991dc246cd2182268edf3965ea91e29b812
+- outcome HIRA_V1_S55_A0_LEARNED_JOINT_RELATION_INTERACTION_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one preregistered fresh S55 matched scientific court:
+- seed 76001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S55 domains
+- K=4
+- private epochs 24
+- reference = learned joint transform with explicit zero state channel
+- treatment = learned joint transform with S54 state-conditioned joint context
+- correction params 114,688 each arm
+- learned joint params 65,536 each arm
+- total private trainable 180,224 each arm
+- identity params 0
+- bit-identical initialization
+- identical immutable native cache
+- identical optimizer/loss/checkpoint selector
+- full private checkpoint includes correction + learned transform
+- native trainable params 0
+- no native retraining
+- one DEV authority only
+
+After private TRAIN begins:
+- no hidden-dimension sweep
+- no transform-seed sweep
+- no neutral-channel variant
+- no state-channel scaling sweep
+- no direct S54-context bypass
+- no native retraining
+- no identity/correction capacity change
+- no alternate selector
+- no retry for scientific weakness
+- no gate weakening
+- no second S55 DEV
+- no external Laya/Jev evaluation
