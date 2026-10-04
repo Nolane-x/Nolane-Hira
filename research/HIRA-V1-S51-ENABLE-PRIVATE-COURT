@@ -1,0 +1,56 @@
+HIRA V1 S51 one-shot artifact-pinned private DEV court authorization
+
+Authorized final Phase-B staging head:
+8c360f6c4f0a44ce4eed966d3a619daccae94e10
+
+Exact-head generic CI:
+37195412652
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S51-A0:
+- run 37192065019
+- artifact 11299312438
+- digest sha256:b54596990a444e1ac3ffba71a9bfc3a910fced67f482af43879550278145fd68
+
+Sealed S51 Phase-A native authority:
+- run 37192490832
+- artifact 11299783210
+- artifact name hira-v1-s51-native-authority
+- artifact digest sha256:d2c2ec63ef6d7c197051ff357ed3ea21c93e8a903b4c5bb7ab8c01e216d91c59
+- epoch 24
+- runtime/native tensor digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint file SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+- TRAIN manifest SHA-256 590aa9464a5d7925eb1028130f0f66957955437f2b62c6338fcd252b7de56c51
+- semantic revision 4226d9e4d2c08703e5cb0491b479bfc6a1607181
+- T0 SHA-256 1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f
+
+This marker authorizes exactly one S51 Phase-B private scientific court:
+- seed 72001
+- TRAIN 768 / DEV 192
+- 12 wholly fresh S51 domains
+- exact persisted native artifact load only
+- native retraining forbidden
+- native optimizer parameter count 0
+- one immutable shared TRAIN/DEV cache
+- reference/treatment consume identical native evidence bytes
+- reference correction 114,688 params
+- treatment correction 114,688 params
+- query-free identity trainable params 0
+- private epochs 24
+- one DEV authority only
+- same frozen optimizer/loss/checkpoint selector
+
+After private TRAIN begins:
+- no native authority regeneration
+- no cache regeneration after DEV
+- no identity/operator variant
+- no pair-temperature or mixing sweep
+- no query leak/blend/projector
+- no private loss/capacity change
+- no selector change
+- no retry for scientific weakness
+- no second S51 DEV
+- no external Laya/Jev evaluation
