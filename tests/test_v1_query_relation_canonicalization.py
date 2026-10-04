@@ -161,3 +161,26 @@ def test_s52_raw_query_summary_matches_parent_s44_source():
         op,question_tokens=q,question_mask=m
     )
     assert torch.equal(raw,parent)
+
+
+def test_s52_private_state_roundtrip_includes_canonicalizer():
+    src=CanonicalizedQueryFreeIdentityPrivateCorrectionFork(train_correction=True)
+    with torch.no_grad():
+        src.adapter_b.normal_(generator=torch.Generator().manual_seed(52200),std=0.01)
+        src.bilinear_weight.normal_(generator=torch.Generator().manual_seed(52201),std=0.01)
+        src.query_canonicalizer.adapter_b.normal_(generator=torch.Generator().manual_seed(52202),std=0.01)
+
+    state=src.private_state_dict()
+    assert set(state)=={
+        "adapter_a",
+        "adapter_b",
+        "bilinear_weight",
+        "query_canonicalizer.adapter_a",
+        "query_canonicalizer.adapter_b",
+    }
+
+    dst=CanonicalizedQueryFreeIdentityPrivateCorrectionFork(train_correction=True)
+    dst.load_private_state_dict(state,freeze=True)
+    for a,b in zip(src.private_parameters(),dst.private_parameters()):
+        assert torch.equal(a.detach().cpu(),b.detach().cpu())
+    assert all(not p.requires_grad for p in dst.private_parameters())
