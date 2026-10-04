@@ -58,8 +58,10 @@ def _train_private_branch_s51(kind,op,train_cache,dev_cache,out_dir):
     params=op.correction_parameters()
     if sum(p.numel() for p in params)!=CORRECTION:
         raise RuntimeError(f"S51 {kind} correction capacity changed")
+    import hira_v1_s35_train_dev as s35
+
     optimizer=torch.optim.AdamW(
-        params,lr=2e-4,weight_decay=0.01
+        params,lr=s35.LR,weight_decay=s35.WEIGHT_DECAY
     )
 
     history=[]
@@ -69,7 +71,6 @@ def _train_private_branch_s51(kind,op,train_cache,dev_cache,out_dir):
     best_metrics=None
 
     import hira_v1_s17_train_dev as s17
-    import hira_v1_s35_train_dev as s35
 
     print(f"HIRA_V1_S51_PRIVATE_{kind.upper()}_TRAIN_BEGIN",flush=True)
 
