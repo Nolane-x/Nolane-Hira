@@ -152,7 +152,7 @@ def validate_native_authority_payload(
     if not isinstance(projection_state,dict) or set(projection_state)!={"projection.weight"}:
         raise RuntimeError("S51 native projection checkpoint keys changed")
     projection=projection_state["projection.weight"]
-    if tuple(projection.shape)!=(64,256):
+    if tuple(projection.shape)!=(128,256):
         raise RuntimeError("S51 native projection shape changed")
     for name,tensor in lora.items():
         if not isinstance(tensor,Tensor) or not bool(torch.isfinite(tensor).all()):
