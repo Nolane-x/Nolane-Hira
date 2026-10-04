@@ -311,44 +311,45 @@ def _expanded_ids(rows,view):
     )
 
 
-def _freeze_batch(runtime,rows,view):
+def _freeze_pair(runtime,rows):
+    # Exactly one native output authority per semantic batch. The single
+    # encoder/native execution yields both canonical and paraphrase evidence.
     with torch.inference_mode():
         raw_c,raw_p,rel_c,rel_p,sig_c,sig_p,encoded=s45a0._native_outputs(runtime,rows)
         gold,_=s35._gold_tensors(rows,device=rel_c.device)
         opt=encoded["option_tokens"].repeat_interleave(2,dim=0)
         om=encoded["option_mask"].repeat_interleave(2,dim=0)
         vm=encoded["option_view_mask"].repeat_interleave(2,dim=0)
-        if view=="canonical":
-            return freeze_shared_native_evidence(
-                case_ids=_expanded_ids(rows,"canonical"),
-                gold=gold,
-                triadic_logits=raw_c,
-                native_logits=rel_c,
-                native_signatures=sig_c,
-                state_tokens=encoded["state_a_tokens"].repeat_interleave(2,dim=0),
-                state_mask=encoded["state_a_mask"].repeat_interleave(2,dim=0),
-                option_view_tokens=opt,
-                option_view_token_mask=om,
-                option_view_mask=vm,
-                question_tokens=encoded["question_canonical_tokens"],
-                question_mask=encoded["question_canonical_mask"],
-            )
-        if view=="paraphrase":
-            return freeze_shared_native_evidence(
-                case_ids=_expanded_ids(rows,"paraphrase"),
-                gold=gold,
-                triadic_logits=raw_p,
-                native_logits=rel_p,
-                native_signatures=sig_p,
-                state_tokens=encoded["state_b_tokens"].repeat_interleave(2,dim=0),
-                state_mask=encoded["state_b_mask"].repeat_interleave(2,dim=0),
-                option_view_tokens=opt,
-                option_view_token_mask=om,
-                option_view_mask=vm,
-                question_tokens=encoded["question_paraphrase_tokens"],
-                question_mask=encoded["question_paraphrase_mask"],
-            )
-        raise ValueError(view)
+
+        canonical=freeze_shared_native_evidence(
+            case_ids=_expanded_ids(rows,"canonical"),
+            gold=gold,
+            triadic_logits=raw_c,
+            native_logits=rel_c,
+            native_signatures=sig_c,
+            state_tokens=encoded["state_a_tokens"].repeat_interleave(2,dim=0),
+            state_mask=encoded["state_a_mask"].repeat_interleave(2,dim=0),
+            option_view_tokens=opt,
+            option_view_token_mask=om,
+            option_view_mask=vm,
+            question_tokens=encoded["question_canonical_tokens"],
+            question_mask=encoded["question_canonical_mask"],
+        )
+        paraphrase=freeze_shared_native_evidence(
+            case_ids=_expanded_ids(rows,"paraphrase"),
+            gold=gold,
+            triadic_logits=raw_p,
+            native_logits=rel_p,
+            native_signatures=sig_p,
+            state_tokens=encoded["state_b_tokens"].repeat_interleave(2,dim=0),
+            state_mask=encoded["state_b_mask"].repeat_interleave(2,dim=0),
+            option_view_tokens=opt,
+            option_view_token_mask=om,
+            option_view_mask=vm,
+            question_tokens=encoded["question_paraphrase_tokens"],
+            question_mask=encoded["question_paraphrase_mask"],
+        )
+    return canonical,paraphrase
 
 
 def _cache_digest(pairs)->str:
@@ -366,8 +367,7 @@ def _materialize_cache(runtime,rows):
     pairs=[]
     for start in range(0,len(rows),BATCH_SIZE):
         batch=list(rows[start:start+BATCH_SIZE])
-        canonical=_freeze_batch(runtime,batch,"canonical")
-        paraphrase=_freeze_batch(runtime,batch,"paraphrase")
+        canonical,paraphrase=_freeze_pair(runtime,batch)
         if canonical.gold.shape!=paraphrase.gold.shape or not torch.equal(canonical.gold,paraphrase.gold):
             raise RuntimeError("S50 canonical/paraphrase cache gold mismatch")
         pairs.append((canonical,paraphrase,len(batch)))
