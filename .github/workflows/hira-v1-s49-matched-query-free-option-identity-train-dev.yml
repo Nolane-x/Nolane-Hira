@@ -1,0 +1,204 @@
+name: hira-v1-s49-matched-query-free-option-identity-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s49-private-query-free-option-identity
+    paths:
+      - "research/HIRA-V1-S49-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s49-a0-query-free-option-identity
+          path: inputs/S49A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37178164136
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S49 training stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S49 contracts
+        run: |
+          python -m py_compile src/nmd/v1_query_free_option_identity.py src/nmd/v1_s49_authority.py scripts/hira_v1_s49_a0_query_free_option_identity.py scripts/hira_v1_s49_train_dev.py
+          pytest -q tests/test_v1_query_free_option_identity.py tests/test_v1_s49_a0_harness.py tests/test_v1_s49_authority.py tests/test_v1_s49_matched_harness.py tests/test_v1_private_correction_fork.py tests/test_v1_s45_cross_view_consistency.py tests/test_v1_invariance.py
+
+      - name: Verify canonical S49-A0 authority
+        run: |
+          (cd inputs/S49A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S49A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s49-a0-private-query-free-option-identity-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S49_A0_PRIVATE_QUERY_FREE_OPTION_IDENTITY_READY"
+          assert r["scientific_authority"]=="S49_A0_PRIVATE_QUERY_FREE_OPTION_IDENTITY_ONLY"
+          assert r["seed"]==70001
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["identity_parameter_count"]==0
+          assert r["identity_api_question_inputs_absent"] is True
+          assert r["second_encoder_pass"] is False
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["question_substitution_identity_max_abs_error"]==0.0
+          assert r["logical_option_permutation_max_abs_error"]<=2e-6
+          assert r["state_token_permutation_max_abs_error"]<=2e-6
+          assert r["option_token_permutation_max_abs_error"]<=2e-6
+          assert r["option_view_permutation_max_abs_error"]<=2e-6
+          assert r["masked_padding_max_abs_error"]<=2e-6
+          assert r["raw_query_live_corrected_logit_max_abs"]>1e-7
+          assert r["checkpoint_roundtrip_exact"] is True
+          o=r["ownership"]
+          assert o["matched_native_one_step_parameter_max_abs"]==0.0
+          assert o["matched_native_one_step_output_max_abs"]==0.0
+          assert o["zero_init_correction_native_runtime_gradient_l1"]==0.0
+          assert o["native_objective_correction_gradient_l1"]==0.0
+          assert o["js_only_native_runtime_gradient_l1"]==0.0
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S49 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s49_train_dev.py --bundle inputs/M4/hira-v0-m4-runtime --a0-result inputs/S49A0/result.json --out artifacts/s49-train-dev
+
+      - name: Verify S49 matched receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+          root=Path("artifacts/s49-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s49-matched-private-query-free-option-identity-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S49_PRIVATE_QUERY_FREE_OPTION_IDENTITY_DEV_COMPLETE",
+              "HIRA_V1_S49_PRIVATE_QUERY_FREE_OPTION_IDENTITY_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S49_FRESH_MATCHED_QUESTION_CONDITIONED_SIGNATURE_VS_QUERY_FREE_IDENTITY"
+          assert r["seed"]==70001
+
+          t=r["training_mechanics"]
+          assert t["epochs"]==24
+          assert t["batch_size_semantic_cases"]==16
+          assert t["lr"]==2e-4
+          assert t["weight_decay"]==0.01
+          assert t["grad_clip"]==1.0
+          assert t["correction_ce_coefficient"]==0.10
+          assert t["correction_cross_view_js_coefficient"]==0.25
+          assert t["same_checkpoint_selection_rule"] is True
+          assert t["second_encoder_pass"] is False
+
+          v=r["controlled_variable"]
+          assert v["reference_private_signature"]=="question_conditioned_native_relation_signature"
+          assert v["treatment_private_signature"]=="query_free_state_option_identity"
+          assert v["raw_query_readout_matched"] is True
+          assert v["reference_correction_parameters"]==114688
+          assert v["treatment_correction_parameters"]==114688
+          assert v["identity_trainable_parameters"]==0
+          assert v["correction_initialization_exact"] is True
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+          assert p["identical_rows_across_arms"] is True
+          assert p["s48_train_dev_rows_used"] is False
+          assert p["s49_a0_rows_used"] is False
+
+          ref=r["reference_arm"]; trt=r["treatment_arm"]
+          assert ref["parameter_surface"]["total_trainable_parameters"]==163840
+          assert trt["parameter_surface"]["total_trainable_parameters"]==163840
+          assert ref["parameter_surface"]["correction_trainable_parameters"]==114688
+          assert trt["parameter_surface"]["correction_trainable_parameters"]==114688
+          assert 1<=ref["selected_dev_epoch"]<=24
+          assert 1<=trt["selected_dev_epoch"]<=24
+
+          traj=r["trajectory_invariant"]
+          assert traj["all_epoch_runtime_state_sha256_equal"] is True
+          assert traj["reference_runtime_trajectory_sha256"]==traj["treatment_runtime_trajectory_sha256"]
+          assert traj["epoch_count"]==24
+
+          cp=r["selected_treatment_checkpoint"]
+          assert 1<=cp["epoch"]<=24
+          assert cp["total_parameter_count"]==163840
+          assert cp["correction_parameter_count"]==114688
+
+          diag=r["treatment_identity_diagnostics"]
+          assert "identity_cross_state_view_same_option_cosine" in diag
+          assert "identity_same_vs_strongest_wrong_margin" in diag
+          assert diag["fixed_identity_raw_query_swap_mean_abs_logit_delta"]>=0.0
+
+          assert isinstance(r["matched_selected_dev_delta_treatment_minus_reference"],dict)
+
+          for filename in (
+              "reference-question-conditioned-private-candidate.pt",
+              "treatment-query-free-identity-private-candidate.pt",
+          ):
+              path=root/filename
+              assert path.is_file()
+              payload=torch.load(path,map_location="cpu",weights_only=True)
+              assert payload["arm"]=="treatment"
+              assert payload["total_parameter_count"]==163840
+              assert payload["correction_parameter_count"]==114688
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["sealed_confirm_opened"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S49 matched integrity
+        run: |
+          (cd artifacts/s49-train-dev && sha256sum result.json train-manifest.json dev-manifest.json reference-question-conditioned-private-candidate.pt treatment-query-free-identity-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s49-matched-query-free-option-identity-train-dev
+          path: artifacts/s49-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
