@@ -1,0 +1,40 @@
+HIRA V1 S51 one-shot Phase-A native authority authorization
+
+Authorized final Phase-A staging head:
+982d47dbf524c17e9c9787ce2ab7dd750e6069da
+
+Exact-head generic CI:
+37192249148
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S51-A0:
+- run 37192065019
+- artifact 11299312438
+- digest sha256:b54596990a444e1ac3ffba71a9bfc3a910fced67f482af43879550278145fd68
+- outcome HIRA_V1_S51_A0_PERSISTED_NATIVE_AUTHORITY_READY
+
+This marker authorizes exactly one Phase-A persisted native authority:
+- seed 72001
+- S51 TRAIN 768
+- 12 wholly fresh S51 domains
+- fixed native epoch 24
+- native trainable surface 49,152
+- LoRA 16,384
+- projection 32,768 / 128x256
+- no S51 DEV generation
+- no S51 DEV encoding
+- no S51 DEV scoring
+- no private correction construction
+- no model selection across native epochs
+- persist exact epoch-24 native authority only
+
+Required output artifact:
+hira-v1-s51-native-authority
+
+No second Phase-A authority.
+No authority regeneration for scientific weakness.
+No S51 DEV exposure in Phase A.
+Phase B remains separately gated after Phase-A artifact qualification.
