@@ -9,6 +9,7 @@ from torch import Tensor
 
 from .v1_private_correction_fork import PrivateCorrectionRepresentationFork
 from .v1_query_free_option_identity import QueryFreeIdentityPrivateCorrectionFork
+from .v1_evidence_fusion import SymmetricFullKEvidenceFusion
 
 
 def _clone_frozen(tensor: Tensor) -> Tensor:
@@ -29,6 +30,7 @@ def _tensor_digest(digest, name: str, tensor: Tensor) -> None:
 class FrozenSharedNativeEvidence:
     case_ids: tuple[str, ...]
     gold: Tensor
+    triadic_logits: Tensor
     native_logits: Tensor
     native_signatures: Tensor
     state_tokens: Tensor
@@ -57,6 +59,7 @@ class FrozenSharedNativeEvidence:
         d.update(json.dumps(list(self.case_ids),ensure_ascii=False,separators=(",",":")).encode("utf-8"))
         for name,tensor in (
             ("gold",self.gold),
+            ("triadic_logits",self.triadic_logits),
             ("native_logits",self.native_logits),
             ("native_signatures",self.native_signatures),
             ("state_tokens",self.state_tokens),
@@ -73,6 +76,7 @@ class FrozenSharedNativeEvidence:
     def tensors(self) -> tuple[Tensor, ...]:
         return (
             self.gold,
+            self.triadic_logits,
             self.native_logits,
             self.native_signatures,
             self.state_tokens,
@@ -89,6 +93,7 @@ def freeze_shared_native_evidence(
     *,
     case_ids: tuple[str, ...],
     gold: Tensor,
+    triadic_logits: Tensor,
     native_logits: Tensor,
     native_signatures: Tensor,
     state_tokens: Tensor,
@@ -102,6 +107,8 @@ def freeze_shared_native_evidence(
     if native_logits.ndim!=2:
         raise ValueError("S50 native_logits must be [B,K]")
     b,k=native_logits.shape
+    if triadic_logits.shape!=(b,k):
+        raise ValueError("S50 triadic_logits must match [B,K]")
     if b<1 or k<2:
         raise ValueError("S50 requires B>=1 and K>=2")
     if len(case_ids)!=b or len(set(case_ids))!=b:
@@ -138,6 +145,7 @@ def freeze_shared_native_evidence(
     if bool(((option_view_token_mask.sum(-1)<1)&option_view_mask).any()):
         raise ValueError("S50 active option view content missing")
     for name,tensor in (
+        ("triadic_logits",triadic_logits),
         ("native_logits",native_logits),
         ("native_signatures",native_signatures),
         ("state_tokens",state_tokens),
@@ -150,6 +158,7 @@ def freeze_shared_native_evidence(
     return FrozenSharedNativeEvidence(
         case_ids=tuple(case_ids),
         gold=_clone_frozen(gold),
+        triadic_logits=_clone_frozen(triadic_logits),
         native_logits=_clone_frozen(native_logits),
         native_signatures=_clone_frozen(native_signatures),
         state_tokens=_clone_frozen(state_tokens),
@@ -190,6 +199,19 @@ def treatment_private_logits(
     )
 
 
+def fused_private_logits(
+    evidence: FrozenSharedNativeEvidence,
+    relation_logits: Tensor,
+    *,
+    epsilon: float = 1e-6,
+) -> Tensor:
+    if relation_logits.shape!=evidence.native_logits.shape:
+        raise ValueError("S50 fused relation logits shape changed")
+    fusion=SymmetricFullKEvidenceFusion(epsilon=epsilon)
+    fused,_diag=fusion(evidence.triadic_logits,relation_logits)
+    return fused
+
+
 def correction_initialization_exact(
     reference: PrivateCorrectionRepresentationFork,
     treatment: QueryFreeIdentityPrivateCorrectionFork,
@@ -204,5 +226,6 @@ __all__=[
     "freeze_shared_native_evidence",
     "reference_private_logits",
     "treatment_private_logits",
+    "fused_private_logits",
     "correction_initialization_exact",
 ]
