@@ -1,0 +1,56 @@
+HIRA V1 S52 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+c8d89d25878d30a70f8dcd6ab85b07d410d9bf94
+
+Exact-head generic CI:
+37203799411
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S52-A0:
+- run 37199183308
+- artifact 11302402275
+- digest sha256:b99bb216580bbd7092126fc028c9581519ca23bfa72a0a8e174c7175daa76b5a
+- outcome HIRA_V1_S52_A0_QUERY_RELATION_CANONICALIZATION_READY
+
+Pinned parent native authority:
+- S51 Phase-A run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+- native trainable params 0
+- native retraining forbidden
+
+This marker authorizes exactly one fresh S52 matched court:
+- seed 73001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S52 domains
+- K=4
+- private epochs 24
+- query-free option identity in both arms
+- correction params 114,688 each
+- query canonicalizer params 32,768 each
+- total private trainable 147,456 each
+- bit-identical initialization
+- one immutable shared native cache
+- reference auxiliary coefficient 0.0
+- treatment auxiliary coefficient 0.10
+- separation ceiling 0.25
+- same optimizer/loss/selector
+- one DEV authority only
+
+No auxiliary coefficient sweep.
+No separation ceiling sweep.
+No hidden-dimension sweep.
+No raw-query bypass.
+No native retraining.
+No identity variant.
+No correction/canonicalizer capacity change.
+No alternate selector.
+No retry for scientific weakness.
+No second S52 DEV.
+No external Laya/Jev evaluation.
