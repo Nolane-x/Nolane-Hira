@@ -138,6 +138,7 @@ def _train_branch(name,op,train_cache,dev_cache,out_dir):
         random.Random(SEED+epoch).shuffle(order)
         loss_sum=ce_sum=js_sum=0.0
         case_count=0
+        learned_gradient_live=False
 
         for index in order:
             canonical,paraphrase,n=train_cache[index]
@@ -150,8 +151,8 @@ def _train_branch(name,op,train_cache,dev_cache,out_dir):
             learned_grads=grads[len(op.correction_parameters()):]
             if not any(g is not None and float(g.detach().abs().sum())>0.0 for g in correction_grads):
                 raise RuntimeError(f"S55 {name} correction gradient vanished")
-            if not any(g is not None and float(g.detach().abs().sum())>0.0 for g in learned_grads):
-                raise RuntimeError(f"S55 {name} learned-joint gradient vanished")
+            if any(g is not None and float(g.detach().abs().sum())>0.0 for g in learned_grads):
+                learned_gradient_live=True
             for p,g in zip(params,grads):
                 p.grad=None if g is None else g.detach().clone()
             torch.nn.utils.clip_grad_norm_(params,s35.GRAD_CLIP)
@@ -161,6 +162,16 @@ def _train_branch(name,op,train_cache,dev_cache,out_dir):
             ce_sum+=float(ce.detach())*n
             js_sum+=float(js.detach())*n
             case_count+=n
+
+        # B is zero-initialized by contract, so the learned transform may
+        # legitimately receive zero gradient on the very first warm-start
+        # update while the correction shell is also still at its neutral
+        # initialization. Require the path to become live within the TRAIN
+        # epoch, before any DEV metric is evaluated.
+        if not learned_gradient_live:
+            raise RuntimeError(
+                f"S55 {name} learned-joint gradient never became live in epoch {epoch}"
+            )
 
         metrics=s50._private_metrics(op,"treatment",dev_cache)
         record={
