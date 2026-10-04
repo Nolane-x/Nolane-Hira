@@ -196,3 +196,24 @@ def test_s49_probability_mass_valid():
     )
     probs=torch.softmax(corrected,dim=-1)
     assert float((probs.sum(-1)-1.0).abs().max())<=1e-6
+
+
+def test_s49_private_correction_accepts_exact_s45_constructor_contract():
+    op=QueryFreeIdentityPrivateCorrectionFork(
+        native_dimension=256,
+        hidden_dimension=64,
+        query_norm_epsilon=1e-12,
+        private_norm_epsilon=1e-12,
+        residual_scale=1.0,
+        adapter_seed=65044,
+        train_correction=True,
+        pair_temperature=0.10,
+    )
+    assert op.identity_parameter_count==0
+    assert op.correction_parameter_count==114688
+    assert op.native_dimension==256
+    assert op.hidden_dimension==64
+    assert op.query_norm_epsilon==1e-12
+    assert op.private_norm_epsilon==1e-12
+    assert op.residual_scale==1.0
+    assert op.adapter_seed==65044
