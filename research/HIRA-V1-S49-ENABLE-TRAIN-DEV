@@ -1,0 +1,44 @@
+HIRA V1 S49 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+87be774932e1a12b377270ac83dbb06594c644cb
+
+Exact-head generic CI:
+37178546603
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S49-A0:
+- run 37178164136
+- artifact 11293039754
+- digest sha256:ce07ed474c21185d5a4316550e116606d7c09b90c808aea028354f2f046678e0
+- outcome HIRA_V1_S49_A0_PRIVATE_QUERY_FREE_OPTION_IDENTITY_READY
+
+This marker authorizes exactly one preregistered fresh S49 matched court:
+- seed 70001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S49 domains
+- K=4
+- 24 epochs
+- batch 16
+- question-conditioned signature vs query-free identity
+- reference/treatment correction parameters both 114,688
+- total trainable parameters both 163,840
+- exact equal correction initialization
+- identical native initialization/update mechanics
+- identical optimizer/loss coefficients
+- exact same checkpoint-selection rule
+- one DEV authority only
+
+No pair-temperature sweep.
+No direct/relative mixing sweep.
+No query leak into identity construction.
+No raw/native signature blend.
+No learned identity projector.
+No identity dimension sweep.
+No loss/capacity/optimizer change.
+No retry for scientific weakness.
+No second S49 DEV.
