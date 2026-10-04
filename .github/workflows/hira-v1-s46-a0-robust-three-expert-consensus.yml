@@ -1,0 +1,119 @@
+name: hira-v1-s46-a0-robust-three-expert-consensus
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s46-robust-three-expert-consensus
+    paths:
+      - "research/HIRA-V1-S46-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S46 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S46 contracts
+        run: |
+          python -m py_compile src/nmd/v1_robust_three_expert_consensus.py scripts/hira_v1_s46_a0_robust_three_expert_consensus.py
+          pytest -q tests/test_v1_robust_three_expert_consensus.py tests/test_v1_s46_a0_harness.py tests/test_v1_private_correction_fork.py tests/test_v1_s45_cross_view_consistency.py tests/test_v1_evidence_fusion.py tests/test_v1_invariance.py
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S46 A0 robust consensus court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s46_a0_robust_three_expert_consensus.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s46-a0
+
+      - name: Verify S46 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s46-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s46-a0-robust-three-expert-consensus-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S46_A0_ROBUST_THREE_EXPERT_CONSENSUS_READY"
+          assert r["scientific_authority"]=="S46_A0_ROBUST_THREE_EXPERT_CONSENSUS_ONLY"
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["private_adapter_parameter_count"]==49152
+          assert r["bilinear_parameter_count"]==65536
+          assert r["correction_parameter_count"]==114688
+          assert r["treatment_total_trainable_parameter_count"]==163840
+          assert r["fusion_parameter_count"]==0
+          assert r["fusion_epsilon"]==1e-6
+          assert r["training_mechanics"]=="exact_s45"
+          assert r["second_encoder_pass"] is False
+
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["logical_option_permutation_max_abs_error"]<=3e-6
+          assert r["independent_shift_positive_scale_max_abs_error"]<=3e-6
+          assert r["all_three_identical_max_abs_error"]==0.0
+          assert r["one_extreme_outlier_max_abs_error"]<=3e-6
+          assert r["median_lower_envelope_violation"]==0.0
+          assert r["median_upper_envelope_violation"]==0.0
+          assert r["flat_expert_finite"] is True
+          assert r["max_probability_mass_error"]<=1e-6
+
+          assert r["actual_shell_legacy_vs_robust_max_abs"]>1e-7
+          assert r["actual_shell_probability_mass_error"]<=1e-6
+          assert r["actual_shell_state_view_encodes"]==32
+          assert r["actual_shell_one_encoder_batch"] is True
+          assert r["actual_shell_fusion_parameter_count"]==0
+
+          o=r["ownership"]
+          assert o["matched_native_one_step_parameter_max_abs"]==0.0
+          assert o["matched_native_one_step_output_max_abs"]==0.0
+          assert o["zero_init_correction_native_runtime_gradient_l1"]==0.0
+          assert o["native_objective_correction_gradient_l1"]==0.0
+          assert o["js_only_adapter_a_gradient_l1"]>0.0
+          assert o["js_only_adapter_b_gradient_l1"]>0.0
+          assert o["js_only_w_gradient_l1"]>0.0
+          assert o["js_only_native_runtime_gradient_l1"]==0.0
+
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S46 A0 integrity
+        run: |
+          (cd artifacts/s46-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s46-a0-robust-three-expert-consensus
+          path: artifacts/s46-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

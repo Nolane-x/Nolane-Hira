@@ -1,0 +1,22 @@
+HIRA V1 S46 one-shot A0 authorization
+
+Authorized staging head:
+84922bff8a83f6d4ac4986ad21930881922f0777
+
+Exact-head generic CI:
+37133038836
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+This marker authorizes exactly one S46-A0 robust three-expert consensus mechanics court.
+
+A0 is diagnostic only:
+- no model selection
+- no fresh TRAIN/DEV exposure
+- no external Laya/Jev evaluation
+- no post-A0 semantic tuning except mechanical repair if the court aborts before semantic outputs.
+
+Frozen S46 decision family:
+coordinate-wise median of independently standardized primary, native-relation, and corrected-private-relation full-K evidence.
