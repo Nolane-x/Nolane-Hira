@@ -20,7 +20,7 @@ reference and treatment native runtime trajectories differed at all 24 epochs, v
 
 S50 eliminates branch-specific native divergence by construction:
 
-1. one shared native authority;
+1. one shared native authority trained to fixed epoch 24 on TRAIN only, with zero DEV exposure;
 2. one frozen native checkpoint;
 3. one immutable shared-native evidence cache;
 4. two private readout branches over the same cache.
