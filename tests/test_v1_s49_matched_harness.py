@@ -34,3 +34,19 @@ def test_s49_train_dev_marker_is_well_formed_when_authorized():
     assert "DEV 192" in source
     assert "question-conditioned signature vs query-free identity" in source
     assert "No second S49 DEV." in source
+
+
+def test_s49_matched_workflow_is_a0_bound_and_one_shot():
+    path=Path(".github/workflows/hira-v1-s49-matched-query-free-option-identity-train-dev.yml")
+    source=path.read_text(encoding="utf-8")
+    assert "feat/hira-v1-s49-private-query-free-option-identity" in source
+    assert "research/HIRA-V1-S49-ENABLE-TRAIN-DEV" in source
+    assert "run-id: 37178164136" in source
+    assert "hira-v1-s49-a0-query-free-option-identity" in source
+    assert "scripts/hira_v1_s49_train_dev.py" in source
+    assert "tests/test_v1_s49_authority.py" in source
+    assert "tests/test_v1_s49_matched_harness.py" in source
+    assert 'assert r["seed"]==70001' in source
+    assert "reference-question-conditioned-private-candidate.pt" in source
+    assert "treatment-query-free-identity-private-candidate.pt" in source
+    assert 'assert r["second_dev_run_performed"] is False' in source
