@@ -1,0 +1,144 @@
+name: hira-v1-s51-native-authority
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s51-persisted-native-authority
+    paths:
+      - "research/HIRA-V1-S51-ENABLE-NATIVE-AUTHORITY"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-a0-persisted-native-authority
+          path: inputs/S51A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192065019
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S51 Phase-A stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S51 Phase-A contracts
+        run: |
+          python -m py_compile src/nmd/v1_persisted_native_authority.py src/nmd/v1_s51_authority.py scripts/hira_v1_s51_native_authority.py
+          pytest -q tests/test_v1_persisted_native_authority.py tests/test_v1_s51_authority.py tests/test_v1_s51_phase_a_isolation.py tests/test_v1_s51_native_authority_workflow.py
+
+      - name: Verify canonical S51-A0 authority
+        run: |
+          (cd inputs/S51A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S51A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s51-a0-persisted-native-authority-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S51_A0_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["scientific_authority"]=="S51_A0_PERSIST_LOAD_CACHE_ISOLATION_ONLY"
+          assert r["seed"]==72001
+          assert r["tamper_rejected"] is True
+          assert r["loaded_native_trainable_parameter_count"]==0
+          assert r["loaded_native_optimizer_parameter_count"]==0
+          assert r["phase_a_dev_generation_absent"] is True
+          assert r["phase_a_private_construction_absent"] is True
+          assert r["phase_b_native_training_call_absent"] is True
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one S51 TRAIN-only persisted native authority
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s51_native_authority.py --bundle inputs/M4/hira-v0-m4-runtime --out artifacts/s51-native-authority
+
+      - name: Verify S51 native authority receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+          from nmd.v1_persisted_native_authority import validate_native_authority_payload, file_sha256
+
+          root=Path("artifacts/s51-native-authority")
+          r=json.loads((root/"authority-receipt.json").read_text())
+          assert r["schema_version"]=="hira-v1-s51-native-authority-receipt-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["scientific_authority"]=="S51_PHASE_A_TRAIN_ONLY_PERSISTED_NATIVE_AUTHORITY"
+          assert r["seed"]==72001
+          assert r["epoch"]==24
+          assert r["train_semantic_cases"]==768
+          assert len(r["domains"])==12
+          assert r["dev_generated"] is False
+          assert r["dev_encoded"] is False
+          assert r["dev_scored"] is False
+          assert r["private_correction_constructed"] is False
+          assert r["native_trainable_parameter_count"]==49152
+          assert r["projection_parameter_count"]==32768
+          assert len(r["native_tensor_digest"])==64
+          assert len(r["runtime_state_sha256"])==64
+          assert len(r["checkpoint_file_sha256"])==64
+          assert len(r["train_manifest_sha256"])==64
+          assert len(r["history"])==24
+          assert r["history"][-1]["epoch"]==24
+          assert r["used_for_model_selection"] is False
+          assert r["production_ready_claimed"] is False
+
+          checkpoint=root/"native-authority.pt"
+          assert checkpoint.is_file()
+          assert file_sha256(checkpoint)==r["checkpoint_file_sha256"]
+          payload=torch.load(checkpoint,map_location="cpu",weights_only=True)
+          validate_native_authority_payload(
+              payload,
+              expected_seed=72001,
+              expected_semantic_revision=r["semantic_revision"],
+              expected_t0_sha256=r["initialization_t0_sha256"],
+          )
+          assert payload["runtime_state_sha256"]==r["runtime_state_sha256"]
+          assert payload["native_tensor_digest"]==r["native_tensor_digest"]
+          assert payload["train_manifest_sha256"]==r["train_manifest_sha256"]
+          PY
+
+      - name: Freeze S51 native authority integrity
+        run: |
+          (cd artifacts/s51-native-authority && sha256sum native-authority.pt train-manifest.json authority-receipt.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: artifacts/s51-native-authority
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

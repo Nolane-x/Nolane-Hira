@@ -1,0 +1,258 @@
+name: hira-v1-s51-artifact-pinned-private-court
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s51-persisted-native-authority
+    paths:
+      - "research/HIRA-V1-S51-ENABLE-PRIVATE-COURT"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-a0-persisted-native-authority
+          path: inputs/S51A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192065019
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S51 Phase-B stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S51 Phase-B contracts
+        run: |
+          python -m py_compile src/nmd/v1_persisted_native_authority.py src/nmd/v1_s51_authority.py scripts/hira_v1_s51_private_court.py
+          pytest -q tests/test_v1_persisted_native_authority.py tests/test_v1_s51_authority.py tests/test_v1_s51_phase_b_isolation.py tests/test_v1_s51_private_court_workflow.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_query_free_option_identity.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify canonical S51-A0 authority
+        run: |
+          (cd inputs/S51A0 && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S51A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s51-a0-persisted-native-authority-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S51_A0_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["seed"]==72001
+          assert r["tamper_rejected"] is True
+          assert r["loaded_native_trainable_parameter_count"]==0
+          assert r["loaded_native_optimizer_parameter_count"]==0
+          assert r["branch_order_replay_max_abs_error"]==0.0
+          assert r["phase_a_dev_generation_absent"] is True
+          assert r["phase_a_private_construction_absent"] is True
+          assert r["phase_b_native_training_call_absent"] is True
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify sealed S51 native authority artifact
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+          from nmd.v1_persisted_native_authority import (
+              file_sha256,
+              validate_native_authority_payload,
+          )
+
+          frozen=json.loads(Path("research/HIRA-V1-S51-NATIVE-AUTHORITY-RECEIPT.json").read_text())
+          r=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+
+          assert frozen["status"]=="PASS"
+          assert frozen["run"]==37192490832
+          assert frozen["artifact_id"]==11299783210
+          assert frozen["artifact_name"]=="hira-v1-s51-native-authority"
+          assert frozen["artifact_digest"]=="sha256:d2c2ec63ef6d7c197051ff357ed3ea21c93e8a903b4c5bb7ab8c01e216d91c59"
+
+          assert r["schema_version"]=="hira-v1-s51-native-authority-receipt-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["scientific_authority"]=="S51_PHASE_A_TRAIN_ONLY_PERSISTED_NATIVE_AUTHORITY"
+          assert r["seed"]==72001
+          assert r["epoch"]==24
+          assert r["train_semantic_cases"]==768
+          assert len(r["domains"])==12
+          assert r["dev_generated"] is False
+          assert r["dev_encoded"] is False
+          assert r["dev_scored"] is False
+          assert r["private_correction_constructed"] is False
+          assert r["used_for_model_selection"] is False
+
+          expected={
+              "runtime_state_sha256":"ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628",
+              "native_tensor_digest":"ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628",
+              "checkpoint_file_sha256":"19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916",
+              "train_manifest_sha256":"590aa9464a5d7925eb1028130f0f66957955437f2b62c6338fcd252b7de56c51",
+              "semantic_revision":"4226d9e4d2c08703e5cb0491b479bfc6a1607181",
+              "initialization_t0_sha256":"1ed6c94d179fddffa2859a67ee3f9f383e677d456365d7e87bdcd844cc49010f",
+          }
+          for key,value in expected.items():
+              assert r[key]==value
+              assert frozen[key]==value
+
+          checkpoint=Path("inputs/S51AUTH/native-authority.pt")
+          assert file_sha256(checkpoint)==expected["checkpoint_file_sha256"]
+          payload=torch.load(checkpoint,map_location="cpu",weights_only=True)
+          validate_native_authority_payload(
+              payload,
+              expected_seed=72001,
+              expected_semantic_revision=expected["semantic_revision"],
+              expected_t0_sha256=expected["initialization_t0_sha256"],
+          )
+          assert payload["runtime_state_sha256"]==expected["runtime_state_sha256"]
+          assert payload["native_tensor_digest"]==expected["native_tensor_digest"]
+          assert payload["train_manifest_sha256"]==expected["train_manifest_sha256"]
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one S51 artifact-pinned private DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s51_private_court.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --authority-train-manifest inputs/S51AUTH/train-manifest.json \
+            --out artifacts/s51-private-court
+
+      - name: Verify S51 private court receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s51-private-court")
+          r=json.loads((root/"result.json").read_text())
+
+          assert r["schema_version"]=="hira-v1-s51-artifact-pinned-private-court-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S51_ARTIFACT_PINNED_PRIVATE_COURT_DEV_COMPLETE",
+              "HIRA_V1_S51_ARTIFACT_PINNED_PRIVATE_COURT_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S51_ARTIFACT_PINNED_SHARED_NATIVE_PRIVATE_COURT"
+          assert r["seed"]==72001
+
+          a=r["phase_a_authority"]
+          b=r["phase_b_loaded_authority"]
+          expected_hash="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert a["runtime_state_sha256"]==expected_hash
+          assert a["native_tensor_digest"]==expected_hash
+          assert a["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert a["train_manifest_sha256"]=="590aa9464a5d7925eb1028130f0f66957955437f2b62c6338fcd252b7de56c51"
+          assert a["epoch"]==24
+          assert a["dev_encoded"] is False
+          assert a["dev_scored"] is False
+          assert b["runtime_state_sha256"]==expected_hash
+          assert b["native_tensor_digest"]==expected_hash
+          assert b["native_trainable_parameters"]==0
+          assert b["native_optimizer_constructed"] is False
+          assert b["native_training_performed"] is False
+
+          cache=r["shared_cache"]
+          assert cache["reference_treatment_same_cache_bytes"] is True
+          assert cache["cache_regenerated_after_dev"] is False
+          assert cache["private_state_view_encodes"]==0
+          assert len(cache["train_digest"])==64
+          assert len(cache["dev_digest"])==64
+
+          for name in ("reference_branch","treatment_branch"):
+              branch=r[name]
+              assert len(branch["history"])==24
+              assert 1<=branch["selected_dev_epoch"]<=24
+              assert branch["parameter_surface"]["private_trainable_parameters"]==114688
+              assert branch["parameter_surface"]["native_trainable_parameters"]==0
+              assert branch["selected_dev"]["state_view_encodes"]==0
+              assert branch["selected_dev"]["full_k"] is True
+              assert branch["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          assert r["reference_branch"]["parameter_surface"]["identity_trainable_parameters"]==0
+          assert r["treatment_branch"]["parameter_surface"]["identity_trainable_parameters"]==0
+
+          surface=r["private_surface"]
+          assert surface["reference_correction_parameters"]==114688
+          assert surface["treatment_correction_parameters"]==114688
+          assert surface["treatment_identity_parameters"]==0
+          assert surface["correction_initialization_bit_identical"] is True
+
+          p=r["partitions"]
+          assert p["train_semantic_cases"]==768
+          assert p["dev_semantic_cases"]==192
+          assert len(p["domains"])==12
+          assert p["k"]==4
+          assert p["views_per_option"]==2
+
+          for filename,branch_name in (
+              ("reference-private-candidate.pt","reference"),
+              ("treatment-private-candidate.pt","treatment"),
+          ):
+              payload=torch.load(root/filename,map_location="cpu",weights_only=True)
+              assert payload["schema_version"]=="hira-v1-s51-private-candidate-v1"
+              assert payload["branch"]==branch_name
+              assert payload["seed"]==72001
+              assert 1<=payload["selected_dev_epoch"]<=24
+              assert payload["correction_parameter_count"]==114688
+              assert payload["native_parameter_count_in_optimizer"]==0
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["authority_regenerated_after_private_exposure"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S51 private court integrity
+        run: |
+          (cd artifacts/s51-private-court && sha256sum result.json reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s51-artifact-pinned-private-court
+          path: artifacts/s51-private-court
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
