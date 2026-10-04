@@ -1,0 +1,45 @@
+HIRA V1 S50 one-shot TRAIN/DEV authorization
+
+Authorized final staging head:
+23ee042c473165bab54545b2dea8708dcc6fecfd
+
+Exact-head generic CI:
+37184655668
+
+Required CI result:
+- Python 3.10: PASS (unit tests + preflight)
+- Python 3.12: PASS (unit tests + preflight)
+
+Qualified S50-A0:
+- run 37183981097
+- artifact 11296132080
+- digest sha256:364545c53977aba290faacb4a064b59b104a3d9f67e1ea0ad8a6b0cfe543ab1
+- outcome HIRA_V1_S50_A0_SHARED_NATIVE_FORKED_PRIVATE_READOUTS_READY
+
+This marker authorizes exactly one preregistered fresh S50 court:
+- seed 71001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S50 domains
+- K=4
+- one shared native TRAIN-only authority
+- native fixed epoch 24
+- zero S50 DEV exposure before private phase
+- immutable shared train/dev evidence cache
+- reference and treatment consume identical native evidence bytes
+- reference/treatment correction params 114,688 each
+- bit-identical correction initialization
+- native optimizer parameter count 0 in private phase
+- private epochs 24
+- batch 16
+- one DEV authority only
+
+No native retraining per branch.
+No cache regeneration after DEV.
+No identity variant or pair-temperature sweep.
+No query leak/blend/projector.
+No loss/capacity/optimizer changes.
+No alternate selector.
+No retry for scientific weakness.
+No second S50 DEV.
+No external Laya/Jev evaluation.
