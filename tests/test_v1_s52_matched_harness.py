@@ -24,6 +24,7 @@ def test_s52_workflow_is_marker_gated_and_exact_authority_pinned():
     assert "hira-v1-s52-a0-query-relation-canonicalization" in source
     assert "hira-v1-s51-native-authority" in source
     assert "scripts/hira_v1_s52_train_dev.py" in source
-    assert 'assert r["controlled_variable"]["reference_auxiliary_coefficient"]==0.0' in source
-    assert 'assert r["controlled_variable"]["treatment_auxiliary_coefficient"]==0.10' in source
+    assert 'cv=r["controlled_variable"]' in source
+    assert 'assert cv["reference_auxiliary_coefficient"]==0.0' in source
+    assert 'assert cv["treatment_auxiliary_coefficient"]==0.10' in source
     assert 'assert r["second_dev_run_performed"] is False' in source
