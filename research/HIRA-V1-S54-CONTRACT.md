@@ -127,7 +127,7 @@ Runtime:
 ## Fresh S54 authority
 
 Intended:
-- seed **74001**
+- seed **75001**
 - TRAIN **768**
 - DEV **192**
 - 12 wholly fresh S54 domains
