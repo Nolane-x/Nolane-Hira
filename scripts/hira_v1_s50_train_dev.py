@@ -725,6 +725,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--bundle",type=Path,required=True)
     parser.add_argument("--a0-result",type=Path,required=True)
+    parser.add_argument("--recovered-native",type=Path,default=None)
     parser.add_argument("--out",type=Path,required=True)
     args=parser.parse_args()
 
@@ -769,6 +770,46 @@ def main():
         raise RuntimeError("S50 native phase exposed DEV scoring")
     if native["dev_encoded_before_private_phase"] is not False:
         raise RuntimeError("S50 native phase encoded DEV before private phase")
+
+    mechanical_replay=None
+    if args.recovered_native is not None:
+        recovered=json.loads(args.recovered_native.read_text(encoding="utf-8"))
+        if recovered.get("schema_version")!="hira-v1-s50-recovered-native-preprivate-abort-v1":
+            raise RuntimeError("S50 recovered native schema changed")
+        if recovered.get("status")!="MECHANICAL_PREPRIVATE_ABORT":
+            raise RuntimeError("S50 recovered native status changed")
+        if int(recovered.get("failed_run",-1))!=37185080959:
+            raise RuntimeError("S50 recovered native failed run changed")
+        if recovered.get("scientific_head")!="68df39904b620f1bc9aa5ce74072457a165eae20":
+            raise RuntimeError("S50 recovered native scientific head changed")
+        if recovered.get("private_dev_scored") is not False:
+            raise RuntimeError("S50 failed run unexpectedly exposed private DEV")
+        governance=recovered.get("governance",{})
+        if governance.get("one_mechanical_replay_authorized") is not True:
+            raise RuntimeError("S50 mechanical replay not authorized")
+        if governance.get("scientific_variable_changed") is not False:
+            raise RuntimeError("S50 recovered governance permits scientific change")
+        frozen=list(recovered.get("native_runtime_trajectory_sha256",[]))
+        observed=[x["runtime_state_sha256"] for x in native["history"]]
+        if len(frozen)!=24 or len(observed)!=24:
+            raise RuntimeError("S50 replay native trajectory length changed")
+        if observed!=frozen:
+            mismatches=[
+                i+1 for i,(a,b) in enumerate(zip(observed,frozen)) if a!=b
+            ]
+            raise RuntimeError(
+                f"S50 mechanical replay native trajectory mismatch at epochs {mismatches}"
+            )
+        if native["runtime_state_sha256"]!=recovered.get("final_native_runtime_sha256"):
+            raise RuntimeError("S50 mechanical replay final native hash changed")
+        mechanical_replay={
+            "enabled":True,
+            "source_failed_run":37185080959,
+            "source_scientific_head":recovered["scientific_head"],
+            "native_24_hashes_exact":True,
+            "scientific_variable_changed":False,
+            "failed_run_private_dev_scored":False,
+        }
 
     # Phase 2 starts here. DEV is encoded exactly once into immutable cache;
     # from now onward all branch training/evaluation uses cache only.
@@ -835,6 +876,7 @@ def main():
         "outcome":outcome,
         "scientific_authority":"V1_S50_FRESH_SHARED_NATIVE_FORKED_PRIVATE_READOUTS",
         "seed":SEED,
+        "mechanical_replay":mechanical_replay,
         "native_phase":native,
         "private_training_mechanics":{
             "epochs":PRIVATE_EPOCHS,
