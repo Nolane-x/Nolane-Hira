@@ -1,0 +1,50 @@
+HIRA V1 S63 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+59c9b8f1389730d5d9f60eaf2813ef44bacd4396
+
+Exact-head generic CI:
+37313521651
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S62:
+- merged main 798f5c4d933635b36f4e0eaf76503f8213afedd9
+- scientific run 37307658289
+- artifact 11344855774
+- artifact digest sha256:7812c348d707ea8675fc9370af573a87d9e5b1a0b10e55a1f335bf890ddb3305
+- verdict Case B
+
+S63 A0:
+- run 37312740736
+- artifact 11346084572
+- artifact digest sha256:39c9c84a93e5da0075b13018b7a5a4151dda4563476834478524e042b1cfac9f
+- outcome HIRA_V1_S63_A0_LEARNED_SET_RELIABILITY_GATE_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S63 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- reference: exact S62 four-scalar reliability gate, 5 params
+- treatment: learned permutation-invariant set reliability gate, 61 params
+- added treatment params 56
+- exact same TRAIN-only reliability BCE target
+- exact same alpha_probe 0.35
+- exact same target tolerance 1e-8
+- exact same bounded residual and alpha max 0.35
+- same correction/head trajectory
+- same optimizer/LR/weight decay
+- same S17 selector
+- fused shadow diagnostic only
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific failure is valid. No retry for scientific weakness.
