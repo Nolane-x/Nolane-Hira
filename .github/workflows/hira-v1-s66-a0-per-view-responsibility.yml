@@ -1,0 +1,194 @@
+name: hira-v1-s66-a0-per-view-responsibility
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s66-per-view-responsibility
+    paths:
+      - "research/HIRA-V1-S66-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s65-cross-view-soft-and-reliability
+          path: inputs/S65
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37325995163
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S66 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S66 contracts
+        run: |
+          python -m py_compile src/nmd/v1_per_view_responsibility.py scripts/hira_v1_s66_a0_per_view_responsibility.py
+          pytest -q tests/test_v1_per_view_responsibility.py tests/test_v1_s66_a0_harness.py tests/test_v1_s66_a0_workflow.py tests/test_v1_contextual_reliability_gate.py tests/test_v1_reliability_supervised_adaptive_gate.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_joint_state_query_option_interaction.py
+
+      - name: Verify frozen S65 parent evidence
+        run: |
+          (cd inputs/S65 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact digest: sha256:a44c560d304537bb7acaa1b5d569160ec744f897ae728edf95ceca7701be9dfc"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S65/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S65_CROSS_VIEW_SOFT_AND_RELIABILITY_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S65_FRESH_CROSS_VIEW_SOFT_AND_RELIABILITY"
+          assert r["seed"]==86001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one S66 mechanical A0 court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s66_a0_per_view_responsibility.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --out artifacts/s66-a0
+
+      - name: Verify S66 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s66-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s66-a0-per-view-responsibility-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S66_A0_PER_VIEW_RESPONSIBILITY_READY"
+          assert r["scientific_authority"]=="S66_A0_PER_VIEW_RESPONSIBILITY_ONLY"
+          assert r["seed"]==87001
+
+          parent=r["parent_s65"]
+          assert parent["merged_main"]=="6bae27159fc2f9577f72540c7070da3e41ef3d15"
+          assert parent["scientific_run"]==37325995163
+          assert parent["artifact_id"]==11352920320
+          assert parent["artifact_digest"]=="sha256:a44c560d304537bb7acaa1b5d569160ec744f897ae728edf95ceca7701be9dfc"
+          assert parent["verdict"]=="CASE_B"
+
+          assert r["correction_trainable_parameter_count"]==114688
+          assert r["pairwise_trainable_parameter_count"]==32832
+          assert r["reference_gate_parameter_count"]==60
+          assert r["treatment_gate_parameter_count"]==60
+          assert r["added_treatment_parameter_count"]==0
+          assert r["parameter_initialization_bit_identical"] is True
+          assert r["context_projection_bit_identical"] is True
+
+          assert r["responsibility_states"]==[[0,0],[0,1],[1,0],[1,1]]
+          assert r["responsibility_disagreement_fraction"]>0.0
+          assert r["view_swap_target_max_abs_error"]==0.0
+          assert r["treatment_target_distinct_from_pair_target"] is True
+          assert r["canonical_correctness_veto_observed"] is True
+          assert r["paraphrase_correctness_veto_observed"] is True
+          assert r["canonical_stability_veto_observed"] is True
+          assert r["paraphrase_stability_veto_observed"] is True
+
+          assert r["reference_initial_W_phi_gradient_l1"]==0.0
+          assert r["reference_initial_b_phi_gradient_l1"]==0.0
+          assert r["reference_initial_w_out_gradient_l1"]>0.0
+          assert r["reference_initial_b_out_gradient_l1"]>0.0
+          assert r["treatment_initial_W_phi_gradient_l1"]==0.0
+          assert r["treatment_initial_b_phi_gradient_l1"]==0.0
+          assert r["treatment_initial_w_out_gradient_l1"]>0.0
+          assert r["treatment_initial_b_out_gradient_l1"]>0.0
+          assert r["reference_post_output_warm_W_phi_gradient_l1"]>0.0
+          assert r["reference_post_output_warm_b_phi_gradient_l1"]>0.0
+          assert r["treatment_post_output_warm_W_phi_gradient_l1"]>0.0
+          assert r["treatment_post_output_warm_b_phi_gradient_l1"]>0.0
+
+          assert r["reference_gradient_to_upstream_zero"] is True
+          assert r["treatment_gradient_to_upstream_zero"] is True
+          assert r["alpha_probe"]==0.35
+          assert r["target_tolerance"]==1e-8
+          assert r["teacher_dependency"] is False
+          assert r["dev_target_dependency"] is False
+          assert r["self_anchor_dependency"] is False
+          assert r["pairwise_only_final_path"] is False
+          assert r["single_view_inference"] is True
+          assert r["one_encoder_state_once"] is True
+
+          assert r["initial_alpha_max_abs_error"]<=1e-7
+          assert r["identity_override_max_abs_error"]==0.0
+          assert r["residual_bound_violation_max"]<=1e-7
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["matched_gate_checkpoint_replay_max_abs_error"]==0.0
+          assert r["used_for_model_selection"] is False
+          assert r["fresh_train_dev_exposed"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S66 A0 integrity
+        run: |
+          (cd artifacts/s66-a0 && sha256sum result.json matched-gates.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s66-a0-per-view-responsibility
+          path: artifacts/s66-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

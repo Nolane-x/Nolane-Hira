@@ -1,0 +1,42 @@
+HIRA V1 S66 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+249413dd5aea6b9222fcb978d6e73cdda40bc423
+
+Exact-head generic CI:
+37328770989
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S65:
+- merged main 6bae27159fc2f9577f72540c7070da3e41ef3d15
+- scientific run 37325995163
+- artifact 11352920320
+- artifact digest sha256:a44c560d304537bb7acaa1b5d569160ec744f897ae728edf95ceca7701be9dfc
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S66 mechanical A0 court.
+
+Frozen S66 variable:
+- reference and treatment exact same 60-param contextual single-view gate
+- bit-identical initialization/context projection
+- reference: shared S62 pair target
+- treatment: per-view counterfactual responsibility targets
+- fixed alpha probe 0.35
+- tolerance 1e-8
+- no extra treatment params
+- no DEV-derived target
+- no fresh S66 TRAIN/DEV
+- no model selection
+- no external Laya/Jev evaluation
+
+A0 is mechanical only.

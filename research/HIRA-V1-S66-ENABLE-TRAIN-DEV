@@ -1,0 +1,53 @@
+HIRA V1 S66 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+558dc47ea56edd6274cf8fbd14649e0bc7621bd2
+
+Exact-head generic CI:
+37330726500
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S65:
+- merged main 6bae27159fc2f9577f72540c7070da3e41ef3d15
+- scientific run 37325995163
+- artifact 11352920320
+- artifact digest sha256:a44c560d304537bb7acaa1b5d569160ec744f897ae728edf95ceca7701be9dfc
+- verdict Case B
+
+S66 A0:
+- run 37329441437
+- artifact 11353806431
+- artifact digest sha256:61d76394e79457f26251468fea6e73be53e0507d979aa64d5b24c67f18562c39
+- outcome HIRA_V1_S66_A0_PER_VIEW_RESPONSIBILITY_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S66 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- reference: exact S62 shared pair target applied to both single-view contextual logits
+- treatment: per-view counterfactual responsibility targets
+- identical S64 contextual single-view gate, 60 params per arm
+- bit-identical initialization
+- identical context path
+- identical correction/head trajectory
+- fixed probe alpha 0.35
+- target tolerance 1e-8
+- bounded residual alpha <= 0.35
+- single-view inference in both arms
+- no treatment parameter advantage
+- no DEV-derived target
+- no teacher/self-anchor
+- frozen S17 selector
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific failure is valid. No retry for scientific weakness.
