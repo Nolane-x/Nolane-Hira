@@ -152,7 +152,7 @@ jobs:
           assert r["scientific_authority"]=="V1_S67_FRESH_SAFE_ORACLE_ALPHA"
           assert r["seed"]==88001
 
-          parent=r["parent_s65"]
+          parent=r["parent_s66"]
           assert parent["merged_main"]=="e898314b51995db7e6fa18b06256a59551d0797e"
           assert parent["scientific_run"]==37331468679
           assert parent["artifact_id"]==11354228532
