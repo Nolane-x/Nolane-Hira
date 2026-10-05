@@ -1,0 +1,277 @@
+name: hira-v1-s58-consensus-teacher-pairwise-ranking-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s58-consensus-teacher-pairwise-ranking
+    paths:
+      - "research/HIRA-V1-S58-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s58-a0-consensus-teacher-pairwise-ranking
+          path: inputs/S58A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37274963437
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s57-discrete-pairwise-ranking-consistency
+          path: inputs/S57COURT
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37271509208
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S58 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S58 contracts
+        run: |
+          python -m py_compile src/nmd/v1_teacher_consensus_ranking.py src/nmd/v1_s58_authority.py scripts/hira_v1_s58_train_dev.py
+          pytest -q tests/test_v1_teacher_consensus_ranking.py tests/test_v1_s58_a0_harness.py tests/test_v1_s58_authority.py tests/test_v1_s58_matched_harness.py tests/test_v1_s58_train_dev_workflow.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify canonical S58 A0 authority
+        run: |
+          (cd inputs/S58A0 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact digest: sha256:f4785071bafcf3674cecefbba98468c9d2dcb42a5c1212f0c446177bde5f5ebc"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S58A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s58-a0-consensus-teacher-pairwise-ranking-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S58_A0_CONSENSUS_TEACHER_PAIRWISE_RANKING_READY"
+          assert r["scientific_authority"]=="S58_A0_CONSENSUS_TEACHER_PAIRWISE_RANKING_ONLY"
+          assert r["seed"]==79001
+          assert r["teacher_run"]==37271509208
+          assert r["teacher_artifact_id"]==11327849211
+          assert r["teacher_checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          assert r["teacher_selected_epoch"]==19
+          assert r["teacher_trainable_parameter_count"]==0
+          assert r["teacher_deterministic_replay_max_abs_error"]==0.0
+          assert r["teacher_logits_require_grad"] is False
+          assert r["reference_private_trainable_parameter_count"]==114688
+          assert r["treatment_private_trainable_parameter_count"]==114688
+          assert r["added_trainable_parameter_count"]==0
+          assert r["reference_auxiliary_exact_zero"] is True
+          assert r["treatment_auxiliary_gradient_l1"]>0.0
+          assert r["consensus_sign_detached"] is True
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Verify frozen S57 teacher artifact
+        run: |
+          (cd inputs/S57COURT && sha256sum -c INTEGRITY.sha256)
+          echo "804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa  inputs/S57COURT/reference-private-candidate.pt" | sha256sum -c -
+          python - <<'PY'
+          import json, torch
+          from pathlib import Path
+          r=json.loads(Path("inputs/S57COURT/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s57-discrete-pairwise-ranking-consistency-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["scientific_authority"]=="V1_S57_FRESH_DISCRETE_PAIRWISE_RANKING_CONSISTENCY"
+          ref=r["reference_branch"]
+          assert ref["selected_dev_epoch"]==19
+          assert ref["checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          p=torch.load("inputs/S57COURT/reference-private-candidate.pt",map_location="cpu",weights_only=True)
+          assert p["schema_version"]=="hira-v1-s57-private-candidate-v1"
+          assert p["branch"]=="reference"
+          assert p["seed"]==78001
+          assert p["selected_dev_epoch"]==19
+          assert p["correction_parameter_count"]==114688
+          assert p["ordinal_consistency_coefficient"]==0.0
+          assert p["native_parameter_count_in_optimizer"]==0
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S58 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s58_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S58A0/result.json \
+            --teacher-checkpoint inputs/S57COURT/reference-private-candidate.pt \
+            --out artifacts/s58-train-dev
+
+      - name: Verify S58 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s58-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s58-consensus-teacher-pairwise-ranking-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S58_CONSENSUS_TEACHER_PAIRWISE_RANKING_DEV_COMPLETE",
+              "HIRA_V1_S58_CONSENSUS_TEACHER_PAIRWISE_RANKING_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S58_FRESH_CONSENSUS_TEACHER_PAIRWISE_RANKING"
+          assert r["seed"]==79001
+
+          parent=r["parent_native_authority"]
+          assert parent["run"]==37192490832
+          assert parent["artifact_id"]==11299783210
+          assert parent["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert parent["native_trainable_parameters"]==0
+          assert parent["native_optimizer_constructed"] is False
+          assert parent["native_training_performed"] is False
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37274963437
+          assert a0["artifact_id"]==11330280320
+          assert a0["artifact_digest"]=="sha256:f4785071bafcf3674cecefbba98468c9d2dcb42a5c1212f0c446177bde5f5ebc"
+
+          teacher=r["teacher_authority"]
+          assert teacher["run"]==37271509208
+          assert teacher["artifact_id"]==11327849211
+          assert teacher["branch"]=="reference"
+          assert teacher["selected_dev_epoch"]==19
+          assert teacher["checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          assert teacher["teacher_trainable_parameters_in_s58"]==0
+          assert teacher["selected_using_s58_data"] is False
+
+          cache=r["shared_cache"]
+          assert cache["reference_treatment_same_cache_bytes"] is True
+          assert cache["private_state_view_encodes"]==0
+          assert cache["cache_regenerated_after_dev"] is False
+
+          targets=r["teacher_targets"]
+          assert targets["precomputed_once_before_student_training"] is True
+          assert targets["reference_treatment_same_teacher_target_bytes"] is True
+          assert targets["teacher_updated_during_student_training"] is False
+
+          for name in ("reference_branch","treatment_branch"):
+              b=r[name]
+              assert len(b["history"])==24
+              assert 1<=b["selected_dev_epoch"]<=24
+              assert b["parameter_surface"]["private_trainable_parameters"]==114688
+              assert b["parameter_surface"]["added_trainable_parameters"]==0
+              assert b["parameter_surface"]["native_trainable_parameters"]==0
+              assert b["parameter_surface"]["teacher_trainable_parameters"]==0
+              assert b["selected_dev"]["state_view_encodes"]==0
+              assert b["selected_dev"]["full_k"] is True
+              assert b["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
+
+          cv=r["controlled_variable"]
+          assert cv["reference_teacher_consensus_coefficient"]==0.0
+          assert cv["treatment_teacher_consensus_coefficient"]==0.05
+          assert cv["teacher_active_threshold"]==0.25
+          assert cv["student_target_margin"]==0.05
+          assert cv["teacher_branch"]=="reference"
+          assert cv["teacher_selected_epoch"]==19
+          assert cv["teacher_checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          assert cv["wrong_gold_teacher_pairs_filtered"] is True
+          assert cv["teacher_consensus_sign_detached"] is True
+          assert cv["reference_private_trainable_parameters"]==114688
+          assert cv["treatment_private_trainable_parameters"]==114688
+          assert cv["added_trainable_parameters"]==0
+          assert cv["teacher_trainable_parameters"]==0
+          assert cv["initialization_bit_identical"] is True
+
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["exact_s57_state_question_option_overlap"]==0
+
+          for filename,branch_name in (
+              ("reference-private-candidate.pt","reference"),
+              ("treatment-private-candidate.pt","treatment"),
+          ):
+              payload=torch.load(root/filename,map_location="cpu",weights_only=True)
+              assert payload["schema_version"]=="hira-v1-s58-private-candidate-v1"
+              assert payload["branch"]==branch_name
+              assert payload["seed"]==79001
+              assert 1<=payload["selected_dev_epoch"]<=24
+              assert payload["private_trainable_parameter_count"]==114688
+              assert payload["correction_parameter_count"]==114688
+              assert payload["teacher_run"]==37271509208
+              assert payload["teacher_checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+              assert payload["native_parameter_count_in_optimizer"]==0
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["teacher_swap_performed"] is False
+          assert r["teacher_threshold_sweep_performed"] is False
+          assert r["target_margin_sweep_performed"] is False
+          assert r["coefficient_sweep_performed"] is False
+          assert r["consensus_mask_variant_performed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["selector_changed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S58 integrity
+        run: |
+          (cd artifacts/s58-train-dev && sha256sum result.json reference-private-candidate.pt treatment-private-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s58-consensus-teacher-pairwise-ranking
+          path: artifacts/s58-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

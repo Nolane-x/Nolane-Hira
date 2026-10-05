@@ -1,0 +1,67 @@
+HIRA V1 S58 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+45586bd9ac0bb3bcb351d208ba7292e8cdaa255d
+
+Exact-head generic CI:
+37273384971
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S57:
+- merged main 27521eb426371b96a10c9cfcadf1fbf69ead9f50
+- scientific run 37271509208
+- artifact 11327849211
+- verdict Case B
+
+Frozen S58 teacher authority:
+- source run 37271509208
+- source artifact 11327849211
+- branch reference
+- selected epoch 19
+- checkpoint reference-private-candidate.pt
+- checkpoint SHA-256 804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa
+- teacher trainable parameters 0
+- no S58-based teacher selection
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+
+This marker authorizes exactly one S58-A0 consensus-teacher pairwise mechanics court.
+
+A0 scope only:
+- reference correction params 114,688
+- treatment correction params 114,688
+- added trainable params 0
+- teacher active threshold 0.25
+- student target margin 0.05
+- treatment coefficient 0.05
+- reference coefficient 0.0
+- frozen teacher deterministic replay
+- teacher gradients absent
+- strong same-sign teacher consensus eligibility
+- low-confidence teacher pairs inactive
+- sign-disagreement teacher pairs inactive
+- wrong gold-order teacher pairs inactive
+- correct gold-order teacher pairs active
+- non-gold consensus pair eligibility
+- detached teacher consensus target
+- flat-teacher anti-collapse
+- flat-student violation liveness
+- option permutation equivariance
+- offset and positive-scale teacher invariance
+- K=3/7/255
+- full-K probability mass
+- treatment auxiliary gradient liveness
+- reference auxiliary exact zero
+- native/cache isolation
+- one encoder/state-once
+- no second encoder
+
+A0 is diagnostic/mechanical only.
+No fresh S58 TRAIN/DEV exposure.
+No S58 model selection.
+No external Laya/Jev evaluation.

@@ -1,0 +1,68 @@
+HIRA V1 S58 one-shot TRAIN DEV authorization
+
+Authorized final pre-DEV staging head:
+71cb03360342051d44504abd3a946e6d02880ca2
+
+Exact-head generic CI:
+37275703398
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Qualified S58 A0:
+- run 37274963437
+- artifact 11330280320
+- artifact digest sha256:f4785071bafcf3674cecefbba98468c9d2dcb42a5c1212f0c446177bde5f5ebc
+- outcome HIRA_V1_S58_A0_CONSENSUS_TEACHER_PAIRWISE_RANKING_READY
+
+Frozen S57 teacher authority:
+- run 37271509208
+- artifact 11327849211
+- branch reference
+- selected epoch 19
+- checkpoint SHA-256 804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa
+- teacher trainable parameters in S58 0
+- selected using S58 data false
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S58 matched TRAIN/DEV court.
+
+Frozen scientific court:
+- seed 79001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S58 domains
+- exact S57 state/question/option overlap 0
+- K=4
+- private epochs 24
+- reference coefficient 0.0
+- treatment coefficient 0.05
+- teacher threshold 0.25
+- student target margin 0.05
+- reference/treatment correction params 114,688 each
+- added trainable params 0
+- teacher targets precomputed once from the same immutable cache
+- same teacher target bytes for both arms
+- same student initialization
+- same optimizer/base objective/selector
+- one DEV authority only
+
+Once TRAIN begins:
+- no teacher swap
+- no threshold/margin/coefficient sweep
+- no consensus-mask variant
+- no architecture/capacity change
+- no native retraining
+- no selector change
+- no retry for scientific weakness
+- no gate weakening
+- no second S58 DEV
+- no external Laya/Jev evaluation
+
+Scientific failure is valid.
