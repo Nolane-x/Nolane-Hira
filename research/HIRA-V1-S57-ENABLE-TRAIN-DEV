@@ -1,0 +1,60 @@
+HIRA V1 S57 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+8f28a8fba3d58a208c9f6679717095dd43761e95
+
+Exact-head generic CI:
+37267356356
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Qualified S57-A0:
+- run 37266891469
+- artifact 11326757222
+- digest sha256:fcfbececa46f5bac0e1fe75ae51348d1b4c543b5b7dc3166410c148a35dd75ce
+- outcome HIRA_V1_S57_A0_DISCRETE_PAIRWISE_RANKING_CONSISTENCY_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one preregistered fresh S57 matched scientific court:
+- seed 78001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S57 domains
+- K=4
+- private epochs 24
+- reference ordinal coefficient 0.0
+- treatment ordinal coefficient 0.05
+- standardized logits epsilon 1e-6
+- active threshold 0.25
+- preserved margin floor 0.05
+- detached anchor signs
+- gold-correct directional anchor filtering
+- correction params 114,688 each arm
+- added trainable params 0
+- identity params 0
+- bit-identical initialization
+- identical immutable native cache
+- identical optimizer/base loss/checkpoint selector
+- native trainable params 0
+- no native retraining
+- one DEV authority only
+
+After private TRAIN begins:
+- no coefficient sweep
+- no threshold/margin sweep
+- no anchor-filter variant
+- no teacher/consensus anchor
+- no architecture/capacity change
+- no native retraining
+- no selector change
+- no retry for scientific weakness
+- no gate weakening
+- no second S57 DEV
+- no external Laya/Jev evaluation

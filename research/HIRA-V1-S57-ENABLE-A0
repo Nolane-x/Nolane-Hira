@@ -1,0 +1,50 @@
+HIRA V1 S57 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+5ab1b4c86e1bb551980ba9ba7f3bc21488d760a6
+
+Exact-head generic CI:
+37266535685
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S56:
+- merged main e58262a22a14187e61cd12cfa6f5233bdb1a1ea6
+- scientific run 37265241846
+- artifact 11326048054
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S57-A0 pairwise ordinal mechanics court.
+
+A0 scope only:
+- correction params 114,688 each arm
+- added params 0
+- identity params 0
+- bit-identical initialization
+- standardized logits epsilon 1e-6
+- active threshold 0.25
+- preserved margin floor 0.05
+- detached directional anchor signs
+- wrong gold-involving anchor filtering
+- correct gold anchor retention
+- non-gold pair eligibility
+- flat/uniform anti-collapse
+- option permutation with gold remap
+- K=3/7/255
+- full-K probability mass
+- real-cache correction gradient liveness
+- native/cache isolation
+- no second encoder
+
+A0 is diagnostic/mechanical only.
+No fresh S57 TRAIN/DEV exposure.
+No model selection.
+No external Laya/Jev evaluation.
