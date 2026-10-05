@@ -264,8 +264,21 @@ def safe_oracle_alpha_loss(
         ).reshape(-1)
         all_alpha=torch.cat([ac,ap])
 
+    all_targets=torch.cat([yc.detach(),yp.detach()])
     return loss,{
         **target_diag,
+        "target_count":torch.tensor(
+            yc.numel(),device=yc.device,dtype=torch.long
+        ),
+        "canonical_target_sum":yc.sum().detach(),
+        "paraphrase_target_sum":yp.sum().detach(),
+        "oracle_nonbinary_fraction":
+            ((all_targets>0)&(all_targets<1)).to(yc.dtype).mean().detach(),
+        "oracle_level_0_count":all_targets.eq(0.0).sum().detach(),
+        "oracle_level_025_count":all_targets.eq(0.25).sum().detach(),
+        "oracle_level_05_count":all_targets.eq(0.5).sum().detach(),
+        "oracle_level_075_count":all_targets.eq(0.75).sum().detach(),
+        "oracle_level_1_count":all_targets.eq(1.0).sum().detach(),
         "binary_canonical_positive_fraction":binary_c.mean().detach(),
         "binary_paraphrase_positive_fraction":binary_p.mean().detach(),
         "oracle_vs_binary_canonical_difference_fraction":
