@@ -1,0 +1,79 @@
+HIRA V1 S61 one-shot TRAIN DEV authorization
+
+Authorized final pre-DEV staging head:
+c2ce327cb301afb6a2351f4c4b9c8204b9885f73
+
+Exact-head generic CI:
+37302388160
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S60:
+- merged main c795c6c448af942f597a8d33131557338def7fa9
+- scientific run 37297784471
+- artifact 11340397535
+- artifact digest sha256:c55205e9b74aac6196346a0ce9b705900aaec7fe4c6b30380af8ee0093d1b18b
+- verdict Case B
+
+Qualified S61 A0:
+- run 37299903484
+- artifact 11341361300
+- artifact digest sha256:2313d461197d8a635842a86220b55cf249600f58e0d044ba6d016edf3d9ca4fb
+- outcome HIRA_V1_S61_A0_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S61 matched TRAIN/DEV court.
+
+Frozen scientific court:
+- seed 82001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S61 domains
+- exact S60 state/question/option overlap 0
+- K=4
+- epochs 24
+- correction trainable params 114,688
+- pairwise trainable params 32,832
+- adaptive gate trainable params 5
+- gate feature dimension 4
+- no hidden layer
+- alpha initial 0.10
+- alpha max 0.35
+- gate weight decay 0.0
+- no teacher
+- no pseudo-target
+- no self-anchor
+- pairwise-only final path forbidden
+- shared correction/head/gate training trajectory
+- same frozen S17 selector
+- reference decision shell existing fused
+- treatment decision shell confidence-adaptive bounded hybrid
+- gate gradients isolated from correction/pairwise/native/cache
+- one DEV authority only
+
+Once TRAIN begins:
+- no feature addition/removal
+- no hidden layer
+- no feature scaling sweep
+- no alpha_max sweep
+- no initialization sweep
+- no calibration objective variant
+- no optimizer/LR/weight-decay change
+- no gate regularizer
+- no gradient coupling
+- no architecture/capacity change
+- no native retraining
+- no selector change
+- no retry for scientific weakness
+- no gate weakening
+- no second S61 DEV
+- no external Laya/Jev evaluation
+
+Scientific failure is valid.
