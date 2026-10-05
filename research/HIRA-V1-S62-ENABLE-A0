@@ -1,0 +1,43 @@
+HIRA V1 S62 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+67c9b48eb2bf8784cd6ca68dbbf426a46953f5f9
+
+Exact-head generic CI:
+37304754974
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S61:
+- merged main e6c7053a8d24c75b5fcf1db75c8aa9f30cea35e2
+- scientific run 37302829277
+- artifact 11343045582
+- artifact digest sha256:6e99ba1a5fab92cb6031c41eea54636721b78e690236dfb39788066803785f74
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S62 mechanical A0 court.
+
+Frozen S62 variable:
+- reference gate: exact S61 gold-CE objective
+- treatment gate: TRAIN-only reliability BCE
+- gate params 5 / arm
+- added treatment params 0
+- same 4 features
+- same initialization
+- alpha_probe 0.35
+- target tolerance 1e-8
+- positive target only when paired CE is non-worse AND paired JS strictly improves
+- no DEV target dependency
+- no fresh S62 TRAIN/DEV exposure
+- no model selection
+- no external Laya/Jev evaluation
+
+A0 is mechanical only.
