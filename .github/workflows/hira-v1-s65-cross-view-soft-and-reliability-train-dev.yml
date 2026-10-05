@@ -1,0 +1,285 @@
+name: hira-v1-s65-cross-view-soft-and-reliability-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s65-cross-view-soft-and-reliability
+    paths:
+      - "research/HIRA-V1-S65-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s65-a0-cross-view-soft-and-reliability
+          path: inputs/S65A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37322871071
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S65 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S65 contracts
+        run: |
+          python -m py_compile src/nmd/v1_cross_view_soft_and_reliability.py src/nmd/v1_s65_authority.py scripts/hira_v1_s65_train_dev.py
+          pytest -q tests/test_v1_cross_view_soft_and_reliability.py tests/test_v1_s65_a0_harness.py tests/test_v1_s65_authority.py tests/test_v1_s65_matched_harness.py tests/test_v1_s65_train_dev_workflow.py tests/test_v1_contextual_reliability_gate.py tests/test_v1_reliability_supervised_adaptive_gate.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify canonical S65 A0 authority
+        run: |
+          (cd inputs/S65A0 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact digest: sha256:1abecf58d75be991cd89dd3bb6732a859b1159426023a209758b1d5a7d459dea"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S65A0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s65-a0-cross-view-soft-and-reliability-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S65_A0_CROSS_VIEW_SOFT_AND_RELIABILITY_READY"
+          assert r["scientific_authority"]=="S65_A0_CROSS_VIEW_SOFT_AND_RELIABILITY_ONLY"
+          assert r["seed"]==86001
+          assert r["correction_trainable_parameter_count"]==114688
+          assert r["pairwise_trainable_parameter_count"]==32832
+          assert r["reference_gate_parameter_count"]==60
+          assert r["treatment_gate_parameter_count"]==60
+          assert r["added_treatment_parameter_count"]==0
+          assert r["parameter_initialization_bit_identical"] is True
+          assert r["context_projection_bit_identical"] is True
+          assert r["reference_objective"]=="independent_view_bce"
+          assert r["treatment_objective"]=="cross_view_exact_min_soft_and_bce"
+          assert r["same_single_view_inference_path"] is True
+          assert r["same_context_path"] is True
+          assert r["same_reliability_target"] is True
+          assert r["soft_and_exact_min_max_abs_error"]<=1e-7
+          assert r["soft_and_pair_symmetry_max_abs_error"]==0.0
+          assert r["lower_view_gradient_route_max_abs_error"]==0.0
+          assert r["treatment_extra_trainable_parameter_count"]==0
+          assert r["reference_gradient_to_upstream_zero"] is True
+          assert r["treatment_gradient_to_upstream_zero"] is True
+          assert r["alpha_probe"]==0.35
+          assert r["target_tolerance"]==1e-8
+          assert r["inherited_target_values"]==[1,0]
+          assert r["teacher_dependency"] is False
+          assert r["dev_target_dependency"] is False
+          assert r["self_anchor_dependency"] is False
+          assert r["pairwise_only_final_path"] is False
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["one_encoder_state_once"] is True
+          assert r["matched_gate_checkpoint_replay_max_abs_error"]==0.0
+          assert r["fresh_train_dev_exposed"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S65 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s65_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S65A0/result.json \
+            --out artifacts/s65-train-dev
+
+      - name: Verify S65 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s65-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s65-cross-view-soft-and-reliability-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S65_CROSS_VIEW_SOFT_AND_RELIABILITY_DEV_COMPLETE",
+              "HIRA_V1_S65_CROSS_VIEW_SOFT_AND_RELIABILITY_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S65_FRESH_CROSS_VIEW_SOFT_AND_RELIABILITY"
+          assert r["seed"]==86001
+
+          parent=r["parent_s64"]
+          assert parent["merged_main"]=="c5063da0365d49dc4f9dc2c64f94bc309caef0ba"
+          assert parent["scientific_run"]==37319541951
+          assert parent["artifact_id"]==11348594503
+          assert parent["artifact_digest"]=="sha256:f3d04d452a51b7358a23a9391579bca6ce1ab2c16fa107dc9f7f79740dba90ea"
+          assert parent["verdict"]=="CASE_B"
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37322871071
+          assert a0["artifact_id"]==11349983389
+          assert a0["artifact_digest"]=="sha256:1abecf58d75be991cd89dd3bb6732a859b1159426023a209758b1d5a7d459dea"
+
+          cv=r["controlled_variable"]
+          assert cv["reference_gate_family"]=="s64_context_injected"
+          assert cv["treatment_gate_family"]=="s64_context_injected"
+          assert cv["reference_gate_objective"]=="independent_view_bce"
+          assert cv["treatment_gate_objective"]=="cross_view_exact_min_soft_and_bce"
+          assert cv["cross_view_interaction_train_only"] is True
+          assert cv["single_view_inference_both_arms"] is True
+          assert cv["correction_trainable_parameters"]==114688
+          assert cv["pairwise_trainable_parameters"]==32832
+          assert cv["reference_gate_trainable_parameters"]==60
+          assert cv["treatment_gate_trainable_parameters"]==60
+          assert cv["added_treatment_parameters"]==0
+          assert cv["parameter_initialization_bit_identical"] is True
+          assert cv["same_context_path"] is True
+          assert cv["context_projection_seed"]==64064
+          assert cv["context_projection_trainable_parameters"]==0
+          assert cv["encoder_init_seed"]==64164
+          assert cv["alpha_initial"]==0.10
+          assert cv["alpha_max"]==0.35
+          assert cv["alpha_probe"]==0.35
+          assert cv["target_tolerance"]==1e-8
+          assert cv["teacher_dependency"] is False
+          assert cv["dev_target_dependency"] is False
+          assert cv["self_anchor_dependency"] is False
+          assert cv["gate_gradient_enters_correction"] is False
+          assert cv["gate_gradient_enters_pairwise"] is False
+          assert cv["gate_gradient_enters_native"] is False
+          assert cv["pairwise_only_final_path"] is False
+          assert cv["shared_correction_head_trajectory"] is True
+          assert cv["same_reliability_target"] is True
+          assert cv["same_frozen_selector"] is True
+          assert cv["fused_shadow_selection_arm"] is False
+
+          assert len(r["training_trajectory"])==24
+          assert any(row["reference_phi_gradient_ever_live"] for row in r["training_trajectory"])
+          assert any(row["treatment_phi_gradient_ever_live"] for row in r["training_trajectory"])
+          for e,row in enumerate(r["training_trajectory"],start=1):
+              assert row["epoch"]==e
+              assert 0.0<=row["train_reliability_positive_fraction"]<=1.0
+              assert row["train_soft_and_canonical_lower_count"]>=0
+              assert row["train_soft_and_paraphrase_lower_count"]>=0
+              assert row["train_soft_and_tie_count"]>=0
+              assert len(row["correction_state_sha256"])==64
+              assert len(row["pairwise_head_state_sha256"])==64
+              assert len(row["reference_gate_state_sha256"])==64
+              assert len(row["treatment_gate_state_sha256"])==64
+              assert row["train_pairwise"]["antisymmetry_max_abs_error"]==0.0
+
+          for name in ("reference_branch","treatment_branch"):
+              b=r[name]
+              assert 1<=b["selected_dev_epoch"]<=24
+              assert len(b["correction_state_sha256"])==64
+              assert len(b["pairwise_head_state_sha256"])==64
+              assert len(b["gate_state_sha256"])==64
+              m=b["selected_dev"]
+              assert m["state_view_encodes"]==0
+              assert m["full_k"] is True
+              assert m["fused_max_probability_mass_error"]<=1e-6
+              assert 0.0<m["gate_min_alpha"]<=m["gate_mean_alpha"]<=m["gate_max_alpha"]<0.35
+              assert m["gate_residual_max_abs"]<=m["gate_bound_max"]+1e-7
+
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["exact_s64_state_question_option_overlap"]==0
+
+          for filename,branch_name,objective in (
+              ("reference-candidate.pt","reference","independent_view_bce"),
+              ("treatment-candidate.pt","treatment","cross_view_exact_min_soft_and_bce"),
+          ):
+              p=torch.load(root/filename,map_location="cpu",weights_only=True)
+              assert p["schema_version"]=="hira-v1-s65-private-candidate-v1"
+              assert p["branch"]==branch_name
+              assert p["seed"]==86001
+              assert p["correction_parameter_count"]==114688
+              assert p["pairwise_parameter_count"]==32832
+              assert p["gate_parameter_count"]==60
+              assert p["gate_family"]=="s64_context_injected"
+              assert p["gate_objective"]==objective
+              assert p["use_context"] is True
+              assert p["single_view_inference"] is True
+              assert p["context_projection_seed"]==64064
+              assert p["alpha_probe"]==0.35
+              assert p["target_tolerance"]==1e-8
+              assert p["native_parameter_count_in_optimizer"]==0
+              assert p["teacher_dependency"] is False
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["soft_min_temperature_performed"] is False
+          assert r["min_mean_max_sweep_performed"] is False
+          assert r["objective_mixing_performed"] is False
+          assert r["bce_weighting_performed"] is False
+          assert r["target_change_performed"] is False
+          assert r["context_architecture_change_performed"] is False
+          assert r["optimizer_lr_weight_decay_changed"] is False
+          assert r["gate_regularizer_added"] is False
+          assert r["gradient_coupling_performed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["selector_changed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S65 integrity
+        run: |
+          (cd artifacts/s65-train-dev && sha256sum result.json reference-candidate.pt treatment-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s65-cross-view-soft-and-reliability
+          path: artifacts/s65-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
