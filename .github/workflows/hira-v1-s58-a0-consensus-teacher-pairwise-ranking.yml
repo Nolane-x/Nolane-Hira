@@ -1,0 +1,159 @@
+name: hira-v1-s58-a0-consensus-teacher-pairwise-ranking
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s58-consensus-teacher-pairwise-ranking
+    paths:
+      - "research/HIRA-V1-S58-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s57-discrete-pairwise-ranking-consistency
+          path: inputs/S57COURT
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37271509208
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S58 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S58 contracts
+        run: |
+          python -m py_compile src/nmd/v1_teacher_consensus_ranking.py scripts/hira_v1_s58_a0_consensus_teacher_pairwise_ranking.py
+          pytest -q tests/test_v1_teacher_consensus_ranking.py tests/test_v1_s58_a0_harness.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify sealed S57 teacher artifact
+        run: |
+          (cd inputs/S57COURT && sha256sum -c INTEGRITY.sha256)
+          echo "804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa  inputs/S57COURT/reference-private-candidate.pt" | sha256sum -c -
+          python - <<'PY'
+          import json, torch
+          from pathlib import Path
+          r=json.loads(Path("inputs/S57COURT/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s57-discrete-pairwise-ranking-consistency-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["scientific_authority"]=="V1_S57_FRESH_DISCRETE_PAIRWISE_RANKING_CONSISTENCY"
+          ref=r["reference_branch"]
+          assert ref["selected_dev_epoch"]==19
+          assert ref["checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          p=torch.load("inputs/S57COURT/reference-private-candidate.pt",map_location="cpu",weights_only=True)
+          assert p["schema_version"]=="hira-v1-s57-private-candidate-v1"
+          assert p["branch"]=="reference"
+          assert p["seed"]==78001
+          assert p["selected_dev_epoch"]==19
+          assert p["correction_parameter_count"]==114688
+          assert p["ordinal_consistency_coefficient"]==0.0
+          assert p["native_parameter_count_in_optimizer"]==0
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S58 A0 consensus-teacher court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s58_a0_consensus_teacher_pairwise_ranking.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --teacher-checkpoint inputs/S57COURT/reference-private-candidate.pt \
+            --out artifacts/s58-a0
+
+      - name: Verify S58 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s58-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s58-a0-consensus-teacher-pairwise-ranking-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S58_A0_CONSENSUS_TEACHER_PAIRWISE_RANKING_READY"
+          assert r["scientific_authority"]=="S58_A0_CONSENSUS_TEACHER_PAIRWISE_RANKING_ONLY"
+          assert r["seed"]==79001
+          assert r["teacher_run"]==37271509208
+          assert r["teacher_artifact_id"]==11327849211
+          assert r["teacher_checkpoint_sha256"]=="804dc0b31ca75a77400c4a658ae893058d39916ed287d9fe2d45643798b739aa"
+          assert r["teacher_selected_epoch"]==19
+          assert r["teacher_branch"]=="reference"
+          assert r["teacher_trainable_parameter_count"]==0
+          assert r["teacher_deterministic_replay_max_abs_error"]==0.0
+          assert r["teacher_logits_require_grad"] is False
+          assert r["reference_private_trainable_parameter_count"]==114688
+          assert r["treatment_private_trainable_parameter_count"]==114688
+          assert r["added_trainable_parameter_count"]==0
+          assert r["initialization_bit_identical"] is True
+          assert r["reference_auxiliary_exact_zero"] is True
+          assert r["treatment_auxiliary_gradient_l1"]>0.0
+          assert r["strong_active_consensus_fraction"]>0.0
+          assert r["low_teacher_active_consensus_count"]==0
+          assert r["teacher_disagreement_active_consensus_count"]==0
+          assert r["wrong_gold_filtered_count"]>0
+          assert r["non_gold_active_fraction"]>0.0
+          assert r["satisfied_student_loss"]<r["violated_student_loss"]
+          assert r["flat_student_loss"]>0.0
+          assert r["teacher_offset_invariant"] is True
+          assert r["teacher_positive_scale_invariant"] is True
+          assert r["consensus_sign_detached"] is True
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["second_encoder_pass"] is False
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Freeze S58 A0 integrity
+        run: |
+          (cd artifacts/s58-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s58-a0-consensus-teacher-pairwise-ranking
+          path: artifacts/s58-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
