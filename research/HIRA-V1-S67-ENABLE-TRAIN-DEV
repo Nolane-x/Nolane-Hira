@@ -1,0 +1,54 @@
+HIRA V1 S67 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+b01eb4ade6cc29961d7d123035349665717004e4
+
+Exact-head generic CI:
+37336110607
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S66:
+- merged main e898314b51995db7e6fa18b06256a59551d0797e
+- scientific run 37331468679
+- artifact 11354228532
+- artifact digest sha256:f3c6322eec8cce02a698807037a4c05e48c32b2addc5709a116a4384338379b1
+- verdict Case B
+
+S67 A0:
+- run 37335108984
+- artifact 11356196983
+- artifact digest sha256:14a77818c8e2158bdb3aff1b2cc864ef71fe47c1a451ce32d1d10cd234ffb793
+- outcome HIRA_V1_S67_A0_SAFE_ORACLE_ALPHA_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S67 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- reference objective: exact S66 binary per-view responsibility BCE
+- treatment objective: safe oracle-alpha continuous BCE
+- identical S64 contextual single-view gate, 60 params per arm
+- added treatment params 0
+- bit-identical initialization and context path
+- shared correction/head trajectory
+- alpha max 0.35
+- initial alpha 0.10
+- frozen lattice [0, 0.0875, 0.175, 0.2625, 0.35]
+- frozen target levels [0, 0.25, 0.5, 0.75, 1]
+- correctness tolerance 1e-8
+- lower-JS oracle with smaller-alpha tie break
+- single-view inference unchanged
+- no DEV target dependency
+- no target smoothing/mixing
+- no external Laya/Jev evaluation
+- one DEV only
+
+Scientific weakness is valid and must not be retried.
