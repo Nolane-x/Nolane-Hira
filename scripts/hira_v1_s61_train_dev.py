@@ -28,20 +28,19 @@ import hira_v1_s50_train_dev as s50
 import hira_v1_s59_train_dev as s59
 
 
-SCHEMA_VERSION="hira-v1-s61-train-calibrated-bounded-hybrid-train-dev-v1"
-OUTCOME_COMPLETE="HIRA_V1_S61_TRAIN_CALIBRATED_BOUNDED_HYBRID_DEV_COMPLETE"
-OUTCOME_READY="HIRA_V1_S61_TRAIN_CALIBRATED_BOUNDED_HYBRID_DEV_READY"
+SCHEMA_VERSION="hira-v1-s61-confidence-adaptive-bounded-hybrid-train-dev-v1"
+OUTCOME_COMPLETE="HIRA_V1_S61_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_DEV_COMPLETE"
+OUTCOME_READY="HIRA_V1_S61_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_DEV_READY"
 
 SEED=82_001
 PRIVATE_EPOCHS=24
 CORRECTION_PARAMS=114_688
 PAIRWISE_PARAMS=32_832
-GATE_PARAMS=1
+GATE_PARAMS=5
 
 A0_RUN=37299903484
 A0_ARTIFACT_ID=11341361300
 A0_ARTIFACT_DIGEST="sha256:2313d461197d8a635842a86220b55cf249600f58e0d044ba6d016edf3d9ca4fb"
-
 
 def _hybrid_metrics(op,head,gate,rep_cache):
     hybrid_c_correct=hybrid_p_correct=0
@@ -53,6 +52,10 @@ def _hybrid_metrics(op,head,gate,rep_cache):
     gold_pair_margin_sum=0.0
     max_antisym=max_diag=max_mass=0.0
     residual_max=bound_max=0.0
+    alpha_sum=alpha_sq_sum=0.0
+    alpha_min=float("inf")
+    alpha_max=0.0
+    alpha_count=0
     semantic_cases=queries=0
     full_k=True
 
@@ -109,13 +112,22 @@ def _hybrid_metrics(op,head,gate,rep_cache):
                 )
                 residual_max=max(residual_max,float(diag["residual_max_abs"].max()))
                 bound_max=max(bound_max,float(diag["residual_bound"].max()))
+                a=diag["alpha"].reshape(-1)
+                alpha_sum+=float(a.sum())
+                alpha_sq_sum+=float((a*a).sum())
+                alpha_min=min(alpha_min,float(a.min()))
+                alpha_max=max(alpha_max,float(a.max()))
+                alpha_count+=int(a.numel())
                 full_k=full_k and pair_score.shape[-1]==4
 
             semantic_cases+=n
             queries+=q
 
-    if queries<1 or gold_pair_count<1:
+    if queries<1 or gold_pair_count<1 or alpha_count<1:
         raise RuntimeError("S61 empty DEV metrics")
+
+    alpha_mean=alpha_sum/alpha_count
+    alpha_var=max(0.0,alpha_sq_sum/alpha_count-alpha_mean*alpha_mean)
 
     return {
         "semantic_cases":semantic_cases,
@@ -134,7 +146,10 @@ def _hybrid_metrics(op,head,gate,rep_cache):
         "pairwise_mean_gold_pair_margin":gold_pair_margin_sum/gold_pair_count,
         "pairwise_antisymmetry_max_abs_error":max_antisym,
         "pairwise_diagonal_max_abs_error":max_diag,
-        "gate_alpha":float(gate.alpha()),
+        "gate_mean_alpha":alpha_mean,
+        "gate_min_alpha":alpha_min,
+        "gate_max_alpha":alpha_max,
+        "gate_std_alpha":alpha_var**0.5,
         "gate_residual_max_abs":residual_max,
         "gate_bound_max":bound_max,
         "raw_triadic_canonical_accuracy":base["raw_triadic_canonical_accuracy"],
@@ -163,17 +178,17 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
 
     cparams=op.correction_parameters()
     hparams=[head.A,head.u]
-    aparams=[gate.a]
+    gparams=[gate.w,gate.b]
     if sum(p.numel() for p in cparams)!=CORRECTION_PARAMS:
         raise RuntimeError("S61 correction capacity changed")
     if sum(p.numel() for p in hparams)!=PAIRWISE_PARAMS:
         raise RuntimeError("S61 pairwise capacity changed")
-    if sum(p.numel() for p in aparams)!=GATE_PARAMS:
+    if sum(p.numel() for p in gparams)!=GATE_PARAMS:
         raise RuntimeError("S61 gate capacity changed")
 
     corr_opt=torch.optim.AdamW(cparams,lr=s35.LR,weight_decay=s35.WEIGHT_DECAY)
     head_opt=torch.optim.AdamW(hparams,lr=s35.LR,weight_decay=s35.WEIGHT_DECAY)
-    gate_opt=torch.optim.AdamW(aparams,lr=s35.LR,weight_decay=0.0)
+    gate_opt=torch.optim.AdamW(gparams,lr=s35.LR,weight_decay=0.0)
 
     history=[]
     best={"reference":None,"treatment":None}
@@ -225,10 +240,14 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             gate_loss,_diag=adaptive_gate_gold_loss(
                 gate,fused_c,fused_p,pair_c,pair_p,canonical.gold
             )
-            agrad=torch.autograd.grad(gate_loss,gate.a,allow_unused=True)[0]
-            if agrad is None or not bool(torch.isfinite(agrad).all()):
+            ggrads=torch.autograd.grad(gate_loss,gparams,allow_unused=True)
+            if not all(g is not None and bool(torch.isfinite(g).all()) for g in ggrads):
                 raise RuntimeError("S61 gate gradient invalid")
-            gate.a.grad=agrad.detach().clone()
+            if not any(float(g.detach().abs().sum())>0 for g in ggrads):
+                raise RuntimeError("S61 gate gradient vanished")
+            for p,g in zip(gparams,ggrads):
+                p.grad=g.detach().clone()
+            torch.nn.utils.clip_grad_norm_(gparams,s35.GRAD_CLIP)
             gate_opt.step()
 
             base_loss_sum+=float(base_loss.detach())*n
@@ -253,7 +272,10 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             "train_mean_pairwise_loss":pair_loss_sum/case_count,
             "train_mean_gate_loss":gate_loss_sum/case_count,
             "train_pairwise":train_pair_diag,
-            "gate_alpha":float(gate.alpha()),
+            "gate_mean_alpha":treatment["gate_mean_alpha"],
+            "gate_min_alpha":treatment["gate_min_alpha"],
+            "gate_max_alpha":treatment["gate_max_alpha"],
+            "gate_std_alpha":treatment["gate_std_alpha"],
             "reference_dev":reference,
             "treatment_dev":treatment,
             "correction_state_sha256":corr_digest,
@@ -286,7 +308,10 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
         print(
             "HIRA_V1_S61_EPOCH="+json.dumps({
                 "epoch":epoch,
-                "alpha":float(gate.alpha()),
+                "gate_mean_alpha":treatment["gate_mean_alpha"],
+                "gate_min_alpha":treatment["gate_min_alpha"],
+                "gate_max_alpha":treatment["gate_max_alpha"],
+                "gate_std_alpha":treatment["gate_std_alpha"],
                 "reference":reference,
                 "treatment":treatment,
                 "correction_state_sha256":corr_digest,
@@ -331,9 +356,10 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             "correction_parameter_count":CORRECTION_PARAMS,
             "pairwise_parameter_count":PAIRWISE_PARAMS,
             "gate_parameter_count":GATE_PARAMS,
+            "gate_feature_dimension":4,
             "native_parameter_count_in_optimizer":0,
             "teacher_dependency":False,
-            "decision_shell":"existing_fused" if arm=="reference" else "train_calibrated_bounded_hybrid",
+            "decision_shell":"existing_fused" if arm=="reference" else "confidence_adaptive_bounded_hybrid",
             "correction_state_dict":selected["correction_state"],
             "pairwise_head_state_dict":selected["head_state"],
             "gate_state_dict":selected["gate_state"],
@@ -343,7 +369,10 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             "selected_dev":metrics,
             "gates":gates,
             "dev_ready":all(gates.values()),
-            "selected_alpha":float(replay_gate.alpha()),
+            "selected_gate_mean_alpha":metrics.get("gate_mean_alpha",0.10),
+            "selected_gate_min_alpha":metrics.get("gate_min_alpha",0.10),
+            "selected_gate_max_alpha":metrics.get("gate_max_alpha",0.10),
+            "selected_gate_std_alpha":metrics.get("gate_std_alpha",0.0),
             "correction_state_sha256":selected["correction_state_sha256"],
             "pairwise_head_state_sha256":selected["pairwise_head_state_sha256"],
             "gate_state_sha256":selected["gate_state_sha256"],
@@ -384,22 +413,32 @@ def main():
     args=parser.parse_args()
 
     a0=json.loads(args.a0_result.read_text(encoding="utf-8"))
-    if a0.get("outcome")!="HIRA_V1_S61_A0_TRAIN_CALIBRATED_BOUNDED_HYBRID_READY":
+    if a0.get("outcome")!="HIRA_V1_S61_A0_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_READY":
         raise RuntimeError("S61 A0 not qualified")
     if int(a0.get("correction_trainable_parameter_count",-1))!=CORRECTION_PARAMS:
         raise RuntimeError("S61 A0 correction capacity changed")
     if int(a0.get("pairwise_trainable_parameter_count",-1))!=PAIRWISE_PARAMS:
         raise RuntimeError("S61 A0 pairwise capacity changed")
     if int(a0.get("gate_trainable_parameter_count",-1))!=GATE_PARAMS:
+        raise RuntimeError("S61 A0 gate trainable capacity changed")
+    if int(a0.get("gate_parameter_count",-1))!=GATE_PARAMS:
         raise RuntimeError("S61 A0 gate capacity changed")
-    if a0.get("gate_trainable_tensor_names")!=["a"]:
+    if a0.get("gate_trainable_tensor_names")!=["b","w"]:
         raise RuntimeError("S61 A0 gate surface changed")
-    if abs(float(a0.get("alpha_initial_observed",-1.0))-S61_ALPHA_INITIAL)>1e-7:
-        raise RuntimeError("S61 A0 alpha initialization changed")
+    if int(a0.get("feature_dimension",-1))!=4:
+        raise RuntimeError("S61 A0 feature dimension changed")
+    if a0.get("features_require_grad") is not False:
+        raise RuntimeError("S61 A0 features gained gradient")
+    if a0.get("initial_w_exact_zero") is not True:
+        raise RuntimeError("S61 A0 w initialization changed")
+    if float(a0.get("initial_alpha_max_abs_error",1.0))>1e-7:
+        raise RuntimeError("S61 A0 initial alpha changed")
     if float(a0.get("alpha_max",-1.0))!=S61_ALPHA_MAX:
         raise RuntimeError("S61 A0 alpha max changed")
+    if float(a0.get("gate_gradient_w_l1",0.0))<=0.0 or float(a0.get("gate_gradient_b_l1",0.0))<=0.0:
+        raise RuntimeError("S61 A0 gate gradient vanished")
     if a0.get("gate_gradient_to_upstream_zero") is not True:
-        raise RuntimeError("S61 A0 gate gradient ownership changed")
+        raise RuntimeError("S61 A0 gate ownership changed")
     if a0.get("pairwise_only_final_path") is not False:
         raise RuntimeError("S61 A0 pairwise-only path changed")
     if a0.get("teacher_dependency") is not False:
@@ -408,6 +447,22 @@ def main():
         raise RuntimeError("S61 A0 pseudo-target dependency changed")
     if a0.get("self_anchor_dependency") is not False:
         raise RuntimeError("S61 A0 self-anchor dependency changed")
+    if a0.get("adaptive_probe_separated") is not True:
+        raise RuntimeError("S61 A0 adaptive probe failed")
+    if float(a0.get("residual_bound_violation_max",1.0))>1e-7:
+        raise RuntimeError("S61 A0 residual bound failed")
+    if float(a0.get("feature_affine_invariance_max_abs_error",1.0))>1e-5:
+        raise RuntimeError("S61 A0 feature affine invariance changed")
+    if float(a0.get("option_permutation_max_abs_error",1.0))>1e-6:
+        raise RuntimeError("S61 A0 permutation equivariance changed")
+    if not all(a0.get(k) is True for k in ("arbitrary_k3_pass","arbitrary_k7_pass","arbitrary_k255_pass")):
+        raise RuntimeError("S61 A0 arbitrary-K court changed")
+    if float(a0.get("max_probability_mass_error",1.0))>1e-6:
+        raise RuntimeError("S61 A0 probability mass changed")
+    if a0.get("one_encoder_state_once") is not True:
+        raise RuntimeError("S61 A0 state-once changed")
+    if float(a0.get("gate_checkpoint_replay_max_abs_error",1.0))!=0.0:
+        raise RuntimeError("S61 A0 checkpoint replay changed")
     if a0.get("used_for_model_selection") is not False:
         raise RuntimeError("S61 A0 used for model selection")
     if a0.get("fresh_train_dev_exposed") is not False:
@@ -475,7 +530,7 @@ def main():
         "schema_version":SCHEMA_VERSION,
         "status":"PASS",
         "outcome":outcome,
-        "scientific_authority":"V1_S61_FRESH_TRAIN_CALIBRATED_BOUNDED_HYBRID",
+        "scientific_authority":"V1_S61_FRESH_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID",
         "seed":SEED,
         "parent_native_authority":{
             "run":37192490832,
@@ -505,10 +560,11 @@ def main():
         },
         "controlled_variable":{
             "reference_decision_shell":"existing_fused",
-            "treatment_decision_shell":"train_calibrated_bounded_hybrid",
+            "treatment_decision_shell":"confidence_adaptive_bounded_hybrid",
             "correction_trainable_parameters":CORRECTION_PARAMS,
             "pairwise_trainable_parameters":PAIRWISE_PARAMS,
             "gate_trainable_parameters":GATE_PARAMS,
+            "gate_feature_dimension":4,
             "alpha_initial":S61_ALPHA_INITIAL,
             "alpha_max":S61_ALPHA_MAX,
             "gate_weight_decay":0.0,
@@ -530,19 +586,20 @@ def main():
             "train_semantic_cases":len(train_rows),
             "dev_semantic_cases":len(dev_rows),
             "domains":sorted({r.domain for r in train_rows}),
-            "exact_s59_state_question_option_overlap":0,
+            "exact_s60_state_question_option_overlap":0,
             "k":4,
             "views_per_option":2,
         },
         "post_dev_tuning_performed":False,
+        "feature_set_variant_performed":False,
+        "hidden_layer_added":False,
+        "feature_scaling_sweep_performed":False,
         "alpha_max_sweep_performed":False,
-        "alpha_initialization_sweep_performed":False,
+        "initialization_sweep_performed":False,
         "calibration_objective_variant_performed":False,
         "optimizer_variant_performed":False,
-        "residual_nonlinearity_variant_performed":False,
-        "normalization_variant_performed":False,
-        "per_query_gate_added":False,
-        "pairwise_correction_gradient_coupling_performed":False,
+        "gate_regularizer_added":False,
+        "gradient_coupling_performed":False,
         "second_dev_run_performed":False,
         "native_retraining_performed":False,
         "selector_changed":False,
