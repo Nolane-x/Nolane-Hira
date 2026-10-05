@@ -16,3 +16,9 @@ def test_s67_train_dev_workflow_is_marker_gated_and_a0_pinned():
     assert 'assert cv["oracle_target_levels"]==[0.0,0.25,0.5,0.75,1.0]' in source
     assert 'assert r["second_dev_run_performed"] is False' in source
     assert 'assert r["external_laya_jev_evaluation_opened"] is False' in source
+
+
+def test_s67_receipt_verifier_pins_s66_parent():
+    source=Path(".github/workflows/hira-v1-s67-safe-oracle-alpha-train-dev.yml").read_text(encoding="utf-8")
+    assert 'parent=r["parent_s66"]' in source
+    assert 'parent=r["parent_s65"]' not in source
