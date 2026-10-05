@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 import random
 from typing import Literal
 
-from .v1_s61_authority import generate_s61_cases
+from .v1_s60_authority import generate_s60_cases
 
 Split=Literal["train","dev"]
 
@@ -180,7 +180,7 @@ def validate_s61_partitions(train,dev):
     if _questions(train)&_questions(dev): raise RuntimeError("S61 TRAIN DEV question overlap")
     if _options(train)&_options(dev): raise RuntimeError("S61 TRAIN DEV option overlap")
 
-    prior=(*generate_s59_cases("train"),*generate_s59_cases("dev"))
+    prior=(*generate_s60_cases("train"),*generate_s60_cases("dev"))
     current=(*train,*dev)
     if _states(current)&_states(prior): raise RuntimeError("S61 exact S60 state overlap")
     if _questions(current)&_questions(prior): raise RuntimeError("S61 exact S60 question overlap")
