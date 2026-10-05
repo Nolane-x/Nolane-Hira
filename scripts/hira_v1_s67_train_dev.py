@@ -26,7 +26,6 @@ from nmd.v1_contextual_reliability_gate import (
     S64_POOLED_DIM,
     S64_REPRESENTATION_DIM,
     ContextInjectedReliabilityGate,
-    contextual_reliability_loss,
 )
 from nmd.v1_per_view_responsibility import per_view_responsibility_loss
 from nmd.v1_safe_oracle_alpha_responsibility import (
@@ -229,8 +228,10 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
         order=list(range(len(train_cache)))
         random.Random(SEED+epoch).shuffle(order)
         base_loss_sum=pair_loss_sum=ref_loss_sum=trt_loss_sum=0.0
-        pair_positive=canonical_positive=paraphrase_positive=0.0
-        responsibility_disagreement_sum=0.0
+        reference_binary_positive=0.0
+        canonical_target_sum=paraphrase_target_sum=0.0
+        oracle_disagreement_sum=oracle_nonbinary_sum=0.0
+        level_counts={0.0:0.0,0.25:0.0,0.5:0.0,0.75:0.0,1.0:0.0}
         reliability_count=0
         case_count=0
 
@@ -269,7 +270,7 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
                 pair_p=head.aggregate_logits(rep_p)
 
             ref_opt.zero_grad(set_to_none=True)
-            ref_loss,ref_diag=contextual_reliability_loss(
+            ref_loss,ref_diag=per_view_responsibility_loss(
                 reference_gate,
                 fused_c,fused_p,pair_c,pair_p,
                 rep_c,rep_p,canonical.gold,
@@ -305,19 +306,26 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             trt_opt.step()
 
             if int(ref_diag["target_count"])!=int(trt_diag["target_count"]):
-                raise RuntimeError("S67 matched responsibility target count changed")
-            if int(ref_diag["target_positive_count"])!=int(trt_diag["pair_target_positive_count"]):
-                raise RuntimeError("S67 reference pair target changed")
+                raise RuntimeError("S67 matched target count changed")
 
             base_loss_sum+=float(base_loss.detach())*n
             pair_loss_sum+=float(pair_loss.detach())*n
             ref_loss_sum+=float(ref_loss.detach())*n
             trt_loss_sum+=float(trt_loss.detach())*n
             target_count=int(trt_diag["target_count"])
-            pair_positive+=float(trt_diag["pair_target_positive_count"])
-            canonical_positive+=float(trt_diag["canonical_target_positive_count"])
-            paraphrase_positive+=float(trt_diag["paraphrase_target_positive_count"])
-            responsibility_disagreement_sum+=float(trt_diag["target_disagreement_fraction"])*target_count
+            reference_binary_positive+=float(
+                ref_diag["canonical_target_positive_count"]
+                +ref_diag["paraphrase_target_positive_count"]
+            )
+            canonical_target_sum+=float(trt_diag["canonical_target_sum"])
+            paraphrase_target_sum+=float(trt_diag["paraphrase_target_sum"])
+            oracle_disagreement_sum+=float(trt_diag["target_disagreement_fraction"])*target_count
+            oracle_nonbinary_sum+=float(trt_diag["oracle_nonbinary_fraction"])*(2*target_count)
+            level_counts[0.0]+=float(trt_diag["oracle_level_0_count"])
+            level_counts[0.25]+=float(trt_diag["oracle_level_025_count"])
+            level_counts[0.5]+=float(trt_diag["oracle_level_05_count"])
+            level_counts[0.75]+=float(trt_diag["oracle_level_075_count"])
+            level_counts[1.0]+=float(trt_diag["oracle_level_1_count"])
             reliability_count+=target_count
             case_count+=n
 
@@ -346,10 +354,20 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
             "train_mean_pairwise_loss":pair_loss_sum/case_count,
             "train_mean_reference_independent_bce_loss":ref_loss_sum/case_count,
             "train_mean_treatment_safe_oracle_alpha_bce_loss":trt_loss_sum/case_count,
-            "train_pair_target_positive_fraction":pair_positive/max(1,reliability_count),
-            "train_canonical_oracle_mean_target":canonical_positive/max(1,reliability_count),
-            "train_paraphrase_oracle_mean_target":paraphrase_positive/max(1,reliability_count),
-            "train_oracle_target_disagreement_fraction":responsibility_disagreement_sum/max(1,reliability_count),
+            "train_reference_binary_positive_fraction":
+                reference_binary_positive/max(1,2*reliability_count),
+            "train_canonical_oracle_mean_target":
+                canonical_target_sum/max(1,reliability_count),
+            "train_paraphrase_oracle_mean_target":
+                paraphrase_target_sum/max(1,reliability_count),
+            "train_oracle_target_disagreement_fraction":
+                oracle_disagreement_sum/max(1,reliability_count),
+            "train_oracle_nonbinary_fraction":
+                oracle_nonbinary_sum/max(1,2*reliability_count),
+            "train_oracle_level_fraction":{
+                str(level):level_counts[level]/max(1,2*reliability_count)
+                for level in (0.0,0.25,0.5,0.75,1.0)
+            },
             "reference_phi_gradient_ever_live":reference_phi_gradient_ever_live,
             "treatment_phi_gradient_ever_live":treatment_phi_gradient_ever_live,
             "train_pairwise":train_pair_diag,
@@ -385,10 +403,20 @@ def _train_shared_trajectory(train_cache,dev_cache,train_rep,dev_rep,out_dir):
         print(
             "HIRA_V1_S67_EPOCH="+json.dumps({
                 "epoch":epoch,
-                "train_pair_target_positive_fraction":pair_positive/max(1,reliability_count),
-                "train_canonical_oracle_mean_target":canonical_positive/max(1,reliability_count),
-                "train_paraphrase_oracle_mean_target":paraphrase_positive/max(1,reliability_count),
-                "train_oracle_target_disagreement_fraction":responsibility_disagreement_sum/max(1,reliability_count),
+                "train_reference_binary_positive_fraction":
+                    reference_binary_positive/max(1,2*reliability_count),
+                "train_canonical_oracle_mean_target":
+                    canonical_target_sum/max(1,reliability_count),
+                "train_paraphrase_oracle_mean_target":
+                    paraphrase_target_sum/max(1,reliability_count),
+                "train_oracle_target_disagreement_fraction":
+                    oracle_disagreement_sum/max(1,reliability_count),
+                "train_oracle_nonbinary_fraction":
+                    oracle_nonbinary_sum/max(1,2*reliability_count),
+                "train_oracle_level_fraction":{
+                    str(level):level_counts[level]/max(1,2*reliability_count)
+                    for level in (0.0,0.25,0.5,0.75,1.0)
+                },
                 "reference":reference,
                 "treatment":treatment,
                 "correction_state_sha256":corr_digest,
@@ -519,22 +547,15 @@ def main():
         raise RuntimeError("S67 A0 matched initialization changed")
     if a0.get("context_projection_bit_identical") is not True:
         raise RuntimeError("S67 A0 context path changed")
-    if a0.get("responsibility_states")!=[[0,0],[0,1],[1,0],[1,1]]:
-        raise RuntimeError("S67 A0 responsibility state coverage changed")
-    if float(a0.get("responsibility_disagreement_fraction",0.0))<=0.0:
-        raise RuntimeError("S67 A0 responsibility disagreement vanished")
+    levels=set(a0.get("oracle_target_levels",[]))
+    if levels!={0.0,0.25,0.5,0.75,1.0}:
+        raise RuntimeError("S67 A0 oracle target level coverage changed")
     if float(a0.get("view_swap_target_max_abs_error",1.0))!=0.0:
         raise RuntimeError("S67 A0 view-swap equivariance changed")
-    if a0.get("treatment_target_distinct_from_pair_target") is not True:
-        raise RuntimeError("S67 A0 treatment target collapsed to pair target")
-    for key in (
-        "canonical_correctness_veto_observed",
-        "paraphrase_correctness_veto_observed",
-        "canonical_stability_veto_observed",
-        "paraphrase_stability_veto_observed",
-    ):
-        if a0.get(key) is not True:
-            raise RuntimeError(f"S67 A0 veto contract changed: {key}")
+    if a0.get("treatment_target_distinct_from_s66_binary") is not True:
+        raise RuntimeError("S67 A0 oracle target collapsed to S66 binary")
+    if float(a0.get("smaller_alpha_tie_break_max_abs_error",1.0))!=0.0:
+        raise RuntimeError("S67 A0 tie break changed")
     if a0.get("reference_gradient_to_upstream_zero") is not True or a0.get("treatment_gradient_to_upstream_zero") is not True:
         raise RuntimeError("S67 A0 gradient ownership changed")
     if float(a0.get("alpha_probe",-1.0))!=S62_ALPHA_PROBE or float(a0.get("target_tolerance",-1.0))!=S62_TARGET_TOLERANCE:
@@ -609,10 +630,10 @@ def main():
         "scientific_authority":"V1_S67_FRESH_SAFE_ORACLE_ALPHA",
         "seed":SEED,
         "parent_s66":{
-            "merged_main":"6bae27159fc2f9577f72540c7070da3e41ef3d15",
-            "scientific_run":37325995163,
-            "artifact_id":11352920320,
-            "artifact_digest":"sha256:a44c560d304537bb7acaa1b5d569160ec744f897ae728edf95ceca7701be9dfc",
+            "merged_main":"e898314b51995db7e6fa18b06256a59551d0797e",
+            "scientific_run":37331468679,
+            "artifact_id":11354228532,
+            "artifact_digest":"sha256:f3c6322eec8cce02a698807037a4c05e48c32b2addc5709a116a4384338379b1",
             "verdict":"CASE_B",
         },
         "parent_native_authority":{
@@ -688,7 +709,7 @@ def main():
             "train_semantic_cases":len(train_rows),
             "dev_semantic_cases":len(dev_rows),
             "domains":sorted({r.domain for r in train_rows}),
-            "exact_s65_state_question_option_overlap":0,
+            "exact_s66_state_question_option_overlap":0,
             "k":4,
             "views_per_option":2,
         },
