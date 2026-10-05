@@ -1,0 +1,51 @@
+HIRA V1 S64 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+a17e8816efbaa669357341a5f33242217229d9ba
+
+Exact-head generic CI:
+37317393763
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S63:
+- merged main 4fcb58f0c35e2feca841b08f6f560c092ae600fd
+- scientific run 37314015283
+- artifact 11347706059
+- artifact digest sha256:dcb69358dfa97f3644198534faa1c2f5f214b4f1773d79008eec13cafaf2a97e
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S64 mechanical A0 court.
+
+Frozen controlled variable:
+- reference and treatment exactly 60 trainable params
+- bit-identical parameter initialization
+- same surface4 channels
+- reference context4 = exact zero
+- treatment context4 = fixed projection of detached S59 512D context
+- fixed projection seed 64064, zero trainable params
+- option input dim 8
+- hidden width 5
+- mean+max pool dim 10
+- final representation dim 14
+- encoder init seed 64164
+- initial alpha 0.10
+- alpha max 0.35
+- exact S62 reliability BCE target
+- alpha probe 0.35
+- tolerance 1e-8
+- no DEV target dependency
+- no fresh S64 TRAIN/DEV
+- no model selection
+- no external Laya/Jev evaluation
+
+A0 is mechanical only.
