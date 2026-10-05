@@ -15,7 +15,10 @@ from nmd.v1_contextual_reliability_gate import (
     ContextInjectedReliabilityGate,
     contextual_reliability_loss,
 )
-from nmd.v1_per_view_responsibility import per_view_responsibility_loss
+from nmd.v1_per_view_responsibility import (
+    per_view_responsibility_targets,
+    per_view_responsibility_loss,
+)
 from nmd.v1_safe_oracle_alpha_responsibility import (
     S67_ALPHA_LATTICE,
     S67_TARGET_LEVELS,
@@ -45,7 +48,7 @@ def _same_parameter_state(a,b)->bool:
 
 
 def _probe_bank():
-    g=torch.Generator().manual_seed(66066066)
+    g=torch.Generator().manual_seed(67067066)
     b,k=4096,4
     fc=2.0*torch.randn(b,k,generator=g)
     fp=2.0*torch.randn(b,k,generator=g)
@@ -93,7 +96,7 @@ def _mechanics():
     if tie_error!=0.0:
         raise RuntimeError("S67 A0 smaller-alpha tie break changed")
 
-    g=torch.Generator().manual_seed(66066067)
+    g=torch.Generator().manual_seed(67067067)
     max_mass=max_bound=max_initial=identity_error=0.0
     for k in (3,7,255):
         fused=torch.randn(2,k,generator=g)
@@ -144,7 +147,7 @@ def _mechanics():
 
 
 def _staged_gradient_court():
-    g=torch.Generator().manual_seed(66066068)
+    g=torch.Generator().manual_seed(67067068)
     b,k=64,4
     fc=2.0*torch.randn(b,k,generator=g)
     fp=2.0*torch.randn(b,k,generator=g)
