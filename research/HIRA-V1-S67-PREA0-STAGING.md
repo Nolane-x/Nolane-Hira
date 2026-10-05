@@ -2,7 +2,8 @@
 
 Status: **STAGED / A0 NOT AUTHORIZED**
 
-Issue: #321
+Issue: #321  
+PR: #322
 
 Parent S66 merged main:
 `e898314b51995db7e6fa18b06256a59551d0797e`
