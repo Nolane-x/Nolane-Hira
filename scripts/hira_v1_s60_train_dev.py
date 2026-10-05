@@ -88,7 +88,10 @@ def _hybrid_metrics(op,head,composer,rep_cache):
             hybrid_p_margin_sum+=float(fused_gold_vs_max_wrong_margin(hp,gold).sum())
             canonical_loss_sum+=float(F.cross_entropy(hc,gold,reduction="sum"))
 
-            for rep,pair_score,diag in ((rep_c,pair_c,dc),(rep_p,pair_p,dp)):
+            for rep,pair_score,diag,hybrid in (
+                (rep_c,pair_c,dc,hc),
+                (rep_p,pair_p,dp,hp),
+            ):
                 pair=head.pairwise_logits(rep)
                 b,k,_=pair.shape
                 batch=torch.arange(b,device=pair.device)
@@ -102,12 +105,7 @@ def _hybrid_metrics(op,head,composer,rep_cache):
                 max_diag=max(max_diag,float(torch.diagonal(pair,dim1=-2,dim2=-1).abs().max()))
                 max_mass=max(
                     max_mass,
-                    float((torch.softmax(
-                        composer.compose(
-                            fused_c if rep is rep_c else fused_p,
-                            pair_score
-                        ),dim=-1
-                    ).sum(-1)-1.0).abs().max()),
+                    float((torch.softmax(hybrid,dim=-1).sum(-1)-1.0).abs().max()),
                 )
                 residual_max=max(residual_max,float(diag["residual_max_abs"].max()))
                 bound_max=max(bound_max,float(diag["residual_bound"].max()))
