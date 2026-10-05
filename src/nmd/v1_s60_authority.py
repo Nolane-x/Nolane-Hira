@@ -121,7 +121,7 @@ def _views(spec,*,split,code,first,second):
         )
     return (
         f"S60-Hybrid audit {code} for the {spec.noun}: {spec.field_a} is {first}, while {spec.field_b} is {second}.",
-        f"Pair-head audit {code} assigns {second} to {spec.field_b}; independently, the {spec.noun} assigns {first} to {spec.field_a}.",
+        f"S60-Hybrid audit {code} assigns {second} to {spec.field_b}; independently, the {spec.noun} assigns {first} to {spec.field_a}.",
         f"Read S60-Hybrid audit {code}: what is {spec.field_a}?",
         f"In S60-Hybrid audit {code}, which entry is tagged {spec.field_a}?",
         f"Read S60-Hybrid audit {code}: what is {spec.field_b}?",
