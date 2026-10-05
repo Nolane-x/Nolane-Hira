@@ -54,8 +54,8 @@ jobs:
 
       - name: Compile and run S61 contracts
         run: |
-          python -m py_compile src/nmd/v1_train_calibrated_bounded_hybrid.py src/nmd/v1_s61_authority.py scripts/hira_v1_s61_train_dev.py
-          pytest -q tests/test_v1_train_calibrated_bounded_hybrid.py tests/test_v1_s61_a0_harness.py tests/test_v1_s61_authority.py tests/test_v1_s61_matched_harness.py tests/test_v1_s61_train_dev_workflow.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+          python -m py_compile src/nmd/v1_confidence_adaptive_bounded_hybrid.py src/nmd/v1_s61_authority.py scripts/hira_v1_s61_train_dev.py
+          pytest -q tests/test_v1_confidence_adaptive_bounded_hybrid.py tests/test_v1_s61_a0_harness.py tests/test_v1_s61_authority.py tests/test_v1_s61_matched_harness.py tests/test_v1_s61_train_dev_workflow.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
 
       - name: Verify canonical S61 A0 authority
         run: |
@@ -67,20 +67,27 @@ jobs:
           r=json.loads(Path("inputs/S61A0/result.json").read_text())
           assert r["schema_version"]=="hira-v1-s61-a0-confidence-adaptive-bounded-hybrid-v1"
           assert r["status"]=="PASS"
-          assert r["outcome"]=="HIRA_V1_S61_A0_TRAIN_CALIBRATED_BOUNDED_HYBRID_READY"
-          assert r["scientific_authority"]=="S61_A0_TRAIN_CALIBRATED_BOUNDED_HYBRID_ONLY"
-          assert r["seed"]==81001
+          assert r["outcome"]=="HIRA_V1_S61_A0_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_READY"
+          assert r["scientific_authority"]=="S61_A0_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_ONLY"
+          assert r["seed"]==82001
           assert r["correction_trainable_parameter_count"]==114688
           assert r["pairwise_trainable_parameter_count"]==32832
-          assert r["composer_trainable_parameter_count"]==1
-          assert r["composer_trainable_tensor_names"]==["a"]
-          assert abs(r["alpha_initial_observed"]-0.10)<=1e-7
+          assert r["gate_trainable_parameter_count"]==5
+          assert r["gate_parameter_count"]==5
+          assert r["gate_trainable_tensor_names"]==["b","w"]
+          assert r["feature_dimension"]==4
+          assert r["features_require_grad"] is False
+          assert r["initial_w_exact_zero"] is True
+          assert r["initial_alpha_max_abs_error"]<=1e-7
           assert r["alpha_max"]==0.35
+          assert r["gate_gradient_w_l1"]>0.0
+          assert r["gate_gradient_b_l1"]>0.0
+          assert r["gate_gradient_to_upstream_zero"] is True
+          assert r["adaptive_probe_separated"] is True
           assert r["identity_override_max_abs_error"]==0.0
-          assert r["flat_pairwise_residual_max_abs_error"]==0.0
-          assert r["adversarial_residual_bound_violation_max"]<=1e-7
-          assert r["composer_gradient_l1"]>0.0
-          assert r["composer_gradient_to_upstream_zero"] is True
+          assert r["residual_bound_violation_max"]<=1e-7
+          assert r["feature_affine_invariance_max_abs_error"]<=1e-5
+          assert r["option_permutation_max_abs_error"]<=1e-6
           assert r["pairwise_only_final_path"] is False
           assert r["teacher_dependency"] is False
           assert r["pseudo_target_dependency"] is False
@@ -90,7 +97,7 @@ jobs:
           assert r["arbitrary_k255_pass"] is True
           assert r["max_probability_mass_error"]<=1e-6
           assert r["one_encoder_state_once"] is True
-          assert r["composer_checkpoint_replay_max_abs_error"]==0.0
+          assert r["gate_checkpoint_replay_max_abs_error"]==0.0
           assert r["used_for_model_selection"] is False
           assert r["fresh_train_dev_exposed"] is False
           PY
@@ -141,11 +148,11 @@ jobs:
           assert r["schema_version"]=="hira-v1-s61-confidence-adaptive-bounded-hybrid-train-dev-v1"
           assert r["status"]=="PASS"
           assert r["outcome"] in {
-              "HIRA_V1_S61_TRAIN_CALIBRATED_BOUNDED_HYBRID_DEV_COMPLETE",
-              "HIRA_V1_S61_TRAIN_CALIBRATED_BOUNDED_HYBRID_DEV_READY",
+              "HIRA_V1_S61_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_DEV_COMPLETE",
+              "HIRA_V1_S61_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID_DEV_READY",
           }
-          assert r["scientific_authority"]=="V1_S61_FRESH_TRAIN_CALIBRATED_BOUNDED_HYBRID"
-          assert r["seed"]==81001
+          assert r["scientific_authority"]=="V1_S61_FRESH_CONFIDENCE_ADAPTIVE_BOUNDED_HYBRID"
+          assert r["seed"]==82001
 
           parent=r["parent_native_authority"]
           assert parent["run"]==37192490832
@@ -165,19 +172,20 @@ jobs:
 
           cv=r["controlled_variable"]
           assert cv["reference_decision_shell"]=="existing_fused"
-          assert cv["treatment_decision_shell"]=="train_calibrated_bounded_hybrid"
+          assert cv["treatment_decision_shell"]=="confidence_adaptive_bounded_hybrid"
           assert cv["correction_trainable_parameters"]==114688
           assert cv["pairwise_trainable_parameters"]==32832
-          assert cv["composer_trainable_parameters"]==1
+          assert cv["gate_trainable_parameters"]==5
+          assert cv["gate_feature_dimension"]==4
           assert cv["alpha_initial"]==0.10
           assert cv["alpha_max"]==0.35
-          assert cv["composer_weight_decay"]==0.0
+          assert cv["gate_weight_decay"]==0.0
           assert cv["teacher_dependency"] is False
           assert cv["pseudo_target_dependency"] is False
           assert cv["self_anchor_dependency"] is False
-          assert cv["composer_gradient_enters_correction"] is False
-          assert cv["composer_gradient_enters_pairwise"] is False
-          assert cv["composer_gradient_enters_native"] is False
+          assert cv["gate_gradient_enters_correction"] is False
+          assert cv["gate_gradient_enters_pairwise"] is False
+          assert cv["gate_gradient_enters_native"] is False
           assert cv["pairwise_only_final_path"] is False
           assert cv["shared_training_trajectory"] is True
           assert cv["same_frozen_selector"] is True
@@ -185,19 +193,19 @@ jobs:
           assert len(r["training_trajectory"])==24
           for e,row in enumerate(r["training_trajectory"],start=1):
               assert row["epoch"]==e
-              assert 0.0<row["composer_alpha"]<0.35
+              assert 0.0<row["gate_min_alpha"]<=row["gate_mean_alpha"]<=row["gate_max_alpha"]<0.35
+              assert row["gate_std_alpha"]>=0.0
               assert len(row["correction_state_sha256"])==64
               assert len(row["pairwise_head_state_sha256"])==64
-              assert len(row["composer_state_sha256"])==64
+              assert len(row["gate_state_sha256"])==64
               assert row["train_pairwise"]["antisymmetry_max_abs_error"]==0.0
 
           for name in ("reference_branch","treatment_branch"):
               b=r[name]
               assert 1<=b["selected_dev_epoch"]<=24
-              assert 0.0<b["selected_alpha"]<0.35
               assert len(b["correction_state_sha256"])==64
               assert len(b["pairwise_head_state_sha256"])==64
-              assert len(b["composer_state_sha256"])==64
+              assert len(b["gate_state_sha256"])==64
               assert b["selected_dev"]["state_view_encodes"]==0
               assert b["selected_dev"]["full_k"] is True
               assert b["selected_dev"]["fused_max_probability_mass_error"]<=1e-6
@@ -205,13 +213,14 @@ jobs:
           t=r["treatment_branch"]["selected_dev"]
           assert t["pairwise_antisymmetry_max_abs_error"]==0.0
           assert t["pairwise_diagonal_max_abs_error"]==0.0
-          assert 0.0<t["composer_alpha"]<0.35
-          assert t["composer_residual_max_abs"]<=t["composer_bound_max"]+1e-7
+          assert 0.0<t["gate_min_alpha"]<=t["gate_mean_alpha"]<=t["gate_max_alpha"]<0.35
+          assert t["gate_std_alpha"]>=0.0
+          assert t["gate_residual_max_abs"]<=t["gate_bound_max"]+1e-7
 
           assert r["partitions"]["train_semantic_cases"]==768
           assert r["partitions"]["dev_semantic_cases"]==192
           assert len(r["partitions"]["domains"])==12
-          assert r["partitions"]["exact_s59_state_question_option_overlap"]==0
+          assert r["partitions"]["exact_s60_state_question_option_overlap"]==0
 
           for filename,branch_name in (
               ("reference-candidate.pt","reference"),
@@ -220,22 +229,24 @@ jobs:
               p=torch.load(root/filename,map_location="cpu",weights_only=True)
               assert p["schema_version"]=="hira-v1-s61-private-candidate-v1"
               assert p["branch"]==branch_name
-              assert p["seed"]==81001
+              assert p["seed"]==82001
               assert p["correction_parameter_count"]==114688
               assert p["pairwise_parameter_count"]==32832
-              assert p["composer_parameter_count"]==1
+              assert p["gate_parameter_count"]==5
+              assert p["gate_feature_dimension"]==4
               assert p["native_parameter_count_in_optimizer"]==0
               assert p["teacher_dependency"] is False
 
           assert r["post_dev_tuning_performed"] is False
+          assert r["feature_set_variant_performed"] is False
+          assert r["hidden_layer_added"] is False
+          assert r["feature_scaling_sweep_performed"] is False
           assert r["alpha_max_sweep_performed"] is False
-          assert r["alpha_initialization_sweep_performed"] is False
+          assert r["initialization_sweep_performed"] is False
           assert r["calibration_objective_variant_performed"] is False
           assert r["optimizer_variant_performed"] is False
-          assert r["residual_nonlinearity_variant_performed"] is False
-          assert r["normalization_variant_performed"] is False
-          assert r["per_query_gate_added"] is False
-          assert r["pairwise_correction_gradient_coupling_performed"] is False
+          assert r["gate_regularizer_added"] is False
+          assert r["gradient_coupling_performed"] is False
           assert r["second_dev_run_performed"] is False
           assert r["native_retraining_performed"] is False
           assert r["selector_changed"] is False
