@@ -1,0 +1,50 @@
+HIRA V1 S63 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+de2ccbe9bb64f77b8b80dc18875d834a021854fa
+
+Exact-head generic CI:
+37312198508
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S62:
+- merged main 798f5c4d933635b36f4e0eaf76503f8213afedd9
+- scientific run 37307658289
+- artifact 11344855774
+- artifact digest sha256:7812c348d707ea8675fc9370af573a87d9e5b1a0b10e55a1f335bf890ddb3305
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S63 mechanical A0 court.
+
+Frozen S63 variable:
+- reference: exact S62 5-param reliability gate
+- treatment: 61-param learned permutation-invariant set reliability gate
+- added treatment params 56
+- per-option input dim 4
+- shared option encoder width 8
+- mean + max pooling => 16
+- final reliability representation dim 20
+- treatment tensors exactly W_phi,b_phi,w_out,b_out
+- representation init seed 63063
+- output weights zero
+- initial alpha 0.10
+- alpha max 0.35
+- exact S62 reliability target/BCE retained
+- alpha_probe 0.35
+- target tolerance 1e-8
+- no DEV target dependency
+- no fresh S63 TRAIN/DEV exposure
+- no model selection
+- no external Laya/Jev evaluation
+
+A0 is mechanical only.
