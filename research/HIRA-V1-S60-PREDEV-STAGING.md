@@ -139,3 +139,18 @@ Marker:
 `research/HIRA-V1-S60-ENABLE-TRAIN-DEV`
 
 The marker MUST remain absent until the exact final pre-DEV staging head passes generic CI on Python 3.10 and 3.12.
+
+
+## Pre-DEV reconciliation
+
+Initial exact-head CI `37296806343` on `72b6dd04929b9112353df8da7ea56fa1dcf5068d` correctly rejected the staging because one DEV state-view literal inherited the S59 wording, creating exact S59 state overlap.
+
+The authority was repaired at implementation head:
+`a64f2236563cb41921c94bb7a759b2035ef35070`
+
+Repair scope:
+- only the leaked S59 DEV state-view literal was renamed into the S60 namespace;
+- no TRAIN/DEV labels, examples, counts, optimizer, architecture, alpha, loss, selector, or evaluation rule changed;
+- fresh S60 DEV remained unscored and unexposed.
+
+The TRAIN/DEV marker remains absent. A new exact-head generic CI is required before authorization.
