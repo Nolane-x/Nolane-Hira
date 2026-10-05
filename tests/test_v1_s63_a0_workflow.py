@@ -9,6 +9,6 @@ def test_s63_a0_workflow_is_marker_gated_and_parent_pinned():
     assert "11344855774" in source
     assert "sha256:7812c348d707ea8675fc9370af573a87d9e5b1a0b10e55a1f335bf890ddb3305" in source
     assert "scripts/hira_v1_s63_a0_learned_set_reliability_gate.py" in source
-    assert 'assert r["treatment_parameter_count"]==61' in source
+    assert 'assert r["treatment_gate_parameter_count"]==61' in source
     assert 'assert r["added_treatment_parameter_count"]==56' in source
     assert 'assert r["fresh_train_dev_exposed"] is False' in source
