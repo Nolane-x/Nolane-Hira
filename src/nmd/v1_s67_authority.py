@@ -182,9 +182,9 @@ def validate_s67_partitions(train,dev):
 
     prior=(*generate_s66_cases("train"),*generate_s66_cases("dev"))
     current=(*train,*dev)
-    if _states(current)&_states(prior): raise RuntimeError("S67 exact S65 state overlap")
-    if _questions(current)&_questions(prior): raise RuntimeError("S67 exact S65 question overlap")
-    if _options(current)&_options(prior): raise RuntimeError("S67 exact S65 option overlap")
+    if _states(current)&_states(prior): raise RuntimeError("S67 exact S66 state overlap")
+    if _questions(current)&_questions(prior): raise RuntimeError("S67 exact S66 question overlap")
+    if _options(current)&_options(prior): raise RuntimeError("S67 exact S66 option overlap")
 
 
 __all__=["S67SafeOracleAlphaCase","generate_s67_cases","validate_s67_partitions"]
