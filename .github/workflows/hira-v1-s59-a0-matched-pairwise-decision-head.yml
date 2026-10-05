@@ -1,0 +1,126 @@
+name: hira-v1-s59-a0-matched-pairwise-decision-head
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s59-antisymmetric-pairwise-decision-head
+    paths:
+      - "research/HIRA-V1-S59-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S59 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S59 contracts
+        run: |
+          python -m py_compile src/nmd/v1_learned_pairwise_decision_head.py scripts/hira_v1_s59_a0_matched_pairwise_decision_head.py
+          pytest -q tests/test_v1_learned_pairwise_decision_head.py tests/test_v1_s59_a0_harness.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run S59 A0 matched decision-head court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s59_a0_matched_pairwise_decision_head.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --out artifacts/s59-a0
+
+      - name: Verify S59 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("artifacts/s59-a0/result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s59-a0-matched-antisymmetric-pairwise-head-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S59_A0_MATCHED_ANTISYMMETRIC_PAIRWISE_HEAD_READY"
+          assert r["scientific_authority"]=="S59_A0_MATCHED_PAIRWISE_MECHANICS_ONLY"
+          assert r["seed"]==80001
+          assert r["reference_mode"]=="pointwise"
+          assert r["treatment_mode"]=="pairwise"
+          assert r["correction_parameter_count_per_arm"]==114688
+          assert r["decision_head_parameter_count_per_arm"]==16384
+          assert r["total_private_parameter_count_per_arm"]==131072
+          assert r["decision_head_rank"]==32
+          assert r["decision_head_seed"]==80590
+          assert r["decision_head_scale"]==1.0
+          assert r["matched_initialization_exact"] is True
+          assert r["decision_b_initial_exact_zero"] is True
+          assert r["initial_relation_max_abs_error"]==0.0
+          assert r["initial_fused_max_abs_error"]==0.0
+          assert r["initial_a_gradient_l1"]==0.0
+          assert r["initial_b_gradient_l1"]>0.0
+          assert r["post_b_update_a_gradient_l1"]>0.0
+          assert r["post_b_update_b_gradient_l1"]>0.0
+          assert r["legacy_correction_gradient_l1"]>0.0
+          assert r["pairwise_max_antisymmetry_error"]<=1e-7
+          assert r["pairwise_max_diagonal_abs"]==0.0
+          assert r["pairwise_max_permutation_error"]<=1e-6
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["pairwise_max_probability_mass_error"]<=1e-6
+          assert r["finite_degenerate_context"] is True
+          assert r["cache_requires_grad_tensor_count"]==0
+          assert r["teacher_artifact_dependency"] is False
+          assert r["pseudo_target_dependency"] is False
+          assert r["second_encoder_pass"] is False
+          assert r["used_for_model_selection"] is False
+          PY
+
+      - name: Freeze S59 A0 integrity
+        run: |
+          (cd artifacts/s59-a0 && sha256sum result.json > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s59-a0-matched-pairwise-decision-head
+          path: artifacts/s59-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
