@@ -1,0 +1,70 @@
+HIRA V1 S59 one-shot TRAIN DEV authorization
+
+Authorized final pre-DEV staging head:
+58559a0751c2553b2450575c87463391802b7e0b
+
+Exact-head generic CI:
+37289021479
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S58:
+- merged main decc5a744f69e78e83bc57bf28c3283d230f9283
+- scientific run 37276076841
+- artifact 11330721014
+- verdict Case B
+
+Qualified S59 A0:
+- run 37278474963
+- artifact 11331042601
+- artifact digest sha256:5271081c4bcacbced9ca85c146ddd36b5dc9ecdc0c6dc9038c9b3fb6219a11b6
+- outcome HIRA_V1_S59_A0_EXPLICIT_LEARNED_PAIRWISE_DECISION_HEAD_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S59 matched TRAIN/DEV court.
+
+Frozen scientific court:
+- seed 80001
+- TRAIN 768
+- DEV 192
+- 12 wholly fresh S59 domains
+- exact S58 state/question/option overlap 0
+- K=4
+- epochs 24
+- correction trainable params 114,688
+- pairwise trainable params 32,832
+- pair representation 512D detached
+- hidden width 64
+- no bias
+- no teacher
+- no pseudo-target
+- no self-anchor
+- shared correction/head training trajectory
+- same frozen S17 selector
+- reference decision shell existing fused
+- treatment decision shell explicit learned pairwise
+- pairwise gradients isolated from correction/native/cache
+- one DEV authority only
+
+Once TRAIN begins:
+- no width/activation sweep
+- no pairwise loss variant
+- no tiebreak variant
+- no base-logit blend
+- no joint-gradient variant
+- no architecture/capacity change
+- no native retraining
+- no selector change
+- no retry for scientific weakness
+- no gate weakening
+- no second S59 DEV
+- no external Laya/Jev evaluation
+
+Scientific failure is valid.
