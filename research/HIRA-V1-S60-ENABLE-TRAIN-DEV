@@ -1,0 +1,76 @@
+HIRA V1 S60 one-shot TRAIN DEV authorization
+
+Authorized final pre-DEV staging head:
+51dc6ff56766c4d2f9e7d4d6dbfd475b03a3b6ae
+
+Exact-head generic CI:
+37297347214
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S59:
+- merged main 867056d999bab707a1d8f4b1ea9ca774ccaf514d
+- scientific run 37289522292
+- artifact 11335428630
+- verdict Case C
+
+Qualified S60 A0:
+- run 37291693731
+- artifact 11337255933
+- artifact digest sha256:0a8f44e150932c0df4393cb74af94a380f93680e7b3fde2e0ea642295356c182
+- outcome HIRA_V1_S60_A0_TRAIN_CALIBRATED_BOUNDED_HYBRID_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S60 matched TRAIN/DEV court.
+
+Frozen scientific court:
+- seed 81001
+- TRAIN 768
+- DEV 192
+- 12 fresh S60 domains
+- exact S59 state/question/option overlap 0
+- K=4
+- epochs 24
+- correction params 114,688
+- pairwise params 32,832
+- composer params exactly 1
+- composer scalar a only
+- alpha initial 0.10
+- alpha max 0.35
+- composer weight decay 0.0
+- no teacher
+- no pseudo-target
+- no self-anchor
+- shared correction/pairwise/composer training trajectory
+- pairwise representation detached
+- composer inputs detached
+- reference decision shell existing fused
+- treatment decision shell train-calibrated bounded hybrid
+- same frozen S17 selector
+- one DEV authority only
+
+Once TRAIN begins:
+- no alpha_max sweep
+- no alpha initialization sweep
+- no calibration objective change
+- no optimizer/LR/weight-decay change
+- no residual nonlinearity change
+- no normalization change
+- no per-query gate
+- no gradient coupling
+- no architecture/capacity change
+- no native retraining
+- no selector change
+- no retry for scientific weakness
+- no gate weakening
+- no second S60 DEV
+- no external Laya/Jev evaluation
+
+Scientific failure is valid.
