@@ -182,9 +182,9 @@ def validate_s66_partitions(train,dev):
 
     prior=(*generate_s65_cases("train"),*generate_s65_cases("dev"))
     current=(*train,*dev)
-    if _states(current)&_states(prior): raise RuntimeError("S66 exact S64 state overlap")
-    if _questions(current)&_questions(prior): raise RuntimeError("S66 exact S64 question overlap")
-    if _options(current)&_options(prior): raise RuntimeError("S66 exact S64 option overlap")
+    if _states(current)&_states(prior): raise RuntimeError("S66 exact S65 state overlap")
+    if _questions(current)&_questions(prior): raise RuntimeError("S66 exact S65 question overlap")
+    if _options(current)&_options(prior): raise RuntimeError("S66 exact S65 option overlap")
 
 
 __all__=["S66PerViewResponsibilityCase","generate_s66_cases","validate_s66_partitions"]
