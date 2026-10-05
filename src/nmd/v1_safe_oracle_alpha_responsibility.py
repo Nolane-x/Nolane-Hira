@@ -54,6 +54,43 @@ def bounded_probe_at_alpha(
     return out.detach()
 
 
+
+def select_safe_oracle_alpha(
+    baseline_ce:Tensor,
+    baseline_js:Tensor,
+    candidate_ce:Tensor,
+    candidate_js:Tensor,
+)->tuple[Tensor,Tensor,Tensor]:
+    if candidate_ce.ndim!=2 or candidate_js.ndim!=2:
+        raise ValueError("S67 candidate tables must be [L-1,B]")
+    if candidate_ce.shape!=candidate_js.shape:
+        raise ValueError("S67 candidate CE/JS table mismatch")
+    if candidate_ce.shape[0]!=len(S67_ALPHA_LATTICE)-1:
+        raise ValueError("S67 candidate table must match frozen lattice")
+    if baseline_ce.shape!=baseline_js.shape or baseline_ce.ndim!=1:
+        raise ValueError("S67 baseline CE/JS must be [B]")
+    if candidate_ce.shape[1]!=baseline_ce.shape[0]:
+        raise ValueError("S67 candidate/baseline batch mismatch")
+
+    best_alpha=torch.zeros_like(baseline_ce)
+    best_js=baseline_js.clone()
+    best_ce=baseline_ce.clone()
+    for row,alpha in enumerate(S67_ALPHA_LATTICE[1:]):
+        ce=candidate_ce[row]
+        js=candidate_js[row]
+        safe=ce.le(baseline_ce+S62_TARGET_TOLERANCE)
+        better=js.lt(best_js-S62_TARGET_TOLERANCE)
+        update=safe & better
+        best_alpha=torch.where(
+            update,
+            torch.full_like(best_alpha,float(alpha)),
+            best_alpha,
+        )
+        best_js=torch.where(update,js,best_js)
+        best_ce=torch.where(update,ce,best_ce)
+    return best_alpha.detach(),best_ce.detach(),best_js.detach()
+
+
 def _safe_oracle_for_view(
     *,
     own_fused:Tensor,
@@ -74,30 +111,22 @@ def _safe_oracle_for_view(
         js0=symmetric_js_divergence(other,own,reduction="none")
 
     b=own.shape[0]
-    best_alpha=torch.zeros(b,device=own.device,dtype=own.dtype)
-    best_js=js0.clone()
-    best_ce=ce0.clone()
-
+    candidate_ce=[]
+    candidate_js=[]
     for alpha in S67_ALPHA_LATTICE[1:]:
         q=bounded_probe_at_alpha(own,pair,alpha)
-        ce=F.cross_entropy(q,g,reduction="none")
-        js=(
+        candidate_ce.append(F.cross_entropy(q,g,reduction="none"))
+        candidate_js.append(
             symmetric_js_divergence(q,other,reduction="none")
             if canonical_side
             else symmetric_js_divergence(other,q,reduction="none")
         )
-        safe=ce.le(ce0+S62_TARGET_TOLERANCE)
-        # Ascending lattice + strict tolerance update means equal/near-equal JS
-        # retains the smaller alpha by construction.
-        better=js.lt(best_js-S62_TARGET_TOLERANCE)
-        update=safe & better
-        best_alpha=torch.where(
-            update,
-            torch.full_like(best_alpha,float(alpha)),
-            best_alpha,
-        )
-        best_js=torch.where(update,js,best_js)
-        best_ce=torch.where(update,ce,best_ce)
+    best_alpha,best_ce,best_js=select_safe_oracle_alpha(
+        ce0,
+        js0,
+        torch.stack(candidate_ce,dim=0),
+        torch.stack(candidate_js,dim=0),
+    )
 
     target=(best_alpha/S67_ALPHA_MAX).detach()
     if target.requires_grad:
@@ -255,6 +284,7 @@ __all__=[
     "S67_ALPHA_LATTICE",
     "S67_TARGET_LEVELS",
     "bounded_probe_at_alpha",
+    "select_safe_oracle_alpha",
     "safe_oracle_alpha_targets",
     "safe_oracle_alpha_loss",
 ]
