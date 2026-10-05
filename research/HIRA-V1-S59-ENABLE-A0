@@ -1,0 +1,55 @@
+HIRA V1 S59 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+ed25496268dc29b1d7e00ac2868e7a90b83b668c
+
+Exact-head generic CI:
+37278104827
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S58:
+- merged main decc5a744f69e78e83bc57bf28c3283d230f9283
+- scientific run 37276076841
+- artifact 11330721014
+- verdict Case B
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one S59-A0 explicit learned pairwise decision-head mechanics court.
+
+Frozen A0 scope:
+- representation 512D = detached identity 256D + joint context 256D
+- hidden width 64
+- pairwise A 64x512
+- pairwise u 64
+- pairwise trainable params 32,832
+- no bias
+- head seed 80059
+- explicit anti-symmetry
+- diagonal zero
+- gold-vs-distractor supervision only
+- distractor-vs-distractor supervision count 0
+- option permutation equivariance
+- K=3/7/255
+- full-K aggregation
+- deterministic representation-derived tie break
+- A/u gradient liveness
+- representation/native/cache/correction gradient isolation
+- correction params 114,688
+- native trainable params 0
+- no teacher dependency
+- no native/fused/corrected logit input to pairwise head
+- one encoder/state-once
+- checkpoint roundtrip exact
+
+A0 is diagnostic/mechanical only.
+No fresh S59 TRAIN/DEV exposure.
+No S59 model selection.
+No external Laya/Jev evaluation.
