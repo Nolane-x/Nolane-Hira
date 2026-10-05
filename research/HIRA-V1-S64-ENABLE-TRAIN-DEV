@@ -1,0 +1,53 @@
+HIRA V1 S64 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+03e4e155495c03198fae498df32ddc9b1d909a45
+
+Exact-head generic CI:
+37318911263
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+- preflight: PASS
+
+Parent S63:
+- merged main 4fcb58f0c35e2feca841b08f6f560c092ae600fd
+- scientific run 37314015283
+- artifact 11347706059
+- artifact digest sha256:dcb69358dfa97f3644198534faa1c2f5f214b4f1773d79008eec13cafaf2a97e
+- verdict Case B
+
+S64 A0:
+- run 37318082102
+- artifact 11349331302
+- artifact digest sha256:462c4b845ba60b870a5ead4a26dbc9e4ba661426c6d2a23112484214d7c6d14e
+- outcome HIRA_V1_S64_A0_CONTEXTUAL_RELIABILITY_GATE_READY
+
+Parent persisted native authority:
+- run 37192490832
+- artifact 11299783210
+- runtime/native digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one fresh S64 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- reference: 60-param surface4 + exact-zero-context4 gate
+- treatment: 60-param surface4 + fixed S59-context4 gate
+- parameter initialization bit-identical
+- treatment parameter advantage 0
+- context projection seed 64064
+- context projection trainable params 0
+- encoder init seed 64164
+- same shared correction/head trajectory
+- same S62 TRAIN-only reliability BCE target
+- alpha probe 0.35
+- target tolerance 1e-8
+- alpha max 0.35
+- initial alpha 0.10
+- same frozen S17 selector
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific failure is valid. No retry for scientific weakness.
