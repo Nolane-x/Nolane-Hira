@@ -1,0 +1,137 @@
+name: hira-v1-s72-a0-opponent-profile-vector-residual
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s72-opponent-profile-vector-residual
+    paths:
+      - "research/HIRA-V1-S72-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s71-multistat-row-composer
+          path: inputs/S71
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37459447097
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S72 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S72 contracts
+        run: |
+          python -m py_compile src/nmd/v1_opponent_profile_vector_residual.py scripts/hira_v1_s72_a0_opponent_profile_vector_residual.py
+          pytest -q tests/test_v1_opponent_profile_vector_residual.py tests/test_v1_s72_a0_harness.py tests/test_v1_s72_a0_workflow.py tests/test_v1_multistat_pairwise_row_composer.py tests/test_v1_per_view_responsibility.py
+
+      - name: Verify frozen S71 parent evidence
+        run: |
+          (cd inputs/S71 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11412505173"
+          echo "Pinned GitHub artifact digest: sha256:aa116237d5508131db18f88a23893d9107d05ae67f46ccffe638520fe8098a50"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S71/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S71_MULTISTAT_ROW_COMPOSER_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S71_FRESH_MULTISTAT_ROW_COMPOSER"
+          assert r["seed"]==92001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Run one S72 mechanical A0 court
+        run: |
+          python scripts/hira_v1_s72_a0_opponent_profile_vector_residual.py \
+            --parent-result inputs/S71/result.json \
+            --out artifacts/s72-a0
+
+      - name: Verify S72 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s72-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s72-a0-opponent-profile-vector-residual-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S72_A0_OPPONENT_PROFILE_VECTOR_RESIDUAL_READY"
+          assert r["scientific_authority"]=="S72_A0_OPPONENT_PROFILE_VECTOR_RESIDUAL_ONLY"
+          assert r["seed"]==93001
+
+          parent=r["parent_s71"]
+          assert parent["merged_main"]=="ef2e8a4b71ba9a46dd9caea07698df742abb6461"
+          assert parent["scientific_run"]==37459447097
+          assert parent["artifact_id"]==11412505173
+          assert parent["artifact_digest"]=="sha256:aa116237d5508131db18f88a23893d9107d05ae67f46ccffe638520fe8098a50"
+          assert parent["verdict"]=="CASE_C"
+
+          assert r["reference_composer_parameter_count"]==80
+          assert r["treatment_composer_parameter_count"]==80
+          assert r["direction_trainable_parameter_count_reference"]==0
+          assert r["direction_trainable_parameter_count_treatment"]==0
+          assert r["added_treatment_parameter_count"]==0
+          assert r["composer_parameter_initialization_bit_identical"] is True
+          assert r["context_projection_bit_identical"] is True
+          assert r["alpha_match_max_abs_error"]==0.0
+          assert r["initial_alpha_max_abs_error"]<=1e-7
+          assert r["profile_confidence_max_abs"]<=1.0+1e-6
+          assert r["opponent_mass_max_abs_error"]<=1e-6
+          assert r["opponent_diagonal_weight_max_abs"]==0.0
+          assert r["reference_direction_permutation_max_abs_error"]<=2e-6
+          assert r["treatment_direction_permutation_max_abs_error"]<=2e-6
+          assert r["neutral_direction_collapse_max_abs_error"]<=1e-6
+          assert r["diagonal_direction_max_abs_error"]==0.0
+          assert r["nontrivial_direction_max_abs_difference"]>1e-4
+          assert r["identity_override_max_abs_error"]==0.0
+          assert r["residual_bound_violation_max"]<=1e-7
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+
+          for arm in ("reference","treatment"):
+              assert r[f"{arm}_initial_W_phi_gradient_l1"]==0.0
+              assert r[f"{arm}_initial_b_phi_gradient_l1"]==0.0
+              assert r[f"{arm}_initial_w_out_gradient_l1"]>0.0
+              assert r[f"{arm}_initial_b_out_gradient_l1"]>0.0
+              assert r[f"{arm}_post_output_warm_W_phi_gradient_l1"]>0.0
+              assert r[f"{arm}_post_output_warm_b_phi_gradient_l1"]>0.0
+              assert r[f"{arm}_gradient_to_upstream_zero"] is True
+
+          assert r["matched_composer_checkpoint_replay_max_abs_error"]==0.0
+          assert r["fresh_train_dev_exposed"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S72 A0 integrity
+        run: |
+          (cd artifacts/s72-a0 && sha256sum result.json matched-composers.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s72-a0-opponent-profile-vector-residual
+          path: artifacts/s72-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
