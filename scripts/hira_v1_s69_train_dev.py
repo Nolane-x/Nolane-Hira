@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from nmd.local_runtime import A13_REVISION, read_runtime_bundle_manifest
 from nmd.v1_invariance import selected_choice_agreement, symmetric_js_divergence
-from nmd.v1_fused_primary_relation_detach import fused_gold_vs_max_wrong_margin
+from nmd.v1_evidence_fusion import fused_gold_vs_max_wrong_margin
 from nmd.v1_joint_state_query_option_interaction import JointStateQueryOptionPrivateCorrectionFork
 from nmd.v1_persisted_native_authority import load_native_authority, verify_file_sha256
 from nmd.v1_explicit_pairwise_decision_head import (
