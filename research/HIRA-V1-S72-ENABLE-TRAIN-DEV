@@ -1,0 +1,47 @@
+HIRA V1 S72 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+cb1a13d80fb930f09f33aaad240fba35b9dc1f22
+
+Exact-head generic CI:
+37470360822
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S71:
+- merged main ef2e8a4b71ba9a46dd9caea07698df742abb6461
+- scientific run 37459447097
+- artifact 11412505173
+- artifact digest sha256:aa116237d5508131db18f88a23893d9107d05ae67f46ccffe638520fe8098a50
+- verdict Case C
+
+S72 A0:
+- run 37463175304
+- artifact 11413616350
+- artifact digest sha256:a4d8052a0e76160310d4a99e86ef71f07810a96e77681cb34d747b85c98ef52a
+- outcome HIRA_V1_S72_A0_OPPONENT_PROFILE_VECTOR_RESIDUAL_READY
+
+This marker authorizes exactly one fresh S72 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- both arms use exact S69 query-gated identity interaction representation
+- exact S59 pairwise head, 32,832 params
+- one shared pairwise training trajectory
+- one shared correction trajectory
+- exact S71 80-param mean-only composer in both arms
+- bit-identical composer initialization
+- exact S66 TRAIN-only per-view responsibility target
+- reference residual direction = normalized uniform row mean
+- treatment residual direction = fused-opponent-profile signed/absolute ratio
+- fixed fused prior temperature 1.0
+- direction trainable params 0 vs 0
+- no teacher
+- no pseudo-target
+- no target/representation/head/composer change
+- no temperature/profile/epsilon/normalization sweep
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific weakness is valid and must not be retried.
