@@ -1,0 +1,34 @@
+HIRA V1 S70 one-shot A0 authorization
+
+Authorized final pre-A0 staging head:
+2e0adf298c1fff3db56241fc7cf2148ef4b0184f
+
+Exact-head generic CI:
+37421584652
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S69:
+- merged main 1ada877bcd9381486395599519363e87ef3dd831
+- scientific run 37420104460
+- artifact 11392672918
+- artifact digest sha256:c24c00e9b79d23b3e7e3fe4d17013270e0410d822b85c62230bb85e972a2f94d
+- verdict Case B
+
+This marker authorizes exactly one S70 mechanical A0 court.
+
+Frozen controlled variable:
+- reference aggregation = uniform row mean
+- treatment aggregation = fused-softmax opponent weighted sum
+- temperature = 1.0
+- aggregation trainable params = 0 vs 0
+- same S64 contextual gate 60 params vs 60 params
+- bit-identical gate initialization
+- exact S66 responsibility objective retained
+- no fresh S70 TRAIN/DEV
+- no model selection
+- no external Laya/Jev evaluation
+
+A0 is mechanical only.
