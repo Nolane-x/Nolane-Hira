@@ -58,16 +58,22 @@ def opponent_profile_confidence(
 
     fused=fused_logits.detach()
     pair=pair_matrix.detach()
+    out_dtype=fused.dtype
 
-    prior=torch.softmax(fused,dim=-1)
-    mask=(~torch.eye(k,device=pair.device,dtype=torch.bool)).unsqueeze(0)
+    # Mechanical numerical hardening only: reductions use float64 so option
+    # permutations do not change fp32 summation order enough to affect A0.
+    work_fused=fused.to(torch.float64) if fused.dtype!=torch.float64 else fused
+    work_pair=pair.to(torch.float64) if pair.dtype!=torch.float64 else pair
+
+    prior=torch.softmax(work_fused,dim=-1)
+    mask=(~torch.eye(k,device=work_pair.device,dtype=torch.bool)).unsqueeze(0)
     weights=prior.unsqueeze(1).expand(b,k,k).masked_fill(~mask,0.0)
     denom=weights.sum(dim=-1,keepdim=True).clamp_min(S72_PROFILE_EPSILON)
     weights=weights/denom
 
-    signed=(weights*pair).sum(dim=-1)
-    absolute=(weights*pair.abs()).sum(dim=-1)
-    confidence=signed/(absolute+S72_PROFILE_EPSILON)
+    signed=(weights*work_pair).sum(dim=-1)
+    absolute=(weights*work_pair.abs()).sum(dim=-1)
+    confidence=(signed/(absolute+S72_PROFILE_EPSILON)).to(out_dtype)
 
     if not bool(torch.isfinite(confidence).all()):
         raise ValueError("S72 opponent-profile confidence non-finite")
@@ -80,11 +86,11 @@ def opponent_profile_confidence(
         raise RuntimeError("S72 opponent weights did not normalize")
 
     return confidence.detach(),{
-        "prior":prior.detach(),
-        "opponent_weights":weights.detach(),
-        "signed_evidence":signed.detach(),
-        "absolute_evidence":absolute.detach(),
-        "opponent_mass":opponent_mass.detach(),
+        "prior":prior.to(out_dtype).detach(),
+        "opponent_weights":weights.to(out_dtype).detach(),
+        "signed_evidence":signed.to(out_dtype).detach(),
+        "absolute_evidence":absolute.to(out_dtype).detach(),
+        "opponent_mass":opponent_mass.to(out_dtype).detach(),
     }
 
 
