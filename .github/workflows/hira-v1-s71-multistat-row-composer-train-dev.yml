@@ -1,0 +1,266 @@
+name: hira-v1-s71-multistat-row-composer-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s71-multistat-row-composer
+    paths:
+      - "research/HIRA-V1-S71-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s71-a0-multistat-row-composer
+          path: inputs/S71A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37457754519
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S71 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S71 contracts
+        run: |
+          python -m py_compile src/nmd/v1_multistat_pairwise_row_composer.py src/nmd/v1_s71_authority.py scripts/hira_v1_s71_train_dev.py
+          pytest -q tests/test_v1_multistat_pairwise_row_composer.py tests/test_v1_s71_a0_harness.py tests/test_v1_s71_a0_workflow.py tests/test_v1_s71_authority.py tests/test_v1_s71_matched_harness.py tests/test_v1_s71_train_dev_workflow.py tests/test_v1_per_view_responsibility.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_query_gated_identity_interaction.py
+
+      - name: Verify frozen S70 parent evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S70-MATCHED-RECEIPT.json").read_text())
+          assert r["schema_version"]=="hira-v1-s70-fused-anchored-pairwise-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S70_FUSED_ANCHORED_PAIRWISE_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S70_FRESH_FUSED_ANCHORED_PAIRWISE_AGGREGATION"
+          assert r["seed"]==91001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Verify canonical S71 A0 authority
+        run: |
+          (cd inputs/S71A0 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact digest: sha256:52f38ac6d30177c43205b023114a4192333b3374c98c083aed30fa494aececb5"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S71A0/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S71_A0_MULTISTAT_ROW_COMPOSER_READY"
+          assert r["scientific_authority"]=="S71_A0_MULTISTAT_ROW_COMPOSER_ONLY"
+          assert r["seed"]==92001
+          assert r["reference_parameter_count"]==80
+          assert r["treatment_parameter_count"]==80
+          assert r["added_treatment_parameter_count"]==0
+          assert r["parameter_initialization_bit_identical"] is True
+          assert r["context_projection_bit_identical"] is True
+          assert r["reference_extra_row_channels_max_abs"]==0.0
+          assert r["treatment_extra_row_channels_max_abs"]>1e-7
+          assert r["row_permutation_max_abs_error"]<=2e-6
+          assert r["output_permutation_max_abs_error"]<=2e-6
+          assert r["alpha_permutation_max_abs_error"]<=2e-6
+          assert r["fixed_alpha_residual_direction_max_abs_error"]==0.0
+          assert r["fresh_train_dev_exposed"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S71 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s71_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S71A0/result.json \
+            --out artifacts/s71-train-dev
+
+      - name: Verify S71 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s71-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s71-multistat-row-composer-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S71_MULTISTAT_ROW_COMPOSER_DEV_COMPLETE",
+              "HIRA_V1_S71_MULTISTAT_ROW_COMPOSER_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S71_FRESH_MULTISTAT_ROW_COMPOSER"
+          assert r["seed"]==92001
+
+          parent=r["parent_s70"]
+          assert parent["merged_main"]=="751161746887b795149fcd924735ee2d043b43b3"
+          assert parent["scientific_run"]==37423476142
+          assert parent["artifact_id"]==11394610000
+          assert parent["artifact_digest"]=="sha256:8af711f789efb9717eaed0eff882fade7bab37b546f86a35502db82242ad221f"
+          assert parent["verdict"]=="CASE_C"
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37457754519
+          assert a0["artifact_id"]==11410541387
+          assert a0["artifact_digest"]=="sha256:52f38ac6d30177c43205b023114a4192333b3374c98c083aed30fa494aececb5"
+
+          cv=r["controlled_variable"]
+          assert cv["reference_row_channels"]=="normalized_mean_plus_three_zero_channels"
+          assert cv["treatment_row_channels"]=="normalized_mean_max_min_rms"
+          assert cv["composer_trainable_parameters_per_arm"]==80
+          assert cv["composer_parameter_initialization_bit_identical"] is True
+          assert cv["residual_direction_both_arms"]=="uniform_row_mean"
+          assert cv["alpha_max"]==0.35
+          assert cv["representation_family_both_arms"]=="s69_query_gated_identity_interaction"
+          assert cv["pairwise_family_both_arms"]=="s59_explicit_pairwise"
+          assert cv["pairwise_trainable_parameters"]==32832
+          assert cv["shared_pairwise_head"] is True
+          assert cv["shared_pairwise_training_trajectory"] is True
+          assert cv["shared_correction_trajectory"] is True
+          assert cv["shared_selection_epoch"] is True
+          assert 1<=cv["shared_selected_dev_epoch"]<=24
+          assert cv["composer_objective_both_arms"]=="per_view_counterfactual_responsibility_bce"
+          assert cv["composer_context_source_both_arms"]=="exact_s59_reference_representation"
+          assert cv["same_train_rows_and_order"] is True
+          assert cv["same_optimizer_lr_weight_decay"] is True
+          assert cv["teacher_dependency"] is False
+          assert cv["pseudo_target_dependency"] is False
+          assert cv["reliability_target_reopened"] is False
+
+          assert len(r["training_trajectory"])==24
+          for e,row in enumerate(r["training_trajectory"],start=1):
+              assert row["epoch"]==e
+              assert row["shared_train_pairwise"]["antisymmetry_max_abs_error"]==0.0
+              assert len(row["correction_state_sha256"])==64
+              assert len(row["shared_pairwise_head_state_sha256"])==64
+              assert len(row["reference_composer_state_sha256"])==64
+              assert len(row["treatment_composer_state_sha256"])==64
+
+          ref=r["reference_branch"]
+          trt=r["treatment_branch"]
+          assert ref["selected_dev_epoch"]==trt["selected_dev_epoch"]==cv["shared_selected_dev_epoch"]
+          assert ref["correction_state_sha256"]==trt["correction_state_sha256"]
+          assert ref["pairwise_head_state_sha256"]==trt["pairwise_head_state_sha256"]
+          assert ref["selected_dev"]["pairwise_gold_pair_accuracy"]==trt["selected_dev"]["pairwise_gold_pair_accuracy"]
+          assert ref["selected_dev"]["pairwise_mean_gold_pair_margin"]==trt["selected_dev"]["pairwise_mean_gold_pair_margin"]
+          assert ref["selected_pairwise_aggregate_dev"]==trt["selected_pairwise_aggregate_dev"]
+
+          for name,use_multistat in (("reference_branch",False),("treatment_branch",True)):
+              b=r[name]
+              m=b["selected_dev"]
+              assert m["state_view_encodes"]==0
+              assert m["full_k"] is True
+              assert m["pairwise_antisymmetry_max_abs_error"]==0.0
+              assert m["pairwise_diagonal_max_abs_error"]==0.0
+              assert m["fused_max_probability_mass_error"]<=1e-6
+              assert 0.0<=m["composer_min_alpha"]<=m["composer_max_alpha"]<=0.35
+
+              p=torch.load(root/b["checkpoint_file"],map_location="cpu",weights_only=True)
+              assert p["schema_version"]=="hira-v1-s71-private-candidate-v1"
+              assert p["seed"]==92001
+              assert p["shared_selected_dev_epoch"]==cv["shared_selected_dev_epoch"]
+              assert p["representation_family"]=="s69_query_gated_identity_interaction"
+              assert p["representation_parameter_count"]==0
+              assert p["pairwise_parameter_count"]==32832
+              assert p["pairwise_family"]=="s59_explicit_pairwise"
+              assert p["shared_pairwise_head"] is True
+              assert p["composer_family"]=="s71_multistat_pairwise_row"
+              assert p["composer_parameter_count"]==80
+              assert p["use_multistat"] is use_multistat
+              assert p["residual_direction"]=="uniform_row_mean"
+              assert p["alpha_max"]==0.35
+              assert p["composer_objective"]=="per_view_counterfactual_responsibility_bce"
+              assert p["composer_context_source"]=="exact_s59_reference_representation"
+              assert p["native_parameter_count_in_optimizer"]==0
+              assert p["teacher_dependency"] is False
+
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["exact_s70_state_question_option_overlap"]==0
+          assert r["partitions"]["k"]==4
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["row_stat_subset_sweep_performed"] is False
+          assert r["width_sweep_performed"] is False
+          assert r["normalization_changed"] is False
+          assert r["reliability_target_reopened"] is False
+          assert r["representation_or_pairwise_head_changed"] is False
+          assert r["residual_direction_changed"] is False
+          assert r["optimizer_lr_weight_decay_changed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["selector_changed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S71 integrity
+        run: |
+          (cd artifacts/s71-train-dev && sha256sum result.json reference-candidate.pt treatment-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s71-multistat-row-composer
+          path: artifacts/s71-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
