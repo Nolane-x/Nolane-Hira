@@ -209,6 +209,9 @@ def _hybrid_metrics(op,head,composer,pair_rep_cache,context_rep_cache,*,use_oppo
     alpha_min=float("inf")
     alpha_max=0.0
     alpha_count=0
+    direction_cos_sum=0.0
+    direction_count=0
+    direction_max_abs_difference=0.0
     cases=queries=0
 
     if len(pair_rep_cache)!=len(context_rep_cache):
@@ -259,7 +262,10 @@ def _hybrid_metrics(op,head,composer,pair_rep_cache,context_rep_cache,*,use_oppo
             p_margin_sum+=float(fused_gold_vs_max_wrong_margin(hp,gold).sum())
             canonical_loss_sum+=float(F.cross_entropy(hc,gold,reduction="sum"))
 
-            for matrix,diag,hybrid in ((matrix_c,dc,hc),(matrix_p,dp,hp)):
+            for matrix,diag,hybrid,fused_view in (
+                (matrix_c,dc,hc,fused_c),
+                (matrix_p,dp,hp,fused_p),
+            ):
                 b,k,_=matrix.shape
                 batch=torch.arange(b,device=matrix.device)
                 row=matrix[batch,gold,:]
@@ -273,6 +279,17 @@ def _hybrid_metrics(op,head,composer,pair_rep_cache,context_rep_cache,*,use_oppo
                 max_mass=max(max_mass,float((torch.softmax(hybrid,-1).sum(-1)-1).abs().max()))
                 residual_max=max(residual_max,float(diag["residual_max_abs"].max()))
                 bound_max=max(bound_max,float(diag["residual_bound"].max()))
+                ref_direction=reference_pairwise_mean_direction(matrix)
+                trt_direction,_=opponent_profile_vector_direction(fused_view,matrix)
+                direction_cos_sum+=float(
+                    F.cosine_similarity(ref_direction,trt_direction,dim=-1).sum()
+                )
+                direction_count+=int(ref_direction.shape[0])
+                direction_max_abs_difference=max(
+                    direction_max_abs_difference,
+                    float((ref_direction-trt_direction).abs().max()),
+                )
+
                 a=diag["alpha"].reshape(-1)
                 alpha_sum+=float(a.sum())
                 alpha_sq_sum+=float((a*a).sum())
@@ -311,6 +328,8 @@ def _hybrid_metrics(op,head,composer,pair_rep_cache,context_rep_cache,*,use_oppo
         "composer_std_alpha":alpha_var**0.5,
         "composer_residual_max_abs":residual_max,
         "composer_bound_max":bound_max,
+        "direction_mean_cosine":direction_cos_sum/max(1,direction_count),
+        "direction_max_abs_difference":direction_max_abs_difference,
         "raw_triadic_canonical_accuracy":base["raw_triadic_canonical_accuracy"],
         "raw_triadic_paraphrase_accuracy":base["raw_triadic_paraphrase_accuracy"],
         "raw_triadic_cross_view_agreement":base["raw_triadic_cross_view_agreement"],
@@ -586,10 +605,11 @@ def _train_matched(train_cache,dev_cache,train_pair_rep,train_context_rep,dev_pa
             "shared_pairwise_head":True,
             "composer_family":"s71_mean_only_pairwise_row",
             "composer_parameter_count":COMPOSER_PARAMS,
-            "use_multistat":use_multistat,
-            "reference_row_channels":"normalized_mean_plus_three_zero_channels",
-            "treatment_row_channels":"normalized_mean_plus_three_zero_channels",
-            "residual_direction":"uniform_row_mean",
+            "use_multistat":False,
+            "row_channels":"normalized_mean_plus_three_zero_channels",
+            "residual_direction":
+                "fused_opponent_profile_confidence" if use_profile
+                else "uniform_row_mean",
             "alpha_max":0.35,
             "composer_objective":"per_view_counterfactual_responsibility_bce",
             "composer_context_source":"exact_s59_reference_representation",
@@ -714,6 +734,14 @@ def main():
         raise RuntimeError("S72 selected correction states diverged")
     if reference["selected_dev_epoch"]!=treatment["selected_dev_epoch"]:
         raise RuntimeError("S72 selected epochs diverged")
+    if reference["composer_state_sha256"]!=treatment["composer_state_sha256"]:
+        raise RuntimeError("S72 selected composer states diverged")
+    for key in (
+        "composer_mean_alpha","composer_min_alpha",
+        "composer_max_alpha","composer_std_alpha",
+    ):
+        if abs(float(reference["selected_dev"][key])-float(treatment["selected_dev"][key]))>1e-12:
+            raise RuntimeError(f"S72 selected alpha policy diverged: {key}")
 
     keys=(
         "fused_canonical_accuracy",
