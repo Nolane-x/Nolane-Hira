@@ -1,0 +1,38 @@
+HIRA V1 S69 one-shot A0 authorization
+
+Authorized exact pre-A0 head:
+1e29ddf523273af659c3c1b89ff483eb7759deef
+
+Exact-head generic CI:
+37416995773
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S68:
+- merged main 4cfdbc6fe100715bd950c9a0e2f504f71c486e9c
+- scientific run 37389861004
+- artifact 11381470793
+- artifact digest sha256:0156bb57125f6b8c4f380649505803ed76cf49b8edf1c5bd4774fd8790386eaa
+- verdict Case C
+
+Parent S51:
+- run 37192490832
+- artifact 11299783210
+- runtime digest ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628
+- checkpoint SHA-256 19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916
+
+This marker authorizes exactly one mechanical S69 A0 court.
+
+Frozen variable:
+- reference exact S59 representation
+- treatment x=context+16*(identity*context), normalized
+- representation params 0 vs 0
+- representation dimension 512 vs 512
+- exact S59 head 32832 vs 32832
+- treatment parameter advantage 0
+- no teacher/pseudo-target
+- no fresh S69 TRAIN/DEV
+- no model selection
+- no external Laya/Jev evaluation

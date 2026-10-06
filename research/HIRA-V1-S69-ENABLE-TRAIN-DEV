@@ -1,0 +1,70 @@
+HIRA V1 S69 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+228a590d7f017933b04ffc3c40c34aaa06ce53ea
+
+Exact-head generic CI:
+37418285308
+
+Required CI result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S68:
+- merged main 4cfdbc6fe100715bd950c9a0e2f504f71c486e9c
+- scientific run 37389861004
+- artifact 11381470793
+- artifact digest sha256:0156bb57125f6b8c4f380649505803ed76cf49b8edf1c5bd4774fd8790386eaa
+- verdict Case C
+
+S69 A0:
+- run 37417409926
+- artifact 11391117254
+- artifact digest sha256:40c2e13e6a40f9e0b2a51a4cdeb7a6819511da4dd29d9ce19f3d688ad0617383
+- outcome HIRA_V1_S69_A0_QUERY_GATED_INTERACTION_REP_READY
+
+This marker authorizes exactly one fresh S69 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- reference representation: exact S59 normalize([identity, joint_context])
+- treatment representation: normalize([identity, normalize(joint_context + 16*(identity ⊙ joint_context))])
+- representation trainable params: 0 vs 0
+- pairwise head: exact S59, 32,832 params vs 32,832 params
+- bit-identical A/u initialization
+- same gold-vs-distractor pairwise objective
+- same rows/order
+- same optimizer/LR/weight decay
+- shared correction trajectory
+- downstream S64 gate + S66 responsibility objective identical in both arms
+- exact S59 reference representation used as gate context in both arms
+- no teacher
+- no pseudo-target
+- no native/correction gradient from pairwise
+- no reliability-target reopening
+- no interaction-scale/formula/normalization sweep
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific weakness is valid and must not be retried.
+
+
+Mechanical pre-exposure retry authorization
+
+Previous workflow:
+- run 37419340008
+- failure occurred at Python import before TRAIN began
+- exception: ModuleNotFoundError for stale nmd.v1_fused_primary_relation_detach
+- no S69 epoch emitted
+- no DEV metrics emitted
+- no scientific receipt emitted
+- no artifact uploaded
+- therefore fresh scientific exposure count remained zero
+
+Mechanical fix:
+- canonical helper import changed to nmd.v1_evidence_fusion
+- guard added to prevent stale import regression
+- fixed exact head a2df81219b625b788db69a909e0093bfa0da022a
+- exact-head CI 37419628125 PASS on Python 3.10 and 3.12
+
+This marker update authorizes the first actual S69 scientific TRAIN/DEV exposure.
+All frozen scientific variables above remain unchanged.
