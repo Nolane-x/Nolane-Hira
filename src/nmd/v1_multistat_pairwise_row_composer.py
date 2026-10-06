@@ -52,7 +52,8 @@ def pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
     mask=~torch.eye(k,device=p.device,dtype=torch.bool).unsqueeze(0)
     off=p.masked_select(mask.expand(b,-1,-1)).reshape(b,k,k-1)
 
-    mean=off.mean(dim=-1)
+    diagonal=torch.diagonal(p,dim1=-2,dim2=-1)
+    mean=(p.sum(dim=-1)-diagonal)/float(k-1)
     maxv=off.max(dim=-1).values
     minv=off.min(dim=-1).values
     rms=off.square().mean(dim=-1).sqrt()
