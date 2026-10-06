@@ -49,9 +49,14 @@ def pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
         raise ValueError("S71 pair matrix non-finite")
 
     p=pair_matrix.detach()
-    mask=~torch.eye(k,device=p.device,dtype=torch.bool).unsqueeze(0)
+    out_dtype=p.dtype
+    # Mechanical numerical hardening: reductions are accumulated in float64 so
+    # option permutations do not change fp32 summation order enough to violate
+    # equivariance guards. Scientific formulas and returned dtype are unchanged.
+    work=p.to(torch.float64) if p.dtype!=torch.float64 else p
+    mask=~torch.eye(k,device=work.device,dtype=torch.bool).unsqueeze(0)
     expanded=mask.expand(b,-1,-1)
-    p_zero=p.masked_fill(~expanded,0.0)
+    p_zero=work.masked_fill(~expanded,0.0)
     off=p_zero.masked_select(expanded).reshape(b,k,k-1)
 
     mean=p_zero.sum(dim=-1)/float(k-1)
@@ -59,7 +64,7 @@ def pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
     minv=off.min(dim=-1).values
     rms=off.square().mean(dim=-1).sqrt()
 
-    stats=torch.stack([mean,maxv,minv,rms],dim=-1)
+    stats=torch.stack([mean,maxv,minv,rms],dim=-1).to(out_dtype)
     if stats.shape!=(b,k,S71_ROW_STAT_DIM):
         raise RuntimeError("S71 row statistic shape changed")
     if not bool(torch.isfinite(stats).all()):
@@ -69,8 +74,11 @@ def pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
 
 def normalized_pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
     stats=pairwise_row_statistics(pair_matrix)
-    centered=stats-stats.mean(dim=1,keepdim=True)
-    norm=centered/_centered_rms_options(stats)
+    out_dtype=stats.dtype
+    work=stats.to(torch.float64) if stats.dtype!=torch.float64 else stats
+    centered=work-work.mean(dim=1,keepdim=True)
+    rms=centered.square().mean(dim=1,keepdim=True).sqrt().clamp_min(S61_EPSILON)
+    norm=(centered/rms).to(out_dtype)
     if not bool(torch.isfinite(norm).all()):
         raise ValueError("S71 normalized row statistics non-finite")
     return norm.detach()
