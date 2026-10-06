@@ -31,3 +31,23 @@ Frozen variable:
 - same uniform row-mean residual direction
 - no representation/head/target change
 - no fresh S71 TRAIN/DEV exposure
+
+
+Mechanical A0 retry authorization
+
+Previous A0 workflow:
+- run 37444042830
+- A0 court step completed successfully and emitted PASS receipt
+- verifier failed only because row_permutation_max_abs_error was 6.020069e-6 > frozen 2e-6 guard
+- fresh S71 TRAIN/DEV remained unexposed
+- no scientific DEV was run
+- no model selection occurred
+
+Mechanical numerical hardening:
+- row mean/RMS/stat normalization reductions now accumulate in float64 internally
+- scientific formulas, returned dtype, architecture, parameter count, target, residual direction and thresholds are unchanged
+- fixed exact head 91a9bd3aef94a31d4ad901f8ed5aec8c64a57f39
+- exact-head CI 37457057697 PASS on Python 3.10 and 3.12
+
+This marker update authorizes one mechanical S71 A0 rerun only.
+Fresh S71 TRAIN/DEV remains unauthorized.
