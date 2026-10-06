@@ -1,0 +1,35 @@
+HIRA V1 S73 A0 authorization
+
+Authorized exact pre-A0 head:
+6a30d99d7d64cec97a409660c22fab25d528414a
+
+Exact-head generic CI:
+37473956613
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S72:
+- merged main 16eb7a583376cd824421d5e7ae9df948979b3953
+- scientific run 37470998139
+- artifact 11416962628
+- artifact digest sha256:9a653a681e0cb3182819634fe24eb345ce82a48f2d078d15e510d1d3ebfb0834
+- verdict Case B
+
+This marker authorizes exactly one mechanical S73 A0 court.
+
+Frozen mechanics:
+- exact S72 candidate in both arms
+- 8 detached safety features
+- 9-param linear logistic predictor in both arms
+- zero initialization / initial probability 0.5
+- fixed hard threshold 0.5
+- TRAIN-only CE+JS counterfactual safety target
+- reference always emits exact S72 candidate
+- treatment emits exactly candidate or fused, never interpolation
+- no upstream gradient
+- no target/feature/threshold/residual/representation/head/composer change
+- no fresh S73 TRAIN/DEV exposure
+
+Scientific TRAIN/DEV remains unauthorized.
