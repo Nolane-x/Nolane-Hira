@@ -1,0 +1,38 @@
+HIRA V1 S74 A0 authorization
+
+Authorized exact pre-A0 head:
+2404df475922ffea159498465923e5942a2ca7f4
+
+Exact-head generic CI:
+37482982016
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S73:
+- merged main 45ff1bc301972fc8aa04c1456200283f65616937
+- scientific run 37480212536
+- artifact 11420533826
+- artifact digest sha256:0f08d05bea219333495529c6ae2c54d65fd9a276dd5f783adff0b0ac3925982f
+- verdict Case C
+
+This marker authorizes exactly one mechanical S74 A0 court.
+
+Frozen mechanics:
+- Direct Set Arbitration Core (DSAC)
+- per-option input dim 12
+- hidden width 16
+- exactly 257 trainable params per arm
+- bit-identical initialization
+- reference relational channels mechanically zeroed
+- treatment relational channels live
+- direct final logits; no fused-plus-residual path
+- fixed objective 0.5*(CE_c+CE_p)+0.10*JS
+- permutation equivariant
+- dynamic K/full-K/state-once
+- no gradient into native/correction/pairwise evidence sources
+- no teacher/pseudo-target/DEV target
+- no fresh S74 TRAIN/DEV exposure
+
+Scientific TRAIN/DEV remains unauthorized.

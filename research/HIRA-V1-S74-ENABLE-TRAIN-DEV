@@ -1,0 +1,48 @@
+HIRA V1 S74 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+424987037c14aa27cf36d4b7426bfb7d2ee2c779
+
+Exact-head generic CI:
+37486933815
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S73:
+- merged main 45ff1bc301972fc8aa04c1456200283f65616937
+- scientific run 37480212536
+- artifact 11420533826
+- artifact digest sha256:0f08d05bea219333495529c6ae2c54d65fd9a276dd5f783adff0b0ac3925982f
+- verdict Case C
+
+S74 A0:
+- run 37484291103
+- artifact 11422648744
+- artifact digest sha256:68620a7c563e5a22325b4415b53020720e37ba05e8f2eb675fef5d83d4089093
+- outcome HIRA_V1_S74_A0_DIRECT_SET_ARBITRATION_CORE_READY
+
+This marker authorizes exactly one fresh S74 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- exact DSAC architecture in both arms
+- 257 trainable params per arm
+- bit-identical initialization
+- same correction trajectory
+- same S59 pairwise trajectory
+- same TRAIN rows/order
+- same optimizer/LR/weight decay
+- same selector
+- same fused/native channels
+- reference relational channels exactly zero
+- treatment S69/S59 relational channels live
+- direct final logits
+- objective 0.5*(CE_c+CE_p)+0.10*JS
+- no teacher/pseudo-target/DEV target
+- no width/channel/loss/activation sweep
+- no fused-residual fallback
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific weakness is valid and must not be retried.
