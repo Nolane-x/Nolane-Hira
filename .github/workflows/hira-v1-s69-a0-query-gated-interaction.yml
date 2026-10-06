@@ -1,0 +1,185 @@
+name: hira-v1-s69-a0-query-gated-interaction
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s69-query-gated-interaction-rep
+    paths:
+      - "research/HIRA-V1-S69-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s68-context-modulated-pairwise
+          path: inputs/S68
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37389861004
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S69 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S69 contracts
+        run: |
+          python -m py_compile src/nmd/v1_query_gated_identity_interaction.py scripts/hira_v1_s69_a0_query_gated_interaction.py
+          pytest -q tests/test_v1_query_gated_identity_interaction.py tests/test_v1_s69_a0_harness.py tests/test_v1_s69_a0_workflow.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_joint_state_query_option_interaction.py tests/test_v1_shared_native_private_readouts.py tests/test_v1_private_correction_fork.py
+
+      - name: Verify frozen S68 parent evidence
+        run: |
+          (cd inputs/S68 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11381470793"
+          echo "Pinned GitHub artifact digest: sha256:0156bb57125f6b8c4f380649505803ed76cf49b8edf1c5bd4774fd8790386eaa"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S68/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S68_CONTEXT_MODULATED_PAIRWISE_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S68_FRESH_CONTEXT_MODULATED_PAIRWISE"
+          assert r["seed"]==89001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one S69 mechanical A0 court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s69_a0_query_gated_interaction.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --out artifacts/s69-a0
+
+      - name: Verify S69 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s69-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s69-a0-query-gated-interaction-rep-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S69_A0_QUERY_GATED_INTERACTION_REP_READY"
+          assert r["scientific_authority"]=="S69_A0_QUERY_GATED_INTERACTION_REP_ONLY"
+          assert r["seed"]==90001
+
+          parent=r["parent_s68"]
+          assert parent["merged_main"]=="4cfdbc6fe100715bd950c9a0e2f504f71c486e9c"
+          assert parent["scientific_run"]==37389861004
+          assert parent["artifact_id"]==11381470793
+          assert parent["artifact_digest"]=="sha256:0156bb57125f6b8c4f380649505803ed76cf49b8edf1c5bd4774fd8790386eaa"
+          assert parent["verdict"]=="CASE_C"
+
+          assert r["reference_representation_parameter_count"]==0
+          assert r["treatment_representation_parameter_count"]==0
+          assert r["representation_dimension"]==512
+          assert r["interaction_scale"]==16.0
+          assert r["reference_pairwise_parameter_count"]==32832
+          assert r["treatment_pairwise_parameter_count"]==32832
+          assert r["added_treatment_parameter_count"]==0
+          assert r["pairwise_trainable_tensor_names"]==["A","u"]
+          assert r["head_parameter_initialization_bit_identical"] is True
+
+          assert r["reference_vs_s59_max_abs_error"]==0.0
+          assert r["treatment_reference_max_abs_difference"]>1e-7
+          assert r["real_cache_treatment_reference_max_abs_difference"]>1e-7
+          assert r["zero_identity_neutralization_max_abs_error"]<=1e-7
+          assert r["reference_option_permutation_max_abs_error"]<=1e-7
+          assert r["treatment_option_permutation_max_abs_error"]<=1e-7
+          assert r["pairwise_permutation_max_abs_error"]<=2e-6
+          assert r["antisymmetry_max_abs_error"]==0.0
+          assert r["diagonal_max_abs_error"]==0.0
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+
+          assert r["reference_gradient_A_l1"]>0.0
+          assert r["reference_gradient_u_l1"]>0.0
+          assert r["treatment_gradient_A_l1"]>0.0
+          assert r["treatment_gradient_u_l1"]>0.0
+          assert r["reference_real_cache_gradient_A_l1"]>0.0
+          assert r["reference_real_cache_gradient_u_l1"]>0.0
+          assert r["treatment_real_cache_gradient_A_l1"]>0.0
+          assert r["treatment_real_cache_gradient_u_l1"]>0.0
+          assert r["representation_received_pairwise_gradient"] is False
+          assert r["cache_requires_grad_tensor_count"]==0
+          assert r["native_trainable_parameter_count"]==0
+          assert r["teacher_dependency"] is False
+          assert r["pseudo_target_dependency"] is False
+          assert r["one_encoder_state_once"] is True
+          assert r["matched_head_checkpoint_replay_max_abs_error"]==0.0
+          assert r["used_for_model_selection"] is False
+          assert r["fresh_train_dev_exposed"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S69 A0 integrity
+        run: |
+          (cd artifacts/s69-a0 && sha256sum result.json matched-pairwise-heads.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s69-a0-query-gated-interaction
+          path: artifacts/s69-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
