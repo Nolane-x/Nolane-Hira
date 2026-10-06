@@ -1,0 +1,33 @@
+HIRA V1 S71 A0 authorization
+
+Authorized exact pre-A0 head:
+c36b9974aad79e800c210e86ac8f7b83d842ce0f
+
+Exact-head generic CI:
+37443518647
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S70:
+- merged main 751161746887b795149fcd924735ee2d043b43b3
+- scientific run 37423476142
+- artifact 11394610000
+- artifact digest sha256:8af711f789efb9717eaed0eff882fade7bab37b546f86a35502db82242ad221f
+- verdict Case C
+
+This marker authorizes exactly one mechanical S71 A0 court.
+
+Frozen variable:
+- reference composer 80 params
+- treatment composer 80 params
+- bit-identical initialization
+- reference row channels normalized mean + zero + zero + zero
+- treatment row channels normalized mean/max/min/RMS
+- exact S64 fixed context projection
+- exact S66 view-level target
+- same bounded scalar alpha residual
+- same uniform row-mean residual direction
+- no representation/head/target change
+- no fresh S71 TRAIN/DEV exposure
