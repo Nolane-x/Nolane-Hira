@@ -1,0 +1,88 @@
+name: hira-v1-s74-a0-direct-set-arbitration-core
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s74-direct-set-arbitration-core
+    paths:
+      - "research/HIRA-V1-S74-ENABLE-A0"
+
+permissions:
+  contents: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S74 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile and run S74 contracts
+        run: |
+          python -m py_compile src/nmd/v1_direct_set_arbitration_core.py scripts/hira_v1_s74_a0_direct_set_arbitration_core.py
+          pytest -q tests/test_v1_direct_set_arbitration_core.py tests/test_v1_s74_a0_harness.py
+
+      - name: Verify frozen S73 parent evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S73-MATCHED-RECEIPT.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S73_COUNTERFACTUAL_SAFETY_VETO_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S73_FRESH_COUNTERFACTUAL_SAFETY_VETO"
+          assert r["seed"]==94001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Run one S74 mechanical A0 court
+        run: |
+          python scripts/hira_v1_s74_a0_direct_set_arbitration_core.py             --parent-result research/HIRA-V1-S73-MATCHED-RECEIPT.json             --out artifacts/s74-a0
+
+      - name: Verify S74 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/s74-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S74_A0_DIRECT_SET_ARBITRATION_CORE_READY"
+          assert r["scientific_authority"]=="S74_A0_DIRECT_SET_ARBITRATION_CORE_ONLY"
+          assert r["seed"]==95001
+          assert r["reference_parameter_count"]==257
+          assert r["treatment_parameter_count"]==257
+          assert r["added_treatment_parameter_count"]==0
+          assert r["parameter_initialization_bit_identical"] is True
+          assert r["reference_relational_channels_max_abs"]==0.0
+          assert r["treatment_relational_channels_max_abs"]>1e-5
+          assert r["permutation_max_abs_error"]<=2e-6
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["all_core_gradients_live"] is True
+          assert r["gradient_to_upstream_zero"] is True
+          assert r["checkpoint_replay_max_abs_error"]==0.0
+          assert r["fresh_train_dev_exposed"] is False
+          PY
+
+      - name: Freeze S74 A0 integrity
+        run: |
+          (cd artifacts/s74-a0 && sha256sum result.json matched-dsac-cores.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s74-a0-direct-set-arbitration-core
+          path: artifacts/s74-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
