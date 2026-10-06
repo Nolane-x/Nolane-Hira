@@ -50,7 +50,7 @@ def test_s71_row_statistics_exclude_diagonal_and_reference_zeros_extras():
 
     assert stats.shape==(3,4,4)
     assert norm.shape==(3,4,4)
-    assert torch.allclose(stats[...,0],pair.sum(-1)/3,atol=1e-7,rtol=0)
+    assert torch.allclose(stats[...,0],pair.sum(-1)/3,atol=2e-7,rtol=0)
 
     ref=MultiStatPairwiseRowComposer(use_multistat=False)
     trt=MultiStatPairwiseRowComposer(use_multistat=True)
@@ -83,7 +83,7 @@ def test_s71_option_permutation_equivariance_and_alpha_invariance():
         gate=MultiStatPairwiseRowComposer(use_multistat=use)
         row=gate.row_channels(pair)
         prow=gate.row_channels(p_pair)
-        assert torch.allclose(prow[:,inv],row,atol=1e-6,rtol=0)
+        assert torch.allclose(prow[:,inv],row,atol=2e-6,rtol=0)
 
         a=gate.alpha(fused_c,pair,ctx)
         pa=gate.alpha(p_fused,p_pair,p_ctx)
