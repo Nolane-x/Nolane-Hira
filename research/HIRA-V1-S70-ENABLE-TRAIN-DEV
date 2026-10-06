@@ -1,0 +1,50 @@
+HIRA V1 S70 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+2c6944e08c09997b0a13dc8071fb6cc562977630
+
+Exact-head generic CI:
+37422937723
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S69:
+- merged main 1ada877bcd9381486395599519363e87ef3dd831
+- scientific run 37420104460
+- artifact 11392672918
+- artifact digest sha256:c24c00e9b79d23b3e7e3fe4d17013270e0410d822b85c62230bb85e972a2f94d
+- verdict Case B
+
+S70 A0:
+- run 37422000871
+- artifact 11393387610
+- artifact digest sha256:6e021d9fe8807eb6ff097bfe16b9bb464a8ee87e949d064883ec43d6cfe5a9ff
+- outcome HIRA_V1_S70_A0_FUSED_ANCHORED_PAIRWISE_AGGREGATION_READY
+
+This marker authorizes exactly one fresh S70 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- both arms use exact S69 query-gated identity interaction representation
+- representation params 0
+- one shared exact S59 pairwise head, 32,832 params
+- one shared pairwise training trajectory
+- one shared correction trajectory
+- one shared upstream selection epoch from fused-shadow metrics
+- reference aggregation: uniform row mean
+- treatment aggregation: fused-softmax opponent weighted
+- softmax temperature 1.0
+- aggregation params 0 vs 0
+- exact S64 contextual gate 60 params per arm
+- exact S66 per-view responsibility objective
+- exact S59 reference representation as gate context in both arms
+- no teacher
+- no pseudo-target
+- no reliability-target reopening
+- no representation/head change
+- no temperature/top-k/weighting sweep
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific weakness is valid and must not be retried.
