@@ -1,0 +1,233 @@
+name: hira-v1-s72-opponent-profile-vector-residual-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s72-opponent-profile-vector-residual
+    paths:
+      - "research/HIRA-V1-S72-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s72-a0-opponent-profile-vector-residual
+          path: inputs/S72A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37463175304
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S72 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S72 contracts
+        run: |
+          python -m py_compile src/nmd/v1_opponent_profile_vector_residual.py src/nmd/v1_s72_authority.py scripts/hira_v1_s72_train_dev.py
+          pytest -q tests/test_v1_opponent_profile_vector_residual.py tests/test_v1_s72_a0_harness.py tests/test_v1_s72_a0_workflow.py tests/test_v1_s72_authority.py tests/test_v1_s72_matched_harness.py tests/test_v1_s72_train_dev_workflow.py tests/test_v1_multistat_pairwise_row_composer.py tests/test_v1_per_view_responsibility.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_query_gated_identity_interaction.py
+
+      - name: Verify frozen S71 parent evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S71-MATCHED-RECEIPT.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S71_MULTISTAT_ROW_COMPOSER_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S71_FRESH_MULTISTAT_ROW_COMPOSER"
+          assert r["seed"]==92001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Verify canonical S72 A0 authority
+        run: |
+          (cd inputs/S72A0 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11413616350"
+          echo "Pinned GitHub artifact digest: sha256:a4d8052a0e76160310d4a99e86ef71f07810a96e77681cb34d747b85c98ef52a"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S72A0/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S72_A0_OPPONENT_PROFILE_VECTOR_RESIDUAL_READY"
+          assert r["scientific_authority"]=="S72_A0_OPPONENT_PROFILE_VECTOR_RESIDUAL_ONLY"
+          assert r["seed"]==93001
+          assert r["reference_composer_parameter_count"]==80
+          assert r["treatment_composer_parameter_count"]==80
+          assert r["added_treatment_parameter_count"]==0
+          assert r["composer_parameter_initialization_bit_identical"] is True
+          assert r["alpha_match_max_abs_error"]==0.0
+          assert r["neutral_direction_collapse_max_abs_error"]<=1e-6
+          assert r["nontrivial_direction_max_abs_difference"]>1e-4
+          assert r["fresh_train_dev_exposed"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          receipt=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert receipt["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert receipt["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert receipt["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==receipt["checkpoint_file_sha256"]
+          assert receipt["dev_encoded"] is False
+          assert receipt["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S72 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s72_train_dev.py \
+            --bundle inputs/M4/hira-v0-m4-runtime \
+            --authority-checkpoint inputs/S51AUTH/native-authority.pt \
+            --authority-receipt inputs/S51AUTH/authority-receipt.json \
+            --a0-result inputs/S72A0/result.json \
+            --out artifacts/s72-train-dev
+
+      - name: Verify S72 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s72-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s72-opponent-profile-vector-residual-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S72_OPPONENT_PROFILE_VECTOR_RESIDUAL_DEV_COMPLETE",
+              "HIRA_V1_S72_OPPONENT_PROFILE_VECTOR_RESIDUAL_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S72_FRESH_OPPONENT_PROFILE_VECTOR_RESIDUAL"
+          assert r["seed"]==93001
+
+          parent=r["parent_s71"]
+          assert parent["merged_main"]=="ef2e8a4b71ba9a46dd9caea07698df742abb6461"
+          assert parent["scientific_run"]==37459447097
+          assert parent["artifact_id"]==11412505173
+          assert parent["artifact_digest"]=="sha256:aa116237d5508131db18f88a23893d9107d05ae67f46ccffe638520fe8098a50"
+          assert parent["verdict"]=="CASE_C"
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37463175304
+          assert a0["artifact_id"]==11413616350
+          assert a0["artifact_digest"]=="sha256:a4d8052a0e76160310d4a99e86ef71f07810a96e77681cb34d747b85c98ef52a"
+
+          cv=r["controlled_variable"]
+          assert cv["reference_row_channels"]=="normalized_mean_plus_three_zero_channels"
+          assert cv["treatment_row_channels"]=="normalized_mean_plus_three_zero_channels"
+          assert cv["composer_trainable_parameters_per_arm"]==80
+          assert cv["composer_parameter_initialization_bit_identical"] is True
+          assert cv["reference_residual_direction"]=="uniform_row_mean"
+          assert cv["treatment_residual_direction"]=="fused_opponent_profile_confidence"
+          assert cv["shared_pairwise_head"] is True
+          assert cv["shared_pairwise_training_trajectory"] is True
+          assert cv["shared_correction_trajectory"] is True
+          assert cv["shared_selection_epoch"] is True
+          assert cv["composer_objective_both_arms"]=="per_view_counterfactual_responsibility_bce"
+
+          assert len(r["training_trajectory"])==24
+          for e,row in enumerate(r["training_trajectory"],start=1):
+              assert row["epoch"]==e
+              assert row["reference_composer_state_sha256"]==row["treatment_composer_state_sha256"]
+
+          ref=r["reference_branch"]
+          trt=r["treatment_branch"]
+          assert ref["selected_dev_epoch"]==trt["selected_dev_epoch"]==cv["shared_selected_dev_epoch"]
+          assert ref["correction_state_sha256"]==trt["correction_state_sha256"]
+          assert ref["pairwise_head_state_sha256"]==trt["pairwise_head_state_sha256"]
+          assert ref["composer_state_sha256"]==trt["composer_state_sha256"]
+          assert ref["selected_dev"]["pairwise_gold_pair_accuracy"]==trt["selected_dev"]["pairwise_gold_pair_accuracy"]
+          assert ref["selected_dev"]["pairwise_mean_gold_pair_margin"]==trt["selected_dev"]["pairwise_mean_gold_pair_margin"]
+          for key in ("composer_mean_alpha","composer_min_alpha","composer_max_alpha","composer_std_alpha"):
+              assert ref["selected_dev"][key]==trt["selected_dev"][key]
+          assert ref["selected_pairwise_aggregate_dev"]==trt["selected_pairwise_aggregate_dev"]
+          assert ref["selected_dev"]["direction_max_abs_difference"]>1e-4
+          assert trt["selected_dev"]["direction_max_abs_difference"]>1e-4
+
+          for name,expected_direction in (
+              ("reference_branch","uniform_row_mean"),
+              ("treatment_branch","fused_opponent_profile_confidence"),
+          ):
+              b=r[name]
+              m=b["selected_dev"]
+              assert m["state_view_encodes"]==0
+              assert m["full_k"] is True
+              assert m["pairwise_antisymmetry_max_abs_error"]==0.0
+              assert m["fused_max_probability_mass_error"]<=1e-6
+              assert 0.0<=m["composer_min_alpha"]<=m["composer_mean_alpha"]<=m["composer_max_alpha"]<=0.35
+              ckpt=torch.load(root/b["checkpoint_file"],map_location="cpu",weights_only=False)
+              assert ckpt["branch"]==name.removesuffix("_branch")
+              assert ckpt["residual_direction"]==expected_direction
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["opponent_profile_sweep_performed"] is False
+          assert r["composer_width_changed"] is False
+          assert r["direction_normalization_changed"] is False
+          assert r["reliability_target_reopened"] is False
+          assert r["representation_or_pairwise_head_changed"] is False
+          assert r["residual_direction_changed"] is True
+          assert r["optimizer_lr_weight_decay_changed"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["selector_changed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S72 integrity
+        run: |
+          (cd artifacts/s72-train-dev && sha256sum result.json reference-candidate.pt treatment-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s72-opponent-profile-vector-residual
+          path: artifacts/s72-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
