@@ -46,3 +46,25 @@ Frozen controlled variable:
 - no external Laya/Jev evaluation
 
 Scientific weakness is valid and must not be retried.
+
+
+Mechanical pre-exposure retry authorization
+
+Previous workflow:
+- run 37419340008
+- failure occurred at Python import before TRAIN began
+- exception: ModuleNotFoundError for stale nmd.v1_fused_primary_relation_detach
+- no S69 epoch emitted
+- no DEV metrics emitted
+- no scientific receipt emitted
+- no artifact uploaded
+- therefore fresh scientific exposure count remained zero
+
+Mechanical fix:
+- canonical helper import changed to nmd.v1_evidence_fusion
+- guard added to prevent stale import regression
+- fixed exact head a2df81219b625b788db69a909e0093bfa0da022a
+- exact-head CI 37419628125 PASS on Python 3.10 and 3.12
+
+This marker update authorizes the first actual S69 scientific TRAIN/DEV exposure.
+All frozen scientific variables above remain unchanged.
