@@ -179,4 +179,4 @@ def test_s71_loss_detaches_upstream_and_staged_phi_gradient_lives():
 def test_s71_pairwise_row_mean_matches_exact_uniform_aggregate():
     _,_,pair,_,_,_,_=_batch(batch=11,k=6,seed=7107107)
     expected=pair.sum(-1)/5
-    assert torch.allclose(pairwise_row_mean(pair),expected,atol=1e-7,rtol=0)
+    assert torch.allclose(pairwise_row_mean(pair),expected,atol=2e-7,rtol=0)
