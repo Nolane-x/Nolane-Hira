@@ -117,7 +117,6 @@ def test_s69_pairwise_contracts_and_permutation_equivariance():
 def test_s69_selected_choice_permutation_equivariance_without_ties():
     identity,context=_sources(batch=8,k=7,seed=6906905)
     perm=torch.tensor([4,1,6,0,2,5,3])
-    inv=torch.argsort(perm)
 
     for builder in (
         build_reference_pairwise_representation,
@@ -130,7 +129,7 @@ def test_s69_selected_choice_permutation_equivariance_without_ties():
         # For random continuous probes top-score ties should not occur.
         assert bool((diag["top_score_tie_count"]==1).all())
         assert bool((diag_p["top_score_tie_count"]==1).all())
-        assert torch.equal(inv[winner_p],winner)
+        assert torch.equal(perm[winner_p],winner)
 
 
 def test_s69_pairwise_gradients_live_and_sources_detached():
