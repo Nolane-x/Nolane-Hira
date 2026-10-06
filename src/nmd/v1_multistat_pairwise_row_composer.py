@@ -50,10 +50,11 @@ def pairwise_row_statistics(pair_matrix:Tensor)->Tensor:
 
     p=pair_matrix.detach()
     mask=~torch.eye(k,device=p.device,dtype=torch.bool).unsqueeze(0)
-    off=p.masked_select(mask.expand(b,-1,-1)).reshape(b,k,k-1)
+    expanded=mask.expand(b,-1,-1)
+    p_zero=p.masked_fill(~expanded,0.0)
+    off=p_zero.masked_select(expanded).reshape(b,k,k-1)
 
-    diagonal=torch.diagonal(p,dim1=-2,dim2=-1)
-    mean=(p.sum(dim=-1)-diagonal)/float(k-1)
+    mean=p_zero.sum(dim=-1)/float(k-1)
     maxv=off.max(dim=-1).values
     minv=off.min(dim=-1).values
     rms=off.square().mean(dim=-1).sqrt()
