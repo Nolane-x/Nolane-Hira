@@ -30,7 +30,7 @@ jobs:
       - name: Compile and run S74 contracts
         run: |
           python -m py_compile src/nmd/v1_direct_set_arbitration_core.py scripts/hira_v1_s74_a0_direct_set_arbitration_core.py
-          pytest -q tests/test_v1_direct_set_arbitration_core.py tests/test_v1_s74_a0_harness.py
+          pytest -q tests/test_v1_direct_set_arbitration_core.py tests/test_v1_s74_a0_harness.py tests/test_v1_s74_a0_workflow.py
 
       - name: Verify frozen S73 parent evidence
         run: |
