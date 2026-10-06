@@ -1,0 +1,142 @@
+name: hira-v1-s70-a0-fused-anchored-pairwise
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s70-fused-anchored-pairwise-aggregation
+    paths:
+      - "research/HIRA-V1-S70-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s69-query-gated-interaction
+          path: inputs/S69
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37420104460
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S70 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S70 contracts
+        run: |
+          python -m py_compile src/nmd/v1_fused_anchored_pairwise_aggregation.py scripts/hira_v1_s70_a0_fused_anchored_pairwise.py
+          pytest -q tests/test_v1_fused_anchored_pairwise_aggregation.py tests/test_v1_s70_a0_harness.py tests/test_v1_s70_a0_workflow.py tests/test_v1_contextual_reliability_gate.py tests/test_v1_per_view_responsibility.py
+
+      - name: Verify frozen S69 parent evidence
+        run: |
+          (cd inputs/S69 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11392672918"
+          echo "Pinned GitHub artifact digest: sha256:c24c00e9b79d23b3e7e3fe4d17013270e0410d822b85c62230bb85e972a2f94d"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S69/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S69_QUERY_GATED_INTERACTION_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S69_FRESH_QUERY_GATED_INTERACTION"
+          assert r["seed"]==90001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Run one S70 mechanical A0 court
+        run: |
+          python scripts/hira_v1_s70_a0_fused_anchored_pairwise.py \
+            --parent-result inputs/S69/result.json \
+            --out artifacts/s70-a0
+
+      - name: Verify S70 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s70-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s70-a0-fused-anchored-pairwise-aggregation-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S70_A0_FUSED_ANCHORED_PAIRWISE_AGGREGATION_READY"
+          assert r["scientific_authority"]=="S70_A0_FUSED_ANCHORED_PAIRWISE_AGGREGATION_ONLY"
+          assert r["seed"]==91001
+
+          parent=r["parent_s69"]
+          assert parent["merged_main"]=="1ada877bcd9381486395599519363e87ef3dd831"
+          assert parent["scientific_run"]==37420104460
+          assert parent["artifact_id"]==11392672918
+          assert parent["artifact_digest"]=="sha256:c24c00e9b79d23b3e7e3fe4d17013270e0410d822b85c62230bb85e972a2f94d"
+          assert parent["verdict"]=="CASE_B"
+
+          assert r["aggregation_parameter_count"]==0
+          assert r["softmax_temperature"]==1.0
+          assert r["reference_gate_parameter_count"]==60
+          assert r["treatment_gate_parameter_count"]==60
+          assert r["added_treatment_parameter_count"]==0
+          assert r["gate_parameter_initialization_bit_identical"] is True
+
+          assert r["reference_row_mean_max_abs_error"]==0.0
+          assert r["uniform_prior_collapse_max_abs_error"]<=2e-7
+          assert r["reference_permutation_max_abs_error"]<=2e-7
+          assert r["treatment_permutation_max_abs_error"]<=2e-6
+          assert r["opponent_weight_sum_max_abs_error"]<=1e-6
+          assert r["opponent_weight_diagonal_max_abs"]==0.0
+          assert r["opponent_weight_min"]>=0.0
+          assert r["diagonal_reference_max_abs_error"]==0.0
+          assert r["diagonal_treatment_max_abs_error"]==0.0
+
+          assert r["initial_alpha_max_abs_error"]<=1e-7
+          assert r["identity_override_max_abs_error"]==0.0
+          assert r["residual_bound_violation_max"]<=1e-7
+          assert r["max_probability_mass_error"]<=1e-6
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+
+          for arm in ("reference","treatment"):
+              assert r[f"{arm}_initial_W_phi_gradient_l1"]==0.0
+              assert r[f"{arm}_initial_b_phi_gradient_l1"]==0.0
+              assert r[f"{arm}_initial_w_out_gradient_l1"]>0.0
+              assert r[f"{arm}_initial_b_out_gradient_l1"]>0.0
+              assert r[f"{arm}_post_output_warm_W_phi_gradient_l1"]>0.0
+              assert r[f"{arm}_post_output_warm_b_phi_gradient_l1"]>0.0
+              assert r[f"{arm}_gradient_to_upstream_zero"] is True
+
+          assert r["one_encoder_state_once"] is True
+          assert r["matched_gate_checkpoint_replay_max_abs_error"]==0.0
+          assert r["teacher_dependency"] is False
+          assert r["pseudo_target_dependency"] is False
+          assert r["used_for_model_selection"] is False
+          assert r["fresh_train_dev_exposed"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S70 A0 integrity
+        run: |
+          (cd artifacts/s70-a0 && sha256sum result.json matched-gates.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s70-a0-fused-anchored-pairwise
+          path: artifacts/s70-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
