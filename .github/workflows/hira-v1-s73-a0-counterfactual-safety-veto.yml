@@ -1,0 +1,125 @@
+name: hira-v1-s73-a0-counterfactual-safety-veto
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s73-counterfactual-safety-veto
+    paths:
+      - "research/HIRA-V1-S73-ENABLE-A0"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  a0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s72-opponent-profile-vector-residual
+          path: inputs/S72
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37470998139
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S73 A0 stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S73 contracts
+        run: |
+          python -m py_compile src/nmd/v1_counterfactual_safety_veto.py scripts/hira_v1_s73_a0_counterfactual_safety_veto.py
+          pytest -q tests/test_v1_counterfactual_safety_veto.py tests/test_v1_s73_a0_harness.py tests/test_v1_opponent_profile_vector_residual.py tests/test_v1_multistat_pairwise_row_composer.py
+
+      - name: Verify frozen S72 parent evidence
+        run: |
+          (cd inputs/S72 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11416962628"
+          echo "Pinned GitHub artifact digest: sha256:9a653a681e0cb3182819634fe24eb345ce82a48f2d078d15e510d1d3ebfb0834"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S72/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S72_OPPONENT_PROFILE_VECTOR_RESIDUAL_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S72_FRESH_OPPONENT_PROFILE_VECTOR_RESIDUAL"
+          assert r["seed"]==93001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Run one S73 mechanical A0 court
+        run: |
+          python scripts/hira_v1_s73_a0_counterfactual_safety_veto.py \
+            --parent-result inputs/S72/result.json \
+            --out artifacts/s73-a0
+
+      - name: Verify S73 A0 receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root=Path("artifacts/s73-a0")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s73-a0-counterfactual-safety-veto-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S73_A0_COUNTERFACTUAL_SAFETY_VETO_READY"
+          assert r["scientific_authority"]=="S73_A0_COUNTERFACTUAL_SAFETY_VETO_ONLY"
+          assert r["seed"]==94001
+
+          parent=r["parent_s72"]
+          assert parent["merged_main"]=="16eb7a583376cd824421d5e7ae9df948979b3953"
+          assert parent["scientific_run"]==37470998139
+          assert parent["artifact_id"]==11416962628
+          assert parent["artifact_digest"]=="sha256:9a653a681e0cb3182819634fe24eb345ce82a48f2d078d15e510d1d3ebfb0834"
+          assert parent["verdict"]=="CASE_B"
+
+          assert r["reference_predictor_parameter_count"]==9
+          assert r["treatment_predictor_parameter_count"]==9
+          assert r["added_treatment_parameter_count"]==0
+          assert r["predictor_initialization_bit_identical"] is True
+          assert r["hard_accept_threshold"]==0.5
+          assert r["initial_probability_max_abs_error"]==0.0
+          assert r["feature_permutation_max_abs_error"]<=2e-6
+          assert r["all_accept_candidate_max_abs_error"]==0.0
+          assert r["all_veto_fused_max_abs_error"]==0.0
+          assert r["endpoint_only_max_abs_error"]==0.0
+          assert r["features_detached"] is True
+          assert r["targets_detached"] is True
+          assert r["predictor_weight_gradient_l1"]>0.0
+          assert r["predictor_gradient_to_upstream_zero"] is True
+          assert r["arbitrary_k3_pass"] is True
+          assert r["arbitrary_k7_pass"] is True
+          assert r["arbitrary_k255_pass"] is True
+          assert r["checkpoint_replay_max_abs_error"]==0.0
+          assert r["teacher_dependency"] is False
+          assert r["pseudo_target_dependency"] is False
+          assert r["dev_target_dependency"] is False
+          assert r["candidate_residual_changed"] is False
+          assert r["fresh_train_dev_exposed"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S73 A0 integrity
+        run: |
+          (cd artifacts/s73-a0 && sha256sum result.json matched-veto-predictors.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s73-a0-counterfactual-safety-veto
+          path: artifacts/s73-a0
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
