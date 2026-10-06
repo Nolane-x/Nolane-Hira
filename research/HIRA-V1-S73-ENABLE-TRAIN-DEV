@@ -1,0 +1,48 @@
+HIRA V1 S73 one-shot TRAIN/DEV authorization
+
+Authorized final pre-DEV staging head:
+1ca19f7bf2adb2617d59db5c57d1cce21188454c
+
+Exact-head generic CI:
+37479405586
+
+Required result:
+- Python 3.10: PASS
+- Python 3.12: PASS
+
+Parent S72:
+- merged main 16eb7a583376cd824421d5e7ae9df948979b3953
+- scientific run 37470998139
+- artifact 11416962628
+- artifact digest sha256:9a653a681e0cb3182819634fe24eb345ce82a48f2d078d15e510d1d3ebfb0834
+- verdict Case B
+
+S73 A0:
+- run 37476327384
+- artifact 11418978543
+- artifact digest sha256:bab338c55ae37bd322fcc20d838ed3b4250da959e2d7135525ec611da8f9c083
+- outcome HIRA_V1_S73_A0_COUNTERFACTUAL_SAFETY_VETO_READY
+
+This marker authorizes exactly one fresh S73 TRAIN/DEV scientific court.
+
+Frozen controlled variable:
+- exact S69 representation
+- exact S59 pairwise head, 32,832 params
+- one shared pairwise training trajectory
+- one shared correction trajectory
+- exact S71 mean-only composer, 80 params
+- exact S72 opponent-profile vector residual
+- one shared S73 linear safety predictor, 9 params
+- reference always emits exact S72 candidate
+- treatment emits exact candidate or exact fused baseline only
+- hard threshold 0.5
+- TRAIN-only CE + cross-view JS non-worse safety target
+- no teacher
+- no pseudo-target
+- no DEV target
+- no threshold/feature/class-weight/target sweep
+- no residual/representation/head/composer change
+- one DEV only
+- no external Laya/Jev evaluation
+
+Scientific weakness is valid and must not be retried.
