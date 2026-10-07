@@ -35,3 +35,22 @@ Frozen mechanics:
 - no fresh S75 TRAIN/DEV exposure
 
 Scientific TRAIN/DEV remains unauthorized.
+
+
+Mechanical A0 retry authorization
+
+Previous A0 workflow:
+- run 37575910461
+- failed inside neutral synthetic fixture construction
+- exception occurred before representation mechanics were evaluated
+- no fresh S75 TRAIN/DEV was exposed
+- no model selection occurred
+
+Mechanical fix:
+- corrected neutral option tensor expansion from invalid 6D source to the intended 5D [B,K,V,T,D] fixture
+- TBER formula, constants, head capacity, thresholds and scientific hypothesis are unchanged
+- fixed exact head 96cad641912f9008b0a03e36dec5a6c3519422d1
+- exact-head CI 37576132761 PASS on Python 3.10 and 3.12
+
+This marker update authorizes one mechanical S75 A0 retry only.
+Fresh S75 TRAIN/DEV remains unauthorized.
