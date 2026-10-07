@@ -34,7 +34,7 @@ def _fixture(*,k:int,seed:int,neutral:bool=False):
     if neutral:
         base=F.normalize(torch.randn(b,1,d,generator=g),dim=-1)
         state=base.expand(b,s,d).clone()
-        option=base[:,None,None,None,:].expand(b,k,v,t,d).clone()
+        option=base[:,None,None,:,:].expand(b,k,v,t,d).clone()
         query=base.expand(b,q,d).clone()
     else:
         state=torch.randn(b,s,d,generator=g)
