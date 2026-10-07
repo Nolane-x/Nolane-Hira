@@ -11,4 +11,5 @@ def test_s75_a0_harness_is_mechanical_only():
     assert "S59_PAIRWISE_PARAMETER_COUNT" in source
     assert '"fresh_train_dev_exposed":False' in source
     assert '"used_for_model_selection":False' in source
-    assert '"external_laya_jev_evaluation_opened"' not in source
+    assert 'parent.get("external_laya_jev_evaluation_opened") is not False' in source
+    assert '"production_ready_claimed":False' in source
