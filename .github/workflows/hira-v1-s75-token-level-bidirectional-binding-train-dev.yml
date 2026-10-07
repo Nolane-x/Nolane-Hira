@@ -1,0 +1,231 @@
+name: hira-v1-s75-token-level-bidirectional-binding-train-dev
+
+on:
+  push:
+    branches:
+      - feat/hira-v1-s75-token-level-bidirectional-binding
+    paths:
+      - "research/HIRA-V1-S75-ENABLE-TRAIN-DEV"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  court:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v0-mainline-m4-runtime-bundle
+          path: inputs/M4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 36357825580
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s51-native-authority
+          path: inputs/S51AUTH
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37192490832
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: hira-v1-s75-a0-token-level-bidirectional-binding
+          path: inputs/S75A0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: Nolane-x/Nolane-Hira
+          run-id: 37578213725
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install exact S75 court stack
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[hf,dev]" "transformers>=4.45,<6" "safetensors>=0.4" "huggingface_hub>=0.24"
+
+      - name: Compile and run S75 contracts
+        run: |
+          python -m py_compile src/nmd/v1_token_level_bidirectional_evidence_binding.py src/nmd/v1_s75_authority.py scripts/hira_v1_s75_train_dev.py
+          pytest -q tests/test_v1_token_level_bidirectional_evidence_binding.py tests/test_v1_s75_a0_harness.py tests/test_v1_s75_a0_workflow.py tests/test_v1_s75_authority.py tests/test_v1_s75_matched_harness.py tests/test_v1_s75_train_dev_workflow.py tests/test_v1_explicit_pairwise_decision_head.py tests/test_v1_query_gated_identity_interaction.py tests/test_v1_contextual_reliability_gate.py tests/test_v1_per_view_responsibility.py
+
+      - name: Verify frozen S74 parent evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("research/HIRA-V1-S74-MATCHED-RECEIPT.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S74_DIRECT_SET_ARBITRATION_CORE_DEV_COMPLETE"
+          assert r["scientific_authority"]=="V1_S74_FRESH_DIRECT_SET_ARBITRATION_CORE"
+          assert r["seed"]==95001
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          PY
+
+      - name: Verify canonical S75 A0 authority
+        run: |
+          (cd inputs/S75A0 && sha256sum -c INTEGRITY.sha256)
+          echo "Pinned GitHub artifact id: 11463278233"
+          echo "Pinned GitHub artifact digest: sha256:fae3cc55fdbd8ab841da16b0f6ae113dc17d0186f844cbda26fab6a6a70c424e"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("inputs/S75A0/result.json").read_text())
+          assert r["status"]=="PASS"
+          assert r["outcome"]=="HIRA_V1_S75_A0_TOKEN_LEVEL_BIDIRECTIONAL_BINDING_READY"
+          assert r["scientific_authority"]=="S75_A0_TOKEN_LEVEL_BIDIRECTIONAL_BINDING_ONLY"
+          assert r["seed"]==96001
+          assert r["reference_representation_dimension"]==512
+          assert r["treatment_representation_dimension"]==512
+          assert r["reference_representation_parameter_count"]==0
+          assert r["treatment_representation_parameter_count"]==0
+          assert r["reference_pairwise_parameter_count"]==32832
+          assert r["treatment_pairwise_parameter_count"]==32832
+          assert r["added_treatment_parameter_count"]==0
+          assert r["pairwise_initialization_bit_identical"] is True
+          assert r["neutral_collapse_max_abs_error"]<=2e-6
+          assert r["nontrivial_representation_max_abs_difference"]>1e-5
+          assert r["gradient_to_upstream_zero"] is True
+          assert r["fresh_train_dev_exposed"] is False
+          PY
+
+      - name: Verify sealed S51 native authority
+        run: |
+          (cd inputs/S51AUTH && sha256sum -c INTEGRITY.sha256)
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from nmd.v1_persisted_native_authority import file_sha256
+          r=json.loads(Path("inputs/S51AUTH/authority-receipt.json").read_text())
+          assert r["outcome"]=="HIRA_V1_S51_PERSISTED_NATIVE_AUTHORITY_READY"
+          assert r["runtime_state_sha256"]=="ef205661a9a8e8fb96518444be3baf8588968f685fb4622dc2aed423dd30a628"
+          assert r["checkpoint_file_sha256"]=="19104b46c88cb3dcc0e4f4fe3c5f61a98cb7bb646184075dee3762566e6d5916"
+          assert file_sha256(Path("inputs/S51AUTH/native-authority.pt"))==r["checkpoint_file_sha256"]
+          assert r["dev_encoded"] is False
+          assert r["dev_scored"] is False
+          PY
+
+      - name: Verify frozen M4 runtime integrity
+        run: |
+          (cd inputs/M4/hira-v0-m4-runtime && sha256sum -c INTEGRITY.sha256)
+
+      - name: Run one fresh S75 TRAIN DEV court
+        env:
+          HF_HUB_DISABLE_TELEMETRY: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          OMP_NUM_THREADS: "4"
+          MKL_NUM_THREADS: "4"
+        run: |
+          python scripts/hira_v1_s75_train_dev.py             --bundle inputs/M4/hira-v0-m4-runtime             --authority-checkpoint inputs/S51AUTH/native-authority.pt             --authority-receipt inputs/S51AUTH/authority-receipt.json             --a0-result inputs/S75A0/result.json             --out artifacts/s75-train-dev
+
+      - name: Verify S75 scientific receipt
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import torch
+
+          root=Path("artifacts/s75-train-dev")
+          r=json.loads((root/"result.json").read_text())
+          assert r["schema_version"]=="hira-v1-s75-token-level-bidirectional-binding-train-dev-v1"
+          assert r["status"]=="PASS"
+          assert r["outcome"] in {
+              "HIRA_V1_S75_TOKEN_LEVEL_BIDIRECTIONAL_BINDING_DEV_COMPLETE",
+              "HIRA_V1_S75_TOKEN_LEVEL_BIDIRECTIONAL_BINDING_DEV_READY",
+          }
+          assert r["scientific_authority"]=="V1_S75_FRESH_TOKEN_LEVEL_BIDIRECTIONAL_BINDING"
+          assert r["seed"]==96001
+
+          parent=r["parent_s74"]
+          assert parent["merged_main"]=="0edfb0a64823ccb7ef2cf5c4e77b9fb9696361be"
+          assert parent["scientific_run"]==37487578737
+          assert parent["artifact_id"]==11423428905
+          assert parent["artifact_digest"]=="sha256:cb2d8e2718d3aa426bf3ee44795d36c25e5960ca727fb8cc6280d12cfbefdb21"
+          assert parent["verdict"]=="CASE_D"
+
+          a0=r["a0_authority"]
+          assert a0["run"]==37578213725
+          assert a0["artifact_id"]==11463278233
+          assert a0["artifact_digest"]=="sha256:fae3cc55fdbd8ab841da16b0f6ae113dc17d0186f844cbda26fab6a6a70c424e"
+
+          cv=r["controlled_variable"]
+          assert cv["reference_representation_family"]=="s69_query_gated_identity_interaction"
+          assert cv["treatment_representation_family"]=="s75_token_level_bidirectional_binding"
+          assert cv["reference_representation_parameters"]==0
+          assert cv["treatment_representation_parameters"]==0
+          assert cv["representation_dimension"]==512
+          assert cv["interaction_scale"]==16.0
+          assert cv["token_binding_temperature"]==0.10
+          assert cv["reference_pairwise_trainable_parameters"]==32832
+          assert cv["treatment_pairwise_trainable_parameters"]==32832
+          assert cv["added_treatment_parameters"]==0
+          assert cv["pairwise_parameter_initialization_bit_identical"] is True
+
+          assert len(r["training_trajectory"])==24
+          for name,rep_family,temp in (
+              ("reference_branch","s69_query_gated_identity_interaction",0.0),
+              ("treatment_branch","s75_token_level_bidirectional_binding",0.10),
+          ):
+              b=r[name]
+              m=b["selected_dev"]
+              pm=b["selected_pairwise_aggregate_dev"]
+              assert m["state_view_encodes"]==0
+              assert m["full_k"] is True
+              assert m["pairwise_antisymmetry_max_abs_error"]==0.0
+              assert m["pairwise_diagonal_max_abs_error"]==0.0
+              assert m["fused_max_probability_mass_error"]<=1e-6
+              assert pm["antisymmetry_max_abs_error"]==0.0
+              assert pm["diagonal_max_abs_error"]==0.0
+              assert pm["max_probability_mass_error"]<=1e-6
+
+              p=torch.load(root/b["checkpoint_file"],map_location="cpu",weights_only=True)
+              assert p["representation_family"]==rep_family
+              assert p["representation_dimension"]==512
+              assert p["representation_parameter_count"]==0
+              assert p["interaction_scale"]==16.0
+              assert p["token_binding_temperature"]==temp
+              assert p["pairwise_parameter_count"]==32832
+              assert p["pairwise_family"]=="s59_explicit_pairwise"
+              assert p["gate_context_source"]=="exact_s69_reference_representation"
+
+          assert r["partitions"]["train_semantic_cases"]==768
+          assert r["partitions"]["dev_semantic_cases"]==192
+          assert len(r["partitions"]["domains"])==12
+          assert r["partitions"]["exact_s74_state_question_option_overlap"]==0
+          assert r["partitions"]["k"]==4
+
+          assert r["post_dev_tuning_performed"] is False
+          assert r["token_weight_formula_changed"] is False
+          assert r["pooling_or_normalization_changed"] is False
+          assert r["representation_dimension_changed"] is False
+          assert r["learned_representation_adapter_added"] is False
+          assert r["pairwise_width_rank_changed"] is False
+          assert r["loss_optimizer_changed"] is False
+          assert r["reliability_target_reopened"] is False
+          assert r["native_retraining_performed"] is False
+          assert r["selector_changed"] is False
+          assert r["second_dev_run_performed"] is False
+          assert r["external_laya_jev_evaluation_opened"] is False
+          assert r["production_ready_claimed"] is False
+          PY
+
+      - name: Freeze S75 integrity
+        run: |
+          (cd artifacts/s75-train-dev && sha256sum result.json reference-candidate.pt treatment-candidate.pt > INTEGRITY.sha256 && sha256sum -c INTEGRITY.sha256)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hira-v1-s75-token-level-bidirectional-binding
+          path: artifacts/s75-train-dev
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
