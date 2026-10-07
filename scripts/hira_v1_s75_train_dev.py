@@ -687,9 +687,9 @@ def _train_matched(
         gates=s50._private_gates(metrics)
         checkpoint=out_dir/f"{arm}-candidate.pt"
         rep_family=(
-            "s59_concat"
+            "s69_query_gated_identity_interaction"
             if arm=="reference"
-            else "s75_query_gated_identity_interaction"
+            else "s75_token_level_bidirectional_binding"
         )
         torch.save({
             "schema_version":"hira-v1-s75-private-candidate-v1",
@@ -700,14 +700,15 @@ def _train_matched(
             "representation_family":rep_family,
             "representation_dimension":512,
             "representation_parameter_count":0,
-            "interaction_scale":
-                0.0 if arm=="reference" else S75_INTERACTION_SCALE,
+            "interaction_scale":S75_INTERACTION_SCALE,
+            "token_binding_temperature":
+                0.0 if arm=="reference" else 0.10,
             "pairwise_parameter_count":PAIRWISE_PARAMS,
             "pairwise_family":"s59_explicit_pairwise",
             "gate_parameter_count":GATE_PARAMS,
             "gate_family":"s64_context_injected",
             "gate_objective":"per_view_counterfactual_responsibility_bce",
-            "gate_context_source":"exact_s59_reference_representation",
+            "gate_context_source":"exact_s69_reference_representation",
             "gate_context_projection_seed":S64_CONTEXT_PROJECTION_SEED,
             "native_parameter_count_in_optimizer":0,
             "teacher_dependency":False,
@@ -932,7 +933,7 @@ def main():
             "gate_objective_both_arms":
                 "per_view_counterfactual_responsibility_bce",
             "gate_context_source_both_arms":
-                "exact_s59_reference_representation",
+                "exact_s69_reference_representation",
             "gate_context_projection_seed":S64_CONTEXT_PROJECTION_SEED,
             "correction_trainable_parameters":CORRECTION_PARAMS,
             "same_train_rows_and_order":True,
